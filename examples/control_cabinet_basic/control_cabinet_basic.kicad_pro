@@ -1,0 +1,13 @@
+{
+  "board": {},
+  "cvpcb": {},
+  "erc": {},
+  "libraries": {},
+  "meta": {
+    "filename": "control_cabinet_basic.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {},
+  "pcbnew": {},
+  "schematic": {}
+}
