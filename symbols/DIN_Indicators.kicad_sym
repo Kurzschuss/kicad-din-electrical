@@ -1,0 +1,28 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "H_GREEN"
+    (in_bom yes)
+    (property "Reference" "H" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "RUN_GREEN" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (symbol "H_GREEN_0_1"
+      (circle (center 0 0) (radius 2.54) (stroke (width 0) (type default)) (fill (type none)))
+    )
+    (symbol "H_GREEN_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "A1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "A2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "H_RED"
+    (in_bom yes)
+    (property "Reference" "H" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "FAULT_RED" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (symbol "H_RED_0_1"
+      (circle (center 0 0) (radius 2.54) (stroke (width 0) (type default)) (fill (type none)))
+    )
+    (symbol "H_RED_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "A1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "A2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
