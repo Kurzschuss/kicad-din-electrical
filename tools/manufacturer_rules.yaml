@@ -1,0 +1,13 @@
+manufacturers:
+  ABB:
+    priority: 1
+  Hager:
+    priority: 2
+  Phoenix Contact:
+    priority: 1
+  WAGO:
+    priority: 2
+
+rules:
+  prefer_existing_manufacturer: true
+  allow_alternatives: true
