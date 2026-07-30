@@ -1,0 +1,28 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "S_Reset_NO"
+    (in_bom yes)
+    (property "Reference" "S" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "RESET_NO" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (symbol "S_Reset_NO_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "K_SafetyRelay"
+    (in_bom yes)
+    (property "Reference" "K" (at 0 7.62 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "SAFETY_RELAY" (at 0 -7.62 0) (effects (font (size 1.27 1.27))))
+    (property "DIN_IEC_Reference" "EN ISO 13849" (at 0 -10.16 0) (effects (font (size 1 1))))
+    (symbol "K_SafetyRelay_0_1"
+      (rectangle (start -5.08 5.08) (end 5.08 -5.08) (stroke (width 0) (type default)) (fill (type background)))
+    )
+    (symbol "K_SafetyRelay_1_1"
+      (pin passive line (at -7.62 2.54 0) (length 2.54) (name "S11" (effects (font (size 1.27 1.27)))) (number "S11" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at -7.62 -2.54 0) (length 2.54) (name "S12" (effects (font (size 1.27 1.27)))) (number "S12" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 7.62 2.54 180) (length 2.54) (name "13" (effects (font (size 1.27 1.27)))) (number "13" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 7.62 -2.54 180) (length 2.54) (name "14" (effects (font (size 1.27 1.27)))) (number "14" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
