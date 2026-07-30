@@ -1,0 +1,8 @@
+Manufacturer,Series,Function,Example,Category
+ABB,S201,MCB,B16,Leitungsschutzschalter
+ABB,S202,MCB,C16,Leitungsschutzschalter
+ABB,DS201,RCBO,FI-LS 30mA,FI-LS
+ABB,F200,RCD,FI 4P 30mA,FI/RCD
+Hager,MBN,MCB,B16,Leitungsschutzschalter
+Hager,ADS,RCBO,FI-LS 30mA,FI-LS
+Hager,CDA,RCD,FI 4P 30mA,FI/RCD
