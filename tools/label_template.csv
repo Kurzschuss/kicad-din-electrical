@@ -1,0 +1,7 @@
+Label,Device,Description
+Q1,Q1,ABB Motor Protection
+K1,K1,ABB Contactor
+K2,K2,ABB Safety Relay
+X1,X1,Power Terminal
+X2,X2,Control Terminal
+X3,X3,Field Terminal
