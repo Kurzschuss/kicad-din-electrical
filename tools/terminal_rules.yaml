@@ -1,0 +1,14 @@
+terminals:
+  power_input:
+    prefix: X1
+    type: Power
+  control:
+    prefix: X2
+    type: Control
+  field:
+    prefix: X3
+    type: Field
+
+rules:
+  auto_number: true
+  include_pe: true
