@@ -1,0 +1,9 @@
+Wire,From,To,Signal
+W001,X1.1,Q1.1,L1
+W002,X1.2,Q1.3,L2
+W003,X1.3,Q1.5,L3
+W004,Q1,T1/K1,Motor_Power
+W101,+24V,K2,A1
+W102,S0,K2,Safety_Input
+W103,K2,K1,A1,Contactor_Enable
+W104,K1,A2,0V
