@@ -1,0 +1,18 @@
+{
+  "board": {},
+  "meta": {
+    "filename": "control_cabinet_basic.kicad_pro",
+    "version": 1
+  },
+  "libraries": {
+    "symbols": [
+      "DIN_Power",
+      "DIN_Control",
+      "DIN_Safety",
+      "DIN_Terminals"
+    ],
+    "footprints": [
+      "DIN_Rail"
+    ]
+  }
+}
