@@ -1,0 +1,10 @@
+alternatives:
+  ABB_MS116:
+    alternatives:
+      - ABB_MS132
+  ABB_AF09:
+    alternatives:
+      - ABB_AF16
+  Phoenix_Terminal:
+    alternatives:
+      - WAGO_Terminal
