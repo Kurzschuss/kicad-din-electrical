@@ -1,0 +1,6 @@
+File,Description,Version
+control_cabinet_basic.kicad_pro,KiCad project,1.0.0
+control_cabinet_basic.kicad_sch,Schematic,1.0.0
+bom.csv,Parts list,1.0.0
+wire_list.csv,Wiring list,1.0.0
+cabinet_layout.md,Cabinet layout,1.0.0
