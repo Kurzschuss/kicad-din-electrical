@@ -1,0 +1,37 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "K_Coil_24VDC"
+    (pin_names (offset 1.0))
+    (in_bom yes)
+    (property "Reference" "K" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "DIN_Coil_24VDC" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (property "DIN_IEC_Reference" "IEC 60947-4-1" (at 0 -7.62 0) (effects (font (size 1 1))))
+    (symbol "K_Coil_24VDC_0_1"
+      (rectangle (start -3.81 3.81) (end 3.81 -3.81) (stroke (width 0) (type default)) (fill (type background)))
+    )
+    (symbol "K_Coil_24VDC_1_1"
+      (pin passive line (at -7.62 0 0) (length 3.81) (name "A1" (effects (font (size 1.27 1.27)))) (number "A1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 7.62 0 180) (length 3.81) (name "A2" (effects (font (size 1.27 1.27)))) (number "A2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "K_AuxContact_NO"
+    (in_bom yes)
+    (property "Reference" "K" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "DIN_Aux_NO" (at 0 -3.81 0) (effects (font (size 1.27 1.27))))
+    (symbol "K_AuxContact_NO_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "13" (effects (font (size 1.27 1.27)))) (number "13" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "14" (effects (font (size 1.27 1.27)))) (number "14" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "K_AuxContact_NC"
+    (in_bom yes)
+    (property "Reference" "K" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "DIN_Aux_NC" (at 0 -3.81 0) (effects (font (size 1.27 1.27))))
+    (symbol "K_AuxContact_NC_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "21" (effects (font (size 1.27 1.27)))) (number "21" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "22" (effects (font (size 1.27 1.27)))) (number "22" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
