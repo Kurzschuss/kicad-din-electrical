@@ -1,0 +1,18 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "S_EStop_2NC"
+    (in_bom yes)
+    (property "Reference" "S" (at 0 7.62 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "EMERGENCY_STOP_2NC" (at 0 -7.62 0) (effects (font (size 1.27 1.27))))
+    (property "DIN_IEC_Reference" "EN ISO 13850" (at 0 -10.16 0) (effects (font (size 1 1))))
+    (symbol "S_EStop_2NC_0_1"
+      (circle (center 0 0) (radius 3.81) (stroke (width 0) (type default)) (fill (type none)))
+    )
+    (symbol "S_EStop_2NC_1_1"
+      (pin passive line (at -7.62 2.54 0) (length 2.54) (name "11" (effects (font (size 1.27 1.27)))) (number "11" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 7.62 2.54 180) (length 2.54) (name "12" (effects (font (size 1.27 1.27)))) (number "12" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at -7.62 -2.54 0) (length 2.54) (name "21" (effects (font (size 1.27 1.27)))) (number "21" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 7.62 -2.54 180) (length 2.54) (name "22" (effects (font (size 1.27 1.27)))) (number "22" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
