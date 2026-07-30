@@ -1,0 +1,19 @@
+devices:
+  Q1:
+    type: Motor Protection
+    label: Q1
+  K1:
+    type: Contactor
+    label: K1
+  K2:
+    type: Safety Relay
+    label: K2
+  X1:
+    type: Power Terminal
+    label: X1
+  X2:
+    type: Control Terminal
+    label: X2
+  X3:
+    type: Field Terminal
+    label: X3
