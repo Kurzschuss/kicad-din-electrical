@@ -1,0 +1,6 @@
+(footprint "DIN_Module_18mm"
+  (version 20240108)
+  (generator pcbnew)
+  (descr "DIN rail mounted module placeholder - TS35")
+  (attr through_hole)
+)
