@@ -1,0 +1,28 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "S_Start_NO"
+    (in_bom yes)
+    (property "Reference" "S" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "START_NO" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (symbol "S_Start_NO_0_1"
+      (circle (center 0 0) (radius 2.54) (stroke (width 0) (type default)) (fill (type none)))
+    )
+    (symbol "S_Start_NO_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "S_Stop_NC"
+    (in_bom yes)
+    (property "Reference" "S" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "STOP_NC" (at 0 -5.08 0) (effects (font (size 1.27 1.27))))
+    (symbol "S_Stop_NC_0_1"
+      (circle (center 0 0) (radius 2.54) (stroke (width 0) (type default)) (fill (type none)))
+    )
+    (symbol "S_Stop_NC_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
