@@ -1,0 +1,21 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+
+  (symbol "X_Terminal_2P"
+    (in_bom yes)
+    (property "Reference" "X" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "TERMINAL_2P" (at 0 -3.81 0) (effects (font (size 1.27 1.27))))
+    (symbol "X_Terminal_2P_1_1"
+      (pin passive line (at -5.08 0 0) (length 2.54) (name "1" (effects (font (size 1.27 1.27)))) (number "1" (effects (font (size 1.27 1.27)))))
+      (pin passive line (at 5.08 0 180) (length 2.54) (name "2" (effects (font (size 1.27 1.27)))) (number "2" (effects (font (size 1.27 1.27)))))
+    )
+  )
+
+  (symbol "X_Terminal_PE"
+    (in_bom yes)
+    (property "Reference" "X" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "TERMINAL_PE" (at 0 -3.81 0) (effects (font (size 1.27 1.27))))
+    (symbol "X_Terminal_PE_1_1"
+      (pin passive line (at 0 0 90) (length 2.54) (name "PE" (effects (font (size 1.27 1.27)))) (number "PE" (effects (font (size 1.27 1.27)))))
+    )
+  )
+)
