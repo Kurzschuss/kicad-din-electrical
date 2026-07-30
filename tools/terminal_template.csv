@@ -1,0 +1,8 @@
+Terminal,Type,Signal,Device
+X1.1,Power,L1,Supply
+X1.2,Power,L2,Supply
+X1.3,Power,L3,Supply
+X1.PE,PE,Protective Earth,PE Rail
+X2.1,Control,+24VDC,Control Supply
+X2.2,Control,0VDC,Control Supply
+X3.1,Field,Motor Cable,M1
