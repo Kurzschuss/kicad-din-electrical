@@ -34,11 +34,16 @@ class DinEditorHistory:
     def undo(self) -> dict:
         if not self._undo:
             return self.session.state()
+
         current = self._snapshot()
         target = self._undo.pop()
         self._redo.append(current)
-        if self._undo:
+
+        # If the current state is itself a checkpoint, that checkpoint is
+        # the state after the last mutation; undo must move to its predecessor.
+        if current == target and self._undo:
             target = self._undo[-1]
+
         return self._restore(target)
 
     def redo(self) -> dict:
