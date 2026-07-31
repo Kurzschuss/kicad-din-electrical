@@ -10,6 +10,10 @@ class DinEditorSyncViewModel:
 
     def refresh(self, kicad_fields: list[dict] | None = None) -> dict:
         if kicad_fields is not None:
+            if not isinstance(kicad_fields, list):
+                raise ValueError("KiCad fields must be a list")
+            if any(not isinstance(field, dict) for field in kicad_fields):
+                raise ValueError("KiCad fields must contain objects")
             self._kicad_fields = [dict(field) for field in kicad_fields]
         conflicts = build_conflict_list(self.sync_service.session.components, self._kicad_fields)
         report = self.sync_service.report()
