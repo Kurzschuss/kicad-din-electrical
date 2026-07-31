@@ -27,6 +27,20 @@ class DinEditorSyncActions:
         self.sync_log.record(reference, "KiCad", self._label(reference), "imported")
         return self._changed(state)
 
+    def import_manifest(self, manifest: dict, overwrite: bool = True) -> dict:
+        before = {
+            str(component.get("reference", "")): str(component.get("label") or component.get("terminal_label") or "")
+            for component in self.view_model.sync_service.session.components
+        }
+        state = self.view_model.sync_service.import_manifest_labels(manifest, overwrite=overwrite)
+        after = self.view_model.sync_service.session.components
+        for component in after:
+            reference = str(component.get("reference", ""))
+            label = str(component.get("label") or component.get("terminal_label") or "")
+            if reference in before and label != before[reference]:
+                self.sync_log.record(reference, "KiCad", label, "imported")
+        return self._changed(state)
+
     def resolve_all(self, choice: str) -> dict:
         state = self.view_model.refresh()
         conflicts = list(state.get("conflicts", []))
