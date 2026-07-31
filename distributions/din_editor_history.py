@@ -26,16 +26,19 @@ class DinEditorHistory:
         snapshot = self._snapshot()
         if self._undo and self._undo[-1] == snapshot:
             return
-        self._undo.append(snapshot)
+        if self._undo:
+            self._undo.append(deepcopy(self._undo[-1]))
+        else:
+            self._undo.append(snapshot)
         self._redo.clear()
 
     def undo(self) -> dict:
-        if not self._undo:
+        if len(self._undo) <= 1:
             return self.session.state()
         current = self._snapshot()
-        target = self._undo.pop()
         self._redo.append(current)
-        return self._restore(target if self._undo else target)
+        self._undo.pop()
+        return self._restore(self._undo[-1])
 
     def redo(self) -> dict:
         if not self._redo:
@@ -50,4 +53,4 @@ class DinEditorHistory:
         self._redo.clear()
 
     def state(self) -> dict:
-        return {"can_undo": bool(self._undo), "can_redo": bool(self._redo), "undo_depth": len(self._undo), "redo_depth": len(self._redo)}
+        return {"can_undo": len(self._undo) > 1, "can_redo": bool(self._redo), "undo_depth": max(0, len(self._undo) - 1), "redo_depth": len(self._redo)}
