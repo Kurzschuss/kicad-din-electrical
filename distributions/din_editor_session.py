@@ -9,6 +9,10 @@ class DinEditorSession:
         self.components = [dict(c) for c in (components or [])]
         self.rails = int(rails)
         self.te_per_rail = int(te_per_rail)
+        if self.rails <= 0:
+            raise ValueError("rails must be greater than zero")
+        if self.te_per_rail <= 0:
+            raise ValueError("te_per_rail must be greater than zero")
 
     def state(self) -> dict:
         errors = validate_rail_layout(self.components)
