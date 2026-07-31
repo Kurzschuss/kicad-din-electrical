@@ -17,12 +17,21 @@ def terminal_sync_report(components: list[dict]) -> dict:
 
 
 def apply_kicad_terminal_labels(components: list[dict], fields: list[dict], *, overwrite: bool = True) -> list[dict]:
-    """Apply KiCad Terminal_Label fields back to matching DIN terminal blocks."""
-    labels = {str(field.get("reference")): str(field.get("label", "")).strip() for field in fields}
+    """Apply unambiguous KiCad Terminal_Label fields to matching DIN terminal blocks."""
+    labels: dict[str, str] = {}
+    ambiguous: set[str] = set()
+    for field in fields:
+        reference = str(field.get("reference", ""))
+        label = str(field.get("label", "")).strip()
+        if reference in labels and labels[reference] != label:
+            ambiguous.add(reference)
+        else:
+            labels[reference] = label
+
     result = [dict(c) for c in components]
     for item in result:
         reference = str(item.get("reference", ""))
-        if item.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK" or reference not in labels:
+        if item.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK" or reference not in labels or reference in ambiguous:
             continue
         label = labels[reference]
         if label and (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
