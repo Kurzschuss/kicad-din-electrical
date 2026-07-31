@@ -32,14 +32,22 @@ class DinEditorHistory:
     def undo(self) -> dict:
         if not self._undo:
             return self.session.state()
-        self._redo.append(self._snapshot())
-        return self._restore(self._undo.pop())
+        current = self._snapshot()
+        target = self._undo.pop()
+        self._redo.append(target)
+        if self._undo:
+            target = self._undo[-1]
+        else:
+            target = current
+        return self._restore(target)
 
     def redo(self) -> dict:
         if not self._redo:
             return self.session.state()
-        self._undo.append(self._snapshot())
-        return self._restore(self._redo.pop())
+        current = self._snapshot()
+        target = self._redo.pop()
+        self._undo.append(current)
+        return self._restore(target)
 
     def clear(self) -> None:
         self._undo.clear()
