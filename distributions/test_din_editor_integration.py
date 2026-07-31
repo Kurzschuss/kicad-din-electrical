@@ -62,19 +62,27 @@ def test_invalid_project_is_not_saved(tmp_path: Path):
     assert not path.exists()
 
 
-def test_undo_redo_restores_terminal_label():
+def test_undo_redo_restores_terminal_label_and_savepoint(tmp_path: Path):
     manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
     change_service = manager.change_service
 
     change_service.set_terminal_label(0, "Versorgung 24V")
     assert manager.has_unsaved_changes
-    assert manager.session.components[0]["label"] == "Versorgung 24V"
 
     change_service.undo()
     assert manager.session.components[0]["label"] == "+24V SPS"
+    assert not manager.has_unsaved_changes
 
     change_service.redo()
     assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.has_unsaved_changes
+
+    manager.save(path)
+    change_service.undo()
+    assert manager.has_unsaved_changes
+    change_service.redo()
+    assert not manager.has_unsaved_changes
 
 
 def test_load_requires_explicit_discard_when_dirty(tmp_path: Path):
