@@ -1,22 +1,24 @@
-"""Render exact 1..216 DIN positions with multi-module device blocks."""
+"""Render exact 1..216 TE DIN positions with multi-module device blocks."""
 from .positions import assign_positions
 
-FIELD_CAPACITY = 36
-MAX_FIELDS = 6
+TE_PER_ROW = 12
+MAX_ROWS = 18
+FIELD_CAPACITY = TE_PER_ROW
+MAX_FIELDS = MAX_ROWS
 
 
 def render(devices: list[str]) -> str:
     placements = assign_positions(devices)
-    fields = {n: ["RESERVE"] * FIELD_CAPACITY for n in range(1, MAX_FIELDS + 1)}
+    rows = {n: ["RESERVE"] * TE_PER_ROW for n in range(1, MAX_ROWS + 1)}
     for p in placements:
         for pos in range(p["start"], p["end"] + 1):
-            local = pos - (p["field"] - 1) * FIELD_CAPACITY - 1
-            fields[p["field"]][local] = p["device"]
+            local = pos - (p["row"] - 1) * TE_PER_ROW - 1
+            rows[p["row"]][local] = p["device"]
 
     lines = []
-    for field_no, slots in fields.items():
-        first = (field_no - 1) * FIELD_CAPACITY + 1
-        last = field_no * FIELD_CAPACITY
-        lines.append(f"Feld {field_no}: Module {first:03d}-{last:03d}")
+    for row_no, slots in rows.items():
+        first = (row_no - 1) * TE_PER_ROW + 1
+        last = row_no * TE_PER_ROW
+        lines.append(f"Reihe {row_no:02d}: TE {first:03d}-{last:03d}")
         lines.append(" | " + " | ".join(slots) + " |")
     return "\n".join(lines)
