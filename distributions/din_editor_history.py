@@ -37,6 +37,8 @@ class DinEditorHistory:
         current = self._snapshot()
         target = self._undo.pop()
         self._redo.append(current)
+        if self._undo:
+            target = self._undo[-1]
         return self._restore(target)
 
     def redo(self) -> dict:
