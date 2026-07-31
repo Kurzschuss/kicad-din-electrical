@@ -29,13 +29,16 @@ class DinEditorSyncActions:
 
     def resolve_all(self, choice: str) -> dict:
         state = self.view_model.refresh()
-        for conflict in list(state.get("conflicts", [])):
+        conflicts = list(state.get("conflicts", []))
+        if not conflicts:
+            return state
+        state = self.view_model.choose_all(choice)
+        source = "KiCad" if choice == "kicad" else "DIN"
+        action = "imported" if choice == "kicad" else "kept"
+        for conflict in conflicts:
             reference = str(conflict["reference"])
-            self.view_model.choose(reference, choice)
-            source = "KiCad" if choice == "kicad" else "DIN"
-            action = "imported" if choice == "kicad" else "kept"
             self.sync_log.record(reference, source, self._label(reference), action)
-        return self._changed(self.view_model.refresh())
+        return self._changed(state)
 
     def _label(self, reference: str) -> str:
         for component in self.view_model.sync_service.session.components:
