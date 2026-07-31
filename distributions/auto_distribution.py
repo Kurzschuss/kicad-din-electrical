@@ -1,9 +1,12 @@
-"""Automatic 216-module field allocation using the device catalog."""
+"""Automatic 216-TE row allocation using the device catalog."""
 from .device_catalog import DEVICE_WIDTHS, MAX_MODULES
-from .board_layout import FIELD_CAPACITY, MAX_FIELDS
+from .board_layout import TE_PER_ROW, MAX_ROWS
+
+FIELD_CAPACITY = TE_PER_ROW  # compatibility alias
+MAX_FIELDS = MAX_ROWS  # compatibility alias
 
 
-def allocate(devices: list[str], field_capacity: int = FIELD_CAPACITY) -> list[dict]:
+def allocate(devices: list[str], field_capacity: int = TE_PER_ROW) -> list[dict]:
     if not devices:
         return []
     widths = []
@@ -13,23 +16,23 @@ def allocate(devices: list[str], field_capacity: int = FIELD_CAPACITY) -> list[d
         widths.append(DEVICE_WIDTHS[device])
     total = sum(widths)
     if total > MAX_MODULES:
-        raise ValueError(f"{total} modules requested; maximum is {MAX_MODULES}")
-    if field_capacity < 1 or field_capacity > FIELD_CAPACITY:
-        raise ValueError("field_capacity must be 1..36")
+        raise ValueError(f"{total} TE requested; maximum is {MAX_MODULES} TE")
+    if field_capacity < 1 or field_capacity > TE_PER_ROW:
+        raise ValueError(f"field_capacity must be 1..{TE_PER_ROW}")
 
-    fields = []
+    rows = []
     current = []
     used = 0
     for device, width in zip(devices, widths):
         if width > field_capacity:
-            raise ValueError(f"{device} is wider than the field capacity")
+            raise ValueError(f"{device} is wider than the row capacity")
         if used + width > field_capacity:
-            fields.append({"field": len(fields) + 1, "devices": current, "modules": used, "reserve": field_capacity - used})
+            rows.append({"row": len(rows) + 1, "field": len(rows) + 1, "devices": current, "modules": used, "te_used": used, "reserve": field_capacity - used, "reserve_te": field_capacity - used})
             current, used = [], 0
         current.append(device)
         used += width
     if current:
-        fields.append({"field": len(fields) + 1, "devices": current, "modules": used, "reserve": field_capacity - used})
-    if len(fields) > MAX_FIELDS:
-        raise ValueError("allocation requires more than 6 fields / 216 modules")
-    return fields
+        rows.append({"row": len(rows) + 1, "field": len(rows) + 1, "devices": current, "modules": used, "te_used": used, "reserve": field_capacity - used, "reserve_te": field_capacity - used})
+    if len(rows) > MAX_ROWS:
+        raise ValueError(f"allocation requires more than {MAX_ROWS} rows / {MAX_MODULES} TE")
+    return rows
