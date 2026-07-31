@@ -1,6 +1,7 @@
 """Combined DIN editor project state including synchronization audit history."""
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from .din_editor_serialization import export_session, import_session
@@ -62,6 +63,12 @@ def _validate_sync_entry(entry: object) -> dict:
         raise ValueError("synchronization log entry is incomplete")
     if any(not isinstance(entry[key], str) for key in required):
         raise ValueError("synchronization log entry fields must be strings")
+    try:
+        timestamp = datetime.fromisoformat(entry["timestamp"])
+    except ValueError as exc:
+        raise ValueError("synchronization log timestamp must be ISO-8601") from exc
+    if timestamp.utcoffset() is None:
+        raise ValueError("synchronization log timestamp must include a timezone")
     return {key: entry[key] for key in required}
 
 
