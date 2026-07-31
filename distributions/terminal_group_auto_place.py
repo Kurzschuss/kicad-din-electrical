@@ -7,16 +7,22 @@ from .terminal_grouping import group_terminals
 def auto_place_terminal_groups(components: list[dict], rails: int = 18, te_per_rail: int = 12) -> list[dict]:
     result = [dict(c) for c in components]
     terminals = [c for c in result if c.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK"]
-    non_terminals = [c for c in result if c.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK"]
     for group in group_terminals(terminals):
-        for terminal in group:
+        group_sorted = sorted(group, key=lambda item: (int(item.get("rail", 1)), int(item.get("start_te", 1)), str(item.get("reference", ""))))
+        preferred_rail = None
+        preferred_start = None
+        for terminal in group_sorted:
             reference = str(terminal.get("reference"))
-            others = [c for c in non_terminals + [x for x in terminals if str(x.get("reference")) != reference] if str(c.get("reference")) != reference]
-            rail, start = find_free_position(others, component_te(terminal), rails, te_per_rail)
-            for item in result:
-                if str(item.get("reference")) == reference:
-                    item.update({"rail": rail, "start_te": start, "end_te": start + component_te(terminal) - 1, "width_te": component_te(terminal)})
-                    break
+            target = next(c for c in result if str(c.get("reference")) == reference)
+            width = component_te(target)
+            others = [c for c in result if str(c.get("reference")) != reference]
+            if preferred_rail is not None and preferred_start is not None and preferred_start + width - 1 <= int(te_per_rail):
+                rail, start = preferred_rail, preferred_start
+            else:
+                rail, start = find_free_position(others, width, rails, te_per_rail)
+            target.update({"rail": rail, "start_te": start, "end_te": start + width - 1, "width_te": width})
+            preferred_rail = rail
+            preferred_start = start + width
     errors = validate_rail_layout(result)
     if errors:
         raise ValueError("terminal grouping produced an invalid layout: " + "; ".join(errors))
