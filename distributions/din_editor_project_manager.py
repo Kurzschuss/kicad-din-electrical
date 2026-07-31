@@ -14,7 +14,7 @@ class DinEditorProjectManager:
     def __init__(self, session: DinEditorSession | None = None, sync_log: DinSyncLog | None = None):
         self.session = session or DinEditorSession()
         self.sync_log = sync_log or DinSyncLog()
-        self.history = DinEditorHistory(self.session)
+        self.history = DinEditorHistory(self.session, self.sync_log)
         self.path: Path | None = None
         self._saved_state = self._snapshot()
         self.dirty = False
@@ -68,7 +68,7 @@ class DinEditorProjectManager:
         session, sync_log = load_project_bundle(path)
         self.session = session
         self.sync_log = sync_log
-        self.history = DinEditorHistory(self.session)
+        self.history = DinEditorHistory(self.session, self.sync_log)
         self.change_service = self._build_change_service()
         self.path = Path(path)
         self._saved_state = self._snapshot()
@@ -80,7 +80,7 @@ class DinEditorProjectManager:
             raise RuntimeError("project has unsaved changes; save or discard them before creating a new project")
         self.session = DinEditorSession()
         self.sync_log = DinSyncLog()
-        self.history = DinEditorHistory(self.session)
+        self.history = DinEditorHistory(self.session, self.sync_log)
         self.change_service = self._build_change_service()
         self.path = None
         self._saved_state = self._snapshot()
@@ -96,7 +96,7 @@ class DinEditorProjectManager:
         session, sync_log = load_project_bundle(self.path)
         self.session = session
         self.sync_log = sync_log
-        self.history = DinEditorHistory(self.session)
+        self.history = DinEditorHistory(self.session, self.sync_log)
         self.change_service = self._build_change_service()
         self._saved_state = self._snapshot()
         self.dirty = False
