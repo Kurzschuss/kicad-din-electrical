@@ -7,6 +7,14 @@ def terminal_sync_report(components: list[dict]) -> dict:
     expected = {}
     conflicts = []
     seen = set()
+    duplicate_components = {}
+    for component in components:
+        reference = str(component.get("reference", ""))
+        if component.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK" and reference:
+            duplicate_components.setdefault(reference, []).append(component)
+    for reference, items in duplicate_components.items():
+        if len(items) > 1:
+            conflicts.append({"reference": reference, "labels": [str(item.get("label") or item.get("terminal_label") or "") for item in items]})
     for field in fields:
         reference = str(field["reference"])
         label = str(field["label"])
