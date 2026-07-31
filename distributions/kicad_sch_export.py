@@ -1,4 +1,4 @@
-"""Export a DIN schematic plan to a KiCad-oriented schematic skeleton."""
+"""Export a DIN schematic plan with resolved project symbol metadata."""
 from pathlib import Path
 from .kicad_schematic_plan import build_schematic_plan
 from .kicad_terminal_label_export import terminal_label_fields
@@ -9,7 +9,6 @@ def _quote(value: str) -> str:
 
 
 def build_kicad_sch(plan: dict, connections: list[dict] | None = None) -> str:
-    """Return a deterministic inspectable schematic skeleton with terminal fields."""
     schematic = build_schematic_plan(plan, connections)
     fields = terminal_label_fields(plan)
     lines = [
@@ -18,18 +17,16 @@ def build_kicad_sch(plan: dict, connections: list[dict] | None = None) -> str:
         '  (paper "A4")',
         '  (lib_symbols)',
         '  )',
-        '  (junction (at 0 0) (diameter 0) (color 0 0 0 0) (uuid 00000000-0000-0000-0000-000000000002))',
     ]
     for symbol in schematic["symbols"]:
         lines.extend([
             f'  (text {_quote(symbol["reference"])} (exclude_from_sim no) (effects (font (size 1.27 1.27))))',
             f'  (text {_quote(symbol.get("value", ""))} (exclude_from_sim no) (effects (font (size 1.27 1.27))))',
+            f'  (text {_quote(symbol.get("library_id", ""))} (exclude_from_sim no) (effects (font (size 0.9 0.9))))',
+            f'  (text {_quote(str(symbol.get("pins", [])))} (exclude_from_sim no) (effects (font (size 0.9 0.9))))',
         ])
     for field in fields:
-        lines.append(
-            f'  (text {_quote(f"{field[\"reference\"]} | {field[\"field_name\"]}={field[\"label\"]}")} '
-            '(exclude_from_sim no) (effects (font (size 1.0 1.0))))'
-        )
+        lines.append(f'  (text {_quote(f"{field[\"reference\"]} | {field[\"field_name\"]}={field[\"label\"]}")} (exclude_from_sim no) (effects (font (size 1.0 1.0))))')
     for net_name, pins in schematic["nets"].items():
         lines.append(f'  (text {_quote(f"NET {net_name}: {pins}")} (exclude_from_sim no) (effects (font (size 1.0 1.0))))')
     lines.append(')')
