@@ -2,8 +2,15 @@
 from .kicad_terminal_label_export import terminal_label_fields
 
 
+def _terminal_plan(components: list[dict]) -> dict:
+    """Adapt editor components to the terminal-oriented KiCad export plan."""
+    return {
+        "terminals": [dict(c) for c in components if c.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK"],
+    }
+
+
 def terminal_sync_report(components: list[dict]) -> dict:
-    fields = terminal_label_fields({"components": [dict(c) for c in components]})
+    fields = terminal_label_fields(_terminal_plan(components))
     expected = {}
     conflicts = []
     seen = set()
@@ -80,4 +87,4 @@ def import_kicad_manifest_labels(components: list[dict], manifest: dict, *, over
 
 
 def export_terminal_labels(components: list[dict]) -> list[dict]:
-    return terminal_label_fields({"components": [dict(c) for c in components]})
+    return terminal_label_fields(_terminal_plan(components))
