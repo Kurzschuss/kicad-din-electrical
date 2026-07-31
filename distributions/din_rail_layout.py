@@ -33,6 +33,25 @@ def layout_components(components: list[dict], rails: int = DEFAULT_RAILS, te_per
     return result
 
 
+def validate_rail_layout(components: list[dict]) -> list[str]:
+    errors = []
+    by_rail: dict[str, list[tuple[int, int, str]]] = {}
+    for item in components:
+        rail = str(item.get("rail", 1))
+        start = int(item.get("start_te", 1))
+        end = int(item.get("end_te", start + component_te(item) - 1))
+        if start < 1 or end < start:
+            errors.append(f"{item.get('reference', '?')}: invalid TE range {start}-{end}")
+            continue
+        by_rail.setdefault(rail, []).append((start, end, str(item.get("reference", "?"))))
+    for rail, ranges in by_rail.items():
+        ranges.sort()
+        for previous, current in zip(ranges, ranges[1:]):
+            if current[0] <= previous[1]:
+                errors.append(f"rail {rail}: TE overlap {previous[2]} ({previous[0]}-{previous[1]}) / {current[2]} ({current[0]}-{current[1]})")
+    return errors
+
+
 def total_te(components: list[dict]) -> int:
     return sum(component_te(component) for component in components)
 
@@ -44,4 +63,4 @@ def layout_summary(components: list[dict], rails: int = DEFAULT_RAILS, te_per_ra
         used_by_rail[item["rail"]] += item["width_te"]
     used = sum(used_by_rail.values())
     capacity = int(rails) * int(te_per_rail)
-    return {"components": placed, "rails": int(rails), "te_per_rail": int(te_per_rail), "capacity_te": capacity, "used_te": used, "free_te": capacity - used, "used_by_rail": used_by_rail}
+    return {"components": placed, "rails": int(rails), "te_per_rail": int(te_per_rail), "capacity_te": capacity, "used_te": used, "free_te": capacity - used, "used_by_rail": used_by_rail, "errors": validate_rail_layout(placed)}
