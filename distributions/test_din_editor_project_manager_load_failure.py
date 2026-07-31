@@ -11,7 +11,7 @@ def test_failed_load_preserves_current_state_and_path(tmp_path):
     save_project_bundle(manager.session, manager.sync_log, target)
     manager.load(target)
     manager.session.components.append({"reference": "X5", "label": "24V"})
-    manager.save()
+    manager.save(target)
     manager.session.components.append({"reference": "X6", "label": "0V"})
     bad = tmp_path / "broken.din.json"
     bad.write_text('{"version": 2, "session": [], "sync_log": []}', encoding="utf-8")
