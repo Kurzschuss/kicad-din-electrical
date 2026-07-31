@@ -285,3 +285,33 @@ def test_manager_save_as_failure_keeps_previous_path_and_state(monkeypatch, tmp_
     assert original_path.exists()
     assert not target.exists()
     assert not list(tmp_path.glob(f".{target.name}.*.tmp"))
+
+
+def test_manager_save_as_failure_preserves_existing_target(monkeypatch, tmp_path: Path):
+    manager = _manager()
+    original_path = manager.save(tmp_path / "anlage.json")
+    target = tmp_path / "anlage-neu.json"
+    target.write_text("old target content\n", encoding="utf-8")
+    original_target = target.read_text(encoding="utf-8")
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    original_state = manager._snapshot()
+    original_history = manager.history.state()
+
+    def fail_replace(self, replacement_target):
+        raise OSError("simulated save-as replacement failure")
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+
+    try:
+        manager.save(target)
+    except DinProjectBundleError as exc:
+        assert str(target) in str(exc)
+    else:
+        raise AssertionError("save-as failure was not reported")
+
+    assert target.read_text(encoding="utf-8") == original_target
+    assert manager.path == original_path
+    assert manager._snapshot() == original_state
+    assert manager.history.state() == original_history
+    assert manager.has_unsaved_changes
+    assert not list(tmp_path.glob(f".{target.name}.*.tmp"))
