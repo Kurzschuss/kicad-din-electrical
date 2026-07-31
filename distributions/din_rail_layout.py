@@ -35,3 +35,13 @@ def layout_components(components: list[dict], rails: int = DEFAULT_RAILS, te_per
 
 def total_te(components: list[dict]) -> int:
     return sum(component_te(component) for component in components)
+
+
+def layout_summary(components: list[dict], rails: int = DEFAULT_RAILS, te_per_rail: int = MAX_TE_PER_RAIL) -> dict:
+    placed = layout_components(components, rails, te_per_rail)
+    used_by_rail = {rail: 0 for rail in range(1, int(rails) + 1)}
+    for item in placed:
+        used_by_rail[item["rail"]] += item["width_te"]
+    used = sum(used_by_rail.values())
+    capacity = int(rails) * int(te_per_rail)
+    return {"components": placed, "rails": int(rails), "te_per_rail": int(te_per_rail), "capacity_te": capacity, "used_te": used, "free_te": capacity - used, "used_by_rail": used_by_rail}
