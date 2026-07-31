@@ -1,0 +1,16 @@
+placement:
+  rail_width_mm: 17.5
+  reserve_modules: 2
+  order:
+    - MAIN_SWITCH
+    - RCD
+    - RCBO
+    - MCB
+    - CONTACTOR
+    - TERMINALS
+    - RESERVE
+  rules:
+    keep_pe_n_separate: true
+    group_control_devices: true
+    group_power_devices: true
+    reserve_at_end_of_row: true
