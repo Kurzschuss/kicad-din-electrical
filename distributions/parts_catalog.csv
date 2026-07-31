@@ -1,0 +1,11 @@
+Category,Manufacturer,Series,Function,Modules,Example
+MCB,ABB,S201,Leitungsschutzschalter 1P,1,B16
+MCB,Hager,MBN,Leitungsschutzschalter 1P,1,B16
+RCD,ABB,F200,FI/RCD 4P,4,30mA Typ A
+RCD,Hager,CDA,FI/RCD 4P,4,30mA Typ A
+RCBO,ABB,DS201,FI/LS 1P+N,2,30mA
+RCBO,Hager,ADS,FI/LS 1P+N,2,30mA
+Switch,ABB,OT,Lasttrennschalter,2,2P
+Switch,Hager,SFT,Lasttrennschalter,2,2P
+Contactor,ABB,ESB,Schütz,2,3P
+Contactor,Hager,ESC,Schütz,2,3P
