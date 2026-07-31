@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from .din_editor_project_bundle import DinProjectBundleError, save_project_bundle
+from .din_editor_project_io import load_project, save_project
 from .din_editor_project_manager import DinEditorProjectManager
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_service import DinEditorSyncService
@@ -202,3 +203,28 @@ def test_failed_replace_preserves_existing_project(monkeypatch, tmp_path: Path):
 
     assert path.read_text(encoding="utf-8") == original
     assert not list(tmp_path.glob(f".{path.name}.*.tmp"))
+
+
+def test_legacy_project_io_preserves_session_only_format(tmp_path: Path):
+    manager = _manager()
+    path = save_project(manager.session, tmp_path / "legacy.json")
+    raw = path.read_text(encoding="utf-8")
+
+    assert '"version": 2' not in raw
+    assert '"sync_log"' not in raw
+
+    loaded = load_project(path)
+    assert loaded.components == manager.session.components
+
+
+def test_legacy_project_io_reports_corrupt_json(tmp_path: Path):
+    path = tmp_path / "legacy-corrupt.json"
+    path.write_text("{not-json", encoding="utf-8")
+
+    try:
+        load_project(path)
+    except DinProjectBundleError as exc:
+        assert "invalid JSON" in str(exc)
+        assert str(path) in str(exc)
+    else:
+        raise AssertionError("corrupt legacy project loaded without an error")
