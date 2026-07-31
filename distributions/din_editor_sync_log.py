@@ -36,4 +36,22 @@ class DinSyncLog:
         data = json.loads(source.read_text(encoding="utf-8"))
         if not isinstance(data, list):
             raise ValueError("invalid DIN synchronization log")
-        self.entries = [dict(entry) for entry in data]
+        validated = []
+        for entry in data:
+            if not isinstance(entry, dict):
+                raise ValueError("invalid DIN synchronization log entry")
+            required = {"timestamp", "reference", "source", "value", "action"}
+            if not required.issubset(entry):
+                raise ValueError("invalid DIN synchronization log entry")
+            timestamp = str(entry["timestamp"])
+            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                raise ValueError("DIN synchronization log timestamp requires timezone")
+            if not str(entry["reference"]).strip():
+                raise ValueError("DIN synchronization log reference is required")
+            if not str(entry["source"]).strip():
+                raise ValueError("DIN synchronization log source is required")
+            if not str(entry["action"]).strip():
+                raise ValueError("DIN synchronization log action is required")
+            validated.append(dict(entry))
+        self.entries = validated
