@@ -20,5 +20,14 @@ class DinEditorSyncViewModel:
         selected = [c for c in conflicts if str(c.get("reference")) == str(reference)]
         if not selected:
             raise KeyError(f"no synchronization conflict for {reference}")
-        self.sync_service.session.components = resolve_conflicts(self.sync_service.session.components, selected, choice=choice)
+        components = resolve_conflicts(self.sync_service.session.components, selected, choice=choice)
+        self.sync_service.change_service.replace_components(components)
+        return self.refresh()
+
+    def choose_all(self, choice: str) -> dict:
+        conflicts = build_conflict_list(self.sync_service.session.components, self._kicad_fields)
+        if not conflicts:
+            return self.refresh()
+        components = resolve_conflicts(self.sync_service.session.components, conflicts, choice=choice)
+        self.sync_service.change_service.replace_components(components)
         return self.refresh()
