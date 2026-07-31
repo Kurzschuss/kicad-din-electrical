@@ -199,6 +199,46 @@ def test_invalid_sync_log_entry_has_clear_error():
             raise AssertionError(f"invalid sync log entry was accepted: {entry!r}")
 
 
+def test_invalid_sync_log_timestamp_has_clear_error():
+    from .din_editor_project_bundle import import_project_bundle
+
+    base = {"reference": "X5", "source": "KiCad", "value": "24V", "action": "imported"}
+    invalid_timestamps = [
+        "not-a-timestamp",
+        "2026-07-31T18:00:00",
+        "2026-07-31 18:00:00",
+    ]
+    for timestamp in invalid_timestamps:
+        try:
+            import_project_bundle({
+                "version": 2,
+                "session": {"version": 1, "components": []},
+                "sync_log": [{"timestamp": timestamp, **base}],
+            })
+        except DinProjectBundleError as exc:
+            assert "invalid DIN editor project data" in str(exc)
+        else:
+            raise AssertionError(f"invalid timestamp was accepted: {timestamp!r}")
+
+
+def test_sync_log_timestamp_accepts_timezone_aware_iso8601():
+    from .din_editor_project_bundle import import_project_bundle
+
+    entry = {
+        "timestamp": "2026-07-31T18:00:00+00:00",
+        "reference": "X5",
+        "source": "KiCad",
+        "value": "24V",
+        "action": "imported",
+    }
+    _, log = import_project_bundle({
+        "version": 2,
+        "session": {"version": 1, "components": []},
+        "sync_log": [entry],
+    })
+    assert log.entries == [entry]
+
+
 def test_failed_replace_preserves_existing_project(monkeypatch, tmp_path: Path):
     path = tmp_path / "anlage.json"
     manager = _manager()
