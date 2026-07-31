@@ -2,16 +2,16 @@
 from pathlib import Path
 
 from .din_editor_project_manager import DinEditorProjectManager
+from .din_editor_session import DinEditorSession
 from .din_editor_sync_service import DinEditorSyncService
 from .din_editor_sync_view_model import DinEditorSyncViewModel
 
 
 def _manager() -> DinEditorProjectManager:
-    manager = DinEditorProjectManager()
-    manager.session.components = [
+    session = DinEditorSession(components=[
         {"reference": "X5", "component_type": "DIN_RAIL_TERMINAL_BLOCK", "label": "+24V SPS", "can_edit_label": True},
-    ]
-    return manager
+    ])
+    return DinEditorProjectManager(session=session)
 
 
 def _actions(manager: DinEditorProjectManager):
@@ -69,6 +69,7 @@ def test_undo_redo_restores_terminal_label_and_savepoint(tmp_path: Path):
 
     change_service.set_terminal_label(0, "Versorgung 24V")
     assert manager.has_unsaved_changes
+    assert manager.history.state()["can_undo"]
 
     change_service.undo()
     assert manager.session.components[0]["label"] == "+24V SPS"
@@ -79,10 +80,13 @@ def test_undo_redo_restores_terminal_label_and_savepoint(tmp_path: Path):
     assert manager.has_unsaved_changes
 
     manager.save(path)
+    assert not manager.history.state()["can_undo"]
+    change_service = manager.change_service
+    change_service.set_terminal_label(0, "Nochmals geändert")
     change_service.undo()
-    assert manager.has_unsaved_changes
-    change_service.redo()
     assert not manager.has_unsaved_changes
+    change_service.redo()
+    assert manager.has_unsaved_changes
 
 
 def test_load_requires_explicit_discard_when_dirty(tmp_path: Path):
