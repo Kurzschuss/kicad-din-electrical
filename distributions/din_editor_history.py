@@ -1,0 +1,31 @@
+"""Undo/redo support for the GUI-independent DIN editor session."""
+from copy import deepcopy
+from .din_editor_session import DinEditorSession
+
+
+class DinEditorHistory:
+    def __init__(self, session: DinEditorSession):
+        self.session = session
+        self._undo = []
+        self._redo = []
+
+    def _snapshot(self):
+        return deepcopy(self.session.components)
+
+    def checkpoint(self):
+        self._undo.append(self._snapshot())
+        self._redo.clear()
+
+    def undo(self) -> dict:
+        if not self._undo:
+            return self.session.state()
+        self._redo.append(self._snapshot())
+        self.session.components = self._undo.pop()
+        return self.session.state()
+
+    def redo(self) -> dict:
+        if not self._redo:
+            return self.session.state()
+        self._undo.append(self._snapshot())
+        self.session.components = self._redo.pop()
+        return self.session.state()
