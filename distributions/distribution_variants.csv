@@ -1,0 +1,5 @@
+Variant,Rows,Modules,Application
+UV_1ROW,1,12,Unterverteilung
+UV_2ROW,2,24,Unterverteilung
+HV_3ROW,3,36,Hauptverteilung
+HV_4ROW,4,48,Hauptverteilung
