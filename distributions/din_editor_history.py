@@ -17,9 +17,9 @@ class DinEditorHistory:
         return state
 
     def _restore(self, state: dict) -> dict:
-        self.session.components = deepcopy(state["components"])
+        self.session.components[:] = deepcopy(state["components"])
         if self.sync_log is not None:
-            self.sync_log.entries = deepcopy(state.get("sync_log", []))
+            self.sync_log.entries[:] = deepcopy(state.get("sync_log", []))
         return self.session.state()
 
     def checkpoint(self):
