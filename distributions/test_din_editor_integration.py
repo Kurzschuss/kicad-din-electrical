@@ -1,6 +1,7 @@
 """Integration tests for the DIN editor persistence/sync workflow."""
 from pathlib import Path
 
+from .din_editor_project_bundle import DinProjectBundleError
 from .din_editor_project_manager import DinEditorProjectManager
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_service import DinEditorSyncService
@@ -152,3 +153,28 @@ def test_load_requires_explicit_discard_when_dirty(tmp_path: Path):
     manager.load(path, discard_changes=True)
     assert manager.session.components[0]["label"] == "+24V SPS"
     assert not manager.has_unsaved_changes
+
+
+def test_corrupt_project_file_has_clear_load_error(tmp_path: Path):
+    path = tmp_path / "corrupt.json"
+    path.write_text('{"version": 2, "session":', encoding="utf-8")
+    manager = _manager()
+
+    try:
+        manager.load(path)
+    except DinProjectBundleError as exc:
+        assert "invalid JSON" in str(exc)
+        assert str(path) in str(exc)
+    else:
+        raise AssertionError("corrupt project loaded without an error")
+
+
+def test_invalid_project_bundle_schema_has_clear_error():
+    from .din_editor_project_bundle import import_project_bundle
+
+    try:
+        import_project_bundle({"version": 2, "session": {}, "sync_log": "broken"})
+    except DinProjectBundleError as exc:
+        assert "invalid DIN editor project data" in str(exc)
+    else:
+        raise AssertionError("invalid bundle schema was accepted")
