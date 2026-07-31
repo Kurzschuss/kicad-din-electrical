@@ -1,0 +1,16 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+  (symbol "RCBO_Busbar_1P_N"
+    (pin_names (offset 0.5)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+    (property "Reference" "W" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "FI/LS Verbindungsschiene" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Description" "Busbar for 1P+N RCBO/FI-LS groups; verify compatibility with selected devices" (at 0 -5.08 0) (effects (font (size 1 1)) (hide yes)))
+    (symbol "RCBO_Busbar_1P_N_0_1"
+      (polyline (pts (xy -7.62 1.27) (xy 7.62 1.27)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -7.62 -1.27) (xy 7.62 -1.27)) (stroke (width 0.508) (type default)))
+    )
+    (symbol "RCBO_Busbar_1P_N_1_1"
+      (pin passive line (at -10.16 1.27 0) (length 2.54) (name "L" (effects (font (size 1 1)))) (number "L" (effects (font (size 1 1)))))
+      (pin passive line (at -10.16 -1.27 0) (length 2.54) (name "N" (effects (font (size 1 1)))) (number "N" (effects (font (size 1 1)))))
+    )
+  )
+)
