@@ -12,6 +12,40 @@ class DinProjectBundleError(ValueError):
     """Raised when a DIN editor project file cannot be loaded or saved safely."""
 
 
+def _save_json_atomic(payload: object, path: str | Path) -> Path:
+    target = Path(path)
+    temporary: Path | None = None
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        encoded = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+        with NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(target)
+    except (OSError, TypeError, ValueError) as exc:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise DinProjectBundleError(f"DIN project file cannot be saved: {target}") from exc
+    return target
+
+
+def _load_json(path: str | Path) -> object:
+    source = Path(path)
+    try:
+        return json.loads(source.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise DinProjectBundleError(f"DIN project file not found: {source}") from exc
+    except (OSError, UnicodeDecodeError) as exc:
+        raise DinProjectBundleError(f"DIN project file cannot be read: {source}") from exc
+    except json.JSONDecodeError as exc:
+        raise DinProjectBundleError(f"DIN project file contains invalid JSON: {source}") from exc
+
+
 def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None = None) -> dict:
     return {
         "version": 2,
@@ -42,35 +76,9 @@ def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
 
 
 def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, path: str | Path) -> Path:
-    target = Path(path)
-    temporary: Path | None = None
-    try:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        payload = json.dumps(export_project_bundle(session, sync_log), indent=2, ensure_ascii=False) + "\n"
-        with NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as handle:
-            temporary = Path(handle.name)
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        temporary.replace(target)
-    except (OSError, TypeError, ValueError) as exc:
-        if temporary is not None:
-            try:
-                temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
-        raise DinProjectBundleError(f"DIN project file cannot be saved: {target}") from exc
-    return target
+    return _save_json_atomic(export_project_bundle(session, sync_log), path)
 
 
 def load_project_bundle(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]:
-    source = Path(path)
-    try:
-        data = json.loads(source.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise DinProjectBundleError(f"DIN project file not found: {source}") from exc
-    except (OSError, UnicodeDecodeError) as exc:
-        raise DinProjectBundleError(f"DIN project file cannot be read: {source}") from exc
-    except json.JSONDecodeError as exc:
-        raise DinProjectBundleError(f"DIN project file contains invalid JSON: {source}") from exc
+    data = _load_json(path)
     return import_project_bundle(data)
