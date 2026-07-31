@@ -1,7 +1,7 @@
 """Combined DIN editor project state including synchronization audit history."""
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from .din_editor_serialization import export_session, import_session
@@ -64,12 +64,23 @@ def _validate_sync_entry(entry: object) -> dict:
     if any(not isinstance(entry[key], str) for key in required):
         raise ValueError("synchronization log entry fields must be strings")
     try:
-        timestamp = datetime.fromisoformat(entry["timestamp"])
+        timestamp = datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("synchronization log timestamp must be ISO-8601") from exc
-    if timestamp.utcoffset() is None:
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
         raise ValueError("synchronization log timestamp must include a timezone")
-    return {key: entry[key] for key in required}
+    timestamp = timestamp.astimezone(timezone.utc)
+    if timestamp > datetime.now(timezone.utc):
+        raise ValueError("synchronization log timestamp cannot be in the future")
+    clean = {key: entry[key] for key in required}
+    clean["timestamp"] = timestamp.isoformat()
+    if not clean["reference"].strip():
+        raise ValueError("synchronization log reference is required")
+    if not clean["source"].strip():
+        raise ValueError("synchronization log source is required")
+    if not clean["action"].strip():
+        raise ValueError("synchronization log action is required")
+    return clean
 
 
 def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
