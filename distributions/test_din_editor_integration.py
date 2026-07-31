@@ -1,7 +1,7 @@
 """Integration tests for the DIN editor persistence/sync workflow."""
 from pathlib import Path
 
-from .din_editor_project_bundle import DinProjectBundleError
+from .din_editor_project_bundle import DinProjectBundleError, save_project_bundle
 from .din_editor_project_manager import DinEditorProjectManager
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_service import DinEditorSyncService
@@ -178,3 +178,27 @@ def test_invalid_project_bundle_schema_has_clear_error():
         assert "invalid DIN editor project data" in str(exc)
     else:
         raise AssertionError("invalid bundle schema was accepted")
+
+
+def test_failed_replace_preserves_existing_project(monkeypatch, tmp_path: Path):
+    path = tmp_path / "anlage.json"
+    manager = _manager()
+    manager.save(path)
+    original = path.read_text(encoding="utf-8")
+
+    def fail_replace(self, target):
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+    manager.session.components[0]["label"] = "Neue Version"
+
+    try:
+        save_project_bundle(manager.session, manager.sync_log, path)
+    except DinProjectBundleError as exc:
+        assert "cannot be saved" in str(exc)
+        assert str(path) in str(exc)
+    else:
+        raise AssertionError("replace failure was not reported")
+
+    assert path.read_text(encoding="utf-8") == original
+    assert not list(tmp_path.glob(f".{path.name}.*.tmp"))
