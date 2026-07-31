@@ -22,6 +22,14 @@ class DinEditorChangeService:
         self.history.checkpoint()
         return self._changed(self.session.set_terminal_label(index, label))
 
+    def replace_components(self, components: list[dict], *, checkpoint: bool = True) -> dict:
+        if components == self.session.components:
+            return self.session.state()
+        if checkpoint:
+            self.history.checkpoint()
+        self.session.components = [dict(component) for component in components]
+        return self._changed(self.session.state())
+
     def undo(self) -> dict:
         state = self.history.undo()
         return self._changed(state)
