@@ -21,3 +21,9 @@ class DinEditorChangeService:
 
     def redo(self) -> dict:
         return self.history.redo()
+
+    def can_undo(self) -> bool:
+        return bool(self.history._undo)
+
+    def can_redo(self) -> bool:
+        return bool(self.history._redo)
