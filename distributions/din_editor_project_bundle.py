@@ -1,5 +1,6 @@
 """Combined DIN editor project state including synchronization audit history."""
 import json
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from .din_editor_serialization import export_session, import_session
@@ -8,7 +9,7 @@ from .din_editor_sync_log import DinSyncLog
 
 
 class DinProjectBundleError(ValueError):
-    """Raised when a DIN editor project file cannot be loaded safely."""
+    """Raised when a DIN editor project file cannot be loaded or saved safely."""
 
 
 def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None = None) -> dict:
@@ -44,11 +45,21 @@ def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, 
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(export_project_bundle(session, sync_log), indent=2, ensure_ascii=False) + "\n"
-    with NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as handle:
-        temporary = Path(handle.name)
-        handle.write(payload)
-        handle.flush()
-    temporary.replace(target)
+    temporary: Path | None = None
+    try:
+        with NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(target)
+    except OSError as exc:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise DinProjectBundleError(f"DIN project file cannot be saved: {target}") from exc
     return target
 
 
