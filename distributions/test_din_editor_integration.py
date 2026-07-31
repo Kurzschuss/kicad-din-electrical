@@ -97,6 +97,33 @@ def test_resolve_all_is_one_undoable_operation():
     assert manager.has_unsaved_changes
 
 
+def test_successful_save_as_updates_path_savepoint_and_roundtrips(tmp_path: Path):
+    manager = _manager()
+    original_path = manager.save(tmp_path / "anlage.json")
+    manager.change_service.set_terminal_label(0, "Versorgung 24V")
+    assert manager.has_unsaved_changes
+
+    target = tmp_path / "anlage-neu.json"
+    save_as_path = manager.save(target)
+
+    assert save_as_path == target
+    assert manager.path == target
+    assert not manager.has_unsaved_changes
+    assert not manager.history.state()["can_undo"]
+    assert original_path.exists()
+    assert target.exists()
+
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    assert manager.has_unsaved_changes
+    manager.save()
+    assert not manager.has_unsaved_changes
+
+    loaded = DinEditorProjectManager()
+    loaded.load(target)
+    assert loaded.path == target
+    assert loaded.session.components[0]["label"] == "Neue Version"
+
+
 def test_invalid_project_is_not_saved(tmp_path: Path):
     manager = _manager()
     manager.session.components[0]["label"] = ""
