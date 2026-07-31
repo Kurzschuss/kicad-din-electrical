@@ -1,0 +1,12 @@
+Device,Typical_Modules,Width_mm
+MCB_1P,1,17.5
+MCB_2P,2,35
+MCB_3P,3,52.5
+MCB_4P,4,70
+RCD_2P,2,35
+RCD_4P,4,70
+RCBO_1P_N,2,35
+Main_Switch_2P,2,35
+Main_Switch_4P,4,70
+Contactor_3P,2,35
+Terminal_Block,1,17.5
