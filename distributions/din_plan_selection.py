@@ -13,4 +13,4 @@ def select_and_add(plan: list[dict], query: str, index: int = 0, rails: int = 18
 
 
 def remaining_te(plan: list[dict], rails: int = 18, te_per_rail: int = 12) -> int:
-    return add_catalog_device([], {}, rails=rails, te_per_rail=te_per_rail)["capacity_te"] - sum(int(c.get("width_te", 1)) for c in plan)
+    return int(rails) * int(te_per_rail) - sum(int(c.get("width_te", 1)) for c in plan)
