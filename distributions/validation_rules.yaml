@@ -1,0 +1,10 @@
+electrical_distribution:
+  max_modules_per_row: 12
+  max_total_modules: 108
+  required_separation:
+    PE_N: true
+  recommended:
+    main_switch_before_protection: true
+    rcd_before_mcb_groups: true
+    reserve_modules: 2
+  note: 'Final circuit design must be checked against applicable local standards and manufacturer requirements.'
