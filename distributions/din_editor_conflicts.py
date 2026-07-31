@@ -18,7 +18,15 @@ def resolve_conflicts(local_components: list[dict], conflicts: list[dict], choic
     result = [dict(c) for c in local_components]
     if choice == "local":
         return result
-    incoming = {str(c["reference"]): str(c["kicad_label"]) for c in conflicts}
+
+    incoming: dict[str, str] = {}
+    for conflict in conflicts:
+        reference = str(conflict["reference"])
+        label = str(conflict["kicad_label"])
+        if reference in incoming and incoming[reference] != label:
+            raise ValueError(f"ambiguous KiCad conflict for reference {reference}")
+        incoming[reference] = label
+
     for item in result:
         ref = str(item.get("reference", ""))
         if ref in incoming and item.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK":
