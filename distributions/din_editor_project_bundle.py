@@ -54,6 +54,17 @@ def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None
     }
 
 
+def _validate_sync_entry(entry: object) -> dict:
+    if not isinstance(entry, dict):
+        raise ValueError("synchronization log entry must be an object")
+    required = ("timestamp", "reference", "source", "value", "action")
+    if any(key not in entry for key in required):
+        raise ValueError("synchronization log entry is incomplete")
+    if any(not isinstance(entry[key], str) for key in required):
+        raise ValueError("synchronization log entry fields must be strings")
+    return {key: entry[key] for key in required}
+
+
 def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
     if not isinstance(data, dict):
         raise DinProjectBundleError("invalid DIN editor project bundle")
@@ -69,7 +80,7 @@ def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
         if not isinstance(entries, list):
             raise ValueError("synchronization log must be a list")
         log = DinSyncLog()
-        log.entries = [dict(entry) for entry in entries]
+        log.entries = [_validate_sync_entry(entry) for entry in entries]
         return session, log
     except (TypeError, ValueError, KeyError) as exc:
         raise DinProjectBundleError("invalid DIN editor project data") from exc
