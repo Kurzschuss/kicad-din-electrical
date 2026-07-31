@@ -20,7 +20,9 @@ class DinEditorSyncService:
     def import_labels(self, fields: list[dict], overwrite: bool = True) -> dict:
         before = [dict(c) for c in self.session.components]
         after = apply_kicad_terminal_labels(before, fields, overwrite=overwrite)
-        if after != before:
-            self.change_service.history.checkpoint()
-            self.session.components = after
+        if after == before:
+            return self.session.state()
+        self.session.components = after
+        if self.change_service.on_change is not None:
+            self.change_service.on_change()
         return self.session.state()
