@@ -10,6 +10,7 @@ from .din_editor_sync_view_model import DinEditorSyncViewModel
 def _manager() -> DinEditorProjectManager:
     session = DinEditorSession(components=[
         {"reference": "X5", "component_type": "DIN_RAIL_TERMINAL_BLOCK", "label": "+24V SPS", "can_edit_label": True},
+        {"reference": "X6", "component_type": "DIN_RAIL_TERMINAL_BLOCK", "label": "0V SPS", "can_edit_label": True},
     ])
     return DinEditorProjectManager(session=session)
 
@@ -63,6 +64,32 @@ def test_sync_import_is_undoable_and_updates_dirty_state():
 
     manager.change_service.redo()
     assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.has_unsaved_changes
+
+
+def test_resolve_all_is_one_undoable_operation():
+    manager = _manager()
+    actions = _actions(manager)
+    actions.inspect([
+        {"reference": "X5", "label": "Versorgung 24V"},
+        {"reference": "X6", "label": "0V Versorgung"},
+    ])
+    manager.save()
+
+    actions.resolve_all("kicad")
+    assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.session.components[1]["label"] == "0V Versorgung"
+    assert len(manager.sync_log.entries) == 2
+    assert manager.has_unsaved_changes
+
+    manager.change_service.undo()
+    assert manager.session.components[0]["label"] == "+24V SPS"
+    assert manager.session.components[1]["label"] == "0V SPS"
+    assert not manager.has_unsaved_changes
+
+    manager.change_service.redo()
+    assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.session.components[1]["label"] == "0V Versorgung"
     assert manager.has_unsaved_changes
 
 
