@@ -6,12 +6,15 @@ def terminal_sync_report(components: list[dict]) -> dict:
     fields = terminal_label_fields({"components": [dict(c) for c in components]})
     expected = {}
     conflicts = []
+    seen = set()
     for field in fields:
         reference = str(field["reference"])
         label = str(field["label"])
-        if reference in expected and expected[reference] != label:
+        if reference in seen:
             conflicts.append({"reference": reference, "labels": [expected[reference], label]})
-        expected[reference] = label
+        else:
+            seen.add(reference)
+            expected[reference] = label
     missing = [str(c.get("reference")) for c in components if c.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK" and c.get("can_edit_label", True) and not str(c.get("label") or c.get("terminal_label") or "").strip()]
     return {"valid": not conflicts and not missing, "fields": fields, "conflicts": conflicts, "missing_labels": missing}
 
@@ -53,6 +56,8 @@ def apply_kicad_terminal_labels(components: list[dict], fields: list[dict], *, o
             continue
         label = labels[reference]
         if label and (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
+            if str(item.get("label") or "") == label and str(item.get("terminal_label") or "") == label:
+                continue
             item["label"] = label
             item["terminal_label"] = label
             item["can_edit_label"] = True
