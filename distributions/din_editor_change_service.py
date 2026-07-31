@@ -4,9 +4,9 @@ from .din_editor_session import DinEditorSession
 
 
 class DinEditorChangeService:
-    def __init__(self, session: DinEditorSession, on_change=None):
+    def __init__(self, session: DinEditorSession, history: DinEditorHistory | None = None, on_change=None):
         self.session = session
-        self.history = DinEditorHistory(session)
+        self.history = history or DinEditorHistory(session)
         self.on_change = on_change
 
     def _changed(self, state: dict) -> dict:
