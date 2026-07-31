@@ -90,8 +90,10 @@ def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
         raise DinProjectBundleError("unsupported DIN editor project bundle version")
     session_data = data.get("session")
     entries = data.get("sync_log")
-    if not isinstance(session_data, dict) or not isinstance(entries, list):
-        raise DinProjectBundleError("invalid DIN editor project data")
+    if not isinstance(session_data, dict):
+        raise DinProjectBundleError("invalid DIN editor project session")
+    if not isinstance(entries, list):
+        raise DinProjectBundleError("invalid DIN synchronization log")
     try:
         session = import_session(session_data)
         validated_entries = [_validate_sync_entry(entry) for entry in entries]
