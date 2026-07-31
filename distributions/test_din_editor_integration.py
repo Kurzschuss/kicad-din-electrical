@@ -1,10 +1,7 @@
 """Integration tests for the DIN editor persistence/sync workflow."""
 from pathlib import Path
 
-from .din_editor_change_service import DinEditorChangeService
 from .din_editor_project_manager import DinEditorProjectManager
-from .din_editor_sync_actions import DinEditorSyncActions
-from .din_editor_sync_log import DinSyncLog
 from .din_editor_sync_service import DinEditorSyncService
 from .din_editor_sync_view_model import DinEditorSyncViewModel
 
@@ -17,10 +14,9 @@ def _manager() -> DinEditorProjectManager:
     return manager
 
 
-def _actions(manager: DinEditorProjectManager) -> DinEditorSyncActions:
-    change_service = manager.change_service
-    view_model = DinEditorSyncViewModel(DinEditorSyncService(change_service))
-    return DinEditorSyncActions(view_model, DinSyncLog())
+def _actions(manager: DinEditorProjectManager):
+    view_model = DinEditorSyncViewModel(DinEditorSyncService(manager.change_service))
+    return manager.sync_actions(view_model)
 
 
 def test_project_roundtrip_and_sync_log(tmp_path: Path):
@@ -28,7 +24,6 @@ def test_project_roundtrip_and_sync_log(tmp_path: Path):
     actions = _actions(manager)
     actions.inspect([{"reference": "X5", "label": "Versorgung 24V"}])
     actions.use_kicad("X5")
-    manager.sync_log = actions.sync_log
     path = manager.save(tmp_path / "anlage.json")
 
     loaded = DinEditorProjectManager()
@@ -39,6 +34,17 @@ def test_project_roundtrip_and_sync_log(tmp_path: Path):
     assert loaded.sync_log.entries[0]["reference"] == "X5"
     assert loaded.sync_log.entries[0]["source"] == "KiCad"
     assert loaded.sync_log.entries[0]["action"] == "imported"
+
+
+def test_sync_action_marks_project_dirty():
+    manager = _manager()
+    actions = _actions(manager)
+    actions.inspect([{"reference": "X5", "label": "Versorgung 24V"}])
+    assert not manager.has_unsaved_changes
+
+    actions.use_kicad("X5")
+    assert manager.has_unsaved_changes
+    assert len(manager.sync_log.entries) == 1
 
 
 def test_invalid_project_is_not_saved(tmp_path: Path):
