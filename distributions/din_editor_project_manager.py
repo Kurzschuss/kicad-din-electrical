@@ -21,10 +21,7 @@ class DinEditorProjectManager:
         self.change_service = self._build_change_service()
 
     def _snapshot(self) -> dict:
-        return {
-            "components": deepcopy(self.session.components),
-            "sync_log": deepcopy(self.sync_log.entries),
-        }
+        return {"components": deepcopy(self.session.components), "sync_log": deepcopy(self.sync_log.entries)}
 
     def _refresh_dirty(self) -> None:
         self.dirty = self._snapshot() != self._saved_state
