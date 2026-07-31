@@ -29,3 +29,10 @@ class DinEditorHistory:
         self._undo.append(self._snapshot())
         self.session.components = self._redo.pop()
         return self.session.state()
+
+    def clear(self) -> None:
+        self._undo.clear()
+        self._redo.clear()
+
+    def state(self) -> dict:
+        return {"can_undo": bool(self._undo), "can_redo": bool(self._redo), "undo_depth": len(self._undo), "redo_depth": len(self._redo)}
