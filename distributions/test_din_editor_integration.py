@@ -228,3 +228,31 @@ def test_legacy_project_io_reports_corrupt_json(tmp_path: Path):
         assert str(path) in str(exc)
     else:
         raise AssertionError("corrupt legacy project loaded without an error")
+
+
+def test_manager_save_failure_preserves_state_and_savepoint(monkeypatch, tmp_path: Path):
+    manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
+    original_file = path.read_text(encoding="utf-8")
+    original_state = manager._snapshot()
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    assert manager.has_unsaved_changes
+    original_history = manager.history.state()
+
+    def fail_replace(self, target):
+        raise OSError("simulated manager save failure")
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+
+    try:
+        manager.save(path)
+    except DinProjectBundleError as exc:
+        assert "cannot be saved" in str(exc)
+    else:
+        raise AssertionError("manager save failure was not reported")
+
+    assert path.read_text(encoding="utf-8") == original_file
+    assert manager._snapshot() != original_state
+    assert manager.has_unsaved_changes
+    assert manager.history.state() == original_history
+    assert manager.path == path
