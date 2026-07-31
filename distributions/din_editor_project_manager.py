@@ -75,9 +75,11 @@ class DinEditorProjectManager:
     def new_project(self, *, discard_changes: bool = False) -> DinEditorSession:
         if self.has_unsaved_changes and not discard_changes:
             raise RuntimeError("project has unsaved changes; save or discard them before creating a new project")
-        self.session = DinEditorSession()
-        self.sync_log = DinSyncLog()
-        self.history = DinEditorHistory(self.session, self.sync_log)
+        session = DinEditorSession()
+        sync_log = DinSyncLog()
+        self.session = session
+        self.sync_log = sync_log
+        self.history = DinEditorHistory(session, sync_log)
         self.change_service = self._build_change_service()
         self.path = None
         self._saved_state = self._snapshot()
