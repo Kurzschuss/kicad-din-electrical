@@ -47,6 +47,25 @@ def test_sync_action_marks_project_dirty():
     assert len(manager.sync_log.entries) == 1
 
 
+def test_sync_import_is_undoable_and_updates_dirty_state():
+    manager = _manager()
+    sync_service = DinEditorSyncService(manager.change_service)
+    manager.save()
+
+    sync_service.import_labels([{"reference": "X5", "label": "Versorgung 24V"}])
+    assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.has_unsaved_changes
+    assert manager.history.state()["can_undo"]
+
+    manager.change_service.undo()
+    assert manager.session.components[0]["label"] == "+24V SPS"
+    assert not manager.has_unsaved_changes
+
+    manager.change_service.redo()
+    assert manager.session.components[0]["label"] == "Versorgung 24V"
+    assert manager.has_unsaved_changes
+
+
 def test_invalid_project_is_not_saved(tmp_path: Path):
     manager = _manager()
     manager.session.components[0]["label"] = ""
