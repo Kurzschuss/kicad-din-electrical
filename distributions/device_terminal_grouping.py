@@ -1,4 +1,4 @@
-"""Group terminals by source device and terminal function."""
+"""Group and classify terminals by source device."""
 
 
 def group_terminals_by_device(terminals: list[dict]) -> dict[str, list[dict]]:
