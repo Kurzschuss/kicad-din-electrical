@@ -69,7 +69,11 @@ def test_import_manifest_is_composed_from_extract_and_apply():
 
 
 def test_export_returns_terminal_label_fields():
-    assert export_terminal_labels(_components()) == [
+    plan = {"name": "Test", "terminals": [
+        {"reference": "X5", "label": "+24V SPS"},
+        {"reference": "X6", "terminal_label": "0V SPS"},
+    ]}
+    assert export_terminal_labels(plan) == [
         {"reference": "X5", "label": "+24V SPS", "field_name": "Terminal_Label", "user_editable": True},
         {"reference": "X6", "label": "0V SPS", "field_name": "Terminal_Label", "user_editable": True},
     ]
