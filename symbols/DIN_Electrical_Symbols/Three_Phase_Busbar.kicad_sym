@@ -1,0 +1,22 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+  (symbol "Three_Phase_Busbar"
+    (pin_names (offset 0.5)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+    (property "Reference" "W" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "Drehstromschiene" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Manufacturer" "" (at 0 -5.08 0) (effects (font (size 1 1)) (hide yes)))
+    (property "Part Number" "" (at 0 -6.35 0) (effects (font (size 1 1)) (hide yes)))
+    (property "Footprint" "" (at 0 -7.62 0) (effects (font (size 1 1)) (hide yes)))
+    (property "Datasheet" "" (at 0 -8.89 0) (effects (font (size 1 1)) (hide yes)))
+    (property "Description" "Three-phase DIN rail busbar for distribution devices" (at 0 -10.16 0) (effects (font (size 1 1)) (hide yes)))
+    (symbol "Three_Phase_Busbar_0_1"
+      (polyline (pts (xy -6.35 2.54) (xy 6.35 2.54)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -6.35 0) (xy 6.35 0)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -6.35 -2.54) (xy 6.35 -2.54)) (stroke (width 0.508) (type default)))
+    )
+    (symbol "Three_Phase_Busbar_1_1"
+      (pin passive line (at -8.89 2.54 0) (length 2.54) (name "L1" (effects (font (size 1 1)))) (number "L1" (effects (font (size 1 1)))))
+      (pin passive line (at -8.89 0 0) (length 2.54) (name "L2" (effects (font (size 1 1)))) (number "L2" (effects (font (size 1 1)))))
+      (pin passive line (at -8.89 -2.54 0) (length 2.54) (name "L3" (effects (font (size 1 1)))) (number "L3" (effects (font (size 1 1)))))
+    )
+  )
+)
