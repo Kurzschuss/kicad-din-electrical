@@ -85,11 +85,13 @@ def test_resolve_all_is_one_undoable_operation():
     manager.change_service.undo()
     assert manager.session.components[0]["label"] == "+24V SPS"
     assert manager.session.components[1]["label"] == "0V SPS"
+    assert len(manager.sync_log.entries) == 0
     assert not manager.has_unsaved_changes
 
     manager.change_service.redo()
     assert manager.session.components[0]["label"] == "Versorgung 24V"
     assert manager.session.components[1]["label"] == "0V Versorgung"
+    assert len(manager.sync_log.entries) == 2
     assert manager.has_unsaved_changes
 
 
