@@ -48,11 +48,7 @@ def _load_json(path: str | Path) -> object:
 
 
 def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None = None) -> dict:
-    return {
-        "version": 2,
-        "session": export_session(session),
-        "sync_log": (sync_log or DinSyncLog()).export(),
-    }
+    return {"version": 2, "session": export_session(session), "sync_log": (sync_log or DinSyncLog()).export()}
 
 
 def _validate_sync_entry(entry: object) -> dict:
@@ -94,10 +90,8 @@ def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
         raise DinProjectBundleError("unsupported DIN editor project bundle version")
     session_data = data.get("session")
     entries = data.get("sync_log")
-    if not isinstance(session_data, dict):
-        raise DinProjectBundleError("invalid DIN editor project session")
-    if not isinstance(entries, list):
-        raise DinProjectBundleError("invalid DIN synchronization log")
+    if not isinstance(session_data, dict) or not isinstance(entries, list):
+        raise DinProjectBundleError("invalid DIN editor project data")
     try:
         session = import_session(session_data)
         validated_entries = [_validate_sync_entry(entry) for entry in entries]
