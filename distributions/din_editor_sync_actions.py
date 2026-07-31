@@ -14,3 +14,9 @@ class DinEditorSyncActions:
 
     def use_kicad(self, reference: str) -> dict:
         return self.view_model.choose(reference, "kicad")
+
+    def resolve_all(self, choice: str) -> dict:
+        state = self.view_model.refresh()
+        for conflict in list(state.get("conflicts", [])):
+            self.view_model.choose(str(conflict["reference"]), choice)
+        return self.view_model.refresh()
