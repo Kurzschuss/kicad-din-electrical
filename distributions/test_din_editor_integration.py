@@ -181,6 +181,24 @@ def test_invalid_project_bundle_schema_has_clear_error():
         raise AssertionError("invalid bundle schema was accepted")
 
 
+def test_invalid_sync_log_entry_has_clear_error():
+    from .din_editor_project_bundle import import_project_bundle
+
+    invalid_entries = [
+        {},
+        {"timestamp": "2026-07-31T18:00:00+00:00"},
+        {"timestamp": "2026-07-31T18:00:00+00:00", "reference": "X5", "source": "KiCad", "value": "24V", "action": 42},
+        "not-an-entry",
+    ]
+    for entry in invalid_entries:
+        try:
+            import_project_bundle({"version": 2, "session": {"version": 1, "components": []}, "sync_log": [entry]})
+        except DinProjectBundleError as exc:
+            assert "invalid DIN editor project data" in str(exc)
+        else:
+            raise AssertionError(f"invalid sync log entry was accepted: {entry!r}")
+
+
 def test_failed_replace_preserves_existing_project(monkeypatch, tmp_path: Path):
     path = tmp_path / "anlage.json"
     manager = _manager()
