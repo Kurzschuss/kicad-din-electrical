@@ -11,15 +11,11 @@ def prefix_labels(terminals: list[dict], prefix: str) -> list[dict]:
     prefix = str(prefix).strip()
     if not prefix:
         raise ValueError("prefix must not be empty")
-    result = []
-    for item in terminals:
-        current = str(item.get("terminal_label", item.get("terminal", "")))
-        result.append({**item, "custom_terminal_label": f"{prefix}{current}"})
-    return result
+    return [{**item, "custom_terminal_label": f"{prefix}{item.get('terminal_label', item.get('terminal', ''))}"} for item in terminals]
 
 
 def clear_custom_labels(terminals: list[dict]) -> list[dict]:
-    result = []
-    for index, item in enumerate(terminals):
-        result = update_terminal_label(result + [dict(item)], index, None)
+    result = [dict(item) for item in terminals]
+    for index in range(len(result)):
+        result = update_terminal_label(result, index, None)
     return result
