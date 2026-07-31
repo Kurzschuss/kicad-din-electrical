@@ -4,23 +4,31 @@ from .din_editor_session import DinEditorSession
 
 
 class DinEditorChangeService:
-    def __init__(self, session: DinEditorSession):
+    def __init__(self, session: DinEditorSession, on_change=None):
         self.session = session
         self.history = DinEditorHistory(session)
+        self.on_change = on_change
+
+    def _changed(self, state: dict) -> dict:
+        if self.on_change is not None:
+            self.on_change()
+        return state
 
     def move(self, index: int, rail: int, start_te: int) -> dict:
         self.history.checkpoint()
-        return self.session.move(index, rail, start_te)
+        return self._changed(self.session.move(index, rail, start_te))
 
     def set_terminal_label(self, index: int, label: str) -> dict:
         self.history.checkpoint()
-        return self.session.set_terminal_label(index, label)
+        return self._changed(self.session.set_terminal_label(index, label))
 
     def undo(self) -> dict:
-        return self.history.undo()
+        state = self.history.undo()
+        return self._changed(state)
 
     def redo(self) -> dict:
-        return self.history.redo()
+        state = self.history.redo()
+        return self._changed(state)
 
     def can_undo(self) -> bool:
         return bool(self.history._undo)
