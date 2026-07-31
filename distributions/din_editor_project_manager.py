@@ -1,5 +1,6 @@
 """Project manager for combined DIN layout and synchronization history."""
 from pathlib import Path
+from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
 from .din_editor_project_bundle import load_project_bundle, save_project_bundle
 from .din_editor_session import DinEditorSession
@@ -14,6 +15,10 @@ class DinEditorProjectManager:
         self.history = DinEditorHistory(self.session)
         self.path: Path | None = None
         self.dirty = False
+        self.change_service = self._build_change_service()
+
+    def _build_change_service(self) -> DinEditorChangeService:
+        return DinEditorChangeService(self.session, on_change=self.mark_dirty)
 
     @property
     def has_unsaved_changes(self) -> bool:
@@ -37,6 +42,7 @@ class DinEditorProjectManager:
         self.path = result
         self.dirty = False
         self.history.clear()
+        self.change_service = self._build_change_service()
         return result
 
     def load(self, path: str | Path, *, discard_changes: bool = False) -> DinEditorSession:
@@ -46,6 +52,7 @@ class DinEditorProjectManager:
         self.session = session
         self.sync_log = sync_log
         self.history = DinEditorHistory(self.session)
+        self.change_service = self._build_change_service()
         self.path = Path(path)
         self.dirty = False
         return self.session
@@ -56,6 +63,7 @@ class DinEditorProjectManager:
         self.session = DinEditorSession()
         self.sync_log = DinSyncLog()
         self.history = DinEditorHistory(self.session)
+        self.change_service = self._build_change_service()
         self.path = None
         self.dirty = False
         return self.session
@@ -70,6 +78,7 @@ class DinEditorProjectManager:
         self.session = session
         self.sync_log = sync_log
         self.history = DinEditorHistory(self.session)
+        self.change_service = self._build_change_service()
         self.dirty = False
 
     def state(self) -> dict:
