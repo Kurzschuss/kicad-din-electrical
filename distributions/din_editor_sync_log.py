@@ -47,11 +47,14 @@ class DinSyncLog:
             parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             if parsed.tzinfo is None:
                 raise ValueError("DIN synchronization log timestamp requires timezone")
+            normalized = parsed.astimezone(timezone.utc).isoformat()
             if not str(entry["reference"]).strip():
                 raise ValueError("DIN synchronization log reference is required")
             if not str(entry["source"]).strip():
                 raise ValueError("DIN synchronization log source is required")
             if not str(entry["action"]).strip():
                 raise ValueError("DIN synchronization log action is required")
-            validated.append(dict(entry))
+            clean = dict(entry)
+            clean["timestamp"] = normalized
+            validated.append(clean)
         self.entries = validated
