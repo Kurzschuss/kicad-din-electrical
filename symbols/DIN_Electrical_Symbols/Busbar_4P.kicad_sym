@@ -1,0 +1,20 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+  (symbol "Busbar_4P"
+    (pin_names (offset 0.5)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+    (property "Reference" "W" (at 0 6.35 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "Phasenschiene 4P" (at 0 5.08 0) (effects (font (size 1.27 1.27))))
+    (property "Description" "Four-pole comb busbar for compatible protective devices" (at 0 -6.35 0) (effects (font (size 1 1)) (hide yes)))
+    (symbol "Busbar_4P_0_1"
+      (polyline (pts (xy -7.62 3.81) (xy 7.62 3.81)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -7.62 1.27) (xy 7.62 1.27)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -7.62 -1.27) (xy 7.62 -1.27)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -7.62 -3.81) (xy 7.62 -3.81)) (stroke (width 0.508) (type default)))
+    )
+    (symbol "Busbar_4P_1_1"
+      (pin passive line (at -10.16 3.81 0) (length 2.54) (name "L1" (effects (font (size 1 1)))) (number "L1" (effects (font (size 1 1)))))
+      (pin passive line (at -10.16 1.27 0) (length 2.54) (name "L2" (effects (font (size 1 1)))) (number "L2" (effects (font (size 1 1)))))
+      (pin passive line (at -10.16 -1.27 0) (length 2.54) (name "L3" (effects (font (size 1 1)))) (number "L3" (effects (font (size 1 1)))))
+      (pin passive line (at -10.16 -3.81 0) (length 2.54) (name "N" (effects (font (size 1 1)))) (number "N" (effects (font (size 1 1)))))
+    )
+  )
+)
