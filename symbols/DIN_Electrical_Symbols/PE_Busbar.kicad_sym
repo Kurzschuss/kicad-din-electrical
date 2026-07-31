@@ -1,0 +1,16 @@
+(kicad_symbol_lib (version 20231120) (generator kicad_symbol_editor)
+  (symbol "PE_Busbar"
+    (pin_names (offset 0.5)) (exclude_from_sim no) (in_bom yes) (on_board yes)
+    (property "Reference" "W" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
+    (property "Value" "PE-Schiene" (at 0 2.54 0) (effects (font (size 1.27 1.27))))
+    (property "Description" "Protective earth busbar for distribution" (at 0 -3.81 0) (effects (font (size 1 1)) (hide yes)))
+    (symbol "PE_Busbar_0_1"
+      (polyline (pts (xy -7.62 0) (xy 7.62 0)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy 0 0) (xy 0 -2.54)) (stroke (width 0.508) (type default)))
+      (polyline (pts (xy -2.54 -2.54) (xy 2.54 -2.54)) (stroke (width 0.508) (type default)))
+    )
+    (symbol "PE_Busbar_1_1"
+      (pin passive line (at -10.16 0 0) (length 2.54) (name "PE" (effects (font (size 1 1)))) (number "PE" (effects (font (size 1 1)))))
+    )
+  )
+)
