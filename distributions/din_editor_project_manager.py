@@ -1,5 +1,6 @@
 """Project manager for combined DIN layout and synchronization history."""
 from pathlib import Path
+from .din_editor_history import DinEditorHistory
 from .din_editor_project_bundle import load_project_bundle, save_project_bundle
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_log import DinSyncLog
@@ -10,8 +11,13 @@ class DinEditorProjectManager:
     def __init__(self, session: DinEditorSession | None = None, sync_log: DinSyncLog | None = None):
         self.session = session or DinEditorSession()
         self.sync_log = sync_log or DinSyncLog()
+        self.history = DinEditorHistory(self.session)
         self.path: Path | None = None
         self.dirty = False
+
+    @property
+    def has_unsaved_changes(self) -> bool:
+        return self.dirty
 
     def mark_dirty(self) -> None:
         self.dirty = True
@@ -30,23 +36,51 @@ class DinEditorProjectManager:
         result = save_project_bundle(self.session, self.sync_log, target)
         self.path = result
         self.dirty = False
+        self.history.clear()
         return result
 
-    def load(self, path: str | Path) -> DinEditorSession:
+    def load(self, path: str | Path, *, discard_changes: bool = False) -> DinEditorSession:
+        if self.dirty and not discard_changes:
+            raise RuntimeError("project has unsaved changes; save or discard them before loading")
         session, sync_log = load_project_bundle(path)
         self.session = session
         self.sync_log = sync_log
+        self.history = DinEditorHistory(self.session)
         self.path = Path(path)
         self.dirty = False
         return self.session
+
+    def new_project(self, *, discard_changes: bool = False) -> DinEditorSession:
+        if self.dirty and not discard_changes:
+            raise RuntimeError("project has unsaved changes; save or discard them before creating a new project")
+        self.session = DinEditorSession()
+        self.sync_log = DinSyncLog()
+        self.history = DinEditorHistory(self.session)
+        self.path = None
+        self.dirty = False
+        return self.session
+
+    def discard_changes(self) -> None:
+        if not self.dirty:
+            return
+        if self.path is None:
+            self.new_project(discard_changes=True)
+            return
+        session, sync_log = load_project_bundle(self.path)
+        self.session = session
+        self.sync_log = sync_log
+        self.history = DinEditorHistory(self.session)
+        self.dirty = False
 
     def state(self) -> dict:
         issues = self.validate()
         return {
             "path": str(self.path) if self.path else None,
             "dirty": self.dirty,
+            "has_unsaved_changes": self.has_unsaved_changes,
             "valid": not issues,
             "validation_issues": [issue.__dict__ for issue in issues],
+            "history": self.history.state(),
             "session": self.session.state(),
             "sync_log_entries": len(self.sync_log.entries),
         }
