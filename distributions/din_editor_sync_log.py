@@ -1,5 +1,7 @@
 """Audit trail for DIN/KiCad synchronization decisions."""
 from datetime import datetime, timezone
+import json
+from pathlib import Path
 
 
 class DinSyncLog:
@@ -22,3 +24,16 @@ class DinSyncLog:
 
     def export(self) -> list[dict]:
         return [dict(entry) for entry in self.entries]
+
+    def save(self, path: str | Path) -> Path:
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(self.export(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        return target
+
+    def load(self, path: str | Path) -> None:
+        source = Path(path)
+        data = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(data, list):
+            raise ValueError("invalid DIN synchronization log")
+        self.entries = [dict(entry) for entry in data]
