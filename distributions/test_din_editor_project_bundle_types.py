@@ -20,5 +20,5 @@ def test_bundle_does_not_partially_construct_on_invalid_log():
         "session": {"version": 1, "components": [{"reference": "X5"}]},
         "sync_log": [{"timestamp": "bad", "reference": "X5", "source": "KiCad", "value": "24V", "action": "imported"}],
     }
-    with pytest.raises(DinProjectBundleError):
+    with pytest.raises(DinProjectBundleError, match="invalid DIN editor project data"):
         import_project_bundle(data)
