@@ -3,6 +3,7 @@ from pathlib import Path
 from .din_editor_project_bundle import load_project_bundle, save_project_bundle
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_log import DinSyncLog
+from .din_editor_validation import validate_session, ValidationIssue
 
 
 class DinEditorProjectManager:
@@ -15,7 +16,14 @@ class DinEditorProjectManager:
     def mark_dirty(self) -> None:
         self.dirty = True
 
-    def save(self, path: str | Path | None = None) -> Path:
+    def validate(self) -> list[ValidationIssue]:
+        return validate_session(self.session)
+
+    def save(self, path: str | Path | None = None, *, validate: bool = True) -> Path:
+        if validate:
+            issues = self.validate()
+            if issues:
+                raise ValueError("DIN project validation failed: " + "; ".join(issue.message for issue in issues))
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("project path is not set")
@@ -33,4 +41,12 @@ class DinEditorProjectManager:
         return self.session
 
     def state(self) -> dict:
-        return {"path": str(self.path) if self.path else None, "dirty": self.dirty, "session": self.session.state(), "sync_log_entries": len(self.sync_log.entries)}
+        issues = self.validate()
+        return {
+            "path": str(self.path) if self.path else None,
+            "dirty": self.dirty,
+            "valid": not issues,
+            "validation_issues": [issue.__dict__ for issue in issues],
+            "session": self.session.state(),
+            "sync_log_entries": len(self.sync_log.entries),
+        }
