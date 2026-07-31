@@ -55,12 +55,13 @@ def apply_kicad_terminal_labels(components: list[dict], fields: list[dict], *, o
         if item.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK" or reference not in labels or reference in ambiguous:
             continue
         label = labels[reference]
-        if label and (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
-            if str(item.get("label") or "") == label and str(item.get("terminal_label") or "") == label:
-                continue
-            item["label"] = label
-            item["terminal_label"] = label
-            item["can_edit_label"] = True
+        if not label or not (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
+            continue
+        if str(item.get("label") or "") == label:
+            continue
+        item["label"] = label
+        item["terminal_label"] = label
+        item["can_edit_label"] = True
     return result
 
 
