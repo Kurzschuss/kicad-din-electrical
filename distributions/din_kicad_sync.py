@@ -6,12 +6,23 @@ def terminal_sync_report(components: list[dict]) -> dict:
     fields = terminal_label_fields({"components": [dict(c) for c in components]})
     expected = {}
     conflicts = []
+    seen = set()
+    duplicate_components = {}
+    for component in components:
+        reference = str(component.get("reference", ""))
+        if component.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK" and reference:
+            duplicate_components.setdefault(reference, []).append(component)
+    for reference, items in duplicate_components.items():
+        if len(items) > 1:
+            conflicts.append({"reference": reference, "labels": [str(item.get("label") or item.get("terminal_label") or "") for item in items]})
     for field in fields:
         reference = str(field["reference"])
         label = str(field["label"])
-        if reference in expected and expected[reference] != label:
+        if reference in seen:
             conflicts.append({"reference": reference, "labels": [expected[reference], label]})
-        expected[reference] = label
+        else:
+            seen.add(reference)
+            expected[reference] = label
     missing = [str(c.get("reference")) for c in components if c.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK" and c.get("can_edit_label", True) and not str(c.get("label") or c.get("terminal_label") or "").strip()]
     return {"valid": not conflicts and not missing, "fields": fields, "conflicts": conflicts, "missing_labels": missing}
 
@@ -52,10 +63,13 @@ def apply_kicad_terminal_labels(components: list[dict], fields: list[dict], *, o
         if item.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK" or reference not in labels or reference in ambiguous:
             continue
         label = labels[reference]
-        if label and (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
-            item["label"] = label
-            item["terminal_label"] = label
-            item["can_edit_label"] = True
+        if not label or not (overwrite or not str(item.get("label") or item.get("terminal_label") or "").strip()):
+            continue
+        if str(item.get("label") or "") == label:
+            continue
+        item["label"] = label
+        item["terminal_label"] = label
+        item["can_edit_label"] = True
     return result
 
 

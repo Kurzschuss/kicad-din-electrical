@@ -1,5 +1,6 @@
 """Undo/redo support for the complete DIN editor state."""
 from copy import deepcopy
+
 from .din_editor_session import DinEditorSession
 
 
@@ -23,6 +24,7 @@ class DinEditorHistory:
         return self.session.state()
 
     def checkpoint(self):
+        """Record the state immediately before the next mutation."""
         snapshot = self._snapshot()
         if self._undo and self._undo[-1] == snapshot:
             return
@@ -32,18 +34,34 @@ class DinEditorHistory:
     def undo(self) -> dict:
         if not self._undo:
             return self.session.state()
-        self._redo.append(self._snapshot())
-        return self._restore(self._undo.pop())
+
+        current = self._snapshot()
+        target = self._undo.pop()
+        self._redo.append(current)
+
+        # If the current state is itself a checkpoint, that checkpoint is
+        # the state after the last mutation; undo must move to its predecessor.
+        if current == target and self._undo:
+            target = self._undo[-1]
+
+        return self._restore(target)
 
     def redo(self) -> dict:
         if not self._redo:
             return self.session.state()
-        self._undo.append(self._snapshot())
-        return self._restore(self._redo.pop())
+        current = self._snapshot()
+        target = self._redo.pop()
+        self._undo.append(current)
+        return self._restore(target)
 
     def clear(self) -> None:
         self._undo.clear()
         self._redo.clear()
 
     def state(self) -> dict:
-        return {"can_undo": bool(self._undo), "can_redo": bool(self._redo), "undo_depth": len(self._undo), "redo_depth": len(self._redo)}
+        return {
+            "can_undo": bool(self._undo),
+            "can_redo": bool(self._redo),
+            "undo_depth": len(self._undo),
+            "redo_depth": len(self._redo),
+        }

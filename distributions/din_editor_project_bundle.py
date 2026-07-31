@@ -48,11 +48,7 @@ def _load_json(path: str | Path) -> object:
 
 
 def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None = None) -> dict:
-    return {
-        "version": 2,
-        "session": export_session(session),
-        "sync_log": (sync_log or DinSyncLog()).export(),
-    }
+    return {"version": 2, "session": export_session(session), "sync_log": (sync_log or DinSyncLog()).export()}
 
 
 def _validate_sync_entry(entry: object) -> dict:

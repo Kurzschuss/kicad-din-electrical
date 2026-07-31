@@ -4,6 +4,9 @@ Dimensions are intentionally explicit so real manufacturer parts can be added
 without changing the layout engine.
 """
 
+import json
+from pathlib import Path
+
 from .din_power_supplies import power_supply
 from .din_switchgear import main_switch, surge_protection, transfer_switch
 
@@ -32,3 +35,25 @@ def generic_catalog() -> list[dict]:
         for width in (1, 2, 3, 4):
             catalog.append(power_supply(voltage, width, catalog_source="generic"))
     return catalog
+
+
+def load_catalog(path: str | Path | None = None) -> list[dict]:
+    """Load a JSON catalog, or return the built-in generic catalog by default."""
+    if path is None:
+        return generic_catalog()
+
+    catalog_path = Path(path)
+    try:
+        raw = json.loads(catalog_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"catalog not found: {catalog_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid catalog JSON: {catalog_path}") from exc
+
+    if isinstance(raw, dict):
+        raw = raw.get("devices", raw.get("catalog"))
+    if not isinstance(raw, list):
+        raise ValueError(f"catalog must contain a list of devices: {catalog_path}")
+    if not all(isinstance(item, dict) for item in raw):
+        raise ValueError(f"catalog entries must be objects: {catalog_path}")
+    return [dict(item) for item in raw]
