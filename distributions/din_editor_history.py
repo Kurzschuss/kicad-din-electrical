@@ -13,7 +13,10 @@ class DinEditorHistory:
         return deepcopy(self.session.components)
 
     def checkpoint(self):
-        self._undo.append(self._snapshot())
+        snapshot = self._snapshot()
+        if self._undo and self._undo[-1] == snapshot:
+            return
+        self._undo.append(snapshot)
         self._redo.clear()
 
     def undo(self) -> dict:
