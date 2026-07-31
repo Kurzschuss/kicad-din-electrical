@@ -7,6 +7,10 @@ from .din_editor_session import DinEditorSession
 from .din_editor_sync_log import DinSyncLog
 
 
+class DinProjectBundleError(ValueError):
+    """Raised when a DIN editor project file cannot be loaded safely."""
+
+
 def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None = None) -> dict:
     return {
         "version": 2,
@@ -16,15 +20,24 @@ def export_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None
 
 
 def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
-    if int(data.get("version", 1)) != 2:
-        raise ValueError("unsupported DIN editor project bundle version")
-    session = import_session(data.get("session", {}))
-    log = DinSyncLog()
-    entries = data.get("sync_log", [])
-    if not isinstance(entries, list):
-        raise ValueError("invalid DIN synchronization log in project bundle")
-    log.entries = [dict(entry) for entry in entries]
-    return session, log
+    if not isinstance(data, dict):
+        raise DinProjectBundleError("invalid DIN editor project bundle")
+    try:
+        version = int(data.get("version", 1))
+    except (TypeError, ValueError) as exc:
+        raise DinProjectBundleError("invalid DIN editor project bundle version") from exc
+    if version != 2:
+        raise DinProjectBundleError("unsupported DIN editor project bundle version")
+    try:
+        session = import_session(data.get("session", {}))
+        entries = data.get("sync_log", [])
+        if not isinstance(entries, list):
+            raise ValueError("synchronization log must be a list")
+        log = DinSyncLog()
+        log.entries = [dict(entry) for entry in entries]
+        return session, log
+    except (TypeError, ValueError, KeyError) as exc:
+        raise DinProjectBundleError("invalid DIN editor project data") from exc
 
 
 def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, path: str | Path) -> Path:
@@ -41,5 +54,12 @@ def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, 
 
 def load_project_bundle(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]:
     source = Path(path)
-    data = json.loads(source.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(source.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise DinProjectBundleError(f"DIN project file not found: {source}") from exc
+    except (OSError, UnicodeDecodeError) as exc:
+        raise DinProjectBundleError(f"DIN project file cannot be read: {source}") from exc
+    except json.JSONDecodeError as exc:
+        raise DinProjectBundleError(f"DIN project file contains invalid JSON: {source}") from exc
     return import_project_bundle(data)
