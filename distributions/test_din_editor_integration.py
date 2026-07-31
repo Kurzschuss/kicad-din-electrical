@@ -180,7 +180,7 @@ def test_invalid_project_bundle_schema_has_clear_error():
     try:
         import_project_bundle({"version": 2, "session": {}, "sync_log": "broken"})
     except DinProjectBundleError as exc:
-        assert "invalid DIN editor project data" in str(exc)
+        assert "invalid DIN synchronization log" in str(exc)
     else:
         raise AssertionError("invalid bundle schema was accepted")
 
