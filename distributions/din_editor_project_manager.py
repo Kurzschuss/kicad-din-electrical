@@ -30,7 +30,7 @@ class DinEditorProjectManager:
         self.dirty = self._snapshot() != self._saved_state
 
     def _build_change_service(self) -> DinEditorChangeService:
-        return DinEditorChangeService(self.session, on_change=self._refresh_dirty)
+        return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
 
     def sync_actions(self, view_model) -> DinEditorSyncActions:
         return DinEditorSyncActions(view_model, self.sync_log, on_change=self._refresh_dirty)
