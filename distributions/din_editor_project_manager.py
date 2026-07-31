@@ -4,6 +4,7 @@ from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
 from .din_editor_project_bundle import load_project_bundle, save_project_bundle
 from .din_editor_session import DinEditorSession
+from .din_editor_sync_actions import DinEditorSyncActions
 from .din_editor_sync_log import DinSyncLog
 from .din_editor_validation import validate_session, ValidationIssue
 
@@ -19,6 +20,9 @@ class DinEditorProjectManager:
 
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, on_change=self.mark_dirty)
+
+    def sync_actions(self, view_model) -> DinEditorSyncActions:
+        return DinEditorSyncActions(view_model, self.sync_log, on_change=self.mark_dirty)
 
     @property
     def has_unsaved_changes(self) -> bool:
