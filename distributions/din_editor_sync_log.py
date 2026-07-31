@@ -37,6 +37,7 @@ class DinSyncLog:
         if not isinstance(data, list):
             raise ValueError("invalid DIN synchronization log")
         validated = []
+        now = datetime.now(timezone.utc)
         for entry in data:
             if not isinstance(entry, dict):
                 raise ValueError("invalid DIN synchronization log entry")
@@ -47,7 +48,10 @@ class DinSyncLog:
             parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             if parsed.tzinfo is None:
                 raise ValueError("DIN synchronization log timestamp requires timezone")
-            normalized = parsed.astimezone(timezone.utc).isoformat()
+            parsed = parsed.astimezone(timezone.utc)
+            if parsed > now:
+                raise ValueError("DIN synchronization log timestamp cannot be in the future")
+            normalized = parsed.isoformat()
             if not str(entry["reference"]).strip():
                 raise ValueError("DIN synchronization log reference is required")
             if not str(entry["source"]).strip():
