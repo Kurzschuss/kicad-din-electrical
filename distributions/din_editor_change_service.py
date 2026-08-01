@@ -19,7 +19,11 @@ class DinEditorChangeService:
         try:
             if checkpoint:
                 self.history.checkpoint()
-            return self._changed(mutation())
+            state = mutation()
+            if self.history.capture()["current"] == captured["current"]:
+                self.history.restore(captured)
+                return state
+            return self._changed(state)
         except Exception:
             self.history.restore(captured)
             raise
