@@ -6,14 +6,20 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 SYMBOL_ROOT = ROOT / "symbols"
 FOOTPRINT_ROOT = ROOT / "footprints"
-REFERENCE_FILES = (
-    ROOT / "metadata" / "footprint_mapping.csv",
-    ROOT / "metadata" / "component_database.csv",
-    ROOT / "metadata" / "abb_products.csv",
-    ROOT / "tools" / "bom_template.csv",
-    ROOT / "tools" / "component_rules.yaml",
-    ROOT / "projects" / "control_cabinet_basic" / "bom.csv",
+REFERENCE_ROOTS = (
+    ROOT / "metadata",
+    ROOT / "tools",
+    ROOT / "projects",
 )
+REFERENCE_SUFFIXES = {
+    ".csv",
+    ".json",
+    ".kicad_pcb",
+    ".kicad_pro",
+    ".kicad_sch",
+    ".yaml",
+    ".yml",
+}
 OLD_FOOTPRINT_RE = re.compile(
     r"(?<!Z_)DIN_(?:Module_(?:18|36|45)mm|Contactor_45mm|Safety_Module|Terminal_Block)"
 )
@@ -56,9 +62,17 @@ def test_internal_footprint_names_match_prefixed_filenames():
     assert mismatches == []
 
 
-def test_known_metadata_references_do_not_use_old_footprint_names():
+def test_machine_readable_references_do_not_use_old_footprint_names():
+    reference_files = sorted(
+        path
+        for root in REFERENCE_ROOTS
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.lower() in REFERENCE_SUFFIXES
+    )
+    assert reference_files, "No machine-readable footprint reference files found"
+
     stale_references = []
-    for path in REFERENCE_FILES:
+    for path in reference_files:
         content = path.read_text(encoding="utf-8")
         if OLD_FOOTPRINT_RE.search(content):
             stale_references.append(path.relative_to(ROOT).as_posix())
