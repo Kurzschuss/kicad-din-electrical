@@ -88,7 +88,7 @@ def test_all_footprint_files_and_library_directories_use_z_prefix():
         {
             path.parent.relative_to(ROOT).as_posix()
             for path in footprint_files
-            if not path.parent.name.startswith("Z_")
+            if path.parent != FOOTPRINT_ROOT and not path.parent.name.startswith("Z_")
         }
     )
     assert unprefixed_files == []

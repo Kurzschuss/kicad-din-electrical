@@ -35,10 +35,10 @@ Die alte Sammelbibliotheks-ID `DIN_Electrical_Symbols:<Symbol>` darf nicht mehr 
 
 ### Footprints
 
-Die Footprint-Bibliothek liegt unter:
+Die Footprint-Dateien liegen direkt unter:
 
 ```text
-footprints/Z_DIN_Rail/
+footprints/
 ```
 
 Alle Footprint-Dateien beginnen ebenfalls mit `Z_`, zum Beispiel:
@@ -62,6 +62,6 @@ Die alte Bibliotheks-ID `DIN_Rail:<Footprint>` darf nicht mehr verwendet werden.
 
 ## KiCad-Einrichtung
 
-In KiCad müssen die Symbolbibliotheken mit ihrem jeweiligen Dateinamen ohne Endung registriert werden. Die Footprint-Bibliothek wird unter dem Namen `Z_DIN_Rail` eingebunden.
+In KiCad müssen die Symbolbibliotheken mit ihrem jeweiligen Dateinamen ohne Endung registriert werden. Die Footprints liegen gemeinsam im Verzeichnis `footprints/`.
 
 Die CI-Prüfungen stellen sicher, dass Dateinamen, interne Namen und Referenzen konsistent bleiben.
