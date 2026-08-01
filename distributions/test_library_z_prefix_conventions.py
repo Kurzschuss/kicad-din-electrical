@@ -36,10 +36,11 @@ def _machine_readable_reference_files() -> list[Path]:
     )
 
 
-def _duplicate_stems(paths: list[Path]) -> dict[str, list[str]]:
+def _duplicate_stems(paths: list[Path], *, case_sensitive: bool = True) -> dict[str, list[str]]:
     grouped: dict[str, list[str]] = {}
     for path in paths:
-        grouped.setdefault(path.stem, []).append(path.relative_to(ROOT).as_posix())
+        key = path.stem if case_sensitive else path.stem.casefold()
+        grouped.setdefault(key, []).append(path.relative_to(ROOT).as_posix())
     return {name: locations for name, locations in grouped.items() if len(locations) > 1}
 
 
@@ -54,6 +55,11 @@ def test_all_symbol_library_files_use_z_prefix():
 def test_symbol_library_names_are_unique_repository_wide():
     symbol_files = sorted(SYMBOL_ROOT.rglob("*.kicad_sym"))
     assert _duplicate_stems(symbol_files) == {}
+
+
+def test_symbol_library_names_are_unique_case_insensitively():
+    symbol_files = sorted(SYMBOL_ROOT.rglob("*.kicad_sym"))
+    assert _duplicate_stems(symbol_files, case_sensitive=False) == {}
 
 
 def test_single_symbol_library_files_match_primary_symbol_names():
@@ -92,6 +98,11 @@ def test_all_footprint_files_and_library_directories_use_z_prefix():
 def test_footprint_names_are_unique_repository_wide():
     footprint_files = sorted(FOOTPRINT_ROOT.rglob("*.kicad_mod"))
     assert _duplicate_stems(footprint_files) == {}
+
+
+def test_footprint_names_are_unique_case_insensitively():
+    footprint_files = sorted(FOOTPRINT_ROOT.rglob("*.kicad_mod"))
+    assert _duplicate_stems(footprint_files, case_sensitive=False) == {}
 
 
 def test_internal_footprint_names_match_prefixed_filenames():
