@@ -7,6 +7,11 @@ README = ROOT / "README.md"
 SYMBOL_ROOT = ROOT / "symbols"
 FOOTPRINT_ROOT = ROOT / "footprints" / "Z_DIN_Rail.pretty"
 
+DOCUMENTED_SYMBOL_PATHS = {
+    "symbols/DIN_Electrical_Symbols/",
+    "symbols/",
+}
+DOCUMENTED_FOOTPRINT_PATH = "footprints/Z_DIN_Rail.pretty/"
 DOCUMENTED_SYMBOL_FILES = {
     "Z_MCB.kicad_sym",
     "Z_CONTACTOR.kicad_sym",
@@ -18,6 +23,17 @@ DOCUMENTED_FOOTPRINT_FILES = {
     "Z_DIN_Terminal_Block.kicad_mod",
 }
 DOCUMENTED_FOOTPRINT_IDS = {"Z_DIN_Rail:Z_DIN_Module_18mm"}
+
+
+def test_readme_library_paths_exist():
+    readme = README.read_text(encoding="utf-8")
+
+    for relative_path in DOCUMENTED_SYMBOL_PATHS:
+        assert (ROOT / relative_path).is_dir()
+        assert f"`{relative_path}`" in readme
+
+    assert (ROOT / DOCUMENTED_FOOTPRINT_PATH).is_dir()
+    assert DOCUMENTED_FOOTPRINT_PATH in readme
 
 
 def test_readme_symbol_examples_exist():
