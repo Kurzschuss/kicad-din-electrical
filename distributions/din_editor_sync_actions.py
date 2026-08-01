@@ -4,10 +4,21 @@ from .din_editor_sync_log import DinSyncLog
 
 
 class DinEditorSyncActions:
-    def __init__(self, view_model: DinEditorSyncViewModel, sync_log: DinSyncLog | None = None, on_change=None):
+    def __init__(
+        self,
+        view_model: DinEditorSyncViewModel,
+        sync_log: DinSyncLog | None = None,
+        on_change=None,
+        is_current=None,
+    ):
         self.view_model = view_model
         self.sync_log = sync_log or DinSyncLog()
         self.on_change = on_change
+        self.is_current = is_current
+
+    def _ensure_current(self) -> None:
+        if self.is_current is not None and not self.is_current():
+            raise RuntimeError("synchronization actions are no longer bound to the active project")
 
     def _changed(self, state: dict) -> dict:
         if self.on_change is not None:
@@ -20,9 +31,11 @@ class DinEditorSyncActions:
             self.on_change()
 
     def inspect(self, kicad_fields: list[dict] | None = None) -> dict:
+        self._ensure_current()
         return self.view_model.refresh(kicad_fields)
 
     def keep_din(self, reference: str) -> dict:
+        self._ensure_current()
         history = self.view_model.sync_service.change_service.history
         captured = history.capture()
         try:
@@ -35,6 +48,7 @@ class DinEditorSyncActions:
         return self._changed(state)
 
     def use_kicad(self, reference: str) -> dict:
+        self._ensure_current()
         history = self.view_model.sync_service.change_service.history
         captured = history.capture()
         try:
@@ -46,6 +60,7 @@ class DinEditorSyncActions:
         return self._changed(state)
 
     def import_manifest(self, manifest: dict, overwrite: bool = True) -> dict:
+        self._ensure_current()
         history = self.view_model.sync_service.change_service.history
         captured = history.capture()
         before = {
@@ -66,6 +81,7 @@ class DinEditorSyncActions:
         return self._changed(state)
 
     def resolve_all(self, choice: str) -> dict:
+        self._ensure_current()
         state = self.view_model.refresh()
         conflicts = list(state.get("conflicts", []))
         if not conflicts:
