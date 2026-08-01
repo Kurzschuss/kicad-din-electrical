@@ -38,7 +38,7 @@ Die alte Sammelbibliotheks-ID `DIN_Electrical_Symbols:<Symbol>` darf nicht mehr 
 Die Footprint-Bibliothek liegt unter:
 
 ```text
-footprints/Z_DIN_Rail.pretty/
+footprints/Z_DIN_Rail/
 ```
 
 Alle Footprint-Dateien beginnen ebenfalls mit `Z_`, zum Beispiel:
