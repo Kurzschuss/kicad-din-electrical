@@ -1,4 +1,4 @@
 Part_Number,Function,Series,Footprint
-Terminal_Generic,Terminal Block,WAGO DIN,DIN_Terminal_Block
-PE_Terminal,PE Terminal,WAGO DIN,DIN_Terminal_Block
-Control_Terminal,Control Terminal,WAGO DIN,DIN_Terminal_Block
+Terminal_Generic,Terminal Block,WAGO DIN,Z_DIN_Terminal_Block
+PE_Terminal,PE Terminal,WAGO DIN,Z_DIN_Terminal_Block
+Control_Terminal,Control Terminal,WAGO DIN,Z_DIN_Terminal_Block
