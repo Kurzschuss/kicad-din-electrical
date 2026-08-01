@@ -39,7 +39,7 @@ class DinEditorChangeService:
         return self._changed(state)
 
     def can_undo(self) -> bool:
-        return bool(self.history._undo)
+        return self.history.can_undo()
 
     def can_redo(self) -> bool:
-        return bool(self.history._redo)
+        return self.history.can_redo()
