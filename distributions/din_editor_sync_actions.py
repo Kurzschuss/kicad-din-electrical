@@ -46,17 +46,25 @@ class DinEditorSyncActions:
         return self._changed(state)
 
     def import_manifest(self, manifest: dict, overwrite: bool = True) -> dict:
+        history = self.view_model.sync_service.change_service.history
+        snapshot = history._snapshot()
+        undo = deepcopy(history._undo)
+        redo = deepcopy(history._redo)
         before = {
             str(component.get("reference", "")): str(component.get("label") or component.get("terminal_label") or "")
             for component in self.view_model.sync_service.session.components
         }
-        state = self.view_model.sync_service.import_manifest_labels(manifest, overwrite=overwrite)
-        after = self.view_model.sync_service.session.components
-        for component in after:
-            reference = str(component.get("reference", ""))
-            label = str(component.get("label") or component.get("terminal_label") or "")
-            if reference in before and label != before[reference]:
-                self.sync_log.record(reference, "KiCad", label, "imported")
+        try:
+            state = self.view_model.sync_service.import_manifest_labels(manifest, overwrite=overwrite)
+            after = self.view_model.sync_service.session.components
+            for component in after:
+                reference = str(component.get("reference", ""))
+                label = str(component.get("label") or component.get("terminal_label") or "")
+                if reference in before and label != before[reference]:
+                    self.sync_log.record(reference, "KiCad", label, "imported")
+        except Exception:
+            self._rollback_history(history, snapshot, undo, redo)
+            raise
         return self._changed(state)
 
     def resolve_all(self, choice: str) -> dict:
