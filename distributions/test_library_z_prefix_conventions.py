@@ -20,9 +20,18 @@ REFERENCE_SUFFIXES = {
     ".yaml",
     ".yml",
 }
-OLD_FOOTPRINT_RE = re.compile(
-    r"(?<!Z_)DIN_(?:Module_(?:18|36|45)mm|Contactor_45mm|Safety_Module|Terminal_Block)"
-)
+FOOTPRINT_NAME_PATTERN = r"DIN_(?:Module_(?:18|36|45)mm|Contactor_45mm|Safety_Module|Terminal_Block)"
+OLD_FOOTPRINT_RE = re.compile(rf"(?<!Z_){FOOTPRINT_NAME_PATTERN}")
+PREFIXED_FOOTPRINT_RE = re.compile(rf"\bZ_{FOOTPRINT_NAME_PATTERN}\b")
+
+
+def _machine_readable_reference_files() -> list[Path]:
+    return sorted(
+        path
+        for root in REFERENCE_ROOTS
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.lower() in REFERENCE_SUFFIXES
+    )
 
 
 def test_all_symbol_library_files_use_z_prefix():
@@ -63,12 +72,7 @@ def test_internal_footprint_names_match_prefixed_filenames():
 
 
 def test_machine_readable_references_do_not_use_old_footprint_names():
-    reference_files = sorted(
-        path
-        for root in REFERENCE_ROOTS
-        for path in root.rglob("*")
-        if path.is_file() and path.suffix.lower() in REFERENCE_SUFFIXES
-    )
+    reference_files = _machine_readable_reference_files()
     assert reference_files, "No machine-readable footprint reference files found"
 
     stale_references = []
@@ -78,3 +82,18 @@ def test_machine_readable_references_do_not_use_old_footprint_names():
             stale_references.append(path.relative_to(ROOT).as_posix())
 
     assert stale_references == []
+
+
+def test_machine_readable_footprint_references_target_existing_files():
+    reference_files = _machine_readable_reference_files()
+    assert reference_files, "No machine-readable footprint reference files found"
+
+    available_footprints = {path.stem for path in FOOTPRINT_ROOT.rglob("*.kicad_mod")}
+    missing_targets = []
+    for path in reference_files:
+        content = path.read_text(encoding="utf-8")
+        for footprint_name in sorted(set(PREFIXED_FOOTPRINT_RE.findall(content))):
+            if footprint_name not in available_footprints:
+                missing_targets.append((path.relative_to(ROOT).as_posix(), footprint_name))
+
+    assert missing_targets == []
