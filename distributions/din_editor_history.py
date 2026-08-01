@@ -69,14 +69,22 @@ class DinEditorHistory:
         self._undo.append(current)
         return self._restore(target)
 
+    def can_undo(self) -> bool:
+        """Return whether an undo step is currently available."""
+        return bool(self._undo)
+
+    def can_redo(self) -> bool:
+        """Return whether a redo step is currently available."""
+        return bool(self._redo)
+
     def clear(self) -> None:
         self._undo.clear()
         self._redo.clear()
 
     def state(self) -> dict:
         return {
-            "can_undo": bool(self._undo),
-            "can_redo": bool(self._redo),
+            "can_undo": self.can_undo(),
+            "can_redo": self.can_redo(),
             "undo_depth": len(self._undo),
             "redo_depth": len(self._redo),
         }
