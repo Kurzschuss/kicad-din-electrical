@@ -23,6 +23,24 @@ class DinEditorProjectManager:
     def _snapshot(self) -> dict:
         return {"components": deepcopy(self.session.components), "sync_log": deepcopy(self.sync_log.entries)}
 
+    @staticmethod
+    def _snapshot_for(session: DinEditorSession, sync_log: DinSyncLog) -> dict:
+        return {"components": deepcopy(session.components), "sync_log": deepcopy(sync_log.entries)}
+
+    def _prepare_project_state(
+        self,
+        session: DinEditorSession,
+        sync_log: DinSyncLog,
+    ) -> tuple[DinEditorHistory, DinEditorChangeService, dict]:
+        history = DinEditorHistory(session, sync_log)
+        change_service = DinEditorChangeService(
+            session,
+            history,
+            on_change=self._refresh_dirty,
+        )
+        saved_state = self._snapshot_for(session, sync_log)
+        return history, change_service, saved_state
+
     def _refresh_dirty(self) -> None:
         self.dirty = self._snapshot() != self._saved_state
 
@@ -63,12 +81,13 @@ class DinEditorProjectManager:
         if self.has_unsaved_changes and not discard_changes:
             raise RuntimeError("project has unsaved changes; save or discard them before loading")
         session, sync_log = load_project_bundle(path)
+        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
-        self.history = DinEditorHistory(self.session, self.sync_log)
-        self.change_service = self._build_change_service()
+        self.history = history
+        self.change_service = change_service
         self.path = Path(path)
-        self._saved_state = self._snapshot()
+        self._saved_state = saved_state
         self.dirty = False
         return self.session
 
@@ -77,12 +96,13 @@ class DinEditorProjectManager:
             raise RuntimeError("project has unsaved changes; save or discard them before creating a new project")
         session = DinEditorSession()
         sync_log = DinSyncLog()
+        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
-        self.history = DinEditorHistory(session, sync_log)
-        self.change_service = self._build_change_service()
+        self.history = history
+        self.change_service = change_service
         self.path = None
-        self._saved_state = self._snapshot()
+        self._saved_state = saved_state
         self.dirty = False
         return self.session
 
@@ -93,11 +113,12 @@ class DinEditorProjectManager:
             self.new_project(discard_changes=True)
             return
         session, sync_log = load_project_bundle(self.path)
+        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
-        self.history = DinEditorHistory(self.session, self.sync_log)
-        self.change_service = self._build_change_service()
-        self._saved_state = self._snapshot()
+        self.history = history
+        self.change_service = change_service
+        self._saved_state = saved_state
         self.dirty = False
 
     def state(self) -> dict:
