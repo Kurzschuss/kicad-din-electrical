@@ -100,18 +100,26 @@ def test_machine_readable_footprint_references_target_existing_files():
     assert missing_targets == []
 
 
-def test_machine_readable_symbol_ids_target_existing_libraries():
+def test_machine_readable_symbol_ids_target_existing_symbols():
     reference_files = _machine_readable_reference_files()
     assert reference_files, "No machine-readable symbol reference files found"
 
-    available_libraries = {path.stem for path in SYMBOL_ROOT.rglob("*.kicad_sym")}
-    missing_libraries = []
+    library_files = {path.stem: path for path in SYMBOL_ROOT.rglob("*.kicad_sym")}
+    library_contents = {
+        library_name: path.read_text(encoding="utf-8")
+        for library_name, path in library_files.items()
+    }
+    missing_targets = []
     for path in reference_files:
         content = path.read_text(encoding="utf-8")
         for library_name, symbol_name in sorted(set(PREFIXED_SYMBOL_ID_RE.findall(content))):
-            if library_name not in available_libraries:
-                missing_libraries.append(
-                    (path.relative_to(ROOT).as_posix(), f"{library_name}:{symbol_name}")
-                )
+            symbol_id = f"{library_name}:{symbol_name}"
+            if library_name not in library_files:
+                missing_targets.append((path.relative_to(ROOT).as_posix(), symbol_id, "library"))
+                continue
 
-    assert missing_libraries == []
+            symbol_declaration = f'(symbol "{symbol_name}"'
+            if symbol_declaration not in library_contents[library_name]:
+                missing_targets.append((path.relative_to(ROOT).as_posix(), symbol_id, "symbol"))
+
+    assert missing_targets == []
