@@ -7,10 +7,7 @@ README = ROOT / "README.md"
 SYMBOL_ROOT = ROOT / "symbols"
 FOOTPRINT_ROOT = ROOT / "footprints"
 
-DOCUMENTED_SYMBOL_PATHS = {
-    "symbols/DIN_Electrical_Symbols/",
-    "symbols/",
-}
+DOCUMENTED_SYMBOL_PATHS = {"symbols/DIN_Electrical_Symbols/"}
 DOCUMENTED_FOOTPRINT_PATH = "footprints/"
 DOCUMENTED_SYMBOL_FILES = {
     "Z_MCB.kicad_sym",
@@ -22,8 +19,7 @@ DOCUMENTED_FOOTPRINT_FILES = {
     "Z_DIN_Module_18mm.kicad_mod",
     "Z_DIN_Terminal_Block.kicad_mod",
 }
-DOCUMENTED_FOOTPRINT_IDS = {"Z_DIN_Rail:Z_DIN_Module_18mm"}
-EXPECTED_FOOTPRINT_LIBRARY = "Z_DIN_Rail"
+DOCUMENTED_FOOTPRINT_IDS = {"Z_DIN_Module_18mm:Z_DIN_Module_18mm"}
 
 
 def test_readme_library_paths_exist():
@@ -56,7 +52,7 @@ def test_readme_symbol_examples_exist():
 
 def test_readme_footprint_examples_exist():
     readme = README.read_text(encoding="utf-8")
-    available_files = {path.name for path in FOOTPRINT_ROOT.glob("*.kicad_mod")}
+    available_files = {path.name for path in FOOTPRINT_ROOT.rglob("*.kicad_mod")}
 
     assert DOCUMENTED_FOOTPRINT_FILES <= available_files
     for filename in DOCUMENTED_FOOTPRINT_FILES:
@@ -64,6 +60,6 @@ def test_readme_footprint_examples_exist():
 
     for footprint_id in DOCUMENTED_FOOTPRINT_IDS:
         library_name, footprint_name = footprint_id.split(":", 1)
-        assert library_name == EXPECTED_FOOTPRINT_LIBRARY
-        assert (FOOTPRINT_ROOT / f"{footprint_name}.kicad_mod").is_file()
+        assert library_name == footprint_name
+        assert (FOOTPRINT_ROOT / f"{library_name}.pretty" / f"{footprint_name}.kicad_mod").is_file()
         assert footprint_id in readme

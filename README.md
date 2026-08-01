@@ -8,10 +8,9 @@ Alle projektinternen Bibliotheken verwenden das Präfix `Z_`, damit sie in KiCad
 
 ### Symbole
 
-Die Symbolbibliotheken liegen unter:
+Alle Symbolbibliotheken liegen unter:
 
 - `symbols/DIN_Electrical_Symbols/`
-- `symbols/`
 
 Jede Symbolbibliotheksdatei beginnt mit `Z_`, zum Beispiel:
 
@@ -35,7 +34,7 @@ Die alte Sammelbibliotheks-ID `DIN_Electrical_Symbols:<Symbol>` darf nicht mehr 
 
 ### Footprints
 
-Die Footprint-Dateien und Footprint-Bibliotheken liegen unter:
+Die Footprint-Bibliotheken liegen unter:
 
 ```text
 footprints/
@@ -44,31 +43,38 @@ footprints/
 Für jede `.kicad_sym`-Datei existiert ein gleichnamiger `.pretty`-Ordner. Beispiel:
 
 ```text
-symbols/Z_DIN_Control.kicad_sym
+symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym
 footprints/Z_DIN_Control.pretty/
 ```
 
-Alle Footprint-Dateien beginnen ebenfalls mit `Z_`, zum Beispiel:
+Jede vorhandene `.kicad_mod`-Datei liegt zusätzlich in einem gleichnamigen `.pretty`-Ordner. Beispiele:
+
+```text
+footprints/Z_DIN_Module_18mm.pretty/Z_DIN_Module_18mm.kicad_mod
+footprints/Z_DIN_Terminal_Block.pretty/Z_DIN_Terminal_Block.kicad_mod
+```
+
+Alle Footprint-Dateien beginnen mit `Z_`, zum Beispiel:
 
 - `Z_DIN_Module_18mm.kicad_mod`
 - `Z_DIN_Terminal_Block.kicad_mod`
 
-Qualifizierte Footprint-IDs verwenden das Format:
+Qualifizierte Footprint-IDs verwenden den Namen des `.pretty`-Ordners:
 
 ```text
-Z_DIN_Rail:<Footprint>
+Z_<Footprint>:Z_<Footprint>
 ```
 
 Beispiel:
 
 ```text
-Z_DIN_Rail:Z_DIN_Module_18mm
+Z_DIN_Module_18mm:Z_DIN_Module_18mm
 ```
 
-Die alte Bibliotheks-ID `DIN_Rail:<Footprint>` darf nicht mehr verwendet werden.
+Die alten Bibliotheks-IDs `DIN_Rail:<Footprint>` und `Z_DIN_Rail:<Footprint>` dürfen nicht mehr verwendet werden.
 
 ## KiCad-Einrichtung
 
-In KiCad müssen die Symbolbibliotheken mit ihrem jeweiligen Dateinamen ohne Endung registriert werden. Die Footprints und `.pretty`-Bibliotheken liegen gemeinsam im Verzeichnis `footprints/`.
+In KiCad müssen die Symbolbibliotheken mit ihrem jeweiligen Dateinamen ohne Endung registriert werden. Die Footprint-Bibliotheken werden aus den einzelnen `.pretty`-Ordnern unter `footprints/` eingebunden.
 
-Die CI-Prüfungen stellen sicher, dass Dateinamen, interne Namen und Referenzen konsistent bleiben.
+Die CI-Prüfungen stellen sicher, dass Dateinamen, interne Namen, Ordnerstruktur und Referenzen konsistent bleiben.
