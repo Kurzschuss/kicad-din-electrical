@@ -28,7 +28,12 @@ class DinEditorSyncActions:
     def _rollback_history(self, history, captured) -> None:
         history.restore(captured)
         if self.on_change is not None:
-            self.on_change()
+            try:
+                self.on_change()
+            except Exception:
+                # Rollback notification is best-effort and must never hide the
+                # operation error that triggered restoration.
+                pass
 
     def inspect(self, kicad_fields: list[dict] | None = None) -> dict:
         self._ensure_current()
