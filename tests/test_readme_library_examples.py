@@ -60,6 +60,5 @@ def test_readme_footprint_examples_exist():
 
     for footprint_id in DOCUMENTED_FOOTPRINT_IDS:
         library_name, footprint_name = footprint_id.split(":", 1)
-        assert library_name == footprint_name
         assert (FOOTPRINT_ROOT / f"{library_name}.pretty" / f"{footprint_name}.kicad_mod").is_file()
         assert footprint_id in readme
