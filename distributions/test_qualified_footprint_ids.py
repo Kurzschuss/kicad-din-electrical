@@ -1,4 +1,4 @@
-"""Validate qualified KiCad footprint IDs against the Z_DIN_Rail library."""
+"""Validate qualified KiCad footprint IDs against per-footprint .pretty libraries."""
 from pathlib import Path
 import re
 
@@ -20,11 +20,9 @@ REFERENCE_SUFFIXES = {
     ".yml",
 }
 QUALIFIED_FOOTPRINT_ID_RE = re.compile(r"\b([A-Za-z0-9_]+):(Z_DIN_[A-Za-z0-9_]+)\b")
-EXPECTED_LIBRARY = "Z_DIN_Rail"
 
 
-def test_qualified_footprint_ids_use_expected_library_and_existing_targets():
-    available_footprints = {path.stem for path in FOOTPRINT_ROOT.rglob("*.kicad_mod")}
+def test_qualified_footprint_ids_use_matching_library_and_existing_targets():
     invalid_ids = []
 
     for root in REFERENCE_ROOTS:
@@ -35,9 +33,9 @@ def test_qualified_footprint_ids_use_expected_library_and_existing_targets():
             content = path.read_text(encoding="utf-8")
             for library_name, footprint_name in sorted(set(QUALIFIED_FOOTPRINT_ID_RE.findall(content))):
                 reason = None
-                if library_name != EXPECTED_LIBRARY:
+                if library_name != footprint_name:
                     reason = "library"
-                elif footprint_name not in available_footprints:
+                elif not (FOOTPRINT_ROOT / f"{library_name}.pretty" / f"{footprint_name}.kicad_mod").is_file():
                     reason = "footprint"
 
                 if reason:
