@@ -1,5 +1,5 @@
 Reference,Value,Function,Manufacturer,Part_Number,Footprint,Quantity
-Q1,Motor Protection,Protection,ABB,MS116,DIN_Module_45mm,1
-K1,Contactor,Switching,ABB,AF09,DIN_Contactor_45mm,1
-K2,Safety Relay,Safety,ABB,Safety_Relay_Generic,DIN_Safety_Module,1
-X1,Terminal,Connection,Phoenix Contact,Terminal_Generic,DIN_Terminal_Block,1
+Q1,Motor Protection,Protection,ABB,MS116,Z_DIN_Module_45mm,1
+K1,Contactor,Switching,ABB,AF09,Z_DIN_Contactor_45mm,1
+K2,Safety Relay,Safety,ABB,Safety_Relay_Generic,Z_DIN_Safety_Module,1
+X1,Terminal,Connection,Phoenix Contact,Terminal_Generic,Z_DIN_Terminal_Block,1
