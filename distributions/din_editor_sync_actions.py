@@ -18,6 +18,7 @@ class DinEditorSyncActions:
         return self.view_model.refresh(kicad_fields)
 
     def keep_din(self, reference: str) -> dict:
+        self.view_model.sync_service.change_service.history.checkpoint()
         state = self.view_model.choose(reference, "local")
         self.sync_log.record(reference, "DIN", self._label(reference), "kept")
         return self._changed(state)
