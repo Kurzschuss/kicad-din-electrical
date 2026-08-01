@@ -69,12 +69,15 @@ class DinEditorProjectManager:
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("project path is not set")
+        _, _, saved_state = self._prepare_project_state(
+            self.session,
+            self.sync_log,
+        )
         result = save_project_bundle(self.session, self.sync_log, target)
         self.path = result
-        self._saved_state = self._snapshot()
+        self._saved_state = saved_state
         self.dirty = False
         self.history.clear()
-        self.change_service = self._build_change_service()
         return result
 
     def load(self, path: str | Path, *, discard_changes: bool = False) -> DinEditorSession:
