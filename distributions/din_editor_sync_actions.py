@@ -1,4 +1,6 @@
 """High-level actions for synchronizing a DIN editor with KiCad."""
+from copy import deepcopy
+
 from .din_editor_sync_view_model import DinEditorSyncViewModel
 from .din_editor_sync_log import DinSyncLog
 
@@ -14,6 +16,13 @@ class DinEditorSyncActions:
             self.on_change()
         return state
 
+    def _rollback_history(self, history, snapshot, undo, redo) -> None:
+        history._restore(snapshot)
+        history._undo = undo
+        history._redo = redo
+        if self.on_change is not None:
+            self.on_change()
+
     def inspect(self, kicad_fields: list[dict] | None = None) -> dict:
         return self.view_model.refresh(kicad_fields)
 
@@ -24,8 +33,16 @@ class DinEditorSyncActions:
         return self._changed(state)
 
     def use_kicad(self, reference: str) -> dict:
-        state = self.view_model.choose(reference, "kicad")
-        self.sync_log.record(reference, "KiCad", self._label(reference), "imported")
+        history = self.view_model.sync_service.change_service.history
+        snapshot = history._snapshot()
+        undo = deepcopy(history._undo)
+        redo = deepcopy(history._redo)
+        try:
+            state = self.view_model.choose(reference, "kicad")
+            self.sync_log.record(reference, "KiCad", self._label(reference), "imported")
+        except Exception:
+            self._rollback_history(history, snapshot, undo, redo)
+            raise
         return self._changed(state)
 
     def import_manifest(self, manifest: dict, overwrite: bool = True) -> dict:
