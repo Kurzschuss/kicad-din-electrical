@@ -13,8 +13,8 @@ def _service(on_change=None):
             "terminal_label": "+24V SPS",
             "can_edit_label": True,
             "rail": 1,
-            "start_te": 2,
-            "end_te": 2,
+            "start_te": 1,
+            "end_te": 1,
             "width_te": 1,
         }
     ])
@@ -42,11 +42,11 @@ def test_same_position_is_not_recorded_as_change():
     session, history, service = _service(lambda: callbacks.append("changed"))
     before = history.capture()
 
-    state = service.move(0, 1, 2)
+    state = service.move(0, 1, 1)
 
     assert history.capture() == before
     assert session.components[0]["rail"] == 1
-    assert session.components[0]["start_te"] == 2
+    assert session.components[0]["start_te"] == 1
     assert not service.can_undo()
     assert not service.can_redo()
     assert callbacks == []
