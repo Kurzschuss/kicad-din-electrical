@@ -24,7 +24,7 @@ def test_capture_restore_recovers_components_log_and_stacks():
 
     restored = history.restore(captured)
 
-    assert restored["components"][0]["label"] == "+24V SPS"
+    assert restored == session.state()
     assert session.components[0]["label"] == "+24V SPS"
     assert sync_log.entries == []
     assert history.state() == original_state
