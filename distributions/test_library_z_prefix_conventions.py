@@ -43,6 +43,17 @@ def test_all_symbol_library_files_use_z_prefix():
     assert unprefixed == []
 
 
+def test_symbol_library_files_contain_matching_primary_symbols():
+    mismatches = []
+    for path in sorted(SYMBOL_ROOT.rglob("*.kicad_sym")):
+        expected_symbol = path.stem.removeprefix("Z_")
+        content = path.read_text(encoding="utf-8")
+        if f'(symbol "{expected_symbol}"' not in content:
+            mismatches.append((path.relative_to(ROOT).as_posix(), expected_symbol))
+
+    assert mismatches == []
+
+
 def test_all_footprint_files_and_library_directories_use_z_prefix():
     footprint_files = sorted(FOOTPRINT_ROOT.rglob("*.kicad_mod"))
     assert footprint_files, "No KiCad footprints found"
