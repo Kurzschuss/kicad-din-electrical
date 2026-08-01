@@ -2,7 +2,8 @@
 import csv
 from pathlib import Path
 
-DEFAULT_SYMBOL_CATALOG = Path(__file__).parent.parent / "symbols" / "DIN_Electrical_Symbols" / "symbol_catalog.csv"
+SYMBOL_LIBRARY_ROOT = Path(__file__).parent.parent / "symbols" / "DIN_Electrical_Symbols"
+DEFAULT_SYMBOL_CATALOG = SYMBOL_LIBRARY_ROOT / "symbol_catalog.csv"
 
 _COMPONENT_TO_SYMBOL = {
     "DIN_RAIL_MAIN_SWITCH": "MAIN_SWITCH",
@@ -26,8 +27,9 @@ def resolve_symbol(component: dict, catalog: dict[str, dict] | None = None) -> d
     entry = catalog.get(symbol_name)
     if entry is None:
         raise KeyError(f"symbol {symbol_name!r} is not present in the KiCad symbol catalog")
+    library_name = f"Z_{symbol_name}"
     return {
         "symbol": symbol_name,
-        "library_id": f"DIN_Electrical_Symbols:{symbol_name}",
+        "library_id": f"{library_name}:{symbol_name}",
         "standard": entry.get("Standard"),
     }
