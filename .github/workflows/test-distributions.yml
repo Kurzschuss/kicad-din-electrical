@@ -18,5 +18,5 @@ jobs:
           python-version: "3.12"
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pytest
-      - name: Run distribution tests
-        run: python -m pytest distributions -q
+      - name: Run complete test suite
+        run: python -m pytest -q
