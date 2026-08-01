@@ -14,21 +14,31 @@ class DinEditorChangeService:
             self.on_change()
         return state
 
+    def _apply(self, mutation, *, checkpoint: bool = True) -> dict:
+        captured = self.history.capture()
+        try:
+            if checkpoint:
+                self.history.checkpoint()
+            return self._changed(mutation())
+        except Exception:
+            self.history.restore(captured)
+            raise
+
     def move(self, index: int, rail: int, start_te: int) -> dict:
-        self.history.checkpoint()
-        return self._changed(self.session.move(index, rail, start_te))
+        return self._apply(lambda: self.session.move(index, rail, start_te))
 
     def set_terminal_label(self, index: int, label: str) -> dict:
-        self.history.checkpoint()
-        return self._changed(self.session.set_terminal_label(index, label))
+        return self._apply(lambda: self.session.set_terminal_label(index, label))
 
     def replace_components(self, components: list[dict], *, checkpoint: bool = True) -> dict:
         if components == self.session.components:
             return self.session.state()
-        if checkpoint:
-            self.history.checkpoint()
-        self.session.components = [dict(component) for component in components]
-        return self._changed(self.session.state())
+
+        def replace() -> dict:
+            self.session.components = [dict(component) for component in components]
+            return self.session.state()
+
+        return self._apply(replace, checkpoint=checkpoint)
 
     def undo(self) -> dict:
         state = self.history.undo()
