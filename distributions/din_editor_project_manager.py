@@ -48,6 +48,9 @@ class DinEditorProjectManager:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
 
     def sync_actions(self, view_model) -> DinEditorSyncActions:
+        sync_service = getattr(view_model, "sync_service", None)
+        if sync_service is None or sync_service.change_service is not self.change_service:
+            raise ValueError("sync view model is not bound to this project manager")
         return DinEditorSyncActions(view_model, self.sync_log, on_change=self._refresh_dirty)
 
     @property
