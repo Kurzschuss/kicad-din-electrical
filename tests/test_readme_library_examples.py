@@ -5,13 +5,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 SYMBOL_ROOT = ROOT / "symbols"
-FOOTPRINT_ROOT = ROOT / "footprints" / "Z_DIN_Rail"
+FOOTPRINT_ROOT = ROOT / "footprints"
 
 DOCUMENTED_SYMBOL_PATHS = {
     "symbols/DIN_Electrical_Symbols/",
     "symbols/",
 }
-DOCUMENTED_FOOTPRINT_PATH = "footprints/Z_DIN_Rail/"
+DOCUMENTED_FOOTPRINT_PATH = "footprints/"
 DOCUMENTED_SYMBOL_FILES = {
     "Z_MCB.kicad_sym",
     "Z_CONTACTOR.kicad_sym",
@@ -23,6 +23,7 @@ DOCUMENTED_FOOTPRINT_FILES = {
     "Z_DIN_Terminal_Block.kicad_mod",
 }
 DOCUMENTED_FOOTPRINT_IDS = {"Z_DIN_Rail:Z_DIN_Module_18mm"}
+EXPECTED_FOOTPRINT_LIBRARY = "Z_DIN_Rail"
 
 
 def test_readme_library_paths_exist():
@@ -63,6 +64,6 @@ def test_readme_footprint_examples_exist():
 
     for footprint_id in DOCUMENTED_FOOTPRINT_IDS:
         library_name, footprint_name = footprint_id.split(":", 1)
-        assert library_name == FOOTPRINT_ROOT.name
+        assert library_name == EXPECTED_FOOTPRINT_LIBRARY
         assert (FOOTPRINT_ROOT / f"{footprint_name}.kicad_mod").is_file()
         assert footprint_id in readme
