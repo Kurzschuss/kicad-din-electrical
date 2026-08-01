@@ -23,6 +23,7 @@ REFERENCE_SUFFIXES = {
 FOOTPRINT_NAME_PATTERN = r"DIN_(?:Module_(?:18|36|45)mm|Contactor_45mm|Safety_Module|Terminal_Block)"
 OLD_FOOTPRINT_RE = re.compile(rf"(?<!Z_){FOOTPRINT_NAME_PATTERN}")
 PREFIXED_FOOTPRINT_RE = re.compile(rf"\bZ_{FOOTPRINT_NAME_PATTERN}\b")
+PREFIXED_SYMBOL_ID_RE = re.compile(r"\b(Z_[A-Za-z0-9_]+):([A-Za-z0-9_]+)\b")
 
 
 def _machine_readable_reference_files() -> list[Path]:
@@ -97,3 +98,20 @@ def test_machine_readable_footprint_references_target_existing_files():
                 missing_targets.append((path.relative_to(ROOT).as_posix(), footprint_name))
 
     assert missing_targets == []
+
+
+def test_machine_readable_symbol_ids_target_existing_libraries():
+    reference_files = _machine_readable_reference_files()
+    assert reference_files, "No machine-readable symbol reference files found"
+
+    available_libraries = {path.stem for path in SYMBOL_ROOT.rglob("*.kicad_sym")}
+    missing_libraries = []
+    for path in reference_files:
+        content = path.read_text(encoding="utf-8")
+        for library_name, symbol_name in sorted(set(PREFIXED_SYMBOL_ID_RE.findall(content))):
+            if library_name not in available_libraries:
+                missing_libraries.append(
+                    (path.relative_to(ROOT).as_posix(), f"{library_name}:{symbol_name}")
+                )
+
+    assert missing_libraries == []
