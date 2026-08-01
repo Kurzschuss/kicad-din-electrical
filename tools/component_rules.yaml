@@ -1,22 +1,22 @@
 components:
   Motor_Protection_Switch:
     reference: Q
-    default_footprint: DIN_Module_45mm
+    default_footprint: Z_DIN_Module_45mm
     manufacturers:
       - ABB
   Contactor_3P:
     reference: K
-    default_footprint: DIN_Contactor_45mm
+    default_footprint: Z_DIN_Contactor_45mm
     manufacturers:
       - ABB
   Safety_Relay:
     reference: K
-    default_footprint: DIN_Safety_Module
+    default_footprint: Z_DIN_Safety_Module
     manufacturers:
       - ABB
   Terminal_Block:
     reference: X
-    default_footprint: DIN_Terminal_Block
+    default_footprint: Z_DIN_Terminal_Block
     manufacturers:
       - Phoenix Contact
       - WAGO

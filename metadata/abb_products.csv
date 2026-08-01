@@ -1,6 +1,6 @@
 Part_Number,Function,Series,Footprint
-MS116,Motor Protection,ABB MS,DIN_Module_45mm
-MS132,Motor Protection,ABB MS,DIN_Module_45mm
-AF09,Contactor,ABB AF,DIN_Contactor_45mm
-AF16,Contactor,ABB AF,DIN_Contactor_45mm
-Safety_Relay_Generic,Safety Relay,ABB Safety,DIN_Safety_Module
+MS116,Motor Protection,ABB MS,Z_DIN_Module_45mm
+MS132,Motor Protection,ABB MS,Z_DIN_Module_45mm
+AF09,Contactor,ABB AF,Z_DIN_Contactor_45mm
+AF16,Contactor,ABB AF,Z_DIN_Contactor_45mm
+Safety_Relay_Generic,Safety Relay,ABB Safety,Z_DIN_Safety_Module

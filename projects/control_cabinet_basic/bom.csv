@@ -1,7 +1,7 @@
 Reference,Function,Manufacturer,Part_Group,Footprint
-Q1,Motor Protection,ABB,MS116_MS132,DIN_Module_45mm
-K1,Contactor,ABB,AF_Series,DIN_Contactor_45mm
-K2,Safety Relay,ABB,Safety_Relay,DIN_Safety_Module
-Q2,Circuit Protection,Hager,DIN_Protection,DIN_Module_18mm
-X1,Power Terminal,Phoenix Contact,Terminal_Block,DIN_Terminal_Block
-X2,Control Terminal,WAGO,Terminal_Block,DIN_Terminal_Block
+Q1,Motor Protection,ABB,MS116_MS132,Z_DIN_Module_45mm
+K1,Contactor,ABB,AF_Series,Z_DIN_Contactor_45mm
+K2,Safety Relay,ABB,Safety_Relay,Z_DIN_Safety_Module
+Q2,Circuit Protection,Hager,DIN_Protection,Z_DIN_Module_18mm
+X1,Power Terminal,Phoenix Contact,Terminal_Block,Z_DIN_Terminal_Block
+X2,Control Terminal,WAGO,Terminal_Block,Z_DIN_Terminal_Block
