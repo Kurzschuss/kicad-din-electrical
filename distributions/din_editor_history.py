@@ -23,6 +23,21 @@ class DinEditorHistory:
             self.sync_log.entries[:] = deepcopy(state.get("sync_log", []))
         return self.session.state()
 
+    def capture(self) -> dict:
+        """Capture the complete mutable history state for transactional rollback."""
+        return {
+            "current": self._snapshot(),
+            "undo": deepcopy(self._undo),
+            "redo": deepcopy(self._redo),
+        }
+
+    def restore(self, captured: dict) -> dict:
+        """Restore a state previously returned by :meth:`capture`."""
+        state = self._restore(captured["current"])
+        self._undo = deepcopy(captured["undo"])
+        self._redo = deepcopy(captured["redo"])
+        return state
+
     def checkpoint(self):
         """Record the state immediately before the next mutation."""
         snapshot = self._snapshot()
