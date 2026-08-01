@@ -1,6 +1,4 @@
 """High-level actions for synchronizing a DIN editor with KiCad."""
-from copy import deepcopy
-
 from .din_editor_sync_view_model import DinEditorSyncViewModel
 from .din_editor_sync_log import DinSyncLog
 
@@ -16,10 +14,8 @@ class DinEditorSyncActions:
             self.on_change()
         return state
 
-    def _rollback_history(self, history, snapshot, undo, redo) -> None:
-        history._restore(snapshot)
-        history._undo = undo
-        history._redo = redo
+    def _rollback_history(self, history, captured) -> None:
+        history.restore(captured)
         if self.on_change is not None:
             self.on_change()
 
@@ -28,36 +24,30 @@ class DinEditorSyncActions:
 
     def keep_din(self, reference: str) -> dict:
         history = self.view_model.sync_service.change_service.history
-        snapshot = history._snapshot()
-        undo = deepcopy(history._undo)
-        redo = deepcopy(history._redo)
+        captured = history.capture()
         try:
             history.checkpoint()
             state = self.view_model.choose(reference, "local")
             self.sync_log.record(reference, "DIN", self._label(reference), "kept")
         except Exception:
-            self._rollback_history(history, snapshot, undo, redo)
+            self._rollback_history(history, captured)
             raise
         return self._changed(state)
 
     def use_kicad(self, reference: str) -> dict:
         history = self.view_model.sync_service.change_service.history
-        snapshot = history._snapshot()
-        undo = deepcopy(history._undo)
-        redo = deepcopy(history._redo)
+        captured = history.capture()
         try:
             state = self.view_model.choose(reference, "kicad")
             self.sync_log.record(reference, "KiCad", self._label(reference), "imported")
         except Exception:
-            self._rollback_history(history, snapshot, undo, redo)
+            self._rollback_history(history, captured)
             raise
         return self._changed(state)
 
     def import_manifest(self, manifest: dict, overwrite: bool = True) -> dict:
         history = self.view_model.sync_service.change_service.history
-        snapshot = history._snapshot()
-        undo = deepcopy(history._undo)
-        redo = deepcopy(history._redo)
+        captured = history.capture()
         before = {
             str(component.get("reference", "")): str(component.get("label") or component.get("terminal_label") or "")
             for component in self.view_model.sync_service.session.components
@@ -71,7 +61,7 @@ class DinEditorSyncActions:
                 if reference in before and label != before[reference]:
                     self.sync_log.record(reference, "KiCad", label, "imported")
         except Exception:
-            self._rollback_history(history, snapshot, undo, redo)
+            self._rollback_history(history, captured)
             raise
         return self._changed(state)
 
@@ -81,9 +71,7 @@ class DinEditorSyncActions:
         if not conflicts:
             return state
         history = self.view_model.sync_service.change_service.history
-        snapshot = history._snapshot()
-        undo = deepcopy(history._undo)
-        redo = deepcopy(history._redo)
+        captured = history.capture()
         try:
             if choice == "local":
                 history.checkpoint()
@@ -94,7 +82,7 @@ class DinEditorSyncActions:
                 reference = str(conflict["reference"])
                 self.sync_log.record(reference, source, self._label(reference), action)
         except Exception:
-            self._rollback_history(history, snapshot, undo, redo)
+            self._rollback_history(history, captured)
             raise
         return self._changed(state)
 
