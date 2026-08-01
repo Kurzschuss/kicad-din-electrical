@@ -41,12 +41,10 @@ class DinEditorChangeService:
         return self._apply(replace, checkpoint=checkpoint)
 
     def undo(self) -> dict:
-        state = self.history.undo()
-        return self._changed(state)
+        return self._apply(self.history.undo, checkpoint=False)
 
     def redo(self) -> dict:
-        state = self.history.redo()
-        return self._changed(state)
+        return self._apply(self.history.redo, checkpoint=False)
 
     def can_undo(self) -> bool:
         return self.history.can_undo()
