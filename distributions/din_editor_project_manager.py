@@ -51,7 +51,17 @@ class DinEditorProjectManager:
         sync_service = getattr(view_model, "sync_service", None)
         if sync_service is None or sync_service.change_service is not self.change_service:
             raise ValueError("sync view model is not bound to this project manager")
-        return DinEditorSyncActions(view_model, self.sync_log, on_change=self._refresh_dirty)
+        bound_change_service = self.change_service
+        bound_sync_log = self.sync_log
+        return DinEditorSyncActions(
+            view_model,
+            bound_sync_log,
+            on_change=self._refresh_dirty,
+            is_current=lambda: (
+                self.change_service is bound_change_service
+                and self.sync_log is bound_sync_log
+            ),
+        )
 
     @property
     def has_unsaved_changes(self) -> bool:
