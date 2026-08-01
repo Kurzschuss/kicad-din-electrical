@@ -72,14 +72,22 @@ class DinEditorSyncActions:
         conflicts = list(state.get("conflicts", []))
         if not conflicts:
             return state
-        if choice == "local":
-            self.view_model.sync_service.change_service.history.checkpoint()
-        state = self.view_model.choose_all(choice)
-        source = "KiCad" if choice == "kicad" else "DIN"
-        action = "imported" if choice == "kicad" else "kept"
-        for conflict in conflicts:
-            reference = str(conflict["reference"])
-            self.sync_log.record(reference, source, self._label(reference), action)
+        history = self.view_model.sync_service.change_service.history
+        snapshot = history._snapshot()
+        undo = deepcopy(history._undo)
+        redo = deepcopy(history._redo)
+        try:
+            if choice == "local":
+                history.checkpoint()
+            state = self.view_model.choose_all(choice)
+            source = "KiCad" if choice == "kicad" else "DIN"
+            action = "imported" if choice == "kicad" else "kept"
+            for conflict in conflicts:
+                reference = str(conflict["reference"])
+                self.sync_log.record(reference, source, self._label(reference), action)
+        except Exception:
+            self._rollback_history(history, snapshot, undo, redo)
+            raise
         return self._changed(state)
 
     def _label(self, reference: str) -> str:
