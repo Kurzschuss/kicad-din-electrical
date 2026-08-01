@@ -47,29 +47,26 @@ symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym
 footprints/Z_DIN_Control.pretty/
 ```
 
-Jede vorhandene `.kicad_mod`-Datei liegt zusätzlich in einem gleichnamigen `.pretty`-Ordner. Beispiele:
+Eine `.pretty`-Bibliothek darf mehrere `.kicad_mod`-Dateien enthalten. Jede Footprint-Datei beginnt mit `Z_`, und ihr interner Footprint-Name muss dem Dateinamen ohne Endung entsprechen.
 
-```text
-footprints/Z_DIN_Module_18mm.pretty/Z_DIN_Module_18mm.kicad_mod
-footprints/Z_DIN_Terminal_Block.pretty/Z_DIN_Terminal_Block.kicad_mod
-```
-
-Alle Footprint-Dateien beginnen mit `Z_`, zum Beispiel:
+Vorhandene Beispiele:
 
 - `Z_DIN_Module_18mm.kicad_mod`
 - `Z_DIN_Terminal_Block.kicad_mod`
 
-Qualifizierte Footprint-IDs verwenden den Namen des `.pretty`-Ordners:
+Qualifizierte Footprint-IDs verwenden den Namen des `.pretty`-Ordners und den Namen des enthaltenen Footprints:
 
 ```text
-Z_<Footprint>:Z_<Footprint>
+Z_<Bibliothek>:Z_<Footprint>
 ```
 
-Beispiel:
+Vorhandenes Beispiel:
 
 ```text
 Z_DIN_Module_18mm:Z_DIN_Module_18mm
 ```
+
+Die Namen links und rechts vom Doppelpunkt dürfen unterschiedlich sein, wenn mehrere Footprints in derselben Bibliothek liegen.
 
 Die alten Bibliotheks-IDs `DIN_Rail:<Footprint>` und `Z_DIN_Rail:<Footprint>` dürfen nicht mehr verwendet werden.
 
