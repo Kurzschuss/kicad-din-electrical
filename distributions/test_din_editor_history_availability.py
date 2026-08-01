@@ -5,7 +5,14 @@ from .din_editor_session import DinEditorSession
 
 
 def test_change_service_uses_public_history_availability_queries():
-    session = DinEditorSession(components=[{"reference": "X5", "label": "+24V SPS"}])
+    session = DinEditorSession(components=[
+        {
+            "reference": "X5",
+            "component_type": "DIN_RAIL_TERMINAL_BLOCK",
+            "label": "+24V SPS",
+            "can_edit_label": True,
+        }
+    ])
     history = DinEditorHistory(session)
     service = DinEditorChangeService(session, history)
 
