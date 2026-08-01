@@ -47,6 +47,8 @@ class DinEditorSyncActions:
         conflicts = list(state.get("conflicts", []))
         if not conflicts:
             return state
+        if choice == "local":
+            self.view_model.sync_service.change_service.history.checkpoint()
         state = self.view_model.choose_all(choice)
         source = "KiCad" if choice == "kicad" else "DIN"
         action = "imported" if choice == "kicad" else "kept"
