@@ -1,3 +1,3 @@
 Part_Number,Function,Series,Footprint
-Protection_Generic,Protection Device,Hager DIN,DIN_Module_18mm
-MCB_Generic,Circuit Breaker,Hager MCB,DIN_Module_18mm
+Protection_Generic,Protection Device,Hager DIN,Z_DIN_Module_18mm
+MCB_Generic,Circuit Breaker,Hager MCB,Z_DIN_Module_18mm
