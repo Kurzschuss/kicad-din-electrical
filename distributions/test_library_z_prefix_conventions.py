@@ -24,6 +24,7 @@ FOOTPRINT_NAME_PATTERN = r"DIN_(?:Module_(?:18|36|45)mm|Contactor_45mm|Safety_Mo
 OLD_FOOTPRINT_RE = re.compile(rf"(?<!Z_){FOOTPRINT_NAME_PATTERN}")
 PREFIXED_FOOTPRINT_RE = re.compile(rf"\bZ_{FOOTPRINT_NAME_PATTERN}\b")
 PREFIXED_SYMBOL_ID_RE = re.compile(r"\b(Z_[A-Za-z0-9_]+):([A-Za-z0-9_]+)\b")
+TOP_LEVEL_SYMBOL_RE = re.compile(r'^  \(symbol "([^"]+)"', re.MULTILINE)
 
 
 def _machine_readable_reference_files() -> list[Path]:
@@ -43,13 +44,17 @@ def test_all_symbol_library_files_use_z_prefix():
     assert unprefixed == []
 
 
-def test_symbol_library_files_contain_matching_primary_symbols():
+def test_single_symbol_library_files_match_primary_symbol_names():
     mismatches = []
     for path in sorted(SYMBOL_ROOT.rglob("*.kicad_sym")):
+        top_level_symbols = TOP_LEVEL_SYMBOL_RE.findall(path.read_text(encoding="utf-8"))
+        if len(top_level_symbols) != 1:
+            continue
+
         expected_symbol = path.stem.removeprefix("Z_")
-        content = path.read_text(encoding="utf-8")
-        if f'(symbol "{expected_symbol}"' not in content:
-            mismatches.append((path.relative_to(ROOT).as_posix(), expected_symbol))
+        actual_symbol = top_level_symbols[0]
+        if actual_symbol != expected_symbol:
+            mismatches.append((path.relative_to(ROOT).as_posix(), expected_symbol, actual_symbol))
 
     assert mismatches == []
 
