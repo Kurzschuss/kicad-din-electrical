@@ -40,6 +40,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Vision](00_Project/VISION.md)
 - [Manifest](00_Project/MANIFESTO.md)
 - [Projektprinzipien](00_Project/PRINCIPLES.md)
+- [Qualitätshandbuch für Bibliothekspakete](00_Project/LIBRARY_GUIDELINES.md)
 
 ## Planung und Nachvollziehbarkeit
 
@@ -50,10 +51,11 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Als Nächstes geplant
 
-- weitere Bibliotheksdetailseiten
-- Beispielprojekte und Vorlagen
-- vollständige Darstellung weiterer KiCad-Grafikformen in den Vorschauen
-- Footprintvorschauen
-- Ausbau des Gerätekatalogs um geprüfte Herstellerdaten
+- Qualitätshandbuch vollständig ausarbeiten
+- praxisnahe Beispielprojekte und Vorlagen
+- erstes vollständiges Gerätepaket für MCB
+- Qualitätsstatus in HTML-Referenz und Gerätekatalog
+- Normen- und Symbolreferenz
+- Kompatibilitätsmatrix für KiCad-Versionen
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
