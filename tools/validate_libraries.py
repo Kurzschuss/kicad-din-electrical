@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
+SYMBOL_ROOT = REPO_ROOT / "symbols"
 FOOTPRINT_ROOT = REPO_ROOT / "footprints"
 
 PROPERTY_RE = re.compile(r'\(property\s+"((?:\\.|[^"\\])*)"\s+"((?:\\.|[^"\\])*)"')

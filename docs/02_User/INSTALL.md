@@ -24,7 +24,7 @@ C:\Users\<Benutzername>\Documents\GitHub\kicad-din-electrical
 6. Zum Ordner wechseln:
 
 ```text
-symbols/DIN_Electrical_Symbols/
+symbols/
 ```
 
 7. Die gewünschten Dateien mit der Endung `.kicad_sym` auswählen.

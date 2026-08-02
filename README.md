@@ -23,10 +23,10 @@ Alle projektinternen Bibliotheken verwenden das Präfix `Z_`, damit sie in KiCad
 
 ### Symbole
 
-Alle Symbolbibliotheken liegen unter:
+Alle Symbolbibliotheken liegen direkt unter:
 
 ```text
-symbols/DIN_Electrical_Symbols/
+symbols/
 ```
 
 Jede Symbolbibliotheksdatei beginnt mit `Z_`, zum Beispiel:
@@ -60,7 +60,7 @@ footprints/
 Für jede `.kicad_sym`-Datei existiert ein gleichnamiger `.pretty`-Ordner. Beispiel:
 
 ```text
-symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym
+symbols/Z_DIN_Control.kicad_sym
 footprints/Z_DIN_Control.pretty/
 ```
 
@@ -95,7 +95,7 @@ Die vollständige Schritt-für-Schritt-Anleitung steht in [docs/02_User/INSTALL.
 
 Kurz zusammengefasst:
 
-- Symbolbibliotheken aus `symbols/DIN_Electrical_Symbols/` registrieren.
+- Symbolbibliotheken direkt aus `symbols/` registrieren.
 - Footprintbibliotheken aus den einzelnen `.pretty`-Ordnern unter `footprints/` registrieren.
 - Dabei jeweils den Dateinamen beziehungsweise Ordnernamen ohne Endung als Bibliotheksnamen verwenden.
 

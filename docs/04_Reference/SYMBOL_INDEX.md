@@ -2,7 +2,7 @@
 
 > Diese Datei wird mit `python tools/generate_library_reference.py` erzeugt.
 
-Die Symbolbibliotheken liegen unter `symbols/DIN_Electrical_Symbols/`.
+Die Symbolbibliotheken liegen direkt unter `symbols/`.
 
 **Anzahl der Bibliotheken:** 29
 

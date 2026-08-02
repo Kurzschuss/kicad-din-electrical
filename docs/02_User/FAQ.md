@@ -8,14 +8,16 @@ Nein. Es können nur die Bibliotheken eingebunden werden, die tatsächlich benö
 
 ## Muss zu jeder Symbolbibliothek eine Footprintbibliothek eingebunden werden?
 
-Für die vollständige Nutzung ist das empfohlen. Zu jeder Symbolbibliotheksdatei existiert unter `footprints/` ein gleichnamiger `.pretty`-Ordner.
+Nicht zwingend. Viele Symbole werden nur im Stromlauf- oder Übersichtsplan verwendet und benötigen bewusst keinen Footprint. Ist ein Footprint vorhanden oder vorgesehen, liegt die passende `.pretty`-Bibliothek unter `footprints/`.
 
 Beispiel:
 
 ```text
-symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym
+symbols/Z_DIN_Control.kicad_sym
 footprints/Z_DIN_Control.pretty/
 ```
+
+Die jeweilige `Footprint Policy` legt fest, ob ein Footprint erforderlich, optional oder ausdrücklich nicht vorgesehen ist.
 
 ## Darf eine `.pretty`-Bibliothek mehrere Footprints enthalten?
 

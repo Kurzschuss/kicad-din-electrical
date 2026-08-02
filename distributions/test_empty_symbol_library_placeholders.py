@@ -9,15 +9,15 @@ TOP_LEVEL_SYMBOL_RE = re.compile(r'^  \(symbol "([^"]+)"', re.MULTILINE)
 
 # These files are intentional placeholders. Additions or removals must be explicit.
 EXPECTED_EMPTY_SYMBOL_LIBRARIES = {
-    "symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_DIN_Electrical.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_DIN_Power.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_DIN_Safety.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_DIN_Terminals.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_DISTRIBUTION.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_MCB_single_pole.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_MOTOR_PROTECT.kicad_sym",
-    "symbols/DIN_Electrical_Symbols/Z_RCBO.kicad_sym",
+    "symbols/Z_DIN_Control.kicad_sym",
+    "symbols/Z_DIN_Electrical.kicad_sym",
+    "symbols/Z_DIN_Power.kicad_sym",
+    "symbols/Z_DIN_Safety.kicad_sym",
+    "symbols/Z_DIN_Terminals.kicad_sym",
+    "symbols/Z_DISTRIBUTION.kicad_sym",
+    "symbols/Z_MCB_single_pole.kicad_sym",
+    "symbols/Z_MOTOR_PROTECT.kicad_sym",
+    "symbols/Z_RCBO.kicad_sym",
 }
 
 

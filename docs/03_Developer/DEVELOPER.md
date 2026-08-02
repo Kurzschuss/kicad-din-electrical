@@ -32,14 +32,16 @@ Unter Windows aktivieren:
 ## Wichtige Verzeichnisse
 
 ```text
-symbols/DIN_Electrical_Symbols/   Symbolbibliotheken
-footprints/                        .pretty-Footprintbibliotheken
-tests/                             zentrale Repositorytests
-distributions/                     zusätzliche Prüfungen und Werkzeuge
-tools/                             Hilfsprogramme
-docs/                              Benutzer- und Entwicklerdokumentation
-.github/workflows/                 GitHub-Actions-Konfiguration
+symbols/                          Symbolbibliotheken und Symboldokumentation
+footprints/                       .pretty-Footprintbibliotheken
+tests/                            zentrale Repositorytests
+distributions/                    zusätzliche Prüfungen und Werkzeuge
+tools/                            Hilfsprogramme
+docs/                             Benutzer- und Entwicklerdokumentation
+.github/workflows/                GitHub-Actions-Konfiguration
 ```
+
+Alle `.kicad_sym`-Dateien müssen direkt unter `symbols/` liegen. Verschachtelte Symbolbibliotheksordner sind nicht zulässig und werden durch Tests verhindert.
 
 ## Lokaler Arbeitsablauf
 
@@ -124,14 +126,14 @@ Beispielhafte Prüfbereiche:
 
 Der Workflow `.github/workflows/test-distributions.yml` läuft bei Pull Requests und Änderungen an `main`.
 
-Er führt derzeit aus:
+Er führt derzeit unter anderem aus:
 
 1. Repository auschecken,
 2. Python einrichten,
 3. Testabhängigkeiten installieren,
 4. vollständige Pytest-Suite ausführen,
-5. Bibliotheksreferenz neu erzeugen,
-6. prüfen, ob dadurch ein nicht eingecheckter Unterschied entsteht.
+5. KiCad-Bibliotheken und Gerätekatalog validieren,
+6. Bibliotheksreferenz, Qualitätsbericht, Symbolvorschauen und HTML-Referenz prüfen.
 
 Ein grüner CI-Lauf bestätigt die automatischen Regeln, ersetzt aber nicht die fachliche und visuelle Kontrolle in KiCad.
 
@@ -139,6 +141,7 @@ Ein grüner CI-Lauf bestätigt die automatischen Regeln, ersetzt aber nicht die 
 
 Nach einer Änderung in KiCad vor dem Commit kontrollieren:
 
+- Liegt die `.kicad_sym`-Datei direkt unter `symbols/`?
 - Wurde nur die beabsichtigte Bibliothek verändert?
 - Stimmen Dateiname und interner Name überein?
 - Sind Symbol- und Footprintzuordnungen korrekt?
