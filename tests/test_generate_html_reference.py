@@ -1,6 +1,7 @@
+import json
 from pathlib import Path
 
-from tools.generate_html_reference import collect_site_data, render_html
+from tools.generate_html_reference import collect_devices, collect_site_data, render_html
 
 
 def test_collect_site_data_lists_symbols_and_footprints(tmp_path: Path):
@@ -30,7 +31,41 @@ def test_collect_site_data_lists_symbols_and_footprints(tmp_path: Path):
     assert data["footprints"][0]["count"] == 1
 
 
-def test_render_html_escapes_content_and_contains_search():
+def test_collect_devices_resolves_german_taxonomy_names(tmp_path: Path):
+    device_root = tmp_path / "devices"
+    device_root.mkdir()
+    taxonomy = tmp_path / "families.json"
+    taxonomy.write_text(
+        json.dumps({
+            "families": [
+                {"id": "protection.mcb", "group": "Schutzgeräte", "name": "Leitungsschutzschalter"}
+            ]
+        }),
+        encoding="utf-8",
+    )
+    (device_root / "test.yaml").write_text(
+        json.dumps({
+            "id": "generic.mcb.b16",
+            "manufacturer": "Generic",
+            "series": "Template",
+            "part_number": "B16",
+            "device_type": "Leitungsschutzschalter",
+            "function_group": "protection.mcb",
+            "symbol": "Z_MCB:MCB",
+            "footprint_policy": "optional",
+            "source_status": "template"
+        }),
+        encoding="utf-8",
+    )
+
+    devices, groups = collect_devices(device_root, taxonomy)
+
+    assert groups == ["Schutzgeräte"]
+    assert devices[0]["family"] == "Leitungsschutzschalter"
+    assert devices[0]["source_status"] == "template"
+
+
+def test_render_html_escapes_content_and_contains_filters():
     data = {
         "statistics": {
             "symbol_libraries": 1,
@@ -50,12 +85,33 @@ def test_render_html_escapes_content_and_contains_search():
             }
         ],
         "footprints": [{"library": "Z_Test", "count": 0, "footprints": []}],
+        "devices": [
+            {
+                "id": "generic.test",
+                "manufacturer": "Generic",
+                "series": "Test",
+                "part_number": "T-1",
+                "device_type": "Testgerät",
+                "family_id": "protection.mcb",
+                "group": "Schutzgeräte",
+                "family": "Leitungsschutzschalter",
+                "symbol": "Z_Test:Switch",
+                "footprint_policy": "optional",
+                "footprint": "—",
+                "source_status": "template",
+            }
+        ],
+        "device_groups": ["Schutzgeräte"],
     }
 
     html = render_html(data)
 
     assert '<html lang="de">' in html
     assert 'id="search"' in html
+    assert 'id="group"' in html
+    assert 'id="devices"' in html
     assert "Z_&lt;Test&gt;" in html
     assert "A&amp;B" in html
+    assert "Schutzgeräte" in html
+    assert "Leitungsschutzschalter" in html
     assert "Keine blockierenden Fehler" in html
