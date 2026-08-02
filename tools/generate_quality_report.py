@@ -8,16 +8,26 @@ from pathlib import Path
 import argparse
 import sys
 
-from tools.validate_libraries import (
-    DEFAULT_FOOTPRINT_POLICY,
-    FOOTPRINT_ROOT,
-    REPO_ROOT,
-    SYMBOL_ROOT,
-    footprint_policy,
-    symbol_names,
-    symbol_properties,
-    validate_repository,
-)
+try:
+    from tools.validate_libraries import (
+        FOOTPRINT_ROOT,
+        REPO_ROOT,
+        SYMBOL_ROOT,
+        footprint_policy,
+        symbol_names,
+        symbol_properties,
+        validate_repository,
+    )
+except ModuleNotFoundError:  # direkter Aufruf aus dem Repository-Hauptordner
+    from validate_libraries import (
+        FOOTPRINT_ROOT,
+        REPO_ROOT,
+        SYMBOL_ROOT,
+        footprint_policy,
+        symbol_names,
+        symbol_properties,
+        validate_repository,
+    )
 
 REPORT_PATH = REPO_ROOT / "docs" / "04_Reference" / "QUALITY_REPORT.md"
 
