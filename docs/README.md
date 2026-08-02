@@ -10,6 +10,12 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Häufig gestellte Fragen](02_User/FAQ.md)
 - [Glossar](02_User/GLOSSARY.md)
 
+## Mitwirken und Entwicklung
+
+- [Am Projekt mitwirken](../CONTRIBUTING.md)
+- [Entwicklerleitfaden](03_Developer/DEVELOPER.md)
+- [Bibliotheksreferenz automatisch erzeugen](03_Developer/REFERENCE_GENERATOR.md)
+
 ## Bibliotheksreferenz
 
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
@@ -32,9 +38,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Als Nächstes geplant
 
-- Beitrags- und Entwicklerleitfaden
 - weitere Bibliotheksdetailseiten
-- automatische Symbol- und Footprint-Referenz
 - Beispielprojekte und Vorlagen
+- Vorschaubilder für Symbole und Footprints
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
