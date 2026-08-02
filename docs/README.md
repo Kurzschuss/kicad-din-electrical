@@ -19,6 +19,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Automatischer Qualitätsbericht](03_Developer/QUALITY_REPORT.md)
 - [HTML-Bibliotheksreferenz erzeugen](03_Developer/HTML_REFERENCE.md)
 - [Automatische Symbolvorschauen](03_Developer/SYMBOL_PREVIEWS.md)
+- [Gerätekatalog](03_Developer/DEVICE_CATALOG.md)
 
 ## Bibliotheksreferenz
 
@@ -49,5 +50,6 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - Beispielprojekte und Vorlagen
 - vollständige Darstellung weiterer KiCad-Grafikformen in den Vorschauen
 - Footprintvorschauen
+- Ausbau des Gerätekatalogs um geprüfte Herstellerdaten
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
