@@ -7,6 +7,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Schnellstart: erstes Symbol verwenden](02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](02_User/INSTALL.md)
 - [Lokale Tests ausführen](02_User/TESTING.md)
+- [Häufig gestellte Fragen](02_User/FAQ.md)
+- [Glossar](02_User/GLOSSARY.md)
 
 ## Projektgrundlagen
 
@@ -23,7 +25,6 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Als Nächstes geplant
 
-- FAQ und Glossar
 - Beitrags- und Entwicklerleitfaden
 - Symbol- und Footprint-Referenz
 - Beispielprojekte und Vorlagen
