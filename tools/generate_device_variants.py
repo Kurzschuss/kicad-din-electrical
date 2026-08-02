@@ -48,8 +48,6 @@ def expand_series(data: dict[str, object]) -> list[dict[str, object]]:
         device = dict(defaults)
         device.update({key: value for key, value in variant.items() if key != "variant_id"})
         device["id"] = f"{series_id}.{variant_id}"
-        device["series_id"] = series_id
-        device["variant_id"] = variant_id
         result.append(device)
     return result
 
@@ -61,7 +59,8 @@ def generated_files(series_root: Path = SERIES_ROOT, output_root: Path = OUTPUT_
         series_id = str(data["series_id"])
         folder = output_root / series_id
         for device in expand_series(data):
-            target = folder / f"{device['variant_id']}.yaml"
+            variant_id = str(device["id"]).rsplit(".", 1)[-1]
+            target = folder / f"{variant_id}.yaml"
             files[target] = json.dumps(device, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     return files
 
