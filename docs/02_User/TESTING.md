@@ -15,11 +15,66 @@ Git ist nur nötig, wenn das Repository geklont oder aktualisiert werden soll.
 
 1. Öffne den Ordner `kicad-din-electrical` im Windows-Explorer.
 2. Doppelklicke auf `run_tests.bat`.
-3. Warte auf die Meldung `Alle Tests waren erfolgreich.`
+3. Wähle im Menü den gewünschten Testlauf aus.
+4. Nach dem Test kehrt das Programm automatisch zum Hauptmenü zurück.
+5. Mit **0 – Programm verlassen** wird das Testmenü beendet.
 
-Für eine ausführliche Ausgabe kann stattdessen `run_tests_verbose.bat` gestartet werden.
+## Auswahlmöglichkeiten im Windows-Menü
 
-`run_all_checks.bat` führt zusätzlich eine Python-Syntaxprüfung aus.
+### 1 – Schneller Testlauf
+
+Führt alle Tests mit kompakter Ausgabe aus.
+
+Entspricht:
+
+```cmd
+python -m pytest -q
+```
+
+### 2 – Ausführlicher Testlauf
+
+Zeigt jeden einzelnen Test und sein Ergebnis an.
+
+Entspricht:
+
+```cmd
+python -m pytest -vv
+```
+
+### 3 – Alle Prüfungen
+
+Führt nacheinander aus:
+
+1. vollständige Testsuite
+2. Python-Syntaxprüfung für `distributions/` und `tests/`
+
+### 4 – Beim ersten Fehler stoppen
+
+Beendet den Testlauf sofort beim ersten Fehler. Das ist bei der Fehlersuche hilfreich.
+
+Entspricht:
+
+```cmd
+python -m pytest -x
+```
+
+### 5 – Nur zuletzt fehlgeschlagene Tests
+
+Wiederholt nur die Tests, die beim vorherigen Lauf fehlgeschlagen sind.
+
+Entspricht:
+
+```cmd
+python -m pytest --lf
+```
+
+### 6 – Hilfe und Erklärungen
+
+Zeigt direkt im Testmenü kurze Hinweise zu den Testarten und zur virtuellen Umgebung `.venv`.
+
+### 0 – Programm verlassen
+
+Beendet das Testmenü und schließt das Fenster.
 
 ## Einmalige Einrichtung
 
@@ -35,50 +90,13 @@ python -m venv .venv
 python -m pip install -r requirements-dev.txt
 ```
 
-Der Ordner `.venv` ist optional. Die mitgelieferten Skripte verwenden ihn automatisch, wenn er vorhanden ist. Ohne `.venv` wird die normale Python-Installation verwendet.
+Der Ordner `.venv` ist optional. Das Testmenü verwendet ihn automatisch, wenn er vorhanden ist. Ohne `.venv` wird die normale Python-Installation verwendet.
 
 ### Ohne virtuelle Umgebung
 
 ```cmd
 python -m pip install -r requirements-dev.txt
 ```
-
-## Verfügbare Windows-Skripte
-
-### Normale Testsuite
-
-```cmd
-run_tests.bat
-```
-
-Entspricht im Wesentlichen:
-
-```cmd
-python -m pytest -q
-```
-
-### Ausführliche Testsuite
-
-```cmd
-run_tests_verbose.bat
-```
-
-Entspricht:
-
-```cmd
-python -m pytest -vv
-```
-
-### Alle lokalen Prüfungen
-
-```cmd
-run_all_checks.bat
-```
-
-Dieses Skript führt nacheinander aus:
-
-1. vollständige Testsuite
-2. Python-Syntaxprüfung für `distributions/` und `tests/`
 
 ## Linux und macOS
 
@@ -102,7 +120,7 @@ Tests starten:
 ./run_tests.sh
 ```
 
-## Einzelne Tests ausführen
+## Einzelne Tests manuell ausführen
 
 Nur eine Testdatei:
 
@@ -116,25 +134,13 @@ Nur einen bestimmten Test:
 python -m pytest tests/test_symbol_matched_footprint_libraries.py::test_every_symbol_library_has_matching_pretty_directory
 ```
 
-Beim ersten Fehler stoppen:
-
-```bash
-python -m pytest -x
-```
-
-Nur zuvor fehlgeschlagene Tests erneut ausführen:
-
-```bash
-python -m pytest --lf
-```
-
 ## Häufige Fehler
 
 ### `Python wurde nicht gefunden`
 
 Python ist nicht installiert oder nicht im Suchpfad eingetragen. Nach der Installation sollte ein neues Terminal geöffnet werden.
 
-### `No module named pytest`
+### `pytest ist nicht installiert`
 
 Installiere die Entwicklungsabhängigkeiten:
 
@@ -142,9 +148,9 @@ Installiere die Entwicklungsabhängigkeiten:
 python -m pip install -r requirements-dev.txt
 ```
 
-### Die Batchdatei schließt sofort
+### Das Menü zeigt nach einem Test wieder die Auswahl
 
-Starte sie aus einer geöffneten Eingabeaufforderung, damit die Fehlermeldung sichtbar bleibt. Die bereitgestellten Batchdateien verwenden zusätzlich `pause`, damit das Fenster normalerweise geöffnet bleibt.
+Das ist beabsichtigt. So können mehrere Testarten nacheinander ausgeführt werden, ohne die Batchdatei erneut zu starten. Mit **0 – Programm verlassen** wird das Menü beendet.
 
 ## GitHub Actions
 
