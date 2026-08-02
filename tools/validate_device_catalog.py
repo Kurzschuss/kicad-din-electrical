@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Validiert den herstellerneutralen Gerätekatalog ohne externe Abhängigkeiten."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+import re
+import sys
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEVICE_ROOT = REPO_ROOT / "data" / "devices"
+SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
+FOOTPRINT_ROOT = REPO_ROOT / "footprints"
+
+REQUIRED_FIELDS = {
+    "id",
+    "manufacturer",
+    "series",
+    "part_number",
+    "device_type",
+    "function_group",
+    "symbol",
+    "footprint_policy",
+}
+ALLOWED_FIELDS = REQUIRED_FIELDS | {
+    "description",
+    "poles",
+    "rated_current_a",
+    "trip_curve",
+    "breaking_capacity_ka",
+    "modules",
+    "footprint",
+    "datasheet",
+    "source_status",
+}
+POLICIES = {"required", "optional", "none"}
+SOURCE_STATES = {"template", "verified", "unverified"}
+QUALIFIED_ID = re.compile(r"^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$")
+DEVICE_ID = re.compile(r"^[a-z0-9][a-z0-9._-]+$")
+
+
+def load_device(path: Path) -> dict[str, object]:
+    """Liest JSON-kompatibles YAML mit der Python-Standardbibliothek."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Wurzelelement muss ein Objekt sein")
+    return data
+
+
+def symbol_exists(qualified_id: str, symbol_root: Path = SYMBOL_ROOT) -> bool:
+    library, symbol = qualified_id.split(":", 1)
+    path = symbol_root / f"{library}.kicad_sym"
+    if not path.is_file():
+        return False
+    return f'(symbol "{symbol}"' in path.read_text(encoding="utf-8")
+
+
+def footprint_exists(qualified_id: str, footprint_root: Path = FOOTPRINT_ROOT) -> bool:
+    library, footprint = qualified_id.split(":", 1)
+    return (footprint_root / f"{library}.pretty" / f"{footprint}.kicad_mod").is_file()
+
+
+def validate_device(
+    data: dict[str, object],
+    *,
+    symbol_root: Path = SYMBOL_ROOT,
+    footprint_root: Path = FOOTPRINT_ROOT,
+) -> list[str]:
+    errors: list[str] = []
+    missing = sorted(REQUIRED_FIELDS - data.keys())
+    if missing:
+        errors.append("Fehlende Pflichtfelder: " + ", ".join(missing))
+
+    unknown = sorted(data.keys() - ALLOWED_FIELDS)
+    if unknown:
+        errors.append("Unbekannte Felder: " + ", ".join(unknown))
+
+    device_id = data.get("id")
+    if not isinstance(device_id, str) or not DEVICE_ID.fullmatch(device_id):
+        errors.append("id besitzt ein ungültiges Format")
+
+    for field in ("manufacturer", "series", "part_number", "device_type", "function_group"):
+        if field in data and (not isinstance(data[field], str) or not data[field].strip()):
+            errors.append(f"{field} muss ein nichtleerer Text sein")
+
+    symbol = data.get("symbol")
+    if not isinstance(symbol, str) or not QUALIFIED_ID.fullmatch(symbol):
+        errors.append("symbol muss eine qualifizierte Bibliotheks-ID sein")
+    elif not symbol_exists(symbol, symbol_root):
+        errors.append(f"Symbol existiert nicht: {symbol}")
+
+    policy = data.get("footprint_policy")
+    if policy not in POLICIES:
+        errors.append("footprint_policy muss required, optional oder none sein")
+
+    footprint = data.get("footprint")
+    if footprint is not None:
+        if not isinstance(footprint, str) or not QUALIFIED_ID.fullmatch(footprint):
+            errors.append("footprint muss eine qualifizierte Bibliotheks-ID sein")
+        elif not footprint_exists(footprint, footprint_root):
+            errors.append(f"Footprint existiert nicht: {footprint}")
+
+    if policy == "required" and not footprint:
+        errors.append("footprint_policy required verlangt einen Footprint")
+    if policy == "none" and footprint:
+        errors.append("footprint_policy none darf keinen Footprint besitzen")
+
+    source_status = data.get("source_status")
+    if source_status is not None and source_status not in SOURCE_STATES:
+        errors.append("source_status ist ungültig")
+
+    for field in ("poles",):
+        value = data.get(field)
+        if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
+            errors.append(f"{field} muss eine positive ganze Zahl sein")
+
+    for field in ("rated_current_a", "breaking_capacity_ka", "modules"):
+        value = data.get(field)
+        if value is not None and (
+            not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0
+        ):
+            errors.append(f"{field} muss eine positive Zahl sein")
+
+    return errors
+
+
+def catalog_files(device_root: Path = DEVICE_ROOT) -> list[Path]:
+    return sorted(
+        path for path in device_root.rglob("*.yaml")
+        if "schema" not in path.parts
+    )
+
+
+def validate_catalog(
+    device_root: Path = DEVICE_ROOT,
+    *,
+    symbol_root: Path = SYMBOL_ROOT,
+    footprint_root: Path = FOOTPRINT_ROOT,
+) -> list[str]:
+    errors: list[str] = []
+    seen_ids: dict[str, Path] = {}
+    for path in catalog_files(device_root):
+        try:
+            data = load_device(path)
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            errors.append(f"{path}: Datei kann nicht gelesen werden: {exc}")
+            continue
+
+        for message in validate_device(data, symbol_root=symbol_root, footprint_root=footprint_root):
+            errors.append(f"{path}: {message}")
+
+        device_id = data.get("id")
+        if isinstance(device_id, str):
+            previous = seen_ids.get(device_id)
+            if previous is not None:
+                errors.append(f"{path}: Doppelte Geräte-ID, bereits in {previous}")
+            else:
+                seen_ids[device_id] = path
+    return errors
+
+
+def main() -> int:
+    errors = validate_catalog()
+    print(f"Gerätekatalog: {len(catalog_files())} Gerätedatei(en)")
+    if not errors:
+        print("Fehler: 0")
+        return 0
+    print(f"Fehler: {len(errors)}", file=sys.stderr)
+    for error in errors:
+        print(f"[ERROR] {error}", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
