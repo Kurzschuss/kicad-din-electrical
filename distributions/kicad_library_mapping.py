@@ -2,7 +2,7 @@
 import csv
 from pathlib import Path
 
-SYMBOL_LIBRARY_ROOT = Path(__file__).parent.parent / "symbols" / "DIN_Electrical_Symbols"
+SYMBOL_LIBRARY_ROOT = Path(__file__).parent.parent / "symbols"
 DEFAULT_SYMBOL_CATALOG = SYMBOL_LIBRARY_ROOT / "symbol_catalog.csv"
 
 _COMPONENT_TO_SYMBOL = {
