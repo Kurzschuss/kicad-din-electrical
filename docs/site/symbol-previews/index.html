@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiCad DIN Electrical – Symbolvorschauen</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1180px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    input { width: 100%; box-sizing: border-box; padding: .75rem; margin: 1rem 0 2rem; font: inherit; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+    .card { border: 1px solid #8886; border-radius: .7rem; padding: 1rem; }
+    .card img { width: 100%; height: auto; display: block; }
+    .card h2 { font-size: 1rem; margin: .75rem 0 .25rem; }
+    .card p { margin: 0; opacity: .75; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Automatische Symbolvorschauen</h1>
+    <p>Aktuell werden Rechtecke und Pins direkt aus den KiCad-Symbolbibliotheken dargestellt. Nicht unterstützte Formen werden nicht erfunden.</p>
+  </header>
+  <input id="search" type="search" placeholder="Bibliothek oder Symbol suchen …" aria-label="Symbolvorschauen durchsuchen">
+  <main class="grid">
+    <article class="card" data-search="Z_Busbar_1P Busbar_1P">
+      <img src="Z_Busbar_1P/Busbar_1P.svg" alt="Vorschau Z_Busbar_1P:Busbar_1P">
+      <h2><code>Busbar_1P</code></h2>
+      <p><code>Z_Busbar_1P</code></p>
+    </article>
+    <article class="card" data-search="Z_Busbar_2P Busbar_2P">
+      <img src="Z_Busbar_2P/Busbar_2P.svg" alt="Vorschau Z_Busbar_2P:Busbar_2P">
+      <h2><code>Busbar_2P</code></h2>
+      <p><code>Z_Busbar_2P</code></p>
+    </article>
+    <article class="card" data-search="Z_Busbar_4P Busbar_4P">
+      <img src="Z_Busbar_4P/Busbar_4P.svg" alt="Vorschau Z_Busbar_4P:Busbar_4P">
+      <h2><code>Busbar_4P</code></h2>
+      <p><code>Z_Busbar_4P</code></p>
+    </article>
+    <article class="card" data-search="Z_Busbar_Comb_3P Busbar_Comb_3P">
+      <img src="Z_Busbar_Comb_3P/Busbar_Comb_3P.svg" alt="Vorschau Z_Busbar_Comb_3P:Busbar_Comb_3P">
+      <h2><code>Busbar_Comb_3P</code></h2>
+      <p><code>Z_Busbar_Comb_3P</code></p>
+    </article>
+    <article class="card" data-search="Z_CONTACTOR CONTACTOR">
+      <img src="Z_CONTACTOR/CONTACTOR.svg" alt="Vorschau Z_CONTACTOR:CONTACTOR">
+      <h2><code>CONTACTOR</code></h2>
+      <p><code>Z_CONTACTOR</code></p>
+    </article>
+    <article class="card" data-search="Z_FI_RCD_4P FI_RCD_4P">
+      <img src="Z_FI_RCD_4P/FI_RCD_4P.svg" alt="Vorschau Z_FI_RCD_4P:FI_RCD_4P">
+      <h2><code>FI_RCD_4P</code></h2>
+      <p><code>Z_FI_RCD_4P</code></p>
+    </article>
+    <article class="card" data-search="Z_FUSE FUSE">
+      <img src="Z_FUSE/FUSE.svg" alt="Vorschau Z_FUSE:FUSE">
+      <h2><code>FUSE</code></h2>
+      <p><code>Z_FUSE</code></p>
+    </article>
+    <article class="card" data-search="Z_Fuse_Distribution_Bus Fuse_Distribution_Bus">
+      <img src="Z_Fuse_Distribution_Bus/Fuse_Distribution_Bus.svg" alt="Vorschau Z_Fuse_Distribution_Bus:Fuse_Distribution_Bus">
+      <h2><code>Fuse_Distribution_Bus</code></h2>
+      <p><code>Z_Fuse_Distribution_Bus</code></p>
+    </article>
+    <article class="card" data-search="Z_MAIN_SWITCH MAIN_SWITCH">
+      <img src="Z_MAIN_SWITCH/MAIN_SWITCH.svg" alt="Vorschau Z_MAIN_SWITCH:MAIN_SWITCH">
+      <h2><code>MAIN_SWITCH</code></h2>
+      <p><code>Z_MAIN_SWITCH</code></p>
+    </article>
+    <article class="card" data-search="Z_MCB MCB">
+      <img src="Z_MCB/MCB.svg" alt="Vorschau Z_MCB:MCB">
+      <h2><code>MCB</code></h2>
+      <p><code>Z_MCB</code></p>
+    </article>
+    <article class="card" data-search="Z_Motor_Protection Motor_Protection">
+      <img src="Z_Motor_Protection/Motor_Protection.svg" alt="Vorschau Z_Motor_Protection:Motor_Protection">
+      <h2><code>Motor_Protection</code></h2>
+      <p><code>Z_Motor_Protection</code></p>
+    </article>
+    <article class="card" data-search="Z_N_PE_Terminal N_PE_Terminal">
+      <img src="Z_N_PE_Terminal/N_PE_Terminal.svg" alt="Vorschau Z_N_PE_Terminal:N_PE_Terminal">
+      <h2><code>N_PE_Terminal</code></h2>
+      <p><code>Z_N_PE_Terminal</code></p>
+    </article>
+    <article class="card" data-search="Z_Neutral_Busbar Neutral_Busbar">
+      <img src="Z_Neutral_Busbar/Neutral_Busbar.svg" alt="Vorschau Z_Neutral_Busbar:Neutral_Busbar">
+      <h2><code>Neutral_Busbar</code></h2>
+      <p><code>Z_Neutral_Busbar</code></p>
+    </article>
+    <article class="card" data-search="Z_PE_Busbar PE_Busbar">
+      <img src="Z_PE_Busbar/PE_Busbar.svg" alt="Vorschau Z_PE_Busbar:PE_Busbar">
+      <h2><code>PE_Busbar</code></h2>
+      <p><code>Z_PE_Busbar</code></p>
+    </article>
+    <article class="card" data-search="Z_RCBO_1P_N RCBO_1P_N">
+      <img src="Z_RCBO_1P_N/RCBO_1P_N.svg" alt="Vorschau Z_RCBO_1P_N:RCBO_1P_N">
+      <h2><code>RCBO_1P_N</code></h2>
+      <p><code>Z_RCBO_1P_N</code></p>
+    </article>
+    <article class="card" data-search="Z_RCBO_Busbar_1P_N RCBO_Busbar_1P_N">
+      <img src="Z_RCBO_Busbar_1P_N/RCBO_Busbar_1P_N.svg" alt="Vorschau Z_RCBO_Busbar_1P_N:RCBO_Busbar_1P_N">
+      <h2><code>RCBO_Busbar_1P_N</code></h2>
+      <p><code>Z_RCBO_Busbar_1P_N</code></p>
+    </article>
+    <article class="card" data-search="Z_RCD RCD">
+      <img src="Z_RCD/RCD.svg" alt="Vorschau Z_RCD:RCD">
+      <h2><code>RCD</code></h2>
+      <p><code>Z_RCD</code></p>
+    </article>
+    <article class="card" data-search="Z_RCD_Distribution_Bus_4P RCD_Distribution_Bus_4P">
+      <img src="Z_RCD_Distribution_Bus_4P/RCD_Distribution_Bus_4P.svg" alt="Vorschau Z_RCD_Distribution_Bus_4P:RCD_Distribution_Bus_4P">
+      <h2><code>RCD_Distribution_Bus_4P</code></h2>
+      <p><code>Z_RCD_Distribution_Bus_4P</code></p>
+    </article>
+    <article class="card" data-search="Z_Terminal_Block Terminal_Block">
+      <img src="Z_Terminal_Block/Terminal_Block.svg" alt="Vorschau Z_Terminal_Block:Terminal_Block">
+      <h2><code>Terminal_Block</code></h2>
+      <p><code>Z_Terminal_Block</code></p>
+    </article>
+    <article class="card" data-search="Z_Three_Phase_Busbar Three_Phase_Busbar">
+      <img src="Z_Three_Phase_Busbar/Three_Phase_Busbar.svg" alt="Vorschau Z_Three_Phase_Busbar:Three_Phase_Busbar">
+      <h2><code>Three_Phase_Busbar</code></h2>
+      <p><code>Z_Three_Phase_Busbar</code></p>
+    </article>
+  </main>
+  <script>
+    const input = document.getElementById('search');
+    input.addEventListener('input', () => {
+      const query = input.value.toLocaleLowerCase('de');
+      document.querySelectorAll('.card').forEach(card => {
+        card.hidden = !card.dataset.search.toLocaleLowerCase('de').includes(query);
+      });
+    });
+  </script>
+</body>
+</html>
