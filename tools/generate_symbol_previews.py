@@ -15,7 +15,7 @@ import re
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
+SYMBOL_ROOT = REPO_ROOT / "symbols"
 OUTPUT_ROOT = REPO_ROOT / "docs" / "site" / "symbol-previews"
 
 TOP_LEVEL_SYMBOL_RE = re.compile(r'^  \(symbol "([^"]+)"', re.MULTILINE)
