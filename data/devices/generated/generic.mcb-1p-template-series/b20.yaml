@@ -3,7 +3,7 @@
   "description": "Herstellerneutrale Beispielserie zur Demonstration parametrischer Geräte; keine Produktempfehlung.",
   "device_type": "Leitungsschutzschalter",
   "footprint_policy": "optional",
-  "function_group": "Schutzgeräte/Leitungsschutzschalter",
+  "function_group": "protection.mcb",
   "id": "generic.mcb-1p-template-series.b20",
   "manufacturer": "Generic",
   "modules": 1,
