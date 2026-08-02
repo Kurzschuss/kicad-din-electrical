@@ -6,6 +6,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 - [Schnellstart: erstes Symbol verwenden](02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](02_User/INSTALL.md)
+- [Technischen Gerätekatalog verwenden](02_User/DEVICE_CATALOG.md)
 - [Lokale Tests ausführen](02_User/TESTING.md)
 - [Häufig gestellte Fragen](02_User/FAQ.md)
 - [Glossar](02_User/GLOSSARY.md)
@@ -26,6 +27,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 ## Bibliotheksreferenz
 
 - [Durchsuchbare HTML-Übersicht](site/index.html)
+- [Technischer Gerätekatalog](site/devices.html)
 - [Durchsuchbare Symbolvorschau-Galerie](site/symbol-previews/index.html)
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
