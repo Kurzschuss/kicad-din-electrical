@@ -28,6 +28,8 @@ jobs:
           git diff --exit-code -- docs/04_Reference/SYMBOL_INDEX.md docs/04_Reference/FOOTPRINT_INDEX.md
       - name: Check generated quality report
         run: python tools/generate_quality_report.py --check
+      - name: Check generated symbol previews
+        run: python tools/generate_symbol_previews.py --check
       - name: Check generated HTML reference
         run: |
           python -m tools.generate_html_reference
