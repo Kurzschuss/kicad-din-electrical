@@ -1,0 +1,9 @@
+Symbol,Category,Standard
+RCD,FI/RCD,IEC 60617
+RCBO,FI-LS,IEC 60617
+MCB,Leitungsschutzschalter,IEC 60617
+FUSE,Sicherung,IEC 60617
+MOTOR_PROTECT,Motorschutz,IEC 60617
+CONTACTOR,Schuetz,IEC 60617
+MAIN_SWITCH,Hauptschalter,IEC 60617
+DISTRIBUTION,Verteilung,IEC 60617
