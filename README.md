@@ -8,6 +8,7 @@ Dieses Projekt stellt KiCad-Bibliotheken für DIN-Schaltgeräte, Reiheneinbauger
 
 ## Schnellzugriff
 
+- [Schnellstart: erstes Symbol verwenden](docs/02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](docs/02_User/INSTALL.md)
 - [Lokale Tests ausführen](docs/02_User/TESTING.md)
 - [Vision](docs/00_Project/VISION.md)
@@ -87,6 +88,8 @@ Die Namen links und rechts vom Doppelpunkt dürfen unterschiedlich sein, wenn me
 Die alten Bibliotheks-IDs `DIN_Rail:<Footprint>` und `Z_DIN_Rail:<Footprint>` dürfen nicht mehr verwendet werden.
 
 ## KiCad-Einrichtung
+
+Für den kürzesten Einstieg siehe [docs/02_User/QUICKSTART.md](docs/02_User/QUICKSTART.md).
 
 Die vollständige Schritt-für-Schritt-Anleitung steht in [docs/02_User/INSTALL.md](docs/02_User/INSTALL.md).
 
