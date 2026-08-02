@@ -6,7 +6,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
-import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
@@ -15,6 +14,8 @@ FOOTPRINT_ROOT = REPO_ROOT / "footprints"
 PROPERTY_RE = re.compile(r'\(property\s+"((?:\\.|[^"\\])*)"\s+"((?:\\.|[^"\\])*)"')
 FOOTPRINT_NAME_RE = re.compile(r'^\(footprint\s+"((?:\\.|[^"\\])*)"')
 TOP_LEVEL_SYMBOL_RE = re.compile(r'^\s{2}\(symbol\s+"((?:\\.|[^"\\])*)"', re.MULTILINE)
+FOOTPRINT_POLICIES = {"required", "optional", "none"}
+DEFAULT_FOOTPRINT_POLICY = "optional"
 
 
 def _unescape(value: str) -> str:
@@ -71,6 +72,12 @@ def footprint_name(path: Path) -> str | None:
     return _unescape(match.group(1)) if match else None
 
 
+def footprint_policy(properties: dict[str, str]) -> str:
+    """Liefert die Footprint-Richtlinie; ohne Feld gilt optional."""
+    value = properties.get("Footprint Policy", DEFAULT_FOOTPRINT_POLICY).strip().lower()
+    return value or DEFAULT_FOOTPRINT_POLICY
+
+
 def validate_symbol_library(path: Path, report: ValidationReport, footprint_root: Path) -> None:
     expected_pretty = footprint_root / f"{path.stem}.pretty"
     if not expected_pretty.is_dir():
@@ -86,6 +93,7 @@ def validate_symbol_library(path: Path, report: ValidationReport, footprint_root
     footprint = props.get("Footprint", "").strip()
     datasheet = props.get("Datasheet", "").strip()
     manufacturer = props.get("Manufacturer", "").strip()
+    policy = footprint_policy(props)
 
     if not description:
         report.warning("SYM101", path, "Beschreibung fehlt.")
@@ -94,8 +102,20 @@ def validate_symbol_library(path: Path, report: ValidationReport, footprint_root
     if not manufacturer:
         report.warning("SYM103", path, "Hersteller ist noch nicht hinterlegt.")
 
+    if policy not in FOOTPRINT_POLICIES:
+        allowed = ", ".join(sorted(FOOTPRINT_POLICIES))
+        report.error("SYM004", path, f"Ungültige Footprint Policy '{policy}'. Erlaubt: {allowed}.")
+        return
+
+    if policy == "required" and not footprint:
+        report.error("SYM005", path, "Footprint Policy ist required, aber kein Footprint ist zugeordnet.")
+        return
+
+    if policy == "none" and footprint:
+        report.error("SYM006", path, "Footprint Policy ist none, trotzdem ist ein Footprint zugeordnet.")
+        return
+
     if not footprint:
-        report.warning("SYM104", path, "Standard-Footprint ist noch nicht zugeordnet.")
         return
 
     if ":" not in footprint:
