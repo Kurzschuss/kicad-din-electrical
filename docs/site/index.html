@@ -6,23 +6,26 @@
   <title>KiCad DIN Electrical – Bibliotheksreferenz</title>
   <style>
     :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { max-width: 1180px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    body { max-width: 1280px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
     header { margin-bottom: 2rem; }
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
     .card { border: 1px solid #8886; border-radius: .6rem; padding: 1rem; }
     .card strong { display: block; font-size: 1.7rem; }
-    input { width: 100%; box-sizing: border-box; padding: .75rem; margin: 1.5rem 0; font: inherit; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2.5rem; }
+    .filters { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    input, select { width: 100%; box-sizing: border-box; padding: .75rem; font: inherit; }
+    .table-wrap { overflow-x: auto; margin-bottom: 2.5rem; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
     th, td { border-bottom: 1px solid #8885; padding: .65rem; text-align: left; vertical-align: top; }
     th { position: sticky; top: 0; background: Canvas; }
     code { overflow-wrap: anywhere; }
     .muted { opacity: .75; }
+    @media (max-width: 700px) { .filters { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <header>
     <h1>KiCad DIN Electrical – Bibliotheksreferenz</h1>
-    <p>Automatisch erzeugte Übersicht der Symbol- und Footprintbibliotheken.</p>
+    <p>Automatisch erzeugte Übersicht der Symbol-, Footprint- und Gerätedaten.</p>
   </header>
 
   <section class="cards" aria-label="Kennzahlen">
@@ -30,15 +33,35 @@
     <div class="card"><strong>20</strong>Hauptsymbole</div>
     <div class="card"><strong>35</strong>Footprintbibliotheken</div>
     <div class="card"><strong>6</strong>Footprints</div>
+    <div class="card"><strong>4</strong>Geräte</div>
+    <div class="card"><strong>1</strong>belegte Funktionsgruppen</div>
     <div class="card"><strong>0</strong>Fehler</div>
     <div class="card"><strong>55</strong>Hinweise</div>
   </section>
 
   <p><strong>Qualitätsstatus:</strong> Keine blockierenden Fehler</p>
-  <input id="search" type="search" placeholder="Bibliothek, Symbol oder Footprint suchen …" aria-label="Bibliotheken durchsuchen">
+  <div class="filters">
+    <input id="search" type="search" placeholder="Bibliothek, Symbol, Footprint oder Gerät suchen …" aria-label="Referenz durchsuchen">
+    <select id="group" aria-label="Geräte nach Funktionsgruppe filtern">
+      <option value="">Alle Funktionsgruppen</option>
+<option value="Schutzgeräte">Schutzgeräte</option>
+    </select>
+  </div>
+
+  <h2>Gerätekatalog</h2>
+  <p class="muted">Die Gruppen- und Familiennamen stammen aus der zentralen Gerätetaxonomie. <code>template</code> kennzeichnet herstellerneutrale Beispieldaten.</p>
+  <div class="table-wrap"><table id="devices">
+    <thead><tr><th>Geräte-ID</th><th>Gruppe / Familie</th><th>Hersteller</th><th>Serie</th><th>Artikelnummer</th><th>Gerätetyp</th><th>Symbol</th><th>Footprint Policy</th><th>Quellenstatus</th></tr></thead>
+    <tbody>
+<tr data-group="Schutzgeräte"><td><code>generic.mcb-1p-b16-template</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template</td><td><code>MCB-1P-B16</code></td><td>Leitungsschutzschalter</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte"><td><code>generic.mcb-1p-template-series.b10</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B10</code></td><td>Leitungsschutzschalter</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte"><td><code>generic.mcb-1p-template-series.b16</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B16</code></td><td>Leitungsschutzschalter</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte"><td><code>generic.mcb-1p-template-series.b20</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B20</code></td><td>Leitungsschutzschalter</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+    </tbody>
+  </table></div>
 
   <h2>Symbolbibliotheken</h2>
-  <table id="symbols">
+  <div class="table-wrap"><table id="symbols">
     <thead><tr><th>Bibliothek</th><th>Status</th><th>Symbole</th><th>Footprint Policy</th><th>Standard-Footprint</th></tr></thead>
     <tbody>
 <tr><td><code>Z_Busbar_1P</code></td><td>befüllt</td><td>Busbar_1P</td><td><code>optional</code></td><td><code>—</code></td></tr>
@@ -71,10 +94,10 @@
 <tr><td><code>Z_Terminal_Block</code></td><td>befüllt</td><td>Terminal_Block</td><td><code>optional</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_Three_Phase_Busbar</code></td><td>befüllt</td><td>Three_Phase_Busbar</td><td><code>optional</code></td><td><code>—</code></td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h2>Footprintbibliotheken</h2>
-  <table id="footprints">
+  <div class="table-wrap"><table id="footprints">
     <thead><tr><th>Bibliothek</th><th>Anzahl</th><th>Footprints</th></tr></thead>
     <tbody>
 <tr><td><code>Z_Busbar_1P</code></td><td>0</td><td>—</td></tr>
@@ -113,18 +136,24 @@
 <tr><td><code>Z_Terminal_Block</code></td><td>0</td><td>—</td></tr>
 <tr><td><code>Z_Three_Phase_Busbar</code></td><td>0</td><td>—</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <p class="muted">Erzeugt mit <code>python tools/generate_html_reference.py</code>. Ein fehlender Footprint ist zulässig, sofern die Richtlinie nicht <code>required</code> lautet.</p>
 
   <script>
     const input = document.getElementById('search');
-    input.addEventListener('input', () => {
+    const group = document.getElementById('group');
+    function applyFilters() {
       const query = input.value.toLocaleLowerCase('de');
+      const selectedGroup = group.value;
       document.querySelectorAll('tbody tr').forEach(row => {
-        row.hidden = !row.textContent.toLocaleLowerCase('de').includes(query);
+        const matchesText = row.textContent.toLocaleLowerCase('de').includes(query);
+        const matchesGroup = !row.closest('#devices') || !selectedGroup || row.dataset.group === selectedGroup;
+        row.hidden = !(matchesText && matchesGroup);
       });
-    });
+    }
+    input.addEventListener('input', applyFilters);
+    group.addEventListener('change', applyFilters);
   </script>
 </body>
 </html>
