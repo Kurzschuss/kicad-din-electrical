@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_MCB: MCB</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="89.52" y="59.52" width="60.96" height="60.96" fill="none" stroke="currentColor" stroke-width="2"/>
+  <line x1="59.04" y1="90.00" x2="89.52" y2="90.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="180.96" y1="90.00" x2="150.48" y2="90.00" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">MCB</text>
+</svg>
