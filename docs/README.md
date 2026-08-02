@@ -15,6 +15,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Am Projekt mitwirken](../CONTRIBUTING.md)
 - [Entwicklerleitfaden](03_Developer/DEVELOPER.md)
 - [Bibliotheksreferenz automatisch erzeugen](03_Developer/REFERENCE_GENERATOR.md)
+- [Bibliotheks-Validator](03_Developer/LIBRARY_VALIDATOR.md)
 
 ## Bibliotheksreferenz
 
