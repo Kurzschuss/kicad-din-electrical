@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiCad DIN Electrical – Bibliotheksreferenz</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1180px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    header { margin-bottom: 2rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+    .card { border: 1px solid #8886; border-radius: .6rem; padding: 1rem; }
+    .card strong { display: block; font-size: 1.7rem; }
+    input { width: 100%; box-sizing: border-box; padding: .75rem; margin: 1.5rem 0; font: inherit; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 2.5rem; }
+    th, td { border-bottom: 1px solid #8885; padding: .65rem; text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; background: Canvas; }
+    code { overflow-wrap: anywhere; }
+    .muted { opacity: .75; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>KiCad DIN Electrical – Bibliotheksreferenz</h1>
+    <p>Automatisch erzeugte Übersicht der Symbol- und Footprintbibliotheken.</p>
+  </header>
+
+  <section class="cards" aria-label="Kennzahlen">
+    <div class="card"><strong>29</strong>Symbolbibliotheken</div>
+    <div class="card"><strong>20</strong>Hauptsymbole</div>
+    <div class="card"><strong>35</strong>Footprintbibliotheken</div>
+    <div class="card"><strong>6</strong>Footprints</div>
+    <div class="card"><strong>0</strong>Fehler</div>
+    <div class="card"><strong>55</strong>Hinweise</div>
+  </section>
+
+  <p><strong>Qualitätsstatus:</strong> Keine blockierenden Fehler</p>
+  <input id="search" type="search" placeholder="Bibliothek, Symbol oder Footprint suchen …" aria-label="Bibliotheken durchsuchen">
+
+  <h2>Symbolbibliotheken</h2>
+  <table id="symbols">
+    <thead><tr><th>Bibliothek</th><th>Status</th><th>Symbole</th><th>Footprint Policy</th><th>Standard-Footprint</th></tr></thead>
+    <tbody>
+<tr><td><code>Z_Busbar_1P</code></td><td>befüllt</td><td>Busbar_1P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Busbar_2P</code></td><td>befüllt</td><td>Busbar_2P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Busbar_4P</code></td><td>befüllt</td><td>Busbar_4P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Busbar_Comb_3P</code></td><td>befüllt</td><td>Busbar_Comb_3P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_CONTACTOR</code></td><td>befüllt</td><td>CONTACTOR</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DIN_Control</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DIN_Electrical</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DIN_Power</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DIN_Safety</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DIN_Terminals</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_DISTRIBUTION</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_FI_RCD_4P</code></td><td>befüllt</td><td>FI_RCD_4P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_FUSE</code></td><td>befüllt</td><td>FUSE</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Fuse_Distribution_Bus</code></td><td>befüllt</td><td>Fuse_Distribution_Bus</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_MAIN_SWITCH</code></td><td>befüllt</td><td>MAIN_SWITCH</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_MCB</code></td><td>befüllt</td><td>MCB</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_MCB_single_pole</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_MOTOR_PROTECT</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Motor_Protection</code></td><td>befüllt</td><td>Motor_Protection</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_N_PE_Terminal</code></td><td>befüllt</td><td>N_PE_Terminal</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Neutral_Busbar</code></td><td>befüllt</td><td>Neutral_Busbar</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_PE_Busbar</code></td><td>befüllt</td><td>PE_Busbar</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_RCBO</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_RCBO_1P_N</code></td><td>befüllt</td><td>RCBO_1P_N</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_RCBO_Busbar_1P_N</code></td><td>befüllt</td><td>RCBO_Busbar_1P_N</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_RCD</code></td><td>befüllt</td><td>RCD</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_RCD_Distribution_Bus_4P</code></td><td>befüllt</td><td>RCD_Distribution_Bus_4P</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Terminal_Block</code></td><td>befüllt</td><td>Terminal_Block</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_Three_Phase_Busbar</code></td><td>befüllt</td><td>Three_Phase_Busbar</td><td><code>optional</code></td><td><code>—</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Footprintbibliotheken</h2>
+  <table id="footprints">
+    <thead><tr><th>Bibliothek</th><th>Anzahl</th><th>Footprints</th></tr></thead>
+    <tbody>
+<tr><td><code>Z_Busbar_1P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Busbar_2P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Busbar_4P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Busbar_Comb_3P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_CONTACTOR</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DIN_Contactor_45mm</code></td><td>1</td><td><code>Z_DIN_Contactor_45mm</code></td></tr>
+<tr><td><code>Z_DIN_Control</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DIN_Electrical</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DIN_Module_18mm</code></td><td>1</td><td><code>Z_DIN_Module_18mm</code></td></tr>
+<tr><td><code>Z_DIN_Module_36mm</code></td><td>1</td><td><code>Z_DIN_Module_36mm</code></td></tr>
+<tr><td><code>Z_DIN_Module_45mm</code></td><td>1</td><td><code>Z_DIN_Module_45mm</code></td></tr>
+<tr><td><code>Z_DIN_Power</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DIN_Safety</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DIN_Safety_Module</code></td><td>1</td><td><code>Z_DIN_Safety_Module</code></td></tr>
+<tr><td><code>Z_DIN_Terminal_Block</code></td><td>1</td><td><code>Z_DIN_Terminal_Block</code></td></tr>
+<tr><td><code>Z_DIN_Terminals</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_DISTRIBUTION</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_FI_RCD_4P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_FUSE</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Fuse_Distribution_Bus</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_MAIN_SWITCH</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_MCB</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_MCB_single_pole</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_MOTOR_PROTECT</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Motor_Protection</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_N_PE_Terminal</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Neutral_Busbar</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_PE_Busbar</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_RCBO</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_RCBO_1P_N</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_RCBO_Busbar_1P_N</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_RCD</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_RCD_Distribution_Bus_4P</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Terminal_Block</code></td><td>0</td><td>—</td></tr>
+<tr><td><code>Z_Three_Phase_Busbar</code></td><td>0</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted">Erzeugt mit <code>python tools/generate_html_reference.py</code>. Ein fehlender Footprint ist zulässig, sofern die Richtlinie nicht <code>required</code> lautet.</p>
+
+  <script>
+    const input = document.getElementById('search');
+    input.addEventListener('input', () => {
+      const query = input.value.toLocaleLowerCase('de');
+      document.querySelectorAll('tbody tr').forEach(row => {
+        row.hidden = !row.textContent.toLocaleLowerCase('de').includes(query);
+      });
+    });
+  </script>
+</body>
+</html>
