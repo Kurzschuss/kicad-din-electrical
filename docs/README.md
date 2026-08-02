@@ -17,9 +17,11 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Bibliotheksreferenz automatisch erzeugen](03_Developer/REFERENCE_GENERATOR.md)
 - [Bibliotheks-Validator](03_Developer/LIBRARY_VALIDATOR.md)
 - [Automatischer Qualitätsbericht](03_Developer/QUALITY_REPORT.md)
+- [HTML-Bibliotheksreferenz erzeugen](03_Developer/HTML_REFERENCE.md)
 
 ## Bibliotheksreferenz
 
+- [Durchsuchbare HTML-Übersicht](site/index.html)
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
 - [Bibliotheks-Qualitätsbericht](04_Reference/QUALITY_REPORT.md)
