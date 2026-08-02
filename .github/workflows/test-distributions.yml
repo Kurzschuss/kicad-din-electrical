@@ -27,6 +27,4 @@ jobs:
           python tools/generate_library_reference.py
           git diff --exit-code -- docs/04_Reference/SYMBOL_INDEX.md docs/04_Reference/FOOTPRINT_INDEX.md
       - name: Check generated quality report
-        run: |
-          python tools/generate_quality_report.py
-          git diff --exit-code -- docs/04_Reference/QUALITY_REPORT.md
+        run: python tools/generate_quality_report.py --check
