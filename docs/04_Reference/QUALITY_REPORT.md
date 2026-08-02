@@ -40,55 +40,55 @@ Ein fehlender Footprint ist kein Qualitätsfehler, solange die Richtlinie nicht 
 
 ### Hinweise
 
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Busbar_1P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Busbar_1P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Busbar_2P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Busbar_2P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Busbar_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Busbar_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Busbar_Comb_3P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Busbar_Comb_3P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_CONTACTOR.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_CONTACTOR.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DIN_Electrical.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DIN_Power.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DIN_Safety.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DIN_Terminals.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_DISTRIBUTION.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_FI_RCD_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_FI_RCD_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_FUSE.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_FUSE.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_MAIN_SWITCH.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_MAIN_SWITCH.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_MCB.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_MCB.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_MCB_single_pole.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_MOTOR_PROTECT.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Motor_Protection.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Motor_Protection.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_N_PE_Terminal.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_N_PE_Terminal.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Neutral_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Neutral_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_PE_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_PE_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM100` `symbols/DIN_Electrical_Symbols/Z_RCBO.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_RCBO_1P_N.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_RCBO_1P_N.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_RCBO_Busbar_1P_N.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_RCBO_Busbar_1P_N.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_RCD.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_RCD.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_RCD_Distribution_Bus_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_RCD_Distribution_Bus_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Terminal_Block.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Terminal_Block.kicad_sym` — Hersteller ist noch nicht hinterlegt.
-- ⚠️ `SYM102` `symbols/DIN_Electrical_Symbols/Z_Three_Phase_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
-- ⚠️ `SYM103` `symbols/DIN_Electrical_Symbols/Z_Three_Phase_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Busbar_1P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Busbar_1P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Busbar_2P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Busbar_2P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Busbar_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Busbar_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Busbar_Comb_3P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Busbar_Comb_3P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_CONTACTOR.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_CONTACTOR.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM100` `symbols/Z_DIN_Control.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_DIN_Electrical.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_DIN_Power.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_DIN_Safety.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_DIN_Terminals.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_DISTRIBUTION.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM102` `symbols/Z_FI_RCD_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_FI_RCD_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_FUSE.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_FUSE.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_MAIN_SWITCH.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_MAIN_SWITCH.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_MCB.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_MCB.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM100` `symbols/Z_MCB_single_pole.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM100` `symbols/Z_MOTOR_PROTECT.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM102` `symbols/Z_Motor_Protection.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Motor_Protection.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_N_PE_Terminal.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_N_PE_Terminal.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Neutral_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Neutral_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_PE_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_PE_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM100` `symbols/Z_RCBO.kicad_sym` — Symbolbibliothek ist vorbereitet, aber noch leer.
+- ⚠️ `SYM102` `symbols/Z_RCBO_1P_N.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_RCBO_1P_N.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_RCBO_Busbar_1P_N.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_RCBO_Busbar_1P_N.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_RCD.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_RCD.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_RCD_Distribution_Bus_4P.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_RCD_Distribution_Bus_4P.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Terminal_Block.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Terminal_Block.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_Three_Phase_Busbar.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_Three_Phase_Busbar.kicad_sym` — Hersteller ist noch nicht hinterlegt.
 - ⚠️ `LIB100` `footprints/Z_DIN_Contactor_45mm.pretty` — Footprintbibliothek besitzt derzeit keine gleichnamige Symbolbibliothek.
 - ⚠️ `LIB100` `footprints/Z_DIN_Module_18mm.pretty` — Footprintbibliothek besitzt derzeit keine gleichnamige Symbolbibliothek.
 - ⚠️ `LIB100` `footprints/Z_DIN_Module_36mm.pretty` — Footprintbibliothek besitzt derzeit keine gleichnamige Symbolbibliothek.
