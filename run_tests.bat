@@ -3,9 +3,7 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 title KiCad DIN Electrical - Testmenue
 
-if exist ".venv\Scripts\activate.bat" (
-    call ".venv\Scripts\activate.bat"
-)
+if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
 
 where python >nul 2>nul
 if errorlevel 1 (
@@ -61,7 +59,7 @@ echo   [5] Nur zuletzt fehlgeschlagene Tests
 echo       Wiederholt die Fehler des vorherigen Testlaufs.
 echo.
 echo   [6] Hilfe und Erklaerungen
-echo       Kurze Hinweise zu Tests, .venv und Referenzgenerator.
+echo       Hinweise zu Tests, .venv und Referenzgenerator.
 echo.
 echo   [7] Bibliotheksreferenz erzeugen
 echo       Aktualisiert Symbol- und Footprint-Index.
@@ -82,7 +80,6 @@ if errorlevel 4 goto :firstfailure
 if errorlevel 3 goto :allchecks
 if errorlevel 2 goto :verbose
 if errorlevel 1 goto :quick
-
 goto :menu
 
 :quick
@@ -115,7 +112,7 @@ echo ============================================================
 echo   Alle Pruefungen
 echo ============================================================
 echo.
-echo [1/3] Vollstaendige Testsuite
+echo [1/2] Vollstaendige Testsuite
 echo.
 python -m pytest -q
 if errorlevel 1 (
@@ -127,25 +124,13 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/3] Python-Syntaxpruefung
+echo [2/2] Python-Syntaxpruefung
 echo.
 python -m compileall -q distributions tests tools
 if errorlevel 1 (
     set "RESULT=1"
     echo.
     echo FEHLER: Die Python-Syntaxpruefung ist fehlgeschlagen.
-    call :finish
-    goto :menu
-)
-
-echo.
-echo [3/3] Bibliotheksreferenz pruefen
-echo.
-python tools\generate_library_reference.py --check
-if errorlevel 1 (
-    set "RESULT=1"
-    echo.
-    echo FEHLER: Die Bibliotheksreferenz ist nicht aktuell.
 ) else (
     set "RESULT=0"
     echo.
@@ -167,7 +152,7 @@ echo AUSFUEHRLICHER TESTLAUF
 echo   Zeigt Namen und Ergebnis jedes einzelnen Tests.
 echo.
 echo ALLE PRUEFUNGEN
-echo   Fuehrt Tests, Syntaxpruefung und Referenzkontrolle aus.
+echo   Fuehrt die Tests und die Python-Syntaxpruefung aus.
 echo.
 echo BIBLIOTHEKSREFERENZ
 echo   Auswahl 7 erzeugt die beiden Indexdateien neu.
@@ -175,7 +160,7 @@ echo   Auswahl 8 prueft nur, ob sie dem Repository entsprechen.
 echo.
 echo .VENV
 echo   Eine .venv ist eine lokale Python-Umgebung fuer dieses
- echo   Projekt. Sie ist optional und wird automatisch aktiviert.
+echo   Projekt. Sie ist optional und wird automatisch aktiviert.
 echo.
 echo PROGRAMM VERLASSEN
 echo   Mit der Taste 0 wird das Testmenue beendet.
