@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "families": [
+    {"id": "protection.mcb", "group": "Schutzgeräte", "name": "Leitungsschutzschalter"},
+    {"id": "protection.rcd", "group": "Schutzgeräte", "name": "Fehlerstrom-Schutzeinrichtungen"},
+    {"id": "protection.rcbo", "group": "Schutzgeräte", "name": "FI/LS-Schalter"},
+    {"id": "protection.fuse", "group": "Schutzgeräte", "name": "Sicherungen und Sicherungsträger"},
+    {"id": "protection.surge", "group": "Schutzgeräte", "name": "Überspannungsschutz"},
+    {"id": "switching.contactor", "group": "Schalten", "name": "Schütze"},
+    {"id": "switching.relay", "group": "Schalten", "name": "Relais"},
+    {"id": "switching.main_switch", "group": "Schalten", "name": "Haupt- und Lastschalter"},
+    {"id": "control.pushbutton", "group": "Steuern", "name": "Taster"},
+    {"id": "control.selector", "group": "Steuern", "name": "Wahlschalter"},
+    {"id": "signalling.indicator", "group": "Melden", "name": "Leuchtmelder"},
+    {"id": "signalling.acoustic", "group": "Melden", "name": "Akustische Melder"},
+    {"id": "measurement.meter", "group": "Messen", "name": "Messgeräte"},
+    {"id": "distribution.terminal", "group": "Verteilen", "name": "Reihenklemmen"},
+    {"id": "distribution.busbar", "group": "Verteilen", "name": "Sammel- und Phasenschienen"},
+    {"id": "distribution.neutral", "group": "Verteilen", "name": "Neutralleiterverteilung"},
+    {"id": "distribution.protective_earth", "group": "Verteilen", "name": "Schutzleiterverteilung"},
+    {"id": "power_supply.supply", "group": "Versorgen", "name": "Stromversorgungen"},
+    {"id": "documentation.logical", "group": "Dokumentation", "name": "Logische und dokumentierende Symbole"}
+  ]
+}

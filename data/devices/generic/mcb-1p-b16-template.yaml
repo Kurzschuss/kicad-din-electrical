@@ -4,7 +4,7 @@
   "series": "Template",
   "part_number": "MCB-1P-B16",
   "device_type": "Leitungsschutzschalter",
-  "function_group": "Schutzgeräte/Leitungsschutzschalter",
+  "function_group": "protection.mcb",
   "description": "Herstellerneutrales Beispiel für die Struktur des Gerätekatalogs; keine Produktempfehlung.",
   "poles": 1,
   "rated_current_a": 16,

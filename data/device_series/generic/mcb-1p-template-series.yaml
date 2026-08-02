@@ -4,7 +4,7 @@
     "manufacturer": "Generic",
     "series": "Template MCB 1P",
     "device_type": "Leitungsschutzschalter",
-    "function_group": "Schutzgeräte/Leitungsschutzschalter",
+    "function_group": "protection.mcb",
     "description": "Herstellerneutrale Beispielserie zur Demonstration parametrischer Geräte; keine Produktempfehlung.",
     "poles": 1,
     "trip_curve": "B",

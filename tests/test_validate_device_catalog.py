@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from tools.validate_device_catalog import load_device, validate_catalog, validate_device
+from tools.validate_device_catalog import (
+    load_device,
+    load_family_ids,
+    validate_catalog,
+    validate_device,
+)
 
 
 def make_symbol(root: Path) -> None:
@@ -17,7 +22,7 @@ def valid_device() -> dict[str, object]:
         "series": "Template",
         "part_number": "TEST-1",
         "device_type": "Testgerät",
-        "function_group": "Test",
+        "function_group": "protection.mcb",
         "symbol": "Z_Test:Test",
         "footprint_policy": "optional",
         "source_status": "template",
@@ -34,6 +39,27 @@ def test_valid_device_without_footprint_is_allowed(tmp_path: Path):
     symbols = tmp_path / "symbols"
     make_symbol(symbols)
     assert validate_device(valid_device(), symbol_root=symbols, footprint_root=tmp_path) == []
+
+
+def test_rejects_unknown_device_family(tmp_path: Path):
+    symbols = tmp_path / "symbols"
+    make_symbol(symbols)
+    errors = validate_device(
+        valid_device(), symbol_root=symbols, footprint_root=tmp_path,
+        allowed_families={"switching.relay"},
+    )
+    assert "Unbekannte Gerätefamilie: protection.mcb" in errors
+
+
+def test_load_family_ids_rejects_duplicates(tmp_path: Path):
+    path = tmp_path / "families.json"
+    path.write_text(
+        '{"families":[{"id":"protection.mcb"},{"id":"protection.mcb"}]}',
+        encoding="utf-8",
+    )
+    import pytest
+    with pytest.raises(ValueError, match="Doppelte Gerätefamilien-ID"):
+        load_family_ids(path)
 
 
 def test_required_policy_needs_footprint(tmp_path: Path):
@@ -69,7 +95,7 @@ def test_catalog_rejects_duplicate_ids(tmp_path: Path):
       "series": "Template",
       "part_number": "TEST-1",
       "device_type": "Testgerät",
-      "function_group": "Test",
+      "function_group": "protection.mcb",
       "symbol": "Z_Test:Test",
       "footprint_policy": "optional"
     }\n'''
