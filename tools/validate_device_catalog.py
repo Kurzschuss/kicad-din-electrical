@@ -10,7 +10,7 @@ import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEVICE_ROOT = REPO_ROOT / "data" / "devices"
-SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
+SYMBOL_ROOT = REPO_ROOT / "symbols"
 FOOTPRINT_ROOT = REPO_ROOT / "footprints"
 TAXONOMY_PATH = REPO_ROOT / "data" / "taxonomy" / "device_families.json"
 
