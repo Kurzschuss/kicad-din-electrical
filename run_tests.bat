@@ -63,7 +63,7 @@ echo.
 echo   [6] Hilfe und Erklaerungen
 echo       Kurze Hinweise zu Tests und .venv.
 echo.
-echo   [0] Beenden
+echo   [0] Programm verlassen
 echo.
 choice /c 1234560 /n /m "Auswahl: "
 
@@ -146,6 +146,9 @@ echo .VENV
 echo   Eine .venv ist eine lokale Python-Umgebung fuer dieses
 echo   Projekt. Sie ist optional und wird automatisch aktiviert.
 echo.
+echo PROGRAMM VERLASSEN
+echo   Mit der Taste 0 wird das Testmenue beendet.
+echo.
 echo WEITERE ANLEITUNG
 echo   docs\02_User\TESTING.md
 echo.
@@ -176,4 +179,7 @@ pause >nul
 exit /b
 
 :end
+cls
+echo Testmenue beendet.
+timeout /t 1 >nul
 exit /b 0
