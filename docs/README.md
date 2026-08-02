@@ -23,6 +23,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 ## Bibliotheksreferenz
 
 - [Durchsuchbare HTML-Übersicht](site/index.html)
+- [Durchsuchbare Symbolvorschau-Galerie](site/symbol-previews/index.html)
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
 - [Bibliotheks-Qualitätsbericht](04_Reference/QUALITY_REPORT.md)
@@ -46,6 +47,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 - weitere Bibliotheksdetailseiten
 - Beispielprojekte und Vorlagen
-- Vorschaubilder für Symbole und Footprints
+- vollständige Darstellung weiterer KiCad-Grafikformen in den Vorschauen
+- Footprintvorschauen
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
