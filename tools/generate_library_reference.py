@@ -15,6 +15,14 @@ SYMBOL_INDEX = REFERENCE_ROOT / "SYMBOL_INDEX.md"
 FOOTPRINT_INDEX = REFERENCE_ROOT / "FOOTPRINT_INDEX.md"
 
 
+def display_path(path: Path) -> Path:
+    """Zeigt Repositorypfade relativ, andere Pfade unverändert an."""
+    try:
+        return path.relative_to(REPO_ROOT)
+    except ValueError:
+        return path
+
+
 def symbol_libraries(root: Path = SYMBOL_ROOT) -> list[Path]:
     """Liefert alle Symbolbibliotheken alphabetisch sortiert."""
     return sorted(root.glob("Z_*.kicad_sym"), key=lambda path: path.name.casefold())
@@ -102,7 +110,7 @@ def check_files(files: dict[Path, str]) -> bool:
     if outdated:
         print("Die folgenden Referenzdateien sind nicht aktuell:", file=sys.stderr)
         for path in outdated:
-            print(f"- {path.relative_to(REPO_ROOT)}", file=sys.stderr)
+            print(f"- {display_path(path)}", file=sys.stderr)
         print("Bitte den Generator ohne --check ausführen.", file=sys.stderr)
         return False
     print("Die Bibliotheksreferenz ist aktuell.")
@@ -113,7 +121,7 @@ def write_files(files: dict[Path, str]) -> None:
     REFERENCE_ROOT.mkdir(parents=True, exist_ok=True)
     for path, content in files.items():
         path.write_text(content, encoding="utf-8")
-        print(f"Erzeugt: {path.relative_to(REPO_ROOT)}")
+        print(f"Erzeugt: {display_path(path)}")
 
 
 def main() -> int:
