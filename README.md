@@ -76,6 +76,12 @@ Qualifizierte Footprint-IDs verwenden den Namen des `.pretty`-Ordners und den Na
 Z_<Bibliothek>:Z_<Footprint>
 ```
 
+Vorhandenes Beispiel:
+
+```text
+Z_DIN_Module_18mm:Z_DIN_Module_18mm
+```
+
 Die Namen links und rechts vom Doppelpunkt dürfen unterschiedlich sein, wenn mehrere Footprints in derselben Bibliothek liegen.
 
 Die alten Bibliotheks-IDs `DIN_Rail:<Footprint>` und `Z_DIN_Rail:<Footprint>` dürfen nicht mehr verwendet werden.
