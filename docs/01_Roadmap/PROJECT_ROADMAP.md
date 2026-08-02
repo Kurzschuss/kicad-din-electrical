@@ -7,78 +7,177 @@ Diese Roadmap ordnet die langfristigen Ziele des Projekts. Sie ist ein lebendes 
 - [x] Vision und Manifest dokumentieren
 - [x] Projektprinzipien festhalten
 - [x] Ideen- und Entscheidungsprotokoll beginnen
-- [ ] zentrale Dokumentationsnavigation in der README ergänzen
-- [ ] Projektumfang und Namensregeln vollständig dokumentieren
+- [x] zentrale Dokumentationsnavigation ergänzen
+- [x] KiCad-konforme Verzeichnisstruktur herstellen
+- [x] Bibliotheksvalidatoren und CI-Prüfungen einführen
+- [x] Symbol-, Footprint- und Qualitätsreferenzen erzeugen
+- [x] Gerätekatalog, Geräteserien und Taxonomie einführen
+- [x] HTML-Referenzen und Symbolvorschauen bereitstellen
+- [ ] Qualitätshandbuch `docs/00_Project/LIBRARY_GUIDELINES.md` vollständig ausarbeiten
 
 ## Phase B – Benutzerdokumentation
 
-- [ ] `QUICKSTART.md`
-- [ ] ausführliche Installationsanleitung für eine Standard-KiCad-Installation
-- [ ] Symbolbibliotheken global und projektbezogen einbinden
-- [ ] Footprintbibliotheken global und projektbezogen einbinden
-- [ ] erstes Symbol platzieren und Footprint zuweisen
-- [ ] FAQ und Fehlerbehebung
-- [ ] Testanleitung für Windows, Linux und macOS
-- [ ] verständliche Screenshots ergänzen
+- [x] Schnellstart
+- [x] ausführliche Installationsanleitung für eine Standard-KiCad-Installation
+- [x] Symbol- und Footprintbibliotheken einbinden
+- [x] FAQ und Fehlerbehebung
+- [x] Testanleitung für Windows, Linux und macOS
+- [x] technischen Gerätekatalog erklären
+- [ ] weitere verständliche Screenshots ergänzen
+- [ ] Beispielprojekte Schritt für Schritt dokumentieren
 
-## Phase C – Bibliotheksausbau
+## Phase C – Verbindliches Paketprinzip
 
-- [ ] Zähleranlagen
-- [ ] Hauptverteilungen
-- [ ] Unterverteilungen
-- [ ] Gebäudeinstallation
-- [ ] Energieverteilung
-- [ ] Schaltschrankbau
-- [ ] Steuerungstechnik
-- [ ] SPS-Technik
-- [ ] PV-Anlagen
-- [ ] Wallboxen
-- [ ] Wärmepumpen
-- [ ] Batteriespeicher
+Neue Geräte werden nicht als einzelne Symbole, sondern als möglichst vollständige Bibliothekspakete entwickelt.
 
-## Phase D – Beispiele und Vorlagen
+Ein vollständiges Paket umfasst – soweit fachlich sinnvoll:
 
-- [ ] einfache Steuerung
+- Symbol
+- optionalen Footprint
+- Gerätekatalogeintrag
+- Geräteserie oder Varianten
+- SVG-Vorschau
+- HTML-Dokumentation
+- Benutzerdokumentation
+- Beispielprojekt
+- automatisierte Tests
+- Qualitätsstatus
+
+Ein Gerät gilt erst dann als abgeschlossen, wenn das Paket vollständig dokumentiert und geprüft ist. Damit sollen viele halbfertige Einträge vermieden und stattdessen schrittweise verlässliche Komponenten aufgebaut werden.
+
+## Phase D – Qualitätsstufen
+
+Für Bibliothekspakete werden folgende Qualitätsstufen eingeführt:
+
+| Status | Bedeutung |
+|---|---|
+| Entwurf | Struktur vorhanden, Paket noch im Aufbau |
+| Geprüft | Symbol, Dokumentation, Katalogdaten und Tests vollständig |
+| Praxisgetestet | zusätzlich in einem realen oder realitätsnahen Projekt eingesetzt |
+
+Die Kriterien werden verbindlich im Qualitätshandbuch festgelegt und später auch in HTML-Referenz und Gerätekatalog angezeigt.
+
+## Phase E – Priorisierter Bibliotheksausbau
+
+Die Gerätefamilien werden nacheinander als vollständige Pakete ausgebaut.
+
+1. [ ] MCB – Leitungsschutzschalter
+2. [ ] RCD – Fehlerstrom-Schutzeinrichtung
+3. [ ] RCBO – kombinierter FI/LS
+4. [ ] Hauptschalter
+5. [ ] Lasttrennschalter
+6. [ ] Schütze
+7. [ ] Hilfsschalter
+8. [ ] Reihenklemmen
+9. [ ] Netzteile
+10. [ ] Relais
+11. [ ] Motorschutz
+12. [ ] Überspannungsschutz
+13. [ ] Sicherungen
+14. [ ] Transformatoren
+15. [ ] Messgeräte
+16. [ ] Meldegeräte
+17. [ ] SPS-Komponenten
+
+### Erster fachlicher Meilenstein: MCB
+
+Der Leitungsschutzschalter wird als erstes vollständiges Paket umgesetzt:
+
+- [ ] Symbol fachlich und grafisch prüfen
+- [ ] sinnvolle Varianten festlegen
+- [ ] Footprint-Entscheidung dokumentieren
+- [ ] Gerätekatalog und Serien vervollständigen
+- [ ] SVG- und HTML-Dokumentation ergänzen
+- [ ] Benutzeranleitung erstellen
+- [ ] Beispielprojekt anlegen
+- [ ] Tests ergänzen
+- [ ] Qualitätsstatus vergeben
+
+Erst nach Abschluss dieses Pakets folgt RCD, danach RCBO und die weiteren Gerätefamilien.
+
+## Phase F – Beispielprojekte und Vorlagen
+
+Beispielprojekte sollen reale Planungsaufgaben zeigen und keine künstlichen Demonstrationsschaltungen sein.
+
+### Einsteigerbeispiele
+
+- [ ] erstes Symbol
+- [ ] erstes Gerät
+- [ ] erste Verbindung
+- [ ] Beschriftung und Referenzkennzeichen
+- [ ] ERC ausführen und Ergebnisse einordnen
+
+### Installation
+
+- [ ] Lichtschaltung
+- [ ] Steckdosenstromkreis
+- [ ] Wechselschaltung
+- [ ] Kreuzschaltung
+- [ ] Tasterschaltung
+
+### Unterverteilung und Energieverteilung
+
+- [ ] kleine Unterverteilung
+- [ ] Unterverteilung mit FI/LS
+- [ ] Unterverteilung mit mehreren RCD-Gruppen
+- [ ] Reservefelder und Erweiterungsplanung
+- [ ] Garagenverteilung
+- [ ] Gartenverteilung
 - [ ] Zähleranlage Einfamilienhaus
-- [ ] Unterverteilung Wohngebäude
+- [ ] Baustromverteiler
+
+### Schaltschrank und Steuerung
+
+- [ ] Schützschaltung
 - [ ] Motorstarter
+- [ ] Zeitrelais
+- [ ] Netzteil
+- [ ] SPS-Grundaufbau
 - [ ] Klemmenplan
-- [ ] Schaltschrank
-- [ ] PV-Anlage
-- [ ] Wallbox
+
+### Zukunftsprojekte
+
 - [ ] Wärmepumpe
-- [ ] Projektvorlagen mit Bibliothekskonfiguration und Titelblöcken
+- [ ] Wallbox
+- [ ] PV-Vorbereitung
+- [ ] Netzwerkverteiler
+- [ ] Kleinsteuerung
 
-## Phase E – Referenz und Wissensplattform
+Jedes Beispiel erhält ein eigenes `README.md` mit Ziel, Voraussetzungen, Arbeitsschritten, verwendeten Bibliotheken und Hinweisen für Anfänger.
 
-- [ ] Symbolkatalog
-- [ ] Footprintkatalog
-- [ ] Symbol-zu-Footprint-Zuordnungen
-- [ ] Beschreibungen, Einsatzgebiete und verwandte Einträge
-- [ ] Bibliotheksstatus: geplant, in Arbeit, stabil
-- [ ] automatische Statistiken und Inhaltsverzeichnisse
-- [ ] Vorschaubilder für Symbole und Footprints
+## Phase G – Referenz und Wissensplattform
 
-## Phase F – Website und Veröffentlichung
+- [x] Symbolkatalog
+- [x] Footprintkatalog
+- [x] durchsuchbare HTML-Übersicht
+- [x] technischer Gerätekatalog
+- [x] Symbolvorschauen
+- [ ] Normen- und Symbolreferenz
+- [ ] Beschreibungen und typische Einsatzgebiete je Symbol
+- [ ] dokumentierte Symbol-zu-Footprint-Zuordnungen
+- [ ] Beispielschaltungen je Gerätefamilie
+- [ ] Qualitätsstatus in HTML und Gerätekatalog
+- [ ] Footprintvorschauen
 
+## Phase H – Kompatibilität und Veröffentlichung
+
+- [ ] Kompatibilitätsmatrix für unterstützte KiCad-Versionen
+- [ ] Statusmatrix für Symbol, Footprint, Generator, HTML und Tests
 - [ ] GitHub Pages einrichten
 - [ ] Dokumentation online veröffentlichen
-- [ ] Suchfunktion für Symbole und Footprints
 - [ ] Downloadbereich
-- [ ] Tutorials und FAQ
+- [ ] Release-Automatisierung
 - [ ] automatische Aktualisierung durch GitHub Actions
 
-## Phase G – Werkzeuge und Automatisierung
+## Phase I – Langfristige Werkzeuge
 
-- [ ] Referenzgenerator
-- [ ] Galerie-Generator
-- [ ] Bibliotheksvalidatoren
-- [ ] Release-Automatisierung
-- [ ] Komponenten- und Wissensdatenbank
+- [ ] Komponenten- und Wissensdatenbank ausbauen
 - [ ] optionaler KiCad-Installationsassistent oder Plugin
-- [ ] langfristig ein Projektassistent für typische Anlagen
+- [ ] Projektassistent für typische Anlagen
+- [ ] automatische Material- und Stücklisten aus dem Gerätekatalog
+- [ ] Hersteller- und Datenblattlisten
 
-## Phase H – Ausbildung
+## Phase J – Ausbildung
 
 - [ ] Übungen und Beispielaufgaben
 - [ ] Musterlösungen
@@ -90,7 +189,7 @@ Diese Roadmap ordnet die langfristigen Ziele des Projekts. Sie ist ein lebendes 
 
 - **0.5 – Projektfundament**
 - **0.6 – Benutzerdokumentation**
-- **0.7 – Bibliotheksreferenz**
-- **0.8 – Beispiele und Vorlagen**
-- **0.9 – Website**
-- **1.0 – Erste stabile Veröffentlichung**
+- **0.7 – Bibliotheksreferenz und Gerätekatalog**
+- **0.8 – Beispielprojekte und erstes vollständiges MCB-Paket**
+- **0.9 – weitere vollständige Gerätepakete und Website**
+- **1.0 – erste stabile Veröffentlichung**
