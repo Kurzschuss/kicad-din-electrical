@@ -4,6 +4,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Benutzeranleitungen
 
+- [Schnellstart: erstes Symbol verwenden](02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](02_User/INSTALL.md)
 - [Lokale Tests ausführen](02_User/TESTING.md)
 
@@ -22,7 +23,6 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Als Nächstes geplant
 
-- Schnellstart für den ersten Schaltplan
 - FAQ und Glossar
 - Beitrags- und Entwicklerleitfaden
 - Symbol- und Footprint-Referenz
