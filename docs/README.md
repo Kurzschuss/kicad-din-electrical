@@ -16,11 +16,13 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Entwicklerleitfaden](03_Developer/DEVELOPER.md)
 - [Bibliotheksreferenz automatisch erzeugen](03_Developer/REFERENCE_GENERATOR.md)
 - [Bibliotheks-Validator](03_Developer/LIBRARY_VALIDATOR.md)
+- [Automatischer Qualitätsbericht](03_Developer/QUALITY_REPORT.md)
 
 ## Bibliotheksreferenz
 
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
+- [Bibliotheks-Qualitätsbericht](04_Reference/QUALITY_REPORT.md)
 - [Z_DIN_Control](04_Reference/Z_DIN_Control.md)
 - [Z_DIN_Module_18mm](04_Reference/Z_DIN_Module_18mm.md)
 
