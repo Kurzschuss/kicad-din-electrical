@@ -36,7 +36,74 @@ def footprint_libraries(root: Path = FOOTPRINT_ROOT) -> list[Path]:
     )
 
 
-def render_symbol_index(libraries: list[Path]) -> str:
+def _quoted_value(text: str, start: int) -> tuple[str, int]:
+    """Liest einen KiCad-String ab dem öffnenden Anführungszeichen."""
+    value: list[str] = []
+    escaped = False
+    index = start + 1
+    while index < len(text):
+        char = text[index]
+        if escaped:
+            value.append(char)
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif char == '"':
+            return "".join(value), index + 1
+        else:
+            value.append(char)
+        index += 1
+    return "".join(value), index
+
+
+def symbol_names(path: Path) -> list[str]:
+    """Liest die Namen der Hauptsymbole einer KiCad-Symbolbibliothek.
+
+    KiCad legt innerhalb eines Hauptsymbols weitere ``symbol``-Blöcke für
+    Grafik- und Einheitendarstellungen an. Nur ``symbol``-Blöcke direkt unter
+    ``kicad_symbol_lib`` werden deshalb als eigenständige Symbole gezählt.
+    """
+    text = path.read_text(encoding="utf-8")
+    names: list[str] = []
+    depth = 0
+    index = 0
+    in_string = False
+    escaped = False
+
+    while index < len(text):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+        if char == "(":
+            if depth == 1 and text.startswith("(symbol", index):
+                cursor = index + len("(symbol")
+                while cursor < len(text) and text[cursor].isspace():
+                    cursor += 1
+                if cursor < len(text) and text[cursor] == '"':
+                    name, _ = _quoted_value(text, cursor)
+                    names.append(name)
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        index += 1
+
+    return sorted(set(names), key=str.casefold)
+
+
+def render_symbol_index(
+    libraries: list[Path], footprint_root: Path = FOOTPRINT_ROOT
+) -> str:
     lines = [
         "# Symbolbibliotheken",
         "",
@@ -46,10 +113,26 @@ def render_symbol_index(libraries: list[Path]) -> str:
         "",
         f"**Anzahl der Bibliotheken:** {len(libraries)}",
         "",
-        "## Bibliotheken",
+        "## Bibliotheken und Inhalte",
         "",
     ]
-    lines.extend(f"- `{path.name}`" for path in libraries)
+    for library in libraries:
+        names = symbol_names(library) if library.is_file() else []
+        pretty = footprint_root / f"{library.stem}.pretty"
+        footprints = (
+            sorted(pretty.glob("*.kicad_mod"), key=lambda path: path.name.casefold())
+            if pretty.is_dir()
+            else []
+        )
+        symbol_status = f"{len(names)} Symbol(e)" if names else "vorbereitet, noch leer"
+        footprint_status = (
+            f"`{pretty.name}` mit {len(footprints)} Footprint(s)"
+            if pretty.is_dir()
+            else f"`{pretty.name}` fehlt"
+        )
+        lines.append(f"- `{library.name}` — {symbol_status}")
+        lines.append(f"  - Footprintbibliothek: {footprint_status}")
+        lines.extend(f"  - Symbol: `{name}`" for name in names)
     lines.extend(
         [
             "",

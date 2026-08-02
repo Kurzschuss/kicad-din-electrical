@@ -35,7 +35,23 @@ Der Generator liest:
 - `footprints/Z_*.pretty/`
 - alle darin enthaltenen `*.kicad_mod`-Dateien
 
-Leere `.pretty`-Bibliotheken werden als vorbereitet gekennzeichnet. Befüllte Bibliotheken zeigen die Anzahl und Namen ihrer Footprints.
+## Symbolanalyse
+
+Für jede `.kicad_sym`-Datei werden die Hauptsymbole direkt unter `kicad_symbol_lib` ausgewertet. Interne KiCad-Unterblöcke für Grafikdarstellungen oder Einheiten werden nicht als eigenständige Symbole gezählt.
+
+Der Symbolindex zeigt pro Bibliothek:
+
+- leerer oder befüllter Status,
+- Anzahl der Hauptsymbole,
+- alphabetisch sortierte Symbolnamen,
+- den erwarteten gleichnamigen `.pretty`-Ordner,
+- die Anzahl der dort enthaltenen Footprints.
+
+Eine leere Symbolbibliothek wird als **vorbereitet, noch leer** gekennzeichnet. Ein fehlender gleichnamiger `.pretty`-Ordner wird ausdrücklich angezeigt.
+
+## Footprintanalyse
+
+Leere `.pretty`-Bibliotheken werden als vorbereitet gekennzeichnet. Befüllte Bibliotheken zeigen die Anzahl und Namen ihrer Footprints. Eine `.pretty`-Bibliothek darf mehrere `.kicad_mod`-Dateien enthalten.
 
 ## Empfohlener Ablauf
 
