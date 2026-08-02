@@ -21,6 +21,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Automatische Symbolvorschauen](03_Developer/SYMBOL_PREVIEWS.md)
 - [Gerätekatalog](03_Developer/DEVICE_CATALOG.md)
 - [Geräteserien und Varianten](03_Developer/DEVICE_SERIES.md)
+- [Gerätefamilien und Funktionsgruppen](03_Developer/DEVICE_TAXONOMY.md)
 
 ## Bibliotheksreferenz
 
