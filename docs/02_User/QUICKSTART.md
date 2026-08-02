@@ -18,7 +18,7 @@ Diese Kurzanleitung zeigt den kürzesten Weg vom heruntergeladenen Repository bi
 6. Im Repository diesen Ordner öffnen:
 
 ```text
-symbols/DIN_Electrical_Symbols/
+symbols/
 ```
 
 7. Eine gewünschte Datei mit der Endung `.kicad_sym` auswählen, zum Beispiel:
