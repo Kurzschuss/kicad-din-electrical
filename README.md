@@ -10,6 +10,8 @@ Dieses Projekt stellt KiCad-Bibliotheken für DIN-Schaltgeräte, Reiheneinbauger
 
 - [Schnellstart: erstes Symbol verwenden](docs/02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](docs/02_User/INSTALL.md)
+- [Technischen Gerätekatalog verwenden](docs/02_User/DEVICE_CATALOG.md)
+- [Durchsuchbaren Gerätekatalog öffnen](docs/site/devices.html)
 - [Lokale Tests ausführen](docs/02_User/TESTING.md)
 - [Vision](docs/00_Project/VISION.md)
 - [Manifest](docs/00_Project/MANIFESTO.md)
