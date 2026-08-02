@@ -1,6 +1,11 @@
 # Dokumentation
 
-Diese Dokumentation wird schrittweise ausgebaut.
+Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad-Einsteiger als auch an Mitwirkende des Projekts.
+
+## Benutzeranleitungen
+
+- [Bibliotheken in KiCad einbinden](02_User/INSTALL.md)
+- [Lokale Tests ausführen](02_User/TESTING.md)
 
 ## Projektgrundlagen
 
@@ -17,11 +22,10 @@ Diese Dokumentation wird schrittweise ausgebaut.
 
 ## Als Nächstes geplant
 
-- Schnellstart
-- ausführliche Installationsanleitung
-- lokale Testanleitung
+- Schnellstart für den ersten Schaltplan
 - FAQ und Glossar
 - Beitrags- und Entwicklerleitfaden
 - Symbol- und Footprint-Referenz
+- Beispielprojekte und Vorlagen
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
