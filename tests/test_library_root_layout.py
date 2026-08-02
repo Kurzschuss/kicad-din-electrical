@@ -18,7 +18,12 @@ def test_symbol_files_are_stored_directly_under_symbols_root():
 
 
 def test_obsolete_nested_symbol_directory_does_not_exist():
-    assert not (SYMBOL_ROOT / "DIN_Electrical_Symbols").exists()
+    obsolete = SYMBOL_ROOT / "DIN_Electrical_Symbols"
+    remaining = [
+        path.relative_to(ROOT).as_posix()
+        for path in sorted(obsolete.rglob("*"))
+    ] if obsolete.exists() else []
+    assert not obsolete.exists(), f"Verbliebene Einträge: {remaining}"
 
 
 def test_footprint_files_are_not_stored_directly_under_footprints_root():
