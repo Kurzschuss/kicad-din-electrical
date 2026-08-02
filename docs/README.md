@@ -18,6 +18,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Bibliotheks-Validator](03_Developer/LIBRARY_VALIDATOR.md)
 - [Automatischer Qualitätsbericht](03_Developer/QUALITY_REPORT.md)
 - [HTML-Bibliotheksreferenz erzeugen](03_Developer/HTML_REFERENCE.md)
+- [Automatische Symbolvorschauen](03_Developer/SYMBOL_PREVIEWS.md)
 
 ## Bibliotheksreferenz
 
