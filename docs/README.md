@@ -10,6 +10,13 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Häufig gestellte Fragen](02_User/FAQ.md)
 - [Glossar](02_User/GLOSSARY.md)
 
+## Bibliotheksreferenz
+
+- [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
+- [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
+- [Z_DIN_Control](04_Reference/Z_DIN_Control.md)
+- [Z_DIN_Module_18mm](04_Reference/Z_DIN_Module_18mm.md)
+
 ## Projektgrundlagen
 
 - [Vision](00_Project/VISION.md)
@@ -26,7 +33,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 ## Als Nächstes geplant
 
 - Beitrags- und Entwicklerleitfaden
-- Symbol- und Footprint-Referenz
+- weitere Bibliotheksdetailseiten
+- automatische Symbol- und Footprint-Referenz
 - Beispielprojekte und Vorlagen
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
