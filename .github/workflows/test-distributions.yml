@@ -38,3 +38,5 @@ jobs:
         run: |
           python -m tools.generate_html_reference
           git diff --exit-code -- docs/site/index.html
+      - name: Check generated device catalog HTML
+        run: python -m tools.generate_device_catalog_html --check
