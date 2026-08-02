@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SYMBOL_ROOT = REPO_ROOT / "symbols" / "DIN_Electrical_Symbols"
+SYMBOL_ROOT = REPO_ROOT / "symbols"
 FOOTPRINT_ROOT = REPO_ROOT / "footprints"
 REFERENCE_ROOT = REPO_ROOT / "docs" / "04_Reference"
 SYMBOL_INDEX = REFERENCE_ROOT / "SYMBOL_INDEX.md"
@@ -57,12 +57,7 @@ def _quoted_value(text: str, start: int) -> tuple[str, int]:
 
 
 def symbol_names(path: Path) -> list[str]:
-    """Liest die Namen der Hauptsymbole einer KiCad-Symbolbibliothek.
-
-    KiCad legt innerhalb eines Hauptsymbols weitere ``symbol``-Blöcke für
-    Grafik- und Einheitendarstellungen an. Nur ``symbol``-Blöcke direkt unter
-    ``kicad_symbol_lib`` werden deshalb als eigenständige Symbole gezählt.
-    """
+    """Liest die Namen der Hauptsymbole einer KiCad-Symbolbibliothek."""
     text = path.read_text(encoding="utf-8")
     names: list[str] = []
     depth = 0
@@ -101,15 +96,13 @@ def symbol_names(path: Path) -> list[str]:
     return sorted(set(names), key=str.casefold)
 
 
-def render_symbol_index(
-    libraries: list[Path], footprint_root: Path = FOOTPRINT_ROOT
-) -> str:
+def render_symbol_index(libraries: list[Path], footprint_root: Path = FOOTPRINT_ROOT) -> str:
     lines = [
         "# Symbolbibliotheken",
         "",
         "> Diese Datei wird mit `python tools/generate_library_reference.py` erzeugt.",
         "",
-        "Die Symbolbibliotheken liegen unter `symbols/DIN_Electrical_Symbols/`.",
+        "Die Symbolbibliotheken liegen direkt unter `symbols/`.",
         "",
         f"**Anzahl der Bibliotheken:** {len(libraries)}",
         "",
@@ -133,16 +126,14 @@ def render_symbol_index(
         lines.append(f"- `{library.name}` — {symbol_status}")
         lines.append(f"  - Footprintbibliothek: {footprint_status}")
         lines.extend(f"  - Symbol: `{name}`" for name in names)
-    lines.extend(
-        [
-            "",
-            "## Namensregel",
-            "",
-            "Der KiCad-Bibliotheksname entspricht dem Dateinamen ohne `.kicad_sym`.",
-            "Eine qualifizierte Symbol-ID verwendet das Format `<Bibliothek>:<Symbol>`.",
-            "",
-        ]
-    )
+    lines.extend([
+        "",
+        "## Namensregel",
+        "",
+        "Der KiCad-Bibliotheksname entspricht dem Dateinamen ohne `.kicad_sym`.",
+        "Eine qualifizierte Symbol-ID verwendet das Format `<Bibliothek>:<Symbol>`.",
+        "",
+    ])
     return "\n".join(lines)
 
 
@@ -164,16 +155,14 @@ def render_footprint_index(libraries: list[Path]) -> str:
         status = f"{len(footprints)} Footprint(s)" if footprints else "vorbereitet, noch leer"
         lines.append(f"- `{library.name}` — {status}")
         lines.extend(f"  - `{path.name}`" for path in footprints)
-    lines.extend(
-        [
-            "",
-            "## Namensregel",
-            "",
-            "Eine qualifizierte Footprint-ID verwendet das Format `<Bibliothek>:<Footprint>`.",
-            "Eine `.pretty`-Bibliothek darf mehrere `.kicad_mod`-Dateien enthalten.",
-            "",
-        ]
-    )
+    lines.extend([
+        "",
+        "## Namensregel",
+        "",
+        "Eine qualifizierte Footprint-ID verwendet das Format `<Bibliothek>:<Footprint>`.",
+        "Eine `.pretty`-Bibliothek darf mehrere `.kicad_mod`-Dateien enthalten.",
+        "",
+    ])
     return "\n".join(lines)
 
 
@@ -209,11 +198,7 @@ def write_files(files: dict[Path, str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="nur prüfen, ob die erzeugten Indexdateien aktuell sind",
-    )
+    parser.add_argument("--check", action="store_true", help="nur prüfen, ob die erzeugten Indexdateien aktuell sind")
     args = parser.parse_args()
     files = generated_files()
     if args.check:
