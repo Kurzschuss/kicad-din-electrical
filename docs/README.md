@@ -20,6 +20,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [HTML-Bibliotheksreferenz erzeugen](03_Developer/HTML_REFERENCE.md)
 - [Automatische Symbolvorschauen](03_Developer/SYMBOL_PREVIEWS.md)
 - [Gerätekatalog](03_Developer/DEVICE_CATALOG.md)
+- [Geräteserien und Varianten](03_Developer/DEVICE_SERIES.md)
 
 ## Bibliotheksreferenz
 
