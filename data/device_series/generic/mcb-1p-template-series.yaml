@@ -1,0 +1,22 @@
+{
+  "series_id": "generic.mcb-1p-template-series",
+  "defaults": {
+    "manufacturer": "Generic",
+    "series": "Template MCB 1P",
+    "device_type": "Leitungsschutzschalter",
+    "function_group": "Schutzgeräte/Leitungsschutzschalter",
+    "description": "Herstellerneutrale Beispielserie zur Demonstration parametrischer Geräte; keine Produktempfehlung.",
+    "poles": 1,
+    "trip_curve": "B",
+    "breaking_capacity_ka": 6,
+    "modules": 1,
+    "symbol": "Z_MCB:MCB",
+    "footprint_policy": "optional",
+    "source_status": "template"
+  },
+  "variants": [
+    {"variant_id": "b10", "part_number": "MCB-1P-B10", "rated_current_a": 10},
+    {"variant_id": "b16", "part_number": "MCB-1P-B16", "rated_current_a": 16},
+    {"variant_id": "b20", "part_number": "MCB-1P-B20", "rated_current_a": 20}
+  ]
+}
