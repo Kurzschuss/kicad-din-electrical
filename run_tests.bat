@@ -3,9 +3,7 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 title KiCad DIN Electrical - Testmenue
 
-if exist ".venv\Scripts\activate.bat" (
-    call ".venv\Scripts\activate.bat"
-)
+if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
 
 where python >nul 2>nul
 if errorlevel 1 (
@@ -39,7 +37,7 @@ if errorlevel 1 (
 :menu
 cls
 echo ============================================================
-echo   KiCad DIN Electrical - Lokale Tests
+echo   KiCad DIN Electrical - Tests und Werkzeuge
 echo ============================================================
 echo.
 echo Dieses Menue prueft die Bibliotheksstruktur, Dateinamen,
@@ -61,20 +59,27 @@ echo   [5] Nur zuletzt fehlgeschlagene Tests
 echo       Wiederholt die Fehler des vorherigen Testlaufs.
 echo.
 echo   [6] Hilfe und Erklaerungen
-echo       Kurze Hinweise zu Tests und .venv.
+echo       Hinweise zu Tests, .venv und Referenzgenerator.
+echo.
+echo   [7] Bibliotheksreferenz erzeugen
+echo       Aktualisiert Symbol- und Footprint-Index.
+echo.
+echo   [8] Bibliotheksreferenz pruefen
+echo       Prueft, ob die Indexdateien aktuell sind.
 echo.
 echo   [0] Programm verlassen
 echo.
-choice /c 1234560 /n /m "Auswahl: "
+choice /c 123456780 /n /m "Auswahl: "
 
-if errorlevel 7 goto :end
+if errorlevel 9 goto :end
+if errorlevel 8 goto :referencecheck
+if errorlevel 7 goto :referencewrite
 if errorlevel 6 goto :help
 if errorlevel 5 goto :lastfailed
 if errorlevel 4 goto :firstfailure
 if errorlevel 3 goto :allchecks
 if errorlevel 2 goto :verbose
 if errorlevel 1 goto :quick
-
 goto :menu
 
 :quick
@@ -91,6 +96,14 @@ goto :menu
 
 :lastfailed
 call :run "Zuletzt fehlgeschlagene Tests" "python -m pytest --lf"
+goto :menu
+
+:referencewrite
+call :run "Bibliotheksreferenz erzeugen" "python tools\generate_library_reference.py"
+goto :menu
+
+:referencecheck
+call :run "Bibliotheksreferenz pruefen" "python tools\generate_library_reference.py --check"
 goto :menu
 
 :allchecks
@@ -113,7 +126,7 @@ if errorlevel 1 (
 echo.
 echo [2/2] Python-Syntaxpruefung
 echo.
-python -m compileall -q distributions tests
+python -m compileall -q distributions tests tools
 if errorlevel 1 (
     set "RESULT=1"
     echo.
@@ -139,8 +152,11 @@ echo AUSFUEHRLICHER TESTLAUF
 echo   Zeigt Namen und Ergebnis jedes einzelnen Tests.
 echo.
 echo ALLE PRUEFUNGEN
-echo   Fuehrt die Tests aus und prueft anschliessend die Syntax
-echo   der Python-Dateien in distributions und tests.
+echo   Fuehrt die Tests und die Python-Syntaxpruefung aus.
+echo.
+echo BIBLIOTHEKSREFERENZ
+echo   Auswahl 7 erzeugt die beiden Indexdateien neu.
+echo   Auswahl 8 prueft nur, ob sie dem Repository entsprechen.
 echo.
 echo .VENV
 echo   Eine .venv ist eine lokale Python-Umgebung fuer dieses
@@ -165,9 +181,9 @@ call %~2
 set "RESULT=%ERRORLEVEL%"
 echo.
 if "%RESULT%"=="0" (
-    echo Der Testlauf war erfolgreich.
+    echo Der Vorgang war erfolgreich.
 ) else (
-    echo Der Testlauf ist fehlgeschlagen. Fehlercode: %RESULT%
+    echo Der Vorgang ist fehlgeschlagen. Fehlercode: %RESULT%
 )
 call :finish
 exit /b %RESULT%
