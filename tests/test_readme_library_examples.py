@@ -7,7 +7,7 @@ README = ROOT / "README.md"
 SYMBOL_ROOT = ROOT / "symbols"
 FOOTPRINT_ROOT = ROOT / "footprints"
 
-DOCUMENTED_SYMBOL_PATHS = {"symbols/DIN_Electrical_Symbols/"}
+DOCUMENTED_SYMBOL_PATHS = {"symbols/"}
 DOCUMENTED_FOOTPRINT_PATH = "footprints/"
 DOCUMENTED_SYMBOL_FILES = {
     "Z_MCB.kicad_sym",
