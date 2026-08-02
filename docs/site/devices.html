@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiCad DIN Electrical – Gerätekatalog</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1500px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    .filters { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: .75rem; margin: 1.5rem 0; }
+    input, select { width: 100%; box-sizing: border-box; padding: .7rem; font: inherit; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; min-width: 1350px; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #8885; padding: .6rem; text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; background: Canvas; }
+    .muted { opacity: .72; }
+    .count { font-weight: 700; }
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Technischer Gerätekatalog</h1>
+    <p>Fachliche Gerätedaten mit elektrischen Kenngrößen. Herstellerneutrale Vorlagen bleiben durch den Quellenstatus <code>template</code> erkennbar.</p>
+    <p><a href="index.html">Zur Bibliotheksübersicht</a></p>
+  </header>
+
+  <p><span class="count" id="count">4</span> von 4 Geräten sichtbar</p>
+  <div class="filters">
+    <input id="search" type="search" placeholder="Gerät, Hersteller, Serie oder Artikelnummer suchen …" aria-label="Geräte durchsuchen">
+    <select id="group" aria-label="Funktionsgruppe filtern"><option value="">Alle Funktionsgruppen</option>
+<option value="Schutzgeräte">Schutzgeräte</option></select>
+    <select id="family" aria-label="Gerätefamilie filtern"><option value="">Alle Gerätefamilien</option>
+<option value="Leitungsschutzschalter">Leitungsschutzschalter</option></select>
+    <select id="source" aria-label="Quellenstatus filtern"><option value="">Alle Quellenstatus</option>
+<option value="template">template</option></select>
+  </div>
+
+  <div class="table-wrap"><table id="devices">
+    <thead><tr><th>Geräte-ID</th><th>Gruppe / Familie</th><th>Hersteller</th><th>Serie</th><th>Artikelnummer</th><th>Polzahl</th><th>Nennstrom</th><th>Kennlinie</th><th>Ausschaltvermögen</th><th>Breite</th><th>Symbol</th><th>Footprint Policy</th><th>Quelle</th></tr></thead>
+    <tbody>
+<tr data-group="Schutzgeräte" data-family="Leitungsschutzschalter" data-source="template"><td><code>generic.mcb-1p-b16-template</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template</td><td><code>MCB-1P-B16</code></td><td>1</td><td>16 A</td><td>B</td><td>6 kA</td><td>1 TE</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte" data-family="Leitungsschutzschalter" data-source="template"><td><code>generic.mcb-1p-template-series.b10</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B10</code></td><td>1</td><td>10 A</td><td>B</td><td>6 kA</td><td>1 TE</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte" data-family="Leitungsschutzschalter" data-source="template"><td><code>generic.mcb-1p-template-series.b16</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B16</code></td><td>1</td><td>16 A</td><td>B</td><td>6 kA</td><td>1 TE</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schutzgeräte" data-family="Leitungsschutzschalter" data-source="template"><td><code>generic.mcb-1p-template-series.b20</code></td><td>Schutzgeräte<br><span class="muted">Leitungsschutzschalter</span></td><td>Generic</td><td>Template MCB 1P</td><td><code>MCB-1P-B20</code></td><td>1</td><td>20 A</td><td>B</td><td>6 kA</td><td>1 TE</td><td><code>Z_MCB:MCB</code></td><td><code>optional</code></td><td>template</td></tr>
+    </tbody>
+  </table></div>
+
+  <p class="muted">Erzeugt mit <code>python tools/generate_device_catalog_html.py</code>.</p>
+  <script>
+    const search = document.getElementById('search');
+    const group = document.getElementById('group');
+    const family = document.getElementById('family');
+    const source = document.getElementById('source');
+    const count = document.getElementById('count');
+    function applyFilters() {
+      const query = search.value.toLocaleLowerCase('de');
+      let visible = 0;
+      document.querySelectorAll('#devices tbody tr').forEach(row => {
+        const matches = row.textContent.toLocaleLowerCase('de').includes(query)
+          && (!group.value || row.dataset.group === group.value)
+          && (!family.value || row.dataset.family === family.value)
+          && (!source.value || row.dataset.source === source.value);
+        row.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      count.textContent = visible;
+    }
+    [search, group, family, source].forEach(element => element.addEventListener(element.tagName === 'INPUT' ? 'input' : 'change', applyFilters));
+  </script>
+</body>
+</html>
