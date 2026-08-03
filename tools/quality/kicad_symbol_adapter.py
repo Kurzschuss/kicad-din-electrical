@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 MM_PER_MIL = 0.0254
+VALID_FOOTPRINT_POLICIES = {"required", "optional", "none"}
 
 
 def _to_mil(value_mm: str) -> int:
@@ -52,6 +53,8 @@ def extract_symbol_facts(path: Path) -> dict[str, Any]:
 
     footprint_match = re.search(r'\(property\s+"Footprint"\s+"([^"]*)"', text)
     footprint_value = footprint_match.group(1) if footprint_match else None
+    policy_match = re.search(r'\(property\s+"Z_Footprint_Policy"\s+"([^"]*)"', text)
+    footprint_policy = policy_match.group(1) if policy_match else None
 
     return {
         "element": f"{path.as_posix()} – {library_name}",
@@ -62,6 +65,7 @@ def extract_symbol_facts(path: Path) -> dict[str, Any]:
         "text_size_mil": primary_text_sizes[0]
         if primary_text_sizes and len(set(primary_text_sizes)) == 1
         else None,
-        "footprint_policy_valid": footprint_value not in (None, ""),
+        "footprint_policy_valid": footprint_policy in VALID_FOOTPRINT_POLICIES,
+        "footprint_policy": footprint_policy,
         "footprint_value": footprint_value,
     }
