@@ -8,7 +8,7 @@
     (property "Value" "RCD 2P 40A 30mA Typ A" (at 0 3.81 0) (effects (font (size 1.27 1.27))))
     (property "Manufacturer" "" (at 0 -5.08 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Part Number" "" (at 0 -6.35 0) (effects (font (size 1.0 1.0)) (hide yes)))
-    (property "Footprint" "" (at 0 -7.62 0) (effects (font (size 1.0 1.0)) (hide yes)))
+    (property "Footprint" "Z_DIN_Module_36mm:Z_DIN_Module_36mm" (at 0 -7.62 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Datasheet" "" (at 0 -8.89 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Description" "Herstellerneutraler Fehlerstrom-Schutzschalter, 2-polig, 40 A, 30 mA, Typ A" (at 0 -10.16 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Z_Footprint_Policy" "optional" (at 0 -11.43 0) (effects (font (size 1.0 1.0)) (hide yes)))
