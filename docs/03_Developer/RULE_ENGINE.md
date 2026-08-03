@@ -81,6 +81,14 @@ Nicht dokumentierte Abweichungen erhalten immer `needs_rework`.
 
 Die Dateien unter `rules/schema/` definieren die zulässigen Felder und Werte für Regeln, Profile und Ausnahmen. Die Python-Engine prüft zusätzlich semantische Bedingungen wie eindeutige Regel-IDs und bekannte Prüftypen.
 
+## KiCad-Symboladapter
+
+`tools/quality/kicad_symbol_adapter.py` extrahiert einen kleinen, auditierten Satz von Fakten direkt aus `.kicad_sym`-Dateien. Der Adapter führt keine Dateiinhalte aus und ersetzt nicht den KiCad-Parser.
+
+Projektspezifische Metadaten werden ebenfalls ausdrücklich mit `Z_` gekennzeichnet. Die Footprint-Entscheidung wird als versteckte Eigenschaft `Z_Footprint_Policy` mit einem der Werte `required`, `optional` oder `none` gespeichert. Ein leeres Standardfeld `Footprint` ist bei der Policy `optional` oder `none` zulässig und wird nicht mit einer fehlenden Policy verwechselt.
+
 ## Referenzintegration
 
-Das MCB-1P-Paket aus Issue #87 ist der erste vollständige Integrationsfall. Es soll nacheinander gegen die Symbolrichtlinie, die datengetriebenen Regeln und das aktive Prüfprofil ausgewertet werden. Die Ergebnisse werden später in Issue #89 als Fortschritts- und Qualitätsdaten übernommen.
+Das MCB-1P-Paket aus Issue #87 ist der erste vollständige Integrationsfall. `Z_MCB:MCB` verwendet `Z_Footprint_Policy=optional` und erfüllt den derzeit implementierten Regelsatz `ZSYM-001` bis `ZSYM-006` vollständig mit dem Status `z_conform`.
+
+Die Ergebnisse werden anschließend in Issue #89 als Fortschritts- und Qualitätsdaten übernommen.
