@@ -20,17 +20,8 @@ if errorlevel 1 (
 )
 
 python -c "import pytest" >nul 2>nul
-if errorlevel 1 (
-    cls
-    echo ============================================================
-    echo   FEHLER: pytest ist nicht installiert
-    echo ============================================================
-    echo.
-    echo   python -m pip install -r requirements-dev.txt
-    echo.
-    pause
-    exit /b 1
-)
+if errorlevel 1 call :ensure_pytest
+if errorlevel 1 exit /b 1
 
 set "QUALITY_CMD=python -m tools.quality.run_quality --profile release --json-output build\Z_QUALITY_RESULTS.json --footprint footprints\Z_DIN_Module_18mm.pretty\Z_DIN_Module_18mm.kicad_mod symbols\Z_MCB.kicad_sym"
 
@@ -201,6 +192,12 @@ echo ============================================================
 echo   Hilfe
 echo ============================================================
 echo.
+echo PYTEST
+echo   Beim Start wird geprueft, ob pytest verfuegbar ist.
+echo   Fehlt es, kann es nach Bestaetigung automatisch ueber pip
+ echo   installiert werden. Bei Installationsfehlern wird der manuelle
+ echo   Installationsbefehl angezeigt.
+echo.
 echo KICAD-ERKENNUNG
 echo   Beim Start wird kicad-cli.exe ueber PATH und anschliessend in
 echo   den ueblichen Installationsordnern unter Program Files gesucht.
@@ -233,6 +230,61 @@ echo   docs\02_User\TESTING.md
 echo.
 pause
 goto :menu
+
+:ensure_pytest
+cls
+echo ============================================================
+echo   HINWEIS: pytest ist nicht installiert
+ echo ============================================================
+echo.
+echo pytest wird fuer die automatisierten Tests benoetigt.
+echo.
+choice /c JN /n /m "pytest jetzt automatisch installieren? [J/N]: "
+if errorlevel 2 (
+    echo.
+    echo Installation abgebrochen.
+    echo Manuelle Installation:
+    echo   python -m pip install -r requirements-dev.txt
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Pruefe pip ...
+python -m pip --version >nul 2>nul
+if errorlevel 1 (
+    echo pip wurde nicht gefunden. Versuche ensurepip ...
+    python -m ensurepip --upgrade
+    if errorlevel 1 goto :pytest_install_failed
+)
+
+echo.
+echo Installiere Entwicklungsabhaengigkeiten ...
+python -m pip install -r requirements-dev.txt
+if errorlevel 1 goto :pytest_install_failed
+
+python -c "import pytest" >nul 2>nul
+if errorlevel 1 goto :pytest_install_failed
+
+echo.
+echo [OK] pytest wurde erfolgreich installiert.
+timeout /t 2 >nul
+exit /b 0
+
+:pytest_install_failed
+echo.
+echo ============================================================
+echo   FEHLER: pytest konnte nicht installiert werden
+ echo ============================================================
+echo.
+echo Pruefe die Internetverbindung und die Python-/pip-Installation.
+echo Fuehre bei Bedarf diesen Befehl manuell aus:
+echo.
+echo   python -m pip install -r requirements-dev.txt
+ echo.
+pause
+exit /b 1
 
 :show_names
 set "Z_NAME_LIST=%~1"
