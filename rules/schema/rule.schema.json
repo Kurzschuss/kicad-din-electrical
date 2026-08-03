@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Kurzschuss/kicad-din-electrical/rules/schema/rule.schema.json",
+  "title": "Qualitätsregel",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "title", "scope", "category", "severity", "status", "version",
+    "description", "recommendation", "references", "check"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^(KICAD-(SYM|FP)|Z(SYM|FP|3D)|PROJECT)-[0-9]{3}$"},
+    "title": {"type": "string", "minLength": 1},
+    "scope": {"enum": ["symbol", "footprint", "3d", "project"]},
+    "category": {"type": "string", "minLength": 1},
+    "severity": {"enum": ["info", "warning", "error", "critical"]},
+    "status": {"enum": ["active", "deprecated", "draft"]},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
+    "introduced": {"type": "string", "format": "date"},
+    "description": {"type": "string", "minLength": 1},
+    "recommendation": {"type": "string", "minLength": 1},
+    "references": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "check": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {"type": {"enum": ["field_prefix", "field_equals"]}},
+      "additionalProperties": true
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "date", "change", "reason"],
+        "properties": {
+          "version": {"type": "string"},
+          "date": {"type": "string", "format": "date"},
+          "change": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "reference": {"type": "string"}
+        }
+      }
+    }
+  }
+}
