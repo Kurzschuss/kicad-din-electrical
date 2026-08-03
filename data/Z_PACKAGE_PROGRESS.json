@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "quality_levels": ["Entwurf", "Geprüft", "Praxisgetestet"],
+  "families": [
+    {
+      "id": "Z_MCB",
+      "name": "MCB",
+      "symbol": true,
+      "device_data": true,
+      "documentation": true,
+      "example": false,
+      "tests": true,
+      "quality_status": "z_conform",
+      "quality_level": "Geprüft",
+      "references": [
+        "symbols/Z_MCB.kicad_sym",
+        "docs/04_Reference/Z_MCB_QUALITY_STATUS.md"
+      ]
+    },
+    {
+      "id": "Z_RCD",
+      "name": "RCD",
+      "symbol": true,
+      "device_data": true,
+      "documentation": false,
+      "example": false,
+      "tests": false,
+      "quality_status": "needs_rework",
+      "quality_level": "Entwurf",
+      "references": ["symbols/Z_RCD.kicad_sym"]
+    },
+    {
+      "id": "Z_RCBO",
+      "name": "RCBO",
+      "symbol": true,
+      "device_data": true,
+      "documentation": false,
+      "example": false,
+      "tests": false,
+      "quality_status": "needs_rework",
+      "quality_level": "Entwurf",
+      "references": ["symbols/Z_RCBO_1P_N.kicad_sym"]
+    },
+    {
+      "id": "Z_MAIN_SWITCH",
+      "name": "Hauptschalter",
+      "symbol": true,
+      "device_data": true,
+      "documentation": false,
+      "example": false,
+      "tests": false,
+      "quality_status": "needs_rework",
+      "quality_level": "Entwurf",
+      "references": ["symbols/Z_MAIN_SWITCH.kicad_sym"]
+    }
+  ]
+}
