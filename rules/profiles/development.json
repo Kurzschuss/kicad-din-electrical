@@ -1,0 +1,6 @@
+{
+  "name": "development",
+  "description": "Entwicklungsprofil mit sichtbaren Warnungen und vorläufig akzeptierten Ergebnissen.",
+  "fail_severities": ["critical"],
+  "fail_statuses": ["needs_rework"]
+}
