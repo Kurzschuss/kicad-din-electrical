@@ -49,10 +49,14 @@ for %%D in (3dmodels 3rdparty designblocks footprints plugins projects scripting
     if not exist "%KICAD_USER_DIR%\%%D" mkdir "%KICAD_USER_DIR%\%%D" >nul 2>nul
 )
 
+rem Eigene KiCad-3D-Modellbibliothek anlegen. KiCad erwartet fuer
+rem 3D-Modellbibliotheken die Endung .3dshapes.
+if not exist "%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes" mkdir "%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes" >nul 2>nul
+
 rem Unsere projektspezifischen Variablen fuer den aktuellen Prozess setzen.
 rem Allgemeine KiCad-Variablen werden bewusst nicht veraendert.
 set "KICAD_Z_ROOT_DIR=%KICAD_USER_DIR%"
-set "KICAD_Z_3DMODEL_DIR=%KICAD_USER_DIR%\3dmodels"
+set "KICAD_Z_3DMODEL_DIR=%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes"
 set "KICAD_Z_3RDPARTY_DIR=%KICAD_USER_DIR%\3rdparty"
 set "KICAD_Z_DESIGN_BLOCK_DIR=%KICAD_USER_DIR%\designblocks"
 set "KICAD_Z_FOOTPRINT_DIR=%KICAD_USER_DIR%\footprints"
