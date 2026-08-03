@@ -1,0 +1,15 @@
+{
+  "id": "generic.rcd-2p-40a-30ma-type-a-template",
+  "manufacturer": "Generic",
+  "series": "Template",
+  "part_number": "RCD-2P-40A-30MA-TYPE-A",
+  "device_type": "Fehlerstrom-Schutzschalter",
+  "function_group": "protection.rcd",
+  "description": "Herstellerneutrale 2-polige RCD-Referenz mit 40 A Bemessungsstrom, 30 mA Bemessungsdifferenzstrom und Typ A; keine Produktempfehlung.",
+  "poles": 2,
+  "rated_current_a": 40,
+  "modules": 2,
+  "symbol": "Z_RCD:RCD",
+  "footprint_policy": "optional",
+  "source_status": "template"
+}
