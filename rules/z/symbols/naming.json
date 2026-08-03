@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ZSYM-001",
+    "title": "Projektkennung Z_ für Symbolbibliothek verwenden",
+    "scope": "symbol",
+    "category": "naming",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Projektinterne Symbolbibliotheken müssen eindeutig mit Z_ gekennzeichnet sein.",
+    "recommendation": "Bibliotheksdatei und registrierten Bibliotheksnamen mit Z_ beginnen lassen.",
+    "references": [
+      "README.md",
+      "docs/00_Project/LIBRARY_GUIDELINES.md",
+      "docs/00_Project/SYMBOL_STYLE_GUIDE.md"
+    ],
+    "check": {
+      "type": "field_prefix",
+      "field": "library_name",
+      "prefix": "Z_"
+    }
+  },
+  {
+    "id": "ZSYM-002",
+    "title": "Footprint Policy dokumentieren",
+    "scope": "symbol",
+    "category": "metadata",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Jedes Symbol benötigt eine explizite Footprint Policy.",
+    "recommendation": "Footprint Policy als required, optional oder none dokumentieren.",
+    "references": [
+      "docs/00_Project/SYMBOL_STYLE_GUIDE.md"
+    ],
+    "check": {
+      "type": "field_equals",
+      "field": "footprint_policy_valid",
+      "value": true
+    }
+  }
+]
