@@ -48,6 +48,8 @@ class Finding:
     explanation: str
     recommendation: str
     exception_id: str | None = None
+    scope: str = "unknown"
+    category: str = "unknown"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -154,6 +156,7 @@ def evaluate(
             severity=rule.severity, status=result_status, expected=expected,
             actual=actual, explanation=explanation,
             recommendation=rule.recommendation, exception_id=exception_id,
+            scope=rule.scope, category=rule.category,
         ))
     return findings
 

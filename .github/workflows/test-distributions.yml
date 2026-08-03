@@ -25,6 +25,7 @@ jobs:
           python -m tools.quality.run_quality \
             --profile release \
             --json-output build/Z_QUALITY_RESULTS.json \
+            --html-output build/Z_QUALITY_REPORT.html \
             --footprint footprints/Z_DIN_Module_18mm.pretty/Z_DIN_Module_18mm.kicad_mod \
             symbols/Z_MCB.kicad_sym
       - name: Validate KiCad libraries
