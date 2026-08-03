@@ -13,7 +13,7 @@
 | davon vorbereitet, noch leer | 9 |
 | erkannte Hauptsymbole | 20 |
 | Footprintbibliotheken | 35 |
-| Footprints | 6 |
+| Footprints | 7 |
 | Validator-Fehler | 0 |
 | Validator-Hinweise | 55 |
 
@@ -29,8 +29,8 @@ Die Richtlinie wird pro befüllter Symbolbibliothek ausgewertet. Fehlt das Feld 
 
 ## Footprint-Zuordnungen
 
-- Symbole mit eingetragener Footprint-Zuordnung: **0**
-- Symbole ohne Footprint-Zuordnung: **20**
+- Symbole mit eingetragener Footprint-Zuordnung: **1**
+- Symbole ohne Footprint-Zuordnung: **19**
 
 Ein fehlender Footprint ist kein Qualitätsfehler, solange die Richtlinie nicht `required` lautet.
 
