@@ -17,9 +17,19 @@ $managedVariables = [ordered]@{
     KICAD_Z_TEMPLATE_DIR  = Join-Path $RootDirectory 'template'
 }
 
+function Write-Result([string]$Name, [object]$Value) {
+    Write-Output ("{0}={1}" -f $Name, $Value)
+}
+
 $configRoot = Join-Path $env:APPDATA 'kicad'
 if (-not (Test-Path -LiteralPath $configRoot)) {
-    Write-Output 'KICAD_Z_REGISTRATION=NO_CONFIG_ROOT'
+    Write-Result 'KICAD_Z_REGISTRATION' 'NO_CONFIG_ROOT'
+    Write-Result 'KICAD_Z_REGISTERED' 0
+    Write-Result 'KICAD_Z_EXISTING' 0
+    Write-Result 'KICAD_Z_MISSING_NAMES' (($managedVariables.Keys) -join ';')
+    Write-Result 'KICAD_Z_ADDED_NAMES' ''
+    Write-Result 'KICAD_Z_EXISTING_NAMES' ''
+    Write-Result 'KICAD_Z_MISMATCH_NAMES' ''
     exit 0
 }
 
@@ -28,12 +38,20 @@ $configFiles = Get-ChildItem -LiteralPath $configRoot -Directory -ErrorAction Si
     Where-Object { Test-Path -LiteralPath $_ }
 
 if (-not $configFiles) {
-    Write-Output 'KICAD_Z_REGISTRATION=NO_CONFIG_FILE'
+    Write-Result 'KICAD_Z_REGISTRATION' 'NO_CONFIG_FILE'
+    Write-Result 'KICAD_Z_REGISTERED' 0
+    Write-Result 'KICAD_Z_EXISTING' 0
+    Write-Result 'KICAD_Z_MISSING_NAMES' (($managedVariables.Keys) -join ';')
+    Write-Result 'KICAD_Z_ADDED_NAMES' ''
+    Write-Result 'KICAD_Z_EXISTING_NAMES' ''
+    Write-Result 'KICAD_Z_MISMATCH_NAMES' ''
     exit 0
 }
 
-$registered = 0
-$existing = 0
+$addedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$existingNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$mismatchNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$missingBefore = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
 foreach ($configFile in $configFiles) {
     try {
@@ -51,12 +69,16 @@ foreach ($configFile in $configFiles) {
         foreach ($entry in $managedVariables.GetEnumerator()) {
             $property = $config.environment.vars.PSObject.Properties[$entry.Key]
             if ($null -eq $property) {
+                [void]$missingBefore.Add($entry.Key)
                 $config.environment.vars | Add-Member -MemberType NoteProperty -Name $entry.Key -Value $entry.Value
-                $registered++
+                [void]$addedNames.Add($entry.Key)
                 $changed = $true
             }
+            elseif ([string]$property.Value -eq [string]$entry.Value) {
+                [void]$existingNames.Add($entry.Key)
+            }
             else {
-                $existing++
+                [void]$mismatchNames.Add($entry.Key)
             }
         }
 
@@ -72,6 +94,10 @@ foreach ($configFile in $configFiles) {
     }
 }
 
-Write-Output "KICAD_Z_REGISTRATION=OK"
-Write-Output "KICAD_Z_REGISTERED=$registered"
-Write-Output "KICAD_Z_EXISTING=$existing"
+Write-Result 'KICAD_Z_REGISTRATION' 'OK'
+Write-Result 'KICAD_Z_REGISTERED' $addedNames.Count
+Write-Result 'KICAD_Z_EXISTING' $existingNames.Count
+Write-Result 'KICAD_Z_MISSING_NAMES' (($missingBefore | Sort-Object) -join ';')
+Write-Result 'KICAD_Z_ADDED_NAMES' (($addedNames | Sort-Object) -join ';')
+Write-Result 'KICAD_Z_EXISTING_NAMES' (($existingNames | Sort-Object) -join ';')
+Write-Result 'KICAD_Z_MISMATCH_NAMES' (($mismatchNames | Sort-Object) -join ';')
