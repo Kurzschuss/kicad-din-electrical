@@ -13,7 +13,7 @@
 | Regel-ID | Prüfung | Ergebnis |
 |---|---|---|
 | `ZSYM-001` | Projektkennung `Z_` | `z_conform` |
-| `ZSYM-002` | explizite Footprint Policy | `z_conform` |
+| `ZSYM-002` | explizite `Z_Footprint_Policy` | `z_conform` |
 | `ZSYM-003` | Anschlussraster 100 mil | `z_conform` |
 | `ZSYM-004` | Pinlänge 100 mil | `z_conform` |
 | `ZSYM-005` | Linienbreite 10 mil | `z_conform` |
