@@ -39,3 +39,30 @@ def test_design_block_path_is_registered_in_kicad_paths() -> None:
     )
     assert "KICAD_Z_DESIGN_BLOCK_DIR" in content
     assert "designblocks" in content
+
+
+def test_z_3d_model_library_is_created_registered_and_synchronized() -> None:
+    detect = (REPO_ROOT / "tools/windows/detect_kicad.bat").read_text(encoding="utf-8")
+    paths = (REPO_ROOT / "tools/windows/register_kicad_z_paths.ps1").read_text(
+        encoding="utf-8"
+    )
+    libraries = (REPO_ROOT / "tools/windows/register_kicad_z_libraries.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Z_3DModell.3dshapes" in detect
+    assert "KICAD_Z_3DMODEL_DIR" in detect
+    assert "Z_3DModell.3dshapes" in paths
+    assert "3dmodels\\Z_3DModell.3dshapes" in libraries
+    assert "'.step', '.stp', '.wrl'" in libraries
+    assert "KICAD_Z_3DMODEL_FILES" in libraries
+
+
+def test_required_z_entries_are_reported() -> None:
+    detect = (REPO_ROOT / "tools/windows/detect_kicad.bat").read_text(encoding="utf-8")
+    libraries = (REPO_ROOT / "tools/windows/register_kicad_z_libraries.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "KICAD_Z_REQUIRED_ENTRIES" in detect
+    assert "KICAD_Z_REQUIRED_ENTRIES" in libraries
