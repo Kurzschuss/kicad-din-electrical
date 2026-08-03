@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "Z_MCB_REFERENCE",
+  "device_family": "Z_MCB",
+  "symbol_id": "Z_MCB:MCB",
+  "application": "single_phase_final_circuit",
+  "nominal_voltage_v_ac": 230,
+  "example_rating": "B16",
+  "footprint_policy": "optional",
+  "validation": {
+    "library_binding": true,
+    "symbol_placed": false,
+    "erc_checked": false,
+    "opened_in_kicad": false
+  },
+  "quality_level": "Geprüft",
+  "notes": "Praxisgetestet erst nach echter Platzierung und dokumentierter ERC-Prüfung."
+}
