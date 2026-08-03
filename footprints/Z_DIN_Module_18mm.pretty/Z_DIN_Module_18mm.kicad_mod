@@ -1,2 +1,11 @@
 (footprint "Z_DIN_Module_18mm" (version 20240108) (generator pcbnew)
+  (layer "F.Cu")
+  (attr board_only exclude_from_pos_files exclude_from_bom)
+  (fp_rect
+    (start -9 -45)
+    (end 9 45)
+    (stroke (width 0.05) (type default))
+    (fill none)
+    (layer "F.CrtYd")
+  )
 )

@@ -56,12 +56,51 @@
     "title": "Courtyard bereitstellen",
     "scope": "footprint",
     "category": "geometry",
-    "severity": "warning",
+    "severity": "error",
     "status": "active",
-    "version": "1.0",
+    "version": "1.1",
     "description": "Ein freigabefähiger Footprint benötigt eine Courtyard-Kontur.",
     "recommendation": "Eine geschlossene F.CrtYd- oder B.CrtYd-Kontur ergänzen.",
     "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
     "check": {"type": "field_equals", "field": "has_courtyard", "value": true}
+  },
+  {
+    "id": "ZFP-006",
+    "title": "Courtyard geschlossen darstellen",
+    "scope": "footprint",
+    "category": "geometry",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Die Courtyard-Geometrie muss als geschlossene Kontur auswertbar sein.",
+    "recommendation": "Eine geschlossene Rechteck- oder Linienkontur auf F.CrtYd beziehungsweise B.CrtYd verwenden.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_equals", "field": "courtyard_closed", "value": true}
+  },
+  {
+    "id": "ZFP-007",
+    "title": "18-mm-Modulbreite einhalten",
+    "scope": "footprint",
+    "category": "geometry",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Der Referenzfootprint für ein Teilungsmodul muss 18 mm breit sein.",
+    "recommendation": "Courtyard-Grenzen symmetrisch auf -9 mm und +9 mm setzen.",
+    "references": ["docs/04_Reference/Z_FOOTPRINT_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "courtyard_width_mm", "value": 18.0}
+  },
+  {
+    "id": "ZFP-008",
+    "title": "Courtyard-Linienbreite einhalten",
+    "scope": "footprint",
+    "category": "geometry",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Die projektweite Courtyard-Linienbreite beträgt 0,05 mm.",
+    "recommendation": "Stroke-Breite der Courtyard-Kontur auf 0,05 mm setzen.",
+    "references": ["docs/04_Reference/Z_FOOTPRINT_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "courtyard_line_width_mm", "value": 0.05}
   }
 ]
