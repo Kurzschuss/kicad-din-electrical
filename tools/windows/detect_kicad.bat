@@ -18,6 +18,8 @@ set "KICAD_Z_LIBRARY_MISMATCH="
 set "KICAD_Z_SYMBOL_LIBRARIES="
 set "KICAD_Z_FOOTPRINT_LIBRARIES="
 set "KICAD_Z_DESIGN_BLOCK_LIBRARIES="
+set "KICAD_Z_3DMODEL_FILES="
+set "KICAD_Z_REQUIRED_ENTRIES="
 
 rem 1. kicad-cli.exe ueber PATH suchen.
 for /f "delims=" %%I in ('where kicad-cli.exe 2^>nul') do if not defined KICAD_CLI set "KICAD_CLI=%%~fI"
@@ -88,6 +90,8 @@ for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionP
     if /i "%%A"=="KICAD_Z_SYMBOL_LIBRARIES" set "KICAD_Z_SYMBOL_LIBRARIES=%%B"
     if /i "%%A"=="KICAD_Z_FOOTPRINT_LIBRARIES" set "KICAD_Z_FOOTPRINT_LIBRARIES=%%B"
     if /i "%%A"=="KICAD_Z_DESIGN_BLOCK_LIBRARIES" set "KICAD_Z_DESIGN_BLOCK_LIBRARIES=%%B"
+    if /i "%%A"=="KICAD_Z_3DMODEL_FILES" set "KICAD_Z_3DMODEL_FILES=%%B"
+    if /i "%%A"=="KICAD_Z_REQUIRED_ENTRIES" set "KICAD_Z_REQUIRED_ENTRIES=%%B"
 )
 
 exit /b 0
