@@ -71,12 +71,14 @@ function Ensure-LibraryTable {
 $symbolSource = Join-Path $RepositoryRoot 'symbols'
 $footprintSource = Join-Path $RepositoryRoot 'footprints'
 $designBlockSource = Join-Path $RepositoryRoot 'designblocks'
+$modelSource = Join-Path $RepositoryRoot '3dmodels\Z_3DModell.3dshapes'
 
 $symbolTarget = Join-Path $UserRoot 'symbols'
 $footprintTarget = Join-Path $UserRoot 'footprints'
 $designBlockTarget = Join-Path $UserRoot 'designblocks'
+$modelTarget = Join-Path $UserRoot '3dmodels\Z_3DModell.3dshapes'
 
-foreach ($directory in @($symbolTarget, $footprintTarget, $designBlockTarget)) {
+foreach ($directory in @($symbolTarget, $footprintTarget, $designBlockTarget, $modelTarget)) {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
 }
 
@@ -116,6 +118,18 @@ if (Test-Path -LiteralPath $designBlockSource) {
     }
 }
 
+$modelFiles = @()
+if (Test-Path -LiteralPath $modelSource) {
+    $modelFiles = Get-ChildItem -LiteralPath $modelSource -File -Recurse |
+        Where-Object { $_.Extension -in @('.step', '.stp', '.wrl') }
+    foreach ($model in $modelFiles) {
+        $relative = $model.FullName.Substring($modelSource.Length).TrimStart('\', '/')
+        $target = Join-Path $modelTarget $relative
+        New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+        Copy-Item -LiteralPath $model.FullName -Destination $target -Force
+    }
+}
+
 $configRoot = Join-Path $env:APPDATA 'kicad'
 $configDirectories = @()
 if (Test-Path -LiteralPath $configRoot) {
@@ -152,3 +166,5 @@ Write-Output "KICAD_Z_LIBRARY_MISMATCH=$totalMismatch"
 Write-Output "KICAD_Z_SYMBOL_LIBRARIES=$($symbolLibraries.Count)"
 Write-Output "KICAD_Z_FOOTPRINT_LIBRARIES=$($footprintLibraries.Count)"
 Write-Output "KICAD_Z_DESIGN_BLOCK_LIBRARIES=$($designBlockLibraries.Count)"
+Write-Output "KICAD_Z_3DMODEL_FILES=$($modelFiles.Count)"
+Write-Output "KICAD_Z_REQUIRED_ENTRIES=$($symbolLibraries.Count + $footprintLibraries.Count + $designBlockLibraries.Count + 10)"
