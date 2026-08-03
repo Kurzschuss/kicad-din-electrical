@@ -18,7 +18,10 @@ SYMBOL_RULES = (
     ROOT / "rules/z/symbols/naming.json",
     ROOT / "rules/z/symbols/geometry.json",
 )
-FOOTPRINT_RULES = (ROOT / "rules/z/footprints/core.json",)
+FOOTPRINT_RULES = (
+    ROOT / "rules/z/footprints/core.json",
+    ROOT / "rules/z/footprints/presentation.json",
+)
 
 
 def _load_profile(name: str) -> dict:

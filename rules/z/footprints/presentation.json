@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ZFP-009",
+    "title": "Referenztext bereitstellen",
+    "scope": "footprint",
+    "category": "presentation",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Ein freigabefähiger Footprint benötigt einen KiCad-Referenztext.",
+    "recommendation": "Einen fp_text reference auf einer geeigneten Standardlage ergänzen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_equals", "field": "has_reference", "value": true}
+  },
+  {
+    "id": "ZFP-010",
+    "title": "Wertetext bereitstellen",
+    "scope": "footprint",
+    "category": "presentation",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Ein freigabefähiger Footprint benötigt einen KiCad-Wertetext.",
+    "recommendation": "Einen fp_text value auf einer geeigneten Standardlage ergänzen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_equals", "field": "has_value", "value": true}
+  },
+  {
+    "id": "ZFP-011",
+    "title": "Fertigungsansicht bereitstellen",
+    "scope": "footprint",
+    "category": "presentation",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Ein freigabefähiger Footprint benötigt eine Kontur auf F.Fab oder B.Fab.",
+    "recommendation": "Eine aussagekräftige Fertigungskontur auf der passenden Fab-Lage ergänzen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_equals", "field": "has_fab_outline", "value": true}
+  }
+]

@@ -8,18 +8,19 @@ from typing import Any
 
 
 def _courtyard_rect(text: str) -> tuple[float | None, float | None, float | None]:
-    pattern = re.compile(
-        r'\(fp_rect\s+\(start\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
-        r'\(end\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
-        r'\(stroke\s+\(width\s+([\d.]+)\).*?\)\s+'
-        r'\(fill\s+[^\)]*\)\s+\(layer\s+"(?:F|B)\.CrtYd"\)',
-        re.DOTALL,
-    )
-    match = pattern.search(text)
-    if not match:
-        return None, None, None
-    x1, y1, x2, y2, line_width = (float(value) for value in match.groups())
-    return abs(x2 - x1), abs(y2 - y1), line_width
+    for segment in text.split("(fp_rect")[1:]:
+        if re.search(r'\(layer\s+"(?:F|B)\.CrtYd"\)', segment) is None:
+            continue
+        start_match = re.search(r'\(start\s+(-?[\d.]+)\s+(-?[\d.]+)\)', segment)
+        end_match = re.search(r'\(end\s+(-?[\d.]+)\s+(-?[\d.]+)\)', segment)
+        width_match = re.search(r'\(stroke\s+\(width\s+([\d.]+)\)', segment)
+        if not (start_match and end_match and width_match):
+            continue
+        x1, y1 = (float(value) for value in start_match.groups())
+        x2, y2 = (float(value) for value in end_match.groups())
+        line_width = float(width_match.group(1))
+        return abs(x2 - x1), abs(y2 - y1), line_width
+    return None, None, None
 
 
 def extract_footprint_facts(path: Path) -> dict[str, Any]:
@@ -45,4 +46,5 @@ def extract_footprint_facts(path: Path) -> dict[str, Any]:
         "courtyard_line_width_mm": courtyard_line_width,
         "has_reference": bool(re.search(r'\(fp_text\s+reference\b', text)),
         "has_value": bool(re.search(r'\(fp_text\s+value\b', text)),
+        "has_fab_outline": bool(re.search(r'\(layer\s+"(?:F|B)\.Fab"\)', text)),
     }
