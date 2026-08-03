@@ -35,4 +35,36 @@ for %%D in (3dmodels 3rdparty footprints plugins projects scripting symbols temp
     if not exist "%KICAD_USER_DIR%\%%D" mkdir "%KICAD_USER_DIR%\%%D" >nul 2>nul
 )
 
+rem Unsere projektspezifischen Benutzer-Umgebungsvariablen setzen.
+rem Allgemeine KiCad-Variablen werden bewusst nicht veraendert.
+set "KICAD_Z_ROOT_DIR=%KICAD_USER_DIR%"
+set "KICAD_Z_3DMODEL_DIR=%KICAD_USER_DIR%\3dmodels"
+set "KICAD_Z_3RDPARTY_DIR=%KICAD_USER_DIR%\3rdparty"
+set "KICAD_Z_FOOTPRINT_DIR=%KICAD_USER_DIR%\footprints"
+set "KICAD_Z_PLUGIN_DIR=%KICAD_USER_DIR%\plugins"
+set "KICAD_Z_PROJECT_DIR=%KICAD_USER_DIR%\projects"
+set "KICAD_Z_SCRIPTING_DIR=%KICAD_USER_DIR%\scripting"
+set "KICAD_Z_SYMBOL_DIR=%KICAD_USER_DIR%\symbols"
+set "KICAD_Z_TEMPLATE_DIR=%KICAD_USER_DIR%\template"
+
+for %%V in (
+    KICAD_Z_ROOT_DIR
+    KICAD_Z_3DMODEL_DIR
+    KICAD_Z_3RDPARTY_DIR
+    KICAD_Z_FOOTPRINT_DIR
+    KICAD_Z_PLUGIN_DIR
+    KICAD_Z_PROJECT_DIR
+    KICAD_Z_SCRIPTING_DIR
+    KICAD_Z_SYMBOL_DIR
+    KICAD_Z_TEMPLATE_DIR
+) do call :persist_user_variable %%V
+
+exit /b 0
+
+:persist_user_variable
+set "Z_VAR_NAME=%~1"
+for /f "tokens=1,* delims==" %%A in ('set %Z_VAR_NAME% 2^>nul') do if /i "%%A"=="%Z_VAR_NAME%" set "Z_VAR_VALUE=%%B"
+if defined Z_VAR_VALUE setx "%Z_VAR_NAME%" "%Z_VAR_VALUE%" >nul 2>nul
+set "Z_VAR_NAME="
+set "Z_VAR_VALUE="
 exit /b 0
