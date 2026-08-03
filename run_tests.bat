@@ -41,11 +41,12 @@ echo   KiCad DIN Electrical - Tests und Werkzeuge
 echo ============================================================
 echo.
 if defined KICAD_CLI (
-    echo   KiCad CLI      : %KICAD_CLI%
+    echo   KiCad CLI        : %KICAD_CLI%
 ) else (
-    echo   KiCad CLI      : nicht gefunden
+    echo   KiCad CLI        : nicht gefunden
 )
 echo   KiCad Benutzerordner: %KICAD_USER_DIR%
+echo   Z_-Stammordner      : %KICAD_Z_ROOT_DIR%
 echo.
 echo   [1] Schneller Testlauf
 echo   [2] Ausfuehrlicher Testlauf
@@ -56,11 +57,13 @@ echo   [6] Hilfe und Erklaerungen
 echo   [7] Bibliotheksreferenz erzeugen
 echo   [8] Bibliotheksreferenz pruefen
 echo   [9] Z_-Qualitaetspruefung fuer Symbol und Footprint
+echo   [A] KiCad-Umgebungsvariablen anzeigen
 echo   [0] Programm verlassen
 echo.
-choice /c 1234567890 /n /m "Auswahl: "
+choice /c 123456789A0 /n /m "Auswahl: "
 
-if errorlevel 10 goto :end
+if errorlevel 11 goto :end
+if errorlevel 10 goto :environment
 if errorlevel 9 goto :quality
 if errorlevel 8 goto :referencecheck
 if errorlevel 7 goto :referencewrite
@@ -98,6 +101,21 @@ goto :menu
 
 :quality
 call :run "Z_-Qualitaetspruefung" "%QUALITY_CMD%"
+goto :menu
+
+:environment
+cls
+echo ============================================================
+echo   KiCad-Umgebungsvariablen - Name und Pfad
+ echo ============================================================
+echo.
+set KICAD_ 2>nul
+if errorlevel 1 echo Keine KICAD_-Variablen vorhanden.
+echo.
+echo Die Variablen KICAD_Z_* werden durch dieses Projekt verwaltet.
+echo Allgemeine KiCad-Variablen werden nur angezeigt und nicht veraendert.
+echo.
+pause
 goto :menu
 
 :allchecks
@@ -152,6 +170,11 @@ echo   Im tatsaechlichen Windows-Dokumenteordner wird der Ordner kicad
 echo   geprueft und bei Bedarf mit diesen Unterordnern angelegt:
 echo   3dmodels, 3rdparty, footprints, plugins, projects, scripting,
 echo   symbols und template. Vorhandene Inhalte werden nicht veraendert.
+echo.
+echo KICAD_Z_-UMGEBUNGSVARIABLEN
+echo   Unsere Pfade werden dauerhaft als Benutzer-Umgebungsvariablen mit
+echo   dem Praefix KICAD_Z_ gespeichert. KiCad-Standardvariablen werden
+ echo   niemals ueberschrieben. Auswahl A zeigt alle Namen und Pfade an.
 echo.
 echo Z_-QUALITAETSPRUEFUNG
 echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
