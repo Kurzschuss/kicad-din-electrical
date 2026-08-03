@@ -22,12 +22,16 @@
       "name": "RCD",
       "symbol": true,
       "device_data": true,
-      "documentation": false,
+      "documentation": true,
       "example": false,
-      "tests": false,
-      "quality_status": "needs_rework",
-      "quality_level": "Entwurf",
-      "references": ["symbols/Z_RCD.kicad_sym"]
+      "tests": true,
+      "quality_status": "z_conform",
+      "quality_level": "Geprüft",
+      "references": [
+        "symbols/Z_RCD.kicad_sym",
+        "data/devices/generic/rcd-2p-40a-30ma-type-a-template.yaml",
+        "docs/04_Reference/Z_RCD_REFERENCE.md"
+      ]
     },
     {
       "id": "Z_RCBO",
