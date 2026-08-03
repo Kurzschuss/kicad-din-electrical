@@ -70,9 +70,18 @@ def _check_equals(rule: Rule, element: Mapping[str, Any]) -> tuple[bool, Any, An
     return actual == expected, expected, actual
 
 
+def _check_fields_equal(rule: Rule, element: Mapping[str, Any]) -> tuple[bool, Any, Any]:
+    left = str(rule.check["left"])
+    right = str(rule.check["right"])
+    expected = element.get(left)
+    actual = element.get(right)
+    return actual == expected, expected, actual
+
+
 CHECKS: dict[str, CheckFunction] = {
     "field_prefix": _check_prefix,
     "field_equals": _check_equals,
+    "fields_equal": _check_fields_equal,
 }
 
 
@@ -93,17 +102,8 @@ def load_rules(paths: Iterable[Path]) -> list[Rule]:
 
 def _parse_rule(data: Mapping[str, Any], source: Path) -> Rule:
     required = {
-        "id",
-        "title",
-        "scope",
-        "category",
-        "severity",
-        "status",
-        "version",
-        "description",
-        "recommendation",
-        "references",
-        "check",
+        "id", "title", "scope", "category", "severity", "status", "version",
+        "description", "recommendation", "references", "check",
     }
     missing = sorted(required - data.keys())
     if missing:
@@ -115,17 +115,11 @@ def _parse_rule(data: Mapping[str, Any], source: Path) -> Rule:
     if not isinstance(check, Mapping) or check.get("type") not in CHECKS:
         raise ValueError(f"Unknown or invalid check type in {source}")
     return Rule(
-        id=str(data["id"]),
-        title=str(data["title"]),
-        scope=str(data["scope"]),
-        category=str(data["category"]),
-        severity=severity,
-        status=str(data["status"]),
-        version=str(data["version"]),
-        description=str(data["description"]),
+        id=str(data["id"]), title=str(data["title"]), scope=str(data["scope"]),
+        category=str(data["category"]), severity=severity, status=str(data["status"]),
+        version=str(data["version"]), description=str(data["description"]),
         recommendation=str(data["recommendation"]),
-        references=tuple(str(item) for item in data["references"]),
-        check=dict(check),
+        references=tuple(str(item) for item in data["references"]), check=dict(check),
     )
 
 
@@ -155,20 +149,12 @@ def evaluate(
                 result_status = "needs_rework"
                 explanation = rule.description
                 exception_id = None
-        findings.append(
-            Finding(
-                element=element_name,
-                rule_id=rule.id,
-                title=rule.title,
-                severity=rule.severity,
-                status=result_status,
-                expected=expected,
-                actual=actual,
-                explanation=explanation,
-                recommendation=rule.recommendation,
-                exception_id=exception_id,
-            )
-        )
+        findings.append(Finding(
+            element=element_name, rule_id=rule.id, title=rule.title,
+            severity=rule.severity, status=result_status, expected=expected,
+            actual=actual, explanation=explanation,
+            recommendation=rule.recommendation, exception_id=exception_id,
+        ))
     return findings
 
 
@@ -188,9 +174,7 @@ def _matching_exception(
 def findings_to_json(findings: Iterable[Finding]) -> str:
     return json.dumps(
         [finding.to_dict() for finding in findings],
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
+        ensure_ascii=False, indent=2, sort_keys=True,
     )
 
 
