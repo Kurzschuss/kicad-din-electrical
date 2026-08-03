@@ -3,10 +3,6 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 title KiCad DIN Electrical - Testmenue
 
-call "tools\windows\detect_kicad.bat"
-
-if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
-
 where python >nul 2>nul
 if errorlevel 1 (
     cls
@@ -15,22 +11,49 @@ if errorlevel 1 (
     echo ============================================================
     echo.
     echo Installiere Python 3.10 oder neuer und starte dieses Skript erneut.
+    echo Achte bei der Installation auf die Option "Python zu PATH hinzufuegen".
+    echo.
     pause
     exit /b 1
 )
 
-python -c "import pytest" >nul 2>nul
+if not exist ".venv\Scripts\python.exe" (
+    cls
+    echo ============================================================
+    echo   Entwicklungsumgebung wird eingerichtet
+    echo ============================================================
+    echo.
+    echo Erzeuge die virtuelle Python-Umgebung .venv ...
+    python -m venv .venv
+    if errorlevel 1 (
+        echo.
+        echo FEHLER: Die virtuelle Umgebung konnte nicht erstellt werden.
+        echo Pruefe die Python-Installation und fuehre bei Bedarf aus:
+        echo   python -m venv .venv
+        echo.
+        pause
+        exit /b 1
+    )
+)
+
+call ".venv\Scripts\activate.bat"
 if errorlevel 1 (
     cls
     echo ============================================================
-    echo   FEHLER: pytest ist nicht installiert
+    echo   FEHLER: .venv konnte nicht aktiviert werden
     echo ============================================================
     echo.
-    echo   python -m pip install -r requirements-dev.txt
+    echo Loesche bei einer beschaedigten Umgebung den Ordner .venv
+    echo und starte run_tests.bat danach erneut.
     echo.
     pause
     exit /b 1
 )
+
+call :ensure_dev_environment startup
+if errorlevel 1 exit /b 1
+
+call "tools\windows\detect_kicad.bat"
 
 set "QUALITY_CMD=python -m tools.quality.run_quality --profile release --json-output build\Z_QUALITY_RESULTS.json --footprint footprints\Z_DIN_Module_18mm.pretty\Z_DIN_Module_18mm.kicad_mod symbols\Z_MCB.kicad_sym"
 
@@ -45,6 +68,7 @@ if defined KICAD_CLI (
 ) else (
     echo   KiCad CLI        : nicht gefunden
 )
+echo   Python-Umgebung     : %CD%\.venv
 echo   KiCad Benutzerordner: %KICAD_USER_DIR%
 echo   Z_-Stammordner      : %KICAD_Z_ROOT_DIR%
 if "%KICAD_Z_REGISTRATION%"=="OK" (
@@ -64,11 +88,13 @@ echo   [7] Bibliotheksreferenz erzeugen
 echo   [8] Bibliotheksreferenz pruefen
 echo   [9] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo   [A] KiCad-Umgebungsvariablen anzeigen
+echo   [I] Entwicklungsumgebung reparieren
 echo   [0] Programm verlassen
 echo.
-choice /c 123456789A0 /n /m "Auswahl: "
+choice /c 123456789AI0 /n /m "Auswahl: "
 
-if errorlevel 11 goto :end
+if errorlevel 12 goto :end
+if errorlevel 11 goto :repair_environment
 if errorlevel 10 goto :environment
 if errorlevel 9 goto :quality
 if errorlevel 8 goto :referencecheck
@@ -107,6 +133,28 @@ goto :menu
 
 :quality
 call :run "Z_-Qualitaetspruefung" "%QUALITY_CMD%"
+goto :menu
+
+:repair_environment
+cls
+echo ============================================================
+echo   Entwicklungsumgebung reparieren
+ echo ============================================================
+echo.
+echo Dabei werden pip und alle Eintraege aus requirements-dev.txt
+ echo geprueft und bei Bedarf installiert oder aktualisiert.
+echo.
+choice /c JN /n /m "Reparatur jetzt starten? [J/N]: "
+if errorlevel 2 goto :menu
+call :ensure_dev_environment repair
+echo.
+if errorlevel 1 (
+    echo Die Reparatur ist fehlgeschlagen.
+) else (
+    echo Die Entwicklungsumgebung ist einsatzbereit.
+)
+echo.
+pause
 goto :menu
 
 :environment
@@ -201,14 +249,21 @@ echo ============================================================
 echo   Hilfe
 echo ============================================================
 echo.
+echo ENTWICKLUNGSUMGEBUNG
+echo   Beim ersten Start wird automatisch die virtuelle Umgebung .venv
+ echo   angelegt und aktiviert. Anschliessend werden pip und alle Pakete
+ echo   aus requirements-dev.txt geprueft und bei Bedarf installiert.
+echo   Auswahl I wiederholt diese Pruefung und aktualisiert dabei auch pip.
+echo   Die globale Python-Installation wird nicht mit Projektpaketen befuellt.
+echo.
 echo KICAD-ERKENNUNG
-echo   Beim Start wird kicad-cli.exe ueber PATH und anschliessend in
-echo   den ueblichen Installationsordnern unter Program Files gesucht.
+echo   Nach der Python-Einrichtung wird kicad-cli.exe ueber PATH und
+ echo   anschliessend in den ueblichen Installationsordnern gesucht.
 echo   Der gefundene bin-Ordner wird fuer diesen Lauf zu PATH hinzugefuegt.
 echo.
 echo KICAD-BENUTZERORDNER
 echo   Im tatsaechlichen Windows-Dokumenteordner wird der Ordner kicad
-echo   geprueft und bei Bedarf mit diesen Unterordnern angelegt:
+ echo   geprueft und bei Bedarf mit diesen Unterordnern angelegt:
 echo   3dmodels, 3rdparty, footprints, plugins, projects, scripting,
 echo   symbols und template. Vorhandene Inhalte werden nicht veraendert.
 echo.
@@ -220,7 +275,7 @@ echo   Auswahl A zeigt alle Namen, Pfade und den Registrierungsstatus an.
 echo.
 echo Z_-QUALITAETSPRUEFUNG
 echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
-echo   Z_DIN_Module_18mm mit dem Release-Profil.
+ echo   Z_DIN_Module_18mm mit dem Release-Profil.
 echo   Maschinenlesbare Ergebnisse:
 echo   build\Z_QUALITY_RESULTS.json
 echo.
@@ -233,6 +288,54 @@ echo   docs\02_User\TESTING.md
 echo.
 pause
 goto :menu
+
+:ensure_dev_environment
+set "DEV_MODE=%~1"
+echo.
+echo Pruefe pip ...
+python -m pip --version >nul 2>nul
+if errorlevel 1 (
+    echo pip wurde nicht gefunden. Versuche ensurepip ...
+    python -m ensurepip --upgrade
+    if errorlevel 1 goto :dev_environment_failed
+)
+
+if /I "%DEV_MODE%"=="repair" (
+    echo Aktualisiere pip ...
+    python -m pip install --disable-pip-version-check --upgrade pip
+    if errorlevel 1 goto :dev_environment_failed
+)
+
+echo Pruefe Entwicklungsabhaengigkeiten ...
+python -m pip install --disable-pip-version-check -r requirements-dev.txt
+if errorlevel 1 goto :dev_environment_failed
+
+python -m pip check
+if errorlevel 1 goto :dev_environment_failed
+
+python -c "import pytest" >nul 2>nul
+if errorlevel 1 goto :dev_environment_failed
+
+echo [OK] Entwicklungsumgebung ist vollstaendig.
+set "DEV_MODE="
+exit /b 0
+
+:dev_environment_failed
+echo.
+echo ============================================================
+echo   FEHLER: Entwicklungsumgebung ist nicht vollstaendig
+ echo ============================================================
+echo.
+echo Pruefe die Internetverbindung und die Python-/pip-Installation.
+echo Fuehre bei Bedarf in diesem Repository manuell aus:
+echo.
+echo   .venv\Scripts\activate.bat
+ echo   python -m pip install -r requirements-dev.txt
+ echo   python -m pip check
+echo.
+set "DEV_MODE="
+pause
+exit /b 1
 
 :show_names
 set "Z_NAME_LIST=%~1"
