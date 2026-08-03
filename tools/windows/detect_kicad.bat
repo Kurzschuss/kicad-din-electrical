@@ -4,6 +4,9 @@ rem Wird mit CALL aufgerufen; Variablen bleiben im aufrufenden Skript erhalten.
 set "KICAD_CLI="
 set "KICAD_BIN="
 set "KICAD_USER_DIR="
+set "KICAD_Z_REGISTRATION="
+set "KICAD_Z_REGISTERED="
+set "KICAD_Z_EXISTING="
 
 rem 1. kicad-cli.exe ueber PATH suchen.
 for /f "delims=" %%I in ('where kicad-cli.exe 2^>nul') do if not defined KICAD_CLI set "KICAD_CLI=%%~fI"
@@ -35,7 +38,7 @@ for %%D in (3dmodels 3rdparty footprints plugins projects scripting symbols temp
     if not exist "%KICAD_USER_DIR%\%%D" mkdir "%KICAD_USER_DIR%\%%D" >nul 2>nul
 )
 
-rem Unsere projektspezifischen Benutzer-Umgebungsvariablen setzen.
+rem Unsere projektspezifischen Variablen fuer den aktuellen Prozess setzen.
 rem Allgemeine KiCad-Variablen werden bewusst nicht veraendert.
 set "KICAD_Z_ROOT_DIR=%KICAD_USER_DIR%"
 set "KICAD_Z_3DMODEL_DIR=%KICAD_USER_DIR%\3dmodels"
@@ -47,24 +50,12 @@ set "KICAD_Z_SCRIPTING_DIR=%KICAD_USER_DIR%\scripting"
 set "KICAD_Z_SYMBOL_DIR=%KICAD_USER_DIR%\symbols"
 set "KICAD_Z_TEMPLATE_DIR=%KICAD_USER_DIR%\template"
 
-for %%V in (
-    KICAD_Z_ROOT_DIR
-    KICAD_Z_3DMODEL_DIR
-    KICAD_Z_3RDPARTY_DIR
-    KICAD_Z_FOOTPRINT_DIR
-    KICAD_Z_PLUGIN_DIR
-    KICAD_Z_PROJECT_DIR
-    KICAD_Z_SCRIPTING_DIR
-    KICAD_Z_SYMBOL_DIR
-    KICAD_Z_TEMPLATE_DIR
-) do call :persist_user_variable %%V
+rem Fehlende KICAD_Z_-Pfade direkt in vorhandenen KiCad-Konfigurationen
+rem registrieren. Vorhandene Eintraege bleiben unveraendert.
+for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_paths.ps1" -RootDirectory "%KICAD_USER_DIR%" 2^>nul`) do (
+    if /i "%%A"=="KICAD_Z_REGISTRATION" set "KICAD_Z_REGISTRATION=%%B"
+    if /i "%%A"=="KICAD_Z_REGISTERED" set "KICAD_Z_REGISTERED=%%B"
+    if /i "%%A"=="KICAD_Z_EXISTING" set "KICAD_Z_EXISTING=%%B"
+)
 
-exit /b 0
-
-:persist_user_variable
-set "Z_VAR_NAME=%~1"
-for /f "tokens=1,* delims==" %%A in ('set %Z_VAR_NAME% 2^>nul') do if /i "%%A"=="%Z_VAR_NAME%" set "Z_VAR_VALUE=%%B"
-if defined Z_VAR_VALUE setx "%Z_VAR_NAME%" "%Z_VAR_VALUE%" >nul 2>nul
-set "Z_VAR_NAME="
-set "Z_VAR_VALUE="
 exit /b 0
