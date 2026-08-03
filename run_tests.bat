@@ -50,7 +50,7 @@ echo   [2] Ausfuehrlicher Testlauf
 echo       Zeigt jeden einzelnen Test und sein Ergebnis.
 echo.
 echo   [3] Alle Pruefungen
-echo       Testsuite plus Python-Syntaxpruefung.
+echo       Testsuite, Python-Syntax und Z_-Qualitaetspruefung.
 echo.
 echo   [4] Beim ersten Fehler stoppen
 echo       Hilfreich bei der Fehlersuche.
@@ -67,11 +67,15 @@ echo.
 echo   [8] Bibliotheksreferenz pruefen
 echo       Prueft, ob die Indexdateien aktuell sind.
 echo.
+echo   [9] Z_-Qualitaetspruefung
+echo       Prueft Z_MCB mit dem Release-Profil und erzeugt JSON.
+echo.
 echo   [0] Programm verlassen
 echo.
-choice /c 123456780 /n /m "Auswahl: "
+choice /c 1234567890 /n /m "Auswahl: "
 
-if errorlevel 9 goto :end
+if errorlevel 10 goto :end
+if errorlevel 9 goto :quality
 if errorlevel 8 goto :referencecheck
 if errorlevel 7 goto :referencewrite
 if errorlevel 6 goto :help
@@ -106,13 +110,17 @@ goto :menu
 call :run "Bibliotheksreferenz pruefen" "python tools\generate_library_reference.py --check"
 goto :menu
 
+:quality
+call :run "Z_-Qualitaetspruefung" "python -m tools.quality.run_quality --profile release --symbol symbols\Z_MCB.kicad_sym --json-output build\Z_QUALITY_RESULTS.json"
+goto :menu
+
 :allchecks
 cls
 echo ============================================================
 echo   Alle Pruefungen
 echo ============================================================
 echo.
-echo [1/2] Vollstaendige Testsuite
+echo [1/3] Vollstaendige Testsuite
 echo.
 python -m pytest -q
 if errorlevel 1 (
@@ -124,13 +132,25 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/2] Python-Syntaxpruefung
+echo [2/3] Python-Syntaxpruefung
 echo.
 python -m compileall -q distributions tests tools
 if errorlevel 1 (
     set "RESULT=1"
     echo.
     echo FEHLER: Die Python-Syntaxpruefung ist fehlgeschlagen.
+    call :finish
+    goto :menu
+)
+
+echo.
+echo [3/3] Z_-Qualitaetspruefung mit Release-Profil
+echo.
+python -m tools.quality.run_quality --profile release --symbol symbols\Z_MCB.kicad_sym --json-output build\Z_QUALITY_RESULTS.json
+if errorlevel 1 (
+    set "RESULT=1"
+    echo.
+    echo FEHLER: Die Z_-Qualitaetspruefung ist fehlgeschlagen.
 ) else (
     set "RESULT=0"
     echo.
@@ -152,7 +172,12 @@ echo AUSFUEHRLICHER TESTLAUF
 echo   Zeigt Namen und Ergebnis jedes einzelnen Tests.
 echo.
 echo ALLE PRUEFUNGEN
-echo   Fuehrt die Tests und die Python-Syntaxpruefung aus.
+echo   Fuehrt Tests, Python-Syntax und die Z_-Qualitaetspruefung aus.
+echo.
+echo Z_-QUALITAETSPRUEFUNG
+echo   Prueft symbols\Z_MCB.kicad_sym mit dem Release-Profil.
+echo   Das Ergebnis wird zusaetzlich als JSON gespeichert unter:
+echo   build\Z_QUALITY_RESULTS.json
 echo.
 echo BIBLIOTHEKSREFERENZ
 echo   Auswahl 7 erzeugt die beiden Indexdateien neu.
