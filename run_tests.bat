@@ -47,6 +47,12 @@ if defined KICAD_CLI (
 )
 echo   KiCad Benutzerordner: %KICAD_USER_DIR%
 echo   Z_-Stammordner      : %KICAD_Z_ROOT_DIR%
+if "%KICAD_Z_REGISTRATION%"=="OK" (
+    if not "%KICAD_Z_REGISTERED%"=="0" echo   Z_-Registrierung  : %KICAD_Z_REGISTERED% Eintraege neu hinzugefuegt
+    if "%KICAD_Z_REGISTERED%"=="0" echo   Z_-Registrierung  : alle Eintraege bereits vorhanden
+) else (
+    echo   Z_-Registrierung  : noch keine KiCad-Konfiguration gefunden
+)
 echo.
 echo   [1] Schneller Testlauf
 echo   [2] Ausfuehrlicher Testlauf
@@ -107,12 +113,47 @@ goto :menu
 cls
 echo ============================================================
 echo   KiCad-Umgebungsvariablen - Name und Pfad
- echo ============================================================
+echo ============================================================
 echo.
+echo Vorhandene KiCad-Variablen
+echo ------------------------------------------------------------
 set KICAD_ 2>nul
-if errorlevel 1 echo Keine KICAD_-Variablen vorhanden.
+if errorlevel 1 echo Keine KICAD_-Variablen im aktuellen Prozess vorhanden.
 echo.
-echo Die Variablen KICAD_Z_* werden durch dieses Projekt verwaltet.
+echo KICAD_Z_-Registrierung
+echo ------------------------------------------------------------
+if "%KICAD_Z_REGISTRATION%"=="NO_CONFIG_ROOT" (
+    echo [HINWEIS] KiCad wurde noch nicht gestartet oder besitzt noch keinen
+    echo           Konfigurationsordner. Folgende Eintraege fehlen und werden
+    echo           beim naechsten Start dieses Testmenues automatisch hinzugefuegt:
+    call :show_names "%KICAD_Z_MISSING_NAMES%" "[FEHLT]"
+) else if "%KICAD_Z_REGISTRATION%"=="NO_CONFIG_FILE" (
+    echo [HINWEIS] Noch keine kicad_common.json gefunden. Folgende Eintraege
+    echo           werden automatisch hinzugefuegt, sobald KiCad eine Konfiguration angelegt hat:
+    call :show_names "%KICAD_Z_MISSING_NAMES%" "[FEHLT]"
+) else (
+    if defined KICAD_Z_MISSING_NAMES (
+        echo Vor der Pruefung fehlende Eintraege:
+        call :show_names "%KICAD_Z_MISSING_NAMES%" "[FEHLT - wird hinzugefuegt]"
+        echo.
+    )
+    if defined KICAD_Z_ADDED_NAMES (
+        echo Neu registriert:
+        call :show_names "%KICAD_Z_ADDED_NAMES%" "[OK - hinzugefuegt]"
+        echo.
+    )
+    if defined KICAD_Z_EXISTING_NAMES (
+        echo Bereits korrekt vorhanden:
+        call :show_names "%KICAD_Z_EXISTING_NAMES%" "[OK]"
+        echo.
+    )
+    if defined KICAD_Z_MISMATCH_NAMES (
+        echo Abweichende vorhandene Pfade:
+        call :show_names "%KICAD_Z_MISMATCH_NAMES%" "[ACHTUNG - nicht ueberschrieben]"
+        echo Diese Werte bleiben aus Sicherheitsgruenden unveraendert.
+        echo.
+    )
+)
 echo Allgemeine KiCad-Variablen werden nur angezeigt und nicht veraendert.
 echo.
 pause
@@ -172,9 +213,10 @@ echo   3dmodels, 3rdparty, footprints, plugins, projects, scripting,
 echo   symbols und template. Vorhandene Inhalte werden nicht veraendert.
 echo.
 echo KICAD_Z_-UMGEBUNGSVARIABLEN
-echo   Unsere Pfade werden dauerhaft als Benutzer-Umgebungsvariablen mit
-echo   dem Praefix KICAD_Z_ gespeichert. KiCad-Standardvariablen werden
- echo   niemals ueberschrieben. Auswahl A zeigt alle Namen und Pfade an.
+echo   Fehlende KICAD_Z_-Eintraege werden vor der Registrierung angezeigt,
+echo   automatisch in KiCad hinzugefuegt und anschliessend bestaetigt.
+echo   Abweichende vorhandene Pfade werden angezeigt, aber nicht ueberschrieben.
+echo   Auswahl A zeigt alle Namen, Pfade und den Registrierungsstatus an.
 echo.
 echo Z_-QUALITAETSPRUEFUNG
 echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
@@ -191,6 +233,13 @@ echo   docs\02_User\TESTING.md
 echo.
 pause
 goto :menu
+
+:show_names
+set "Z_NAME_LIST=%~1"
+if not defined Z_NAME_LIST exit /b 0
+for %%V in (%Z_NAME_LIST:;= %) do echo   %~2 %%V
+set "Z_NAME_LIST="
+exit /b 0
 
 :run
 cls
