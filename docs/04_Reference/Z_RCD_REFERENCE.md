@@ -38,6 +38,17 @@ Die Konturen liegen auf:
 
 Die Footprint Policy bleibt `optional`, da reale RCD-Abmessungen, Klemmenlagen und Einbautiefen vom Hersteller und Gerätetyp abhängen. Vor einer konkreten Konstruktion muss der Footprint deshalb gegen das Datenblatt des ausgewählten Geräts geprüft oder ersetzt werden.
 
+## Reproduzierbares KiCad-Referenzprojekt
+
+Unter `examples/Z_RCD_Reference/` liegt ein eigenständiges Beispielprojekt mit:
+
+- platziertem `Z_RCD:RCD` als `Q1`,
+- zugeordnetem Footprint `Z_DIN_Module_36mm:Z_DIN_Module_36mm`,
+- projektlokalen Bibliothekstabellen auf Basis der `KICAD_Z_*`-Variablen,
+- dokumentiertem Ablauf für die reale ERC-Prüfung.
+
+Die vier externen Anschlüsse sind absichtlich als offen markiert. Dadurch bleibt das Beispiel elektrisch neutral und kann nach der automatischen Bibliothekseinrichtung unmittelbar in KiCad geöffnet werden.
+
 ## Abgrenzung
 
 Das Symbol beschreibt die elektrische Funktion im Schaltplan. Es ersetzt keine Auswahl nach nationalen Installationsregeln, keine Bemessung und keine Prüfung einer realen Anlage.

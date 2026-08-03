@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Z_RCD")(type "KiCad")(uri "${KICAD_Z_SYMBOL_DIR}/Z_RCD.kicad_sym")(options "")(descr "Z_RCD-Projektbibliothek"))
+)

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "Z_DIN_Module_36mm")(type "KiCad")(uri "${KICAD_Z_FOOTPRINT_DIR}/Z_DIN_Module_36mm.pretty")(options "")(descr "Generische 2-TE-DIN-Hüllkontur"))
+)
