@@ -45,4 +45,5 @@ def extract_footprint_facts(path: Path) -> dict[str, Any]:
         "courtyard_line_width_mm": courtyard_line_width,
         "has_reference": bool(re.search(r'\(fp_text\s+reference\b', text)),
         "has_value": bool(re.search(r'\(fp_text\s+value\b', text)),
+        "has_fab_outline": bool(re.search(r'\(layer\s+"(?:F|B)\.Fab"\)', text)),
     }
