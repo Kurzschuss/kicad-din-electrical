@@ -13,7 +13,7 @@
 | davon vorbereitet, noch leer | 9 |
 | erkannte Hauptsymbole | 20 |
 | Footprintbibliotheken | 35 |
-| Footprints | 7 |
+| Footprints | 6 |
 | Validator-Fehler | 0 |
 | Validator-Hinweise | 55 |
 
