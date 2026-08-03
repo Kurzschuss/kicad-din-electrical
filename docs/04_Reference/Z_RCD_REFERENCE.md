@@ -16,6 +16,7 @@ KiCad bleibt der Standard. Projektspezifische Eigenschaften sind deshalb konsequ
 | RCD-Typ | A |
 | Prüftaste | vorhanden |
 | Footprint Policy | optional |
+| Empfohlener Footprint | `Z_DIN_Module_36mm:Z_DIN_Module_36mm` |
 
 ## Anschlüsse
 
@@ -26,10 +27,23 @@ KiCad bleibt der Standard. Projektspezifische Eigenschaften sind deshalb konsequ
 | 3 | Eingang N |
 | 4 | Ausgang N |
 
+## DIN-Footprintkonzept
+
+Die herstellerneutrale Referenz verwendet eine mechanische 2-TE-Hüllkontur mit 36 mm Breite und 90 mm Höhe. Der Footprint ist als `board_only` gekennzeichnet, besitzt keine elektrischen Pads und dient ausschließlich der Platzierungs-, Gehäuse- und Dokumentationsansicht.
+
+Die Konturen liegen auf:
+
+- `F.Fab`: nominelle Gerätehülle 36 × 90 mm,
+- `F.CrtYd`: geschlossene 36 × 90-mm-Belegungsfläche mit 0,05 mm Linienbreite.
+
+Die Footprint Policy bleibt `optional`, da reale RCD-Abmessungen, Klemmenlagen und Einbautiefen vom Hersteller und Gerätetyp abhängen. Vor einer konkreten Konstruktion muss der Footprint deshalb gegen das Datenblatt des ausgewählten Geräts geprüft oder ersetzt werden.
+
 ## Abgrenzung
 
 Das Symbol beschreibt die elektrische Funktion im Schaltplan. Es ersetzt keine Auswahl nach nationalen Installationsregeln, keine Bemessung und keine Prüfung einer realen Anlage.
 
+Der generische Footprint ist keine Bohr-, Anschluss- oder Fertigungsfreigabe für ein konkretes RCD.
+
 ## Qualitätsstatus
 
-Der aktuelle Stand ist `Entwurf`, bis Vorschau, Katalogdaten, HTML-Darstellung, Referenzprojekt und sämtliche Qualitätsprüfungen vollständig vorliegen.
+Der maschinell prüfbare Paketstand ist `Geprüft`. `Praxisgetestet` wird erst nach realer Platzierung in KiCad und dokumentiertem ERC vergeben.
