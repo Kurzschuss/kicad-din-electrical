@@ -7,11 +7,17 @@ from tools.quality.rule_engine import evaluate, findings_to_json, load_rules, sh
 
 
 RULES = Path("rules/z/symbols/naming.json")
+GEOMETRY_RULES = Path("rules/z/symbols/geometry.json")
 
 
 def test_loads_rules_deterministically():
     rules = load_rules([RULES])
     assert [rule.id for rule in rules] == ["ZSYM-001", "ZSYM-002"]
+
+
+def test_loads_geometry_rules_deterministically():
+    rules = load_rules([GEOMETRY_RULES])
+    assert [rule.id for rule in rules] == ["ZSYM-003", "ZSYM-004", "ZSYM-005", "ZSYM-006"]
 
 
 def test_valid_z_symbol_is_z_conform():
@@ -24,6 +30,39 @@ def test_valid_z_symbol_is_z_conform():
         },
     )
     assert {finding.status for finding in findings} == {"z_conform"}
+
+
+def test_z_symbol_geometry_is_z_conform():
+    findings = evaluate(
+        load_rules([GEOMETRY_RULES]),
+        {
+            "element": "symbols/Z_MCB.kicad_sym – Z_MCB:MCB",
+            "connection_grid_mil": 100,
+            "pin_length_mil": 100,
+            "line_width_mil": 10,
+            "text_size_mil": 50,
+        },
+    )
+    assert {finding.status for finding in findings} == {"z_conform"}
+
+
+def test_geometry_deviation_reports_expected_and_actual():
+    findings = evaluate(
+        load_rules([GEOMETRY_RULES]),
+        {
+            "element": "symbols/Z_MCB.kicad_sym – Z_MCB:MCB",
+            "connection_grid_mil": 50,
+            "pin_length_mil": 150,
+            "line_width_mil": 10,
+            "text_size_mil": 50,
+        },
+    )
+    assert findings[0].status == "needs_rework"
+    assert findings[0].expected == 100
+    assert findings[0].actual == 50
+    assert findings[1].status == "needs_rework"
+    assert findings[1].expected == 100
+    assert findings[1].actual == 150
 
 
 def test_undocumented_deviation_needs_rework():
