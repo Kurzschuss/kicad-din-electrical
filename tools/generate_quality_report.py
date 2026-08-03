@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import Counter
 from pathlib import Path
 import argparse
+import difflib
 import sys
 
 try:
@@ -165,6 +166,14 @@ def check_report(expected: str) -> bool:
         return True
     print("Der Bibliotheks-Qualitätsbericht ist nicht aktuell.", file=sys.stderr)
     print("Bitte den Generator ohne --check ausführen.", file=sys.stderr)
+    for line in difflib.unified_diff(
+        actual.splitlines(),
+        expected.splitlines(),
+        fromfile=str(REPORT_PATH),
+        tofile="erwarteter Generatorstand",
+        lineterm="",
+    ):
+        print(line, file=sys.stderr)
     return False
 
 
