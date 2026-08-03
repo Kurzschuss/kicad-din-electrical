@@ -11,6 +11,7 @@
     (property "Footprint" "" (at 0 -6.35 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Datasheet" "" (at 0 -7.62 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Description" "DIN/IEC style miniature circuit breaker" (at 0 -8.89 0) (effects (font (size 1.0 1.0)) (hide yes)))
+    (property "Z_Footprint_Policy" "optional" (at 0 -10.16 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (symbol "MCB_0_1"
       (rectangle (start -2.54 2.54) (end 2.54 -2.54) (stroke (width 0.254) (type default)) (fill (type background)))
     )

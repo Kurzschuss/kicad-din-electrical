@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Kurzschuss/kicad-din-electrical/rules/schema/profile.schema.json",
+  "title": "Prüfprofil",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description", "enabled_rule_patterns", "fail_severities", "fail_statuses"],
+  "properties": {
+    "name": {"enum": ["development", "compatibility", "strict", "release"]},
+    "description": {"type": "string", "minLength": 1},
+    "enabled_rule_patterns": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "fail_severities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["info", "warning", "error", "critical"]}
+    },
+    "fail_statuses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["kicad_conform", "z_conform", "needs_rework", "temporarily_accepted"]}
+    }
+  }
+}

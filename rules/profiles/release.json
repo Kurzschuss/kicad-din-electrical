@@ -1,0 +1,6 @@
+{
+  "name": "release",
+  "description": "Freigabeprofil für geprüfte Bibliothekspakete.",
+  "fail_severities": ["error", "critical"],
+  "fail_statuses": ["needs_rework", "temporarily_accepted"]
+}

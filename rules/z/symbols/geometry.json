@@ -1,0 +1,54 @@
+[
+  {
+    "id": "ZSYM-003",
+    "title": "Anschlussraster 100 mil verwenden",
+    "scope": "symbol",
+    "category": "geometry",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Symbolursprung, Pins und wesentliche Anschlussgeometrie müssen auf dem 100-mil-Raster liegen.",
+    "recommendation": "Pins und Anschlussgeometrie auf das 100-mil-Raster verschieben; grafische Details dürfen das dokumentierte 50-mil-Unteraster verwenden.",
+    "references": ["docs/00_Project/SYMBOL_STYLE_GUIDE.md", "docs/04_Reference/Z_SYMBOL_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "connection_grid_mil", "value": 100}
+  },
+  {
+    "id": "ZSYM-004",
+    "title": "Standard-Pinlänge 100 mil verwenden",
+    "scope": "symbol",
+    "category": "pins",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Projektinterne Z_-Symbole verwenden standardmäßig 100 mil lange Pins.",
+    "recommendation": "Pinlänge auf 100 mil setzen oder eine begründete, versionierte Z_-Ausnahme dokumentieren.",
+    "references": ["docs/00_Project/SYMBOL_STYLE_GUIDE.md", "docs/04_Reference/Z_SYMBOL_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "pin_length_mil", "value": 100}
+  },
+  {
+    "id": "ZSYM-005",
+    "title": "Standard-Linienbreite 10 mil verwenden",
+    "scope": "symbol",
+    "category": "graphics",
+    "severity": "warning",
+    "status": "active",
+    "version": "1.0",
+    "description": "Grafische Grundformen der Z_-Symbolrichtlinie verwenden standardmäßig 10 mil Linienbreite.",
+    "recommendation": "Linienbreite auf 10 mil setzen oder eine klassenspezifische Z_-Regel dokumentieren.",
+    "references": ["docs/00_Project/SYMBOL_STYLE_GUIDE.md", "docs/04_Reference/Z_SYMBOL_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "line_width_mil", "value": 10}
+  },
+  {
+    "id": "ZSYM-006",
+    "title": "Standard-Textgröße 50 mil verwenden",
+    "scope": "symbol",
+    "category": "text",
+    "severity": "warning",
+    "status": "active",
+    "version": "1.0",
+    "description": "Referenz-, Wert- und Funktionsbeschriftungen verwenden standardmäßig 50 mil Textgröße.",
+    "recommendation": "Textgröße auf 50 mil setzen oder eine dokumentierte Z_-Sonderregel für die Symbolklasse verwenden.",
+    "references": ["docs/00_Project/SYMBOL_STYLE_GUIDE.md", "docs/04_Reference/Z_SYMBOL_DIMENSIONS.md"],
+    "check": {"type": "field_equals", "field": "text_size_mil", "value": 50}
+  }
+]
