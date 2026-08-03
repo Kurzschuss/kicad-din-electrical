@@ -1,0 +1,67 @@
+[
+  {
+    "id": "ZFP-001",
+    "title": "Z_-Bibliotheksname verwenden",
+    "scope": "footprint",
+    "category": "naming",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Projektspezifische Footprintbibliotheken müssen mit Z_ beginnen.",
+    "recommendation": "Footprintbibliothek nach der dokumentierten Z_-Namensregel umbenennen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_prefix", "field": "library_name", "prefix": "Z_"}
+  },
+  {
+    "id": "ZFP-002",
+    "title": "Z_-Footprintname verwenden",
+    "scope": "footprint",
+    "category": "naming",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Projektspezifische Footprints müssen mit Z_ beginnen.",
+    "recommendation": "Footprint nach der dokumentierten Z_-Namensregel umbenennen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_prefix", "field": "footprint_name", "prefix": "Z_"}
+  },
+  {
+    "id": "ZFP-003",
+    "title": "Datei- und Footprintname stimmen überein",
+    "scope": "footprint",
+    "category": "structure",
+    "severity": "error",
+    "status": "active",
+    "version": "1.0",
+    "description": "Der interne Footprintname muss dem Dateinamen entsprechen.",
+    "recommendation": "Datei oder internen Footprintnamen angleichen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "fields_equal", "left": "file_name", "right": "footprint_name"}
+  },
+  {
+    "id": "ZFP-004",
+    "title": "KiCad-PCB-Generator verwenden",
+    "scope": "footprint",
+    "category": "compatibility",
+    "severity": "warning",
+    "status": "active",
+    "version": "1.0",
+    "description": "Footprints sollen als KiCad-PCB-Dateien mit pcbnew gekennzeichnet sein.",
+    "recommendation": "Footprint mit einer unterstützten KiCad-Version speichern.",
+    "references": ["docs/03_Developer/RULE_ENGINE.md"],
+    "check": {"type": "field_equals", "field": "generator", "value": "pcbnew"}
+  },
+  {
+    "id": "ZFP-005",
+    "title": "Courtyard bereitstellen",
+    "scope": "footprint",
+    "category": "geometry",
+    "severity": "warning",
+    "status": "active",
+    "version": "1.0",
+    "description": "Ein freigabefähiger Footprint benötigt eine Courtyard-Kontur.",
+    "recommendation": "Eine geschlossene F.CrtYd- oder B.CrtYd-Kontur ergänzen.",
+    "references": ["docs/00_Project/LIBRARY_GUIDELINES.md"],
+    "check": {"type": "field_equals", "field": "has_courtyard", "value": true}
+  }
+]

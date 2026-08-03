@@ -12,9 +12,7 @@ if errorlevel 1 (
     echo   FEHLER: Python wurde nicht gefunden
     echo ============================================================
     echo.
-    echo Installiere Python 3.10 oder neuer und starte dieses Skript
-    echo danach erneut. Eine vorhandene .venv wird automatisch genutzt.
-    echo.
+    echo Installiere Python 3.10 oder neuer und starte dieses Skript erneut.
     pause
     exit /b 1
 )
@@ -26,13 +24,13 @@ if errorlevel 1 (
     echo   FEHLER: pytest ist nicht installiert
     echo ============================================================
     echo.
-    echo Fuehre im Repositoryordner einmal diesen Befehl aus:
-    echo.
     echo   python -m pip install -r requirements-dev.txt
     echo.
     pause
     exit /b 1
 )
+
+set "QUALITY_CMD=python -m tools.quality.run_quality --profile release --json-output build\Z_QUALITY_RESULTS.json --footprint footprints\Z_DIN_Module_18mm.pretty\Z_DIN_Module_18mm.kicad_mod symbols\Z_MCB.kicad_sym"
 
 :menu
 cls
@@ -40,36 +38,15 @@ echo ============================================================
 echo   KiCad DIN Electrical - Tests und Werkzeuge
 echo ============================================================
 echo.
-echo Dieses Menue prueft die Bibliotheksstruktur, Dateinamen,
-echo Symbol- und Footprint-Referenzen sowie weitere Projektregeln.
-echo.
 echo   [1] Schneller Testlauf
-echo       Alle Tests mit kompakter Ausgabe.
-echo.
 echo   [2] Ausfuehrlicher Testlauf
-echo       Zeigt jeden einzelnen Test und sein Ergebnis.
-echo.
 echo   [3] Alle Pruefungen
-echo       Testsuite, Python-Syntax und Z_-Qualitaetspruefung.
-echo.
 echo   [4] Beim ersten Fehler stoppen
-echo       Hilfreich bei der Fehlersuche.
-echo.
 echo   [5] Nur zuletzt fehlgeschlagene Tests
-echo       Wiederholt die Fehler des vorherigen Testlaufs.
-echo.
 echo   [6] Hilfe und Erklaerungen
-echo       Hinweise zu Tests, .venv und Referenzgenerator.
-echo.
 echo   [7] Bibliotheksreferenz erzeugen
-echo       Aktualisiert Symbol- und Footprint-Index.
-echo.
 echo   [8] Bibliotheksreferenz pruefen
-echo       Prueft, ob die Indexdateien aktuell sind.
-echo.
-echo   [9] Z_-Qualitaetspruefung
-echo       Prueft Z_MCB mit dem Release-Profil und erzeugt JSON.
-echo.
+echo   [9] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo   [0] Programm verlassen
 echo.
 choice /c 1234567890 /n /m "Auswahl: "
@@ -111,7 +88,7 @@ call :run "Bibliotheksreferenz pruefen" "python tools\generate_library_reference
 goto :menu
 
 :quality
-call :run "Z_-Qualitaetspruefung" "python -m tools.quality.run_quality --profile release --symbol symbols\Z_MCB.kicad_sym --json-output build\Z_QUALITY_RESULTS.json"
+call :run "Z_-Qualitaetspruefung" "%QUALITY_CMD%"
 goto :menu
 
 :allchecks
@@ -123,39 +100,30 @@ echo.
 echo [1/3] Vollstaendige Testsuite
 echo.
 python -m pytest -q
-if errorlevel 1 (
-    set "RESULT=1"
-    echo.
-    echo FEHLER: Die Testsuite ist fehlgeschlagen.
-    call :finish
-    goto :menu
-)
+if errorlevel 1 goto :allchecks_failed
 
 echo.
 echo [2/3] Python-Syntaxpruefung
 echo.
 python -m compileall -q distributions tests tools
-if errorlevel 1 (
-    set "RESULT=1"
-    echo.
-    echo FEHLER: Die Python-Syntaxpruefung ist fehlgeschlagen.
-    call :finish
-    goto :menu
-)
+if errorlevel 1 goto :allchecks_failed
 
 echo.
-echo [3/3] Z_-Qualitaetspruefung mit Release-Profil
+echo [3/3] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo.
-python -m tools.quality.run_quality --profile release --symbol symbols\Z_MCB.kicad_sym --json-output build\Z_QUALITY_RESULTS.json
-if errorlevel 1 (
-    set "RESULT=1"
-    echo.
-    echo FEHLER: Die Z_-Qualitaetspruefung ist fehlgeschlagen.
-) else (
-    set "RESULT=0"
-    echo.
-    echo Alle Pruefungen waren erfolgreich.
-)
+%QUALITY_CMD%
+if errorlevel 1 goto :allchecks_failed
+
+set "RESULT=0"
+echo.
+echo Alle Pruefungen waren erfolgreich.
+call :finish
+goto :menu
+
+:allchecks_failed
+set "RESULT=1"
+echo.
+echo FEHLER: Mindestens eine Pruefung ist fehlgeschlagen.
 call :finish
 goto :menu
 
@@ -165,30 +133,15 @@ echo ============================================================
 echo   Hilfe
 echo ============================================================
 echo.
-echo SCHNELLER TESTLAUF
-echo   Die normale Auswahl fuer eine vollstaendige Kontrolle.
-echo.
-echo AUSFUEHRLICHER TESTLAUF
-echo   Zeigt Namen und Ergebnis jedes einzelnen Tests.
-echo.
-echo ALLE PRUEFUNGEN
-echo   Fuehrt Tests, Python-Syntax und die Z_-Qualitaetspruefung aus.
-echo.
 echo Z_-QUALITAETSPRUEFUNG
-echo   Prueft symbols\Z_MCB.kicad_sym mit dem Release-Profil.
-echo   Das Ergebnis wird zusaetzlich als JSON gespeichert unter:
+echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
+ echo   Z_DIN_Module_18mm mit dem Release-Profil.
+echo   Maschinenlesbare Ergebnisse:
 echo   build\Z_QUALITY_RESULTS.json
 echo.
 echo BIBLIOTHEKSREFERENZ
-echo   Auswahl 7 erzeugt die beiden Indexdateien neu.
-echo   Auswahl 8 prueft nur, ob sie dem Repository entsprechen.
-echo.
-echo .VENV
-echo   Eine .venv ist eine lokale Python-Umgebung fuer dieses
-echo   Projekt. Sie ist optional und wird automatisch aktiviert.
-echo.
-echo PROGRAMM VERLASSEN
-echo   Mit der Taste 0 wird das Testmenue beendet.
+echo   Auswahl 7 erzeugt die Indexdateien neu.
+echo   Auswahl 8 prueft, ob sie aktuell sind.
 echo.
 echo WEITERE ANLEITUNG
 echo   docs\02_User\TESTING.md
