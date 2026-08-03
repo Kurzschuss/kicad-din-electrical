@@ -20,6 +20,12 @@ jobs:
         run: python -m pip install --upgrade pip pytest
       - name: Run complete test suite
         run: python -m pytest -q
+      - name: Run Z_ quality release profile
+        run: |
+          python -m tools.quality.run_quality \
+            --profile release \
+            --json-output build/Z_QUALITY_RESULTS.json \
+            symbols/Z_MCB.kicad_sym
       - name: Validate KiCad libraries
         run: python tools/validate_libraries.py
       - name: Check generated device variants
