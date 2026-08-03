@@ -1,0 +1,11 @@
+{
+  "board": {},
+  "meta": {
+    "filename": "Z_MCB_reference.kicad_pro",
+    "version": 1
+  },
+  "libraries": {
+    "symbols": ["Z_MCB"],
+    "footprints": []
+  }
+}
