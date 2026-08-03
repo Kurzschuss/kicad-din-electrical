@@ -3,6 +3,8 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 title KiCad DIN Electrical - Testmenue
 
+call "tools\windows\detect_kicad.bat"
+
 if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
 
 where python >nul 2>nul
@@ -37,6 +39,13 @@ cls
 echo ============================================================
 echo   KiCad DIN Electrical - Tests und Werkzeuge
 echo ============================================================
+echo.
+if defined KICAD_CLI (
+    echo   KiCad CLI      : %KICAD_CLI%
+) else (
+    echo   KiCad CLI      : nicht gefunden
+)
+echo   KiCad Benutzerordner: %KICAD_USER_DIR%
 echo.
 echo   [1] Schneller Testlauf
 echo   [2] Ausfuehrlicher Testlauf
@@ -133,9 +142,20 @@ echo ============================================================
 echo   Hilfe
 echo ============================================================
 echo.
+echo KICAD-ERKENNUNG
+echo   Beim Start wird kicad-cli.exe ueber PATH und anschliessend in
+echo   den ueblichen Installationsordnern unter Program Files gesucht.
+echo   Der gefundene bin-Ordner wird fuer diesen Lauf zu PATH hinzugefuegt.
+echo.
+echo KICAD-BENUTZERORDNER
+echo   Im tatsaechlichen Windows-Dokumenteordner wird der Ordner kicad
+echo   geprueft und bei Bedarf mit diesen Unterordnern angelegt:
+echo   3dmodels, 3rdparty, footprints, plugins, projects, scripting,
+echo   symbols und template. Vorhandene Inhalte werden nicht veraendert.
+echo.
 echo Z_-QUALITAETSPRUEFUNG
 echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
- echo   Z_DIN_Module_18mm mit dem Release-Profil.
+echo   Z_DIN_Module_18mm mit dem Release-Profil.
 echo   Maschinenlesbare Ergebnisse:
 echo   build\Z_QUALITY_RESULTS.json
 echo.
