@@ -18,15 +18,28 @@ def test_extracts_z_mcb_reference_geometry():
     assert facts["text_size_mil"] == 50
 
 
+def test_extracts_explicit_z_footprint_policy():
+    facts = extract_symbol_facts(MCB)
+    assert facts["footprint_policy"] == "optional"
+    assert facts["footprint_policy_valid"] is True
+    assert facts["footprint_value"] == ""
+
+
 def test_z_mcb_geometry_is_z_conform():
     facts = extract_symbol_facts(MCB)
     findings = evaluate(load_rules([GEOMETRY_RULES]), facts)
     assert {finding.status for finding in findings} == {"z_conform"}
 
 
-def test_z_mcb_missing_footprint_policy_remains_visible():
+def test_z_mcb_reference_package_is_z_conform():
     facts = extract_symbol_facts(MCB)
-    findings = evaluate(load_rules([NAMING_RULES]), facts)
-    status_by_rule = {finding.rule_id: finding.status for finding in findings}
-    assert status_by_rule["ZSYM-001"] == "z_conform"
-    assert status_by_rule["ZSYM-002"] == "needs_rework"
+    findings = evaluate(load_rules([NAMING_RULES, GEOMETRY_RULES]), facts)
+    assert {finding.status for finding in findings} == {"z_conform"}
+    assert {finding.rule_id for finding in findings} == {
+        "ZSYM-001",
+        "ZSYM-002",
+        "ZSYM-003",
+        "ZSYM-004",
+        "ZSYM-005",
+        "ZSYM-006",
+    }
