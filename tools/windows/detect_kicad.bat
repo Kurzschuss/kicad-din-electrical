@@ -7,6 +7,10 @@ set "KICAD_USER_DIR="
 set "KICAD_Z_REGISTRATION="
 set "KICAD_Z_REGISTERED="
 set "KICAD_Z_EXISTING="
+set "KICAD_Z_MISSING_NAMES="
+set "KICAD_Z_ADDED_NAMES="
+set "KICAD_Z_EXISTING_NAMES="
+set "KICAD_Z_MISMATCH_NAMES="
 
 rem 1. kicad-cli.exe ueber PATH suchen.
 for /f "delims=" %%I in ('where kicad-cli.exe 2^>nul') do if not defined KICAD_CLI set "KICAD_CLI=%%~fI"
@@ -51,11 +55,15 @@ set "KICAD_Z_SYMBOL_DIR=%KICAD_USER_DIR%\symbols"
 set "KICAD_Z_TEMPLATE_DIR=%KICAD_USER_DIR%\template"
 
 rem Fehlende KICAD_Z_-Pfade direkt in vorhandenen KiCad-Konfigurationen
-rem registrieren. Vorhandene Eintraege bleiben unveraendert.
+rem registrieren. Vorhandene oder abweichende Eintraege bleiben unveraendert.
 for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_paths.ps1" -RootDirectory "%KICAD_USER_DIR%" 2^>nul`) do (
     if /i "%%A"=="KICAD_Z_REGISTRATION" set "KICAD_Z_REGISTRATION=%%B"
     if /i "%%A"=="KICAD_Z_REGISTERED" set "KICAD_Z_REGISTERED=%%B"
     if /i "%%A"=="KICAD_Z_EXISTING" set "KICAD_Z_EXISTING=%%B"
+    if /i "%%A"=="KICAD_Z_MISSING_NAMES" set "KICAD_Z_MISSING_NAMES=%%B"
+    if /i "%%A"=="KICAD_Z_ADDED_NAMES" set "KICAD_Z_ADDED_NAMES=%%B"
+    if /i "%%A"=="KICAD_Z_EXISTING_NAMES" set "KICAD_Z_EXISTING_NAMES=%%B"
+    if /i "%%A"=="KICAD_Z_MISMATCH_NAMES" set "KICAD_Z_MISMATCH_NAMES=%%B"
 )
 
 exit /b 0
