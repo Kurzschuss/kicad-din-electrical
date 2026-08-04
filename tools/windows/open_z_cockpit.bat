@@ -6,7 +6,7 @@ title Z_Cockpit erzeugen und oeffnen
 set "PYTHON_CMD=python"
 if exist ".venv\Scripts\python.exe" set "PYTHON_CMD=.venv\Scripts\python.exe"
 
-%PYTHON_CMD% tools\generate_z_cockpit.py
+%PYTHON_CMD% -m tools.generate_z_cockpit
 if errorlevel 1 (
     echo.
     echo FEHLER: Z_Cockpit konnte nicht erzeugt werden.
