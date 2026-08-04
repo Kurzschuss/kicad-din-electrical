@@ -7,6 +7,7 @@ def test_open_error_report_batch_has_controlled_actions() -> None:
     assert "build\\FEHLERBERICHT.md" in text
     assert "build\\GITHUB_ISSUE_VORSCHAU.md" in text
     assert "build\\GITHUB_ISSUE_TITEL.txt" in text
+    assert "build\\VERSIONSPRUEFUNG.json" in text
     assert "[1] Fehlerbericht oeffnen" in text
     assert "[2] Fehlerordner im Explorer oeffnen" in text
     assert "[3] GitHub-Issue-Vorschau erzeugen und oeffnen" in text
@@ -14,6 +15,11 @@ def test_open_error_report_batch_has_controlled_actions() -> None:
     assert 'start "" "%REPORT_FILE%"' in text
     assert 'start "" "%ISSUE_PREVIEW%"' in text
     assert "explorer.exe /select" in text
+    assert "python -m tools.check_repository_version" in text
+    assert text.index("python -m tools.check_repository_version") < text.index(
+        "python -m tools.create_github_issue_preview"
+    )
+    assert "Die GitHub-Issue-Vorschau bleibt gesperrt." in text
     assert "python -m tools.create_github_issue_preview" in text
     assert "Es wurde nichts auf GitHub veroeffentlicht." in text
     assert "gh issue create" not in text
