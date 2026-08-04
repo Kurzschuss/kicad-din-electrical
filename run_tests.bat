@@ -279,12 +279,21 @@ echo   Prueft das Referenzsymbol Z_MCB und den Referenzfootprint
 echo   Maschinenlesbare Ergebnisse:
 echo   build\Z_QUALITY_RESULTS.json
 echo.
+echo AUTOMATISCHE FEHLERBERICHTE
+echo   Einzelpruefungen werden live angezeigt und gleichzeitig protokolliert.
+echo   Bei einem Fehler entstehen automatisch:
+echo   build\LETZTER_TESTLAUF.log
+echo   build\FEHLERBERICHT.md
+echo   Der Markdown-Bericht kann nach einer kurzen Sichtpruefung als Grundlage
+ echo   fuer ein GitHub-Issue verwendet werden.
+echo.
 echo BIBLIOTHEKSREFERENZ
 echo   Auswahl 7 erzeugt die Indexdateien neu.
 echo   Auswahl 8 prueft, ob sie aktuell sind.
 echo.
 echo WEITERE ANLEITUNG
 echo   docs\02_User\TESTING.md
+echo   docs\03_Developer\FEHLERBERICHTE.md
 echo.
 pause
 goto :menu
@@ -350,13 +359,18 @@ echo ============================================================
 echo   %~1
 echo ============================================================
 echo.
-call %~2
+call "tools\windows\run_with_error_report.bat" "%~1" "build\LETZTER_TESTLAUF.log" %~2
 set "RESULT=%ERRORLEVEL%"
 echo.
 if "%RESULT%"=="0" (
     echo Der Vorgang war erfolgreich.
 ) else (
     echo Der Vorgang ist fehlgeschlagen. Fehlercode: %RESULT%
+    echo.
+    echo Ausfuehrlicher Bericht:
+    echo   build\FEHLERBERICHT.md
+    echo Konsolenprotokoll:
+    echo   build\LETZTER_TESTLAUF.log
 )
 call :finish
 exit /b %RESULT%
