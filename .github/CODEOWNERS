@@ -1,0 +1,4 @@
+# Änderungen an Freigaben und Repository-Prüfung benötigen die Prüfung des Projektinhabers.
+/config/authorized_developers.json @Kurzschuss
+/tools/check_repository_version.py @Kurzschuss
+/.github/CODEOWNERS @Kurzschuss
