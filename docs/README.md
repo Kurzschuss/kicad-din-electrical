@@ -23,6 +23,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Gerätekatalog](03_Developer/DEVICE_CATALOG.md)
 - [Geräteserien und Varianten](03_Developer/DEVICE_SERIES.md)
 - [Gerätefamilien und Funktionsgruppen](03_Developer/DEVICE_TAXONOMY.md)
+- [Z_Cockpit erzeugen und testen](03_Developer/Z_COCKPIT.md)
 
 ## Bibliotheksreferenz und Werkzeuge
 
@@ -56,8 +57,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 - LS-Master-Goldstandard fachlich und grafisch festlegen
 - Leitungsschutzschalter-Familie 1P bis 4P aufbauen
-- Z_Cockpit-Prototyp mit echten Gerätekatalogdaten verbinden
-- Symbolvorschau in die Detailansicht integrieren
+- Symbolvorschau in die Z_Cockpit-Detailansicht integrieren
+- Qualitätsstatus in die Gerätetabelle übernehmen
 - kleinen Verteilerplan als Praxistest erstellen
 - Qualitätshandbuch weiter ausarbeiten
 - Normen- und Symbolreferenz ergänzen
