@@ -3,7 +3,7 @@
   "manufacturer": "Generic",
   "series": "Template",
   "part_number": "RCD-2P-40A-30MA-TYPE-A",
-  "device_type": "Fehlerstrom-Schutzeinrichtung",
+  "device_type": "Fehlerstrom-Schutzschalter",
   "name_de": "Fehlerstrom-Schutzeinrichtung 40 A / 30 mA, 2-polig, Typ A",
   "name_en": "Residual Current Device 40 A / 30 mA, 2-pole, Type A",
   "abbreviation": "RCD",
