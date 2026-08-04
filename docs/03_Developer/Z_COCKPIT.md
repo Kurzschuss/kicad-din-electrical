@@ -1,0 +1,50 @@
+# Z_Cockpit erzeugen und testen
+
+`Z_Cockpit` ist die tabellenbasierte Bibliotheks- und Geräteübersicht der KiCad DIN Electrical Suite.
+
+Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der technische Gerätekatalog unter `data/devices/` bleibt die einzige Datenquelle.
+
+## Erzeugen
+
+```text
+python tools/generate_z_cockpit.py
+```
+
+Die Ausgabe wird hier abgelegt:
+
+```text
+docs/site/z-cockpit.html
+```
+
+## Unter Windows öffnen
+
+```text
+tools\windows\open_z_cockpit.bat
+```
+
+Der Starter verwendet bevorzugt `.venv\Scripts\python.exe`. Ist noch keine virtuelle Umgebung vorhanden, wird das Python aus `PATH` verwendet.
+
+Nach erfolgreicher Erzeugung öffnet der Starter `docs/site/z-cockpit.html` im Standardbrowser.
+
+## Prüfung
+
+Die automatisierten Tests prüfen unter anderem:
+
+- Übernahme der echten Kataloggeräte,
+- deutsche Standardanzeige,
+- Filterfelder für Familie, Hersteller, Polzahl, Charakteristik und Nennstrom,
+- technische Geräte-ID und Symbolzuordnung.
+
+GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und prüft, ob eine nicht leere HTML-Ausgabe entstanden ist.
+
+## Aktueller Entwicklungsstand
+
+Die erste Version ist eine statische, lokal ausführbare HTML-Anwendung. Noch nicht angebunden sind:
+
+- echte Symbolvorschauen,
+- Footprintvorschauen,
+- 3D-Vorschauen,
+- detaillierter Qualitätsstatus,
+- direkte KiCad-Editoraufrufe.
+
+Diese Funktionen werden schrittweise ergänzt. Die tabellenbasierte Bedienung und die deutschen Auswahllisten bleiben dabei die verbindliche Grundlage.
