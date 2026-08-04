@@ -215,19 +215,19 @@ echo ============================================================
 echo.
 echo [1/3] Vollstaendige Testsuite
 echo.
-python -m pytest -q
+call "tools\windows\run_with_error_report.bat" "Vollstaendige Testsuite" "build\ALLE_PRUEFUNGEN_PYTEST.log" python -m pytest -q
 if errorlevel 1 goto :allchecks_failed
 
 echo.
 echo [2/3] Python-Syntaxpruefung
 echo.
-python -m compileall -q distributions tests tools
+call "tools\windows\run_with_error_report.bat" "Python-Syntaxpruefung" "build\ALLE_PRUEFUNGEN_SYNTAX.log" python -m compileall -q distributions tests tools
 if errorlevel 1 goto :allchecks_failed
 
 echo.
 echo [3/3] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo.
-%QUALITY_CMD%
+call "tools\windows\run_with_error_report.bat" "Z_-Qualitaetspruefung" "build\ALLE_PRUEFUNGEN_QUALITAET.log" %QUALITY_CMD%
 if errorlevel 1 goto :allchecks_failed
 
 set "RESULT=0"
@@ -240,6 +240,10 @@ goto :menu
 set "RESULT=1"
 echo.
 echo FEHLER: Mindestens eine Pruefung ist fehlgeschlagen.
+echo.
+echo Ausfuehrlicher Bericht:
+echo   build\FEHLERBERICHT.md
+echo Das zugehoerige Schrittprotokoll wurde unter build\ gespeichert.
 call :finish
 goto :menu
 
@@ -280,10 +284,10 @@ echo   Maschinenlesbare Ergebnisse:
 echo   build\Z_QUALITY_RESULTS.json
 echo.
 echo AUTOMATISCHE FEHLERBERICHTE
-echo   Einzelpruefungen werden live angezeigt und gleichzeitig protokolliert.
-echo   Bei einem Fehler entstehen automatisch:
-echo   build\LETZTER_TESTLAUF.log
+echo   Einzelpruefungen und der kombinierte Lauf werden live angezeigt
+ echo   und gleichzeitig protokolliert. Bei einem Fehler entsteht automatisch:
 echo   build\FEHLERBERICHT.md
+echo   Die zugehoerige Logdatei liegt ebenfalls unter build\.
 echo   Der Markdown-Bericht kann nach einer kurzen Sichtpruefung als Grundlage
  echo   fuer ein GitHub-Issue verwendet werden.
 echo.
