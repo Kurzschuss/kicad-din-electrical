@@ -26,7 +26,7 @@ def build_report(title: str, command: str, exit_code: int, log_text: str) -> str
 
 - **Prüfung:** {title}
 - **Zeitpunkt:** {now}
-- **Fehlercode:** `{exit_code}`
+- Fehlercode: `{exit_code}`
 - **Befehl:** `{command}`
 
 ## Umgebung
