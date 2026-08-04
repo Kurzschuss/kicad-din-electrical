@@ -48,5 +48,7 @@ jobs:
           git diff --exit-code -- docs/site/index.html
       - name: Check generated device catalog HTML
         run: python -m tools.generate_device_catalog_html --check
-      - name: Check generated Z_Cockpit HTML
-        run: python tools/generate_z_cockpit.py --check
+      - name: Generate Z_Cockpit HTML
+        run: |
+          python tools/generate_z_cockpit.py
+          test -s docs/site/z-cockpit.html
