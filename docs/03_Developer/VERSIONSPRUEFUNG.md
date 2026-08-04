@@ -1,55 +1,71 @@
-# Versionsprüfung vor GitHub-Meldungen
+# Repositoryprüfung vor GitHub-Meldungen
 
-Vor dem Erzeugen einer GitHub-Issue-Vorschau wird geprüft, ob der lokale Arbeitsstand den aktuellen Stand von `origin/main` vollständig enthält.
+Vor einer GitHub-Issue-Vorschau werden Aktualität, Herkunft und Unverändertheit des lokalen Repositorys geprüft.
 
-## Zweck
+## Normalbetrieb
 
-Fehler sollen nicht aus einem veralteten Softwarestand gemeldet werden, wenn sie in einer neueren Version möglicherweise bereits behoben wurden.
+Eine Meldung wird nur freigegeben, wenn alle Bedingungen erfüllt sind:
 
-## Ablauf
+1. `origin` zeigt auf `Kurzschuss/kicad-din-electrical`.
+2. `git fetch origin main` war erfolgreich.
+3. Lokales `HEAD` entspricht exakt `origin/main`.
+4. `git status --porcelain --untracked-files=normal` liefert keine Änderungen.
 
-1. `git fetch --quiet origin main` aktualisiert ausschließlich die Informationen über den entfernten Stand.
-2. Lokales `HEAD` und `origin/main` werden ermittelt.
-3. Die Anzahl voraus- und zurückliegender Commits wird bestimmt.
-4. Es wird geprüft, ob `origin/main` ein Vorfahr des lokalen `HEAD` ist.
-5. Das Ergebnis wird unter `build/VERSIONSPRUEFUNG.json` gespeichert.
+Forks, lokale Commits, geänderte Dateien und nicht verfolgte Dateien sperren die Meldung. So können Fehler aus angepassten Benutzerständen nicht automatisch dem Originalprojekt zugeordnet werden.
 
-Die Prüfung verändert keine lokalen Dateien und führt weder `git pull` noch einen automatischen Merge aus.
+## Entwicklermodus
 
-## Zulässige Zustände
+Der Entwicklermodus ist für freigegebene Projektentwickler vorgesehen. Er wird lokal gesetzt:
 
-### Aktuell
+```text
+set KICAD_DIN_DEVELOPER_MODE=1
+```
 
-Lokales `HEAD` und `origin/main` sind identisch.
+Der Schalter allein reicht nicht. Zusätzlich müssen alle Bedingungen erfüllt sein:
 
-### Aktuell mit lokalen Änderungen
+- `origin` ist das offizielle Repository,
+- der Branch ist nicht hinter `origin/main`,
+- GitHub CLI (`gh`) ist angemeldet,
+- `gh api user --jq .login` liefert einen Benutzer aus `config/authorized_developers.json`.
 
-Ein Feature-Branch enthält den aktuellen Stand von `origin/main` vollständig und besitzt zusätzliche lokale Commits. Dieser Zustand ist für eine Fehleranalyse zulässig.
+Ist eine Bedingung nicht erfüllt, bleibt die Meldung gesperrt.
 
-## Gesperrte Zustände
+## Geschützte Whitelist
 
-### Veraltet
+Die freigegebenen GitHub-Benutzer stehen in:
 
-Der aktuelle Stand von `origin/main` ist im lokalen Branch nicht vollständig enthalten. Die Issue-Vorschau bleibt gesperrt. Zuerst muss aktualisiert und anschließend erneut getestet werden.
+```text
+config/authorized_developers.json
+```
 
-### Unbekannt
+`CODEOWNERS` ordnet Änderungen an Whitelist, Prüfskript und `CODEOWNERS` selbst dem Projektinhaber `@Kurzschuss` zu. Damit dies technisch erzwungen wird, muss für `main` in den GitHub-Branch-Regeln zusätzlich eine erforderliche Code-Owner-Prüfung aktiviert sein.
 
-Die Aktualität kann nicht sicher bestätigt werden, beispielsweise weil GitHub nicht erreichbar ist, `origin/main` fehlt oder Git nicht ausgeführt werden kann. Auch dann bleibt die Issue-Vorschau gesperrt.
+Eine lokale Änderung der Whitelist hilft einem normalen Benutzer nicht: Sie macht den Arbeitsbaum unsauber und sperrt den Normalbetrieb. Im Entwicklermodus wird außerdem ein tatsächlich über `gh` authentifizierter Whitelist-Benutzer verlangt.
 
-## Sicherheitsregel
+## Reihenfolge
 
-Eine GitHub-Meldung darf nur vorbereitet oder später veröffentlicht werden, wenn die Versionsprüfung den Status `aktuell` oder `aktuell_mit_lokalen_aenderungen` bestätigt.
+1. Remote-Herkunft prüfen.
+2. `origin/main` abrufen.
+3. Rückstand gegenüber `origin/main` prüfen.
+4. Originalzustand des Arbeitsbaums prüfen.
+5. Nur bei Bedarf den doppelt abgesicherten Entwicklermodus prüfen.
+6. Ergebnis unter `build/VERSIONSPRUEFUNG.json` speichern.
+7. Nur bei Freigabe die lokale Issue-Vorschau erzeugen.
 
-Der aktuelle Workflow erzeugt weiterhin ausschließlich eine lokale Vorschau. Eine automatische Veröffentlichung ist nicht enthalten.
+Die Prüfung führt kein `git pull`, keinen Merge und keine automatische GitHub-Veröffentlichung aus.
+
+## Statuswerte
+
+- `original_aktuell`: unveränderte aktuelle Originalversion.
+- `entwickler_freigegeben`: authentifizierter Whitelist-Entwickler im Entwicklermodus.
+- `nicht_offizielles_repository`: Fork oder anderes Remote.
+- `veraltet`: lokaler Stand liegt hinter `origin/main`.
+- `lokal_veraendert`: lokale Dateien oder Commits weichen vom Original ab.
+- `entwicklermodus_nicht_autorisiert`: Entwicklermodus ohne gültige Whitelist-Authentifizierung.
+- `unbekannt`: sichere Prüfung nicht möglich.
 
 ## Manuelle Ausführung
 
 ```text
 python -m tools.check_repository_version
-```
-
-Ergebnisdatei:
-
-```text
-build/VERSIONSPRUEFUNG.json
 ```
