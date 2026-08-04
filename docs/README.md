@@ -24,11 +24,12 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Geräteserien und Varianten](03_Developer/DEVICE_SERIES.md)
 - [Gerätefamilien und Funktionsgruppen](03_Developer/DEVICE_TAXONOMY.md)
 
-## Bibliotheksreferenz
+## Bibliotheksreferenz und Werkzeuge
 
 - [Durchsuchbare HTML-Übersicht](site/index.html)
 - [Technischer Gerätekatalog](site/devices.html)
 - [Durchsuchbare Symbolvorschau-Galerie](site/symbol-previews/index.html)
+- [Z_Cockpit-Tabellenprototyp](site/z-cockpit-prototyp.html)
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
 - [Bibliotheks-Qualitätsbericht](04_Reference/QUALITY_REPORT.md)
@@ -41,6 +42,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Manifest](00_Project/MANIFESTO.md)
 - [Projektprinzipien](00_Project/PRINCIPLES.md)
 - [Qualitätshandbuch für Bibliothekspakete](00_Project/LIBRARY_GUIDELINES.md)
+- [EE-WERKZEUG-0001: Tabellenoberfläche für Z_Cockpit](00_Project/entwurfsentscheidungen/EE-WERKZEUG-0001_Z_Cockpit_Tabellenoberflaeche.md)
 
 ## Planung und Nachvollziehbarkeit
 
@@ -54,7 +56,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 - LS-Master-Goldstandard fachlich und grafisch festlegen
 - Leitungsschutzschalter-Familie 1P bis 4P aufbauen
-- erste statische Ansicht für `Z_Cockpit` und Bibliotheks-Viewer vorbereiten
+- Z_Cockpit-Prototyp mit echten Gerätekatalogdaten verbinden
+- Symbolvorschau in die Detailansicht integrieren
 - kleinen Verteilerplan als Praxistest erstellen
 - Qualitätshandbuch weiter ausarbeiten
 - Normen- und Symbolreferenz ergänzen

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Z_Cockpit – Tabellenprototyp</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; grid-template-rows: auto auto 1fr auto; }
+    header, nav, footer { padding: .7rem 1rem; border-bottom: 1px solid #8886; }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    nav { display: flex; gap: 1rem; flex-wrap: wrap; }
+    main { display: grid; grid-template-columns: 240px 1fr 310px; min-height: 0; }
+    aside, section { padding: 1rem; overflow: auto; }
+    aside { border-right: 1px solid #8886; }
+    .details { border-left: 1px solid #8886; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { padding: .4rem .5rem; border-radius: .25rem; cursor: default; }
+    li.active { background: #2878c81f; font-weight: 700; }
+    .filters { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: .6rem; margin-bottom: .8rem; }
+    label { display: grid; gap: .2rem; font-size: .8rem; }
+    select { width: 100%; padding: .45rem; }
+    .table-wrap { overflow: auto; border: 1px solid #8886; }
+    table { border-collapse: collapse; width: 100%; min-width: 1000px; }
+    th, td { padding: .55rem .65rem; border-bottom: 1px solid #8884; text-align: left; white-space: nowrap; }
+    th { position: sticky; top: 0; background: Canvas; cursor: pointer; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover, tbody tr.selected { background: #2878c81a; }
+    .ok { font-weight: 700; }
+    .missing { font-weight: 700; }
+    dl { display: grid; grid-template-columns: 1fr 1.4fr; gap: .45rem .7rem; }
+    dt { font-weight: 700; }
+    dd { margin: 0; }
+    .tabs { display: flex; gap: .3rem; margin-top: 1rem; }
+    .tabs button { padding: .45rem .7rem; }
+    .preview { margin-top: .5rem; min-height: 180px; display: grid; place-items: center; border: 1px dashed #8888; text-align: center; padding: 1rem; }
+    footer { border-top: 1px solid #8886; border-bottom: 0; display: flex; justify-content: space-between; gap: 1rem; }
+    @media (max-width: 1050px) { main { grid-template-columns: 200px 1fr; } .details { grid-column: 1 / -1; border-left: 0; border-top: 1px solid #8886; } }
+  </style>
+</head>
+<body>
+<header><h1>Z_Cockpit – Bibliotheks- und Geräteübersicht</h1></header>
+<nav><span>Datei</span><span>Bibliothek</span><span>Werkzeuge</span><span>Qualität</span><span>Ansicht</span><span>Hilfe</span></nav>
+<main>
+  <aside>
+    <h2>Gerätefamilien</h2>
+    <ul id="families">
+      <li class="active" data-family="">Alle Geräte</li>
+      <li data-family="Leitungsschutzschalter">Leitungsschutzschalter</li>
+      <li data-family="Fehlerstrom-Schutzeinrichtung">Fehlerstrom-Schutzeinrichtungen</li>
+      <li data-family="FI/LS-Schalter">FI/LS-Schalter</li>
+      <li data-family="Überspannungsschutz">Überspannungsschutz</li>
+      <li data-family="Schütz">Schütze</li>
+      <li data-family="Klemme">Klemmen</li>
+    </ul>
+  </aside>
+
+  <section>
+    <div class="filters">
+      <label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label>
+      <label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label>
+      <label>Polzahl<select id="poles"><option value="">Alle</option></select></label>
+      <label>Charakteristik<select id="curve"><option value="">Alle</option></select></label>
+      <label>Nennstrom<select id="current"><option value="">Alle</option></select></label>
+      <label>Status<select id="status"><option value="">Alle</option><option>Goldstandard</option><option>Geprüft</option><option>Entwurf</option></select></label>
+    </div>
+    <div class="table-wrap">
+      <table id="devices">
+        <thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="details">
+    <h2>Eigenschaften</h2>
+    <dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl>
+    <div class="tabs"><button type="button">Symbol</button><button type="button">Footprint</button><button type="button">3D</button></div>
+    <div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div>
+  </section>
+</main>
+<footer><span id="count">0 Geräte</span><span>KiCad-Status: noch nicht angebunden</span><span>Prototyp 0.1</span></footer>
+<script>
+const data = [
+ {name:'LS B16, 1-polig', id:'generic.mcb-1p-b16-template', family:'Leitungsschutzschalter', manufacturer:'Herstellerneutral', poles:'1P', curve:'B', current:'16 A', symbol:true, footprint:true, model:false, status:'Geprüft', library:'Z_MCB:LS_1P'},
+ {name:'LS C16, 3-polig', id:'generic.mcb-3p-c16-template', family:'Leitungsschutzschalter', manufacturer:'Herstellerneutral', poles:'3P', curve:'C', current:'16 A', symbol:false, footprint:false, model:false, status:'Entwurf', library:'Z_MCB:LS_3P'},
+ {name:'FI 40 A / 30 mA, 2-polig, Typ A', id:'generic.rcd-2p-40a-30ma-type-a-template', family:'Fehlerstrom-Schutzeinrichtung', manufacturer:'Herstellerneutral', poles:'2P', curve:'–', current:'40 A', symbol:true, footprint:true, model:false, status:'Goldstandard', library:'Z_RCD:RCD'}
+];
+const fields = {family:'family', manufacturer:'manufacturer', poles:'poles', curve:'curve', current:'current', status:'status'};
+function fillSelect(id, key) {
+ const el=document.getElementById(id); [...new Set(data.map(x=>x[key]))].sort().forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);});
+}
+Object.entries(fields).forEach(([id,key])=>{ if(id!=='status') fillSelect(id,key); document.getElementById(id).addEventListener('change',render); });
+document.querySelectorAll('#families li').forEach(li=>li.addEventListener('click',()=>{document.querySelectorAll('#families li').forEach(x=>x.classList.remove('active'));li.classList.add('active');document.getElementById('family').value=li.dataset.family;render();}));
+function mark(v){return v?'<span class="ok">✓</span>':'<span class="missing">–</span>'}
+function render(){
+ const tbody=document.querySelector('#devices tbody'); tbody.innerHTML='';
+ const rows=data.filter(item=>Object.entries(fields).every(([id,key])=>{const v=document.getElementById(id).value;return !v||item[key]===v;}));
+ rows.forEach(item=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${item.name}</td><td><code>${item.id}</code></td><td>${item.family}</td><td>${item.manufacturer}</td><td>${item.poles}</td><td>${item.curve}</td><td>${item.current}</td><td>${mark(item.symbol)}</td><td>${mark(item.footprint)}</td><td>${mark(item.model)}</td><td>${item.status}</td>`;tr.addEventListener('click',()=>selectRow(tr,item));tbody.appendChild(tr);});
+ document.getElementById('count').textContent=`${rows.length} Gerät(e)`;
+}
+function selectRow(tr,item){document.querySelectorAll('#devices tbody tr').forEach(x=>x.classList.remove('selected'));tr.classList.add('selected');document.getElementById('properties').innerHTML=`<dt>Name</dt><dd>${item.name}</dd><dt>Bibliothek</dt><dd><code>${item.library}</code></dd><dt>Familie</dt><dd>${item.family}</dd><dt>Polzahl</dt><dd>${item.poles}</dd><dt>Nennstrom</dt><dd>${item.current}</dd><dt>Qualitätsstatus</dt><dd>${item.status}</dd>`;document.getElementById('preview').innerHTML=`<strong>${item.name}</strong><br><br>Symbolvorschau folgt aus dem vorhandenen Vorschaugenerator.`;}
+render();
+</script>
+</body>
+</html>
