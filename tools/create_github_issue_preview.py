@@ -13,6 +13,7 @@ SUMMARY_TITLE = re.compile(r"^- \*\*Prüfung:\*\*\s*(.+)$", re.MULTILINE)
 
 
 def redact_sensitive_text(text: str) -> str:
+    """Maskiert lokale Benutzerpfade und typische Zugangsdaten."""
     text = WINDOWS_USER_PATH.sub(r"\1<Benutzer>", text)
     return SECRET_ASSIGNMENT.sub(lambda match: f"{match.group(1)}=<MASKIERT>", text)
 
