@@ -33,6 +33,52 @@ Das Qualitätshandbuch wird schrittweise um folgende Regeln ergänzt:
 - Kriterien für die Qualitätsstufen
 - Nachweis einer praktischen Verwendung
 
+## Sprach- und Benennungsregel
+
+Deutsch ist die verbindliche Primärsprache des Projekts.
+
+### Benutzerseitige Inhalte
+
+Folgende Inhalte werden grundsätzlich auf Deutsch geführt:
+
+- Benutzerdokumentation und Anleitungen
+- Menüs, Konsolenausgaben und Fehlermeldungen
+- HTML-Katalog und sichtbare Gerätebezeichnungen
+- Beschreibungen, Hinweise und Qualitätsberichte
+- Namen von Gerätefamilien in der deutschsprachigen Darstellung
+
+Beispiele sind `Leitungsschutzschalter`, `Fehlerstrom-Schutzeinrichtung`, `Hauptschalter` und `Überspannungs-Schutzeinrichtung`.
+
+### Technische Kennungen
+
+Etablierte internationale Fachkürzel bleiben für stabile technische Kennungen, Dateinamen, Bibliotheksnamen und IDs zulässig und erwünscht. Dazu gehören insbesondere `MCB`, `RCD`, `RCBO` und `SPD`.
+
+Bestehende Kennungen wie `Z_MCB`, `Z_RCD`, `protection.mcb` oder `generic.mcb-1p-b16-template` werden nicht allein aus sprachlichen Gründen umbenannt. Dadurch bleiben Projekte, Verweise und Generatorausgaben kompatibel.
+
+Eigene Bibliotheken, Symbole, Footprints, 3D-Modelle und Designblöcke tragen weiterhin verbindlich das Präfix `Z_`.
+
+### Zweisprachige Gerätemetadaten
+
+Neue oder fachlich überarbeitete Gerätekatalogeinträge erhalten zusätzlich zu den stabilen technischen Kennungen zweisprachige Anzeigenamen:
+
+```json
+{
+  "name_de": "Leitungsschutzschalter B16, 1-polig",
+  "name_en": "Miniature Circuit Breaker B16, 1-pole",
+  "abbreviation": "MCB"
+}
+```
+
+Dabei gilt:
+
+- `name_de` ist die primäre sichtbare Bezeichnung.
+- `name_en` ermöglicht internationale Suche und spätere englische Ausgaben.
+- `abbreviation` enthält ein etabliertes, sprachneutrales Fachkürzel.
+- Technische IDs und Bibliotheksverweise werden nicht aus den Anzeigenamen abgeleitet.
+- Generatoren und Katalogausgaben verwenden standardmäßig `name_de`; Englisch ist eine zusätzliche Darstellung.
+
+Bestehende Katalogdaten werden schrittweise migriert. Neue Gerätefamilien dürfen nur noch mit deutschen und englischen Anzeigenamen angelegt werden.
+
 ## Qualitätsstufen
 
 ### Entwurf

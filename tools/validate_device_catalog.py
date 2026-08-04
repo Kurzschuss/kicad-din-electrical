@@ -21,13 +21,14 @@ REQUIRED_FIELDS = {
 ALLOWED_FIELDS = REQUIRED_FIELDS | {
     "description", "poles", "rated_current_a", "trip_curve",
     "breaking_capacity_ka", "modules", "footprint", "datasheet",
-    "source_status",
+    "source_status", "name_de", "name_en", "abbreviation",
 }
 POLICIES = {"required", "optional", "none"}
 SOURCE_STATES = {"template", "verified", "unverified"}
 QUALIFIED_ID = re.compile(r"^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$")
 DEVICE_ID = re.compile(r"^[a-z0-9][a-z0-9._-]+$")
 FAMILY_ID = re.compile(r"^[a-z0-9][a-z0-9._-]+$")
+ABBREVIATION = re.compile(r"^[A-Z][A-Z0-9+_-]*$")
 
 
 def load_device(path: Path) -> dict[str, object]:
@@ -86,6 +87,23 @@ def validate_device(
     for field in ("manufacturer", "series", "part_number", "device_type", "function_group"):
         if field in data and (not isinstance(data[field], str) or not data[field].strip()):
             errors.append(f"{field} muss ein nichtleerer Text sein")
+
+    bilingual_fields = ("name_de", "name_en", "abbreviation")
+    present_bilingual_fields = [field for field in bilingual_fields if field in data]
+    if present_bilingual_fields and len(present_bilingual_fields) != len(bilingual_fields):
+        missing_bilingual = sorted(set(bilingual_fields) - data.keys())
+        errors.append(
+            "Zweisprachige Metadaten sind unvollständig; fehlend: "
+            + ", ".join(missing_bilingual)
+        )
+    for field in ("name_de", "name_en"):
+        if field in data and (not isinstance(data[field], str) or not data[field].strip()):
+            errors.append(f"{field} muss ein nichtleerer Text sein")
+    abbreviation = data.get("abbreviation")
+    if abbreviation is not None and (
+        not isinstance(abbreviation, str) or not ABBREVIATION.fullmatch(abbreviation)
+    ):
+        errors.append("abbreviation muss ein etabliertes großgeschriebenes Fachkürzel sein")
 
     family = data.get("function_group")
     if isinstance(family, str) and allowed_families is not None and family not in allowed_families:
