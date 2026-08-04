@@ -7,7 +7,7 @@ Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der te
 ## Erzeugen
 
 ```text
-python tools/generate_z_cockpit.py
+python -m tools.generate_z_cockpit
 ```
 
 Die Ausgabe wird hier abgelegt:
@@ -15,6 +15,8 @@ Die Ausgabe wird hier abgelegt:
 ```text
 docs/site/z-cockpit.html
 ```
+
+Der Modulaufruf ist verbindlich, weil der Generator gemeinsame Funktionen aus dem Python-Paket `tools` verwendet.
 
 ## Unter Windows öffnen
 
