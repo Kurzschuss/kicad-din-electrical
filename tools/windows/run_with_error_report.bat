@@ -28,6 +28,7 @@ if not "%RESULT%"=="0" (
     echo   Bericht: build\FEHLERBERICHT.md
     echo   Protokoll: %REPORT_LOG%
     echo.
+    call "tools\windows\open_error_report.bat"
 )
 
 exit /b %RESULT%
