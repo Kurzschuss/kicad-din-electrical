@@ -45,17 +45,18 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 ## Planung und Nachvollziehbarkeit
 
 - [Projekt-Roadmap](01_Roadmap/PROJECT_ROADMAP.md)
+- [Suite- und Z_Cockpit-Konzept](01_Roadmap/SUITE_AND_COCKPIT_CONCEPT.md)
 - [Ideensammlung](01_Roadmap/IDEAS.md)
 - [Entscheidungsprotokoll](01_Roadmap/DECISIONS.md)
 - [Projektprotokoll](01_Roadmap/PROJECT_LOG.md)
 
 ## Als Nächstes geplant
 
-- Qualitätshandbuch vollständig ausarbeiten
-- praxisnahe Beispielprojekte und Vorlagen
-- erstes vollständiges Gerätepaket für MCB
-- Qualitätsstatus in HTML-Referenz und Gerätekatalog
-- Normen- und Symbolreferenz
-- Kompatibilitätsmatrix für KiCad-Versionen
+- LS-Master-Goldstandard fachlich und grafisch festlegen
+- Leitungsschutzschalter-Familie 1P bis 4P aufbauen
+- erste statische Ansicht für `Z_Cockpit` und Bibliotheks-Viewer vorbereiten
+- kleinen Verteilerplan als Praxistest erstellen
+- Qualitätshandbuch weiter ausarbeiten
+- Normen- und Symbolreferenz ergänzen
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
