@@ -18,7 +18,7 @@
         {"id": "symbolvorschau", "title_de": "Symbolvorschau anbinden", "state": "done"},
         {"id": "footprintvorschau", "title_de": "Footprintvorschau anbinden", "state": "done"},
         {"id": "bibliotheksbrowser", "title_de": "Bibliotheksbrowser umsetzen", "state": "done"},
-        {"id": "bibliotheksgesundheit", "title_de": "Bibliotheksgesundheit auswerten", "state": "planned"}
+        {"id": "bibliotheksgesundheit", "title_de": "Bibliotheksgesundheit auswerten", "state": "done"}
       ]
     },
     {
@@ -29,6 +29,13 @@
         {"id": "navigation", "title_de": "Navigation und Startseite", "state": "done"},
         {"id": "projektstatus", "title_de": "Projektstatus-Karten", "state": "done"},
         {"id": "sicherheitsseite", "title_de": "Sicherheitsseite sichtbar anbinden", "state": "done"}
+      ]
+    },
+    {
+      "id": "qualitaet",
+      "title_de": "Qualitätssicherung",
+      "tasks": [
+        {"id": "projektvalidator", "title_de": "Projektanalyse und Konsistenzprüfung umsetzen", "state": "planned"}
       ]
     },
     {
