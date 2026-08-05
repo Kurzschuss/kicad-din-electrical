@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 210" role="img">
+  <title>Footprint: Z_DIN_Module_36mm</title>
+  <rect x="1" y="1" width="258" height="208" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="24.00" y="24.00" width="64.80" height="162.00" fill="none" stroke="currentColor" stroke-width="2" opacity="1"/>
+  <rect x="24.00" y="24.00" width="64.80" height="162.00" fill="none" stroke="currentColor" stroke-width="2" opacity="0.65" stroke-dasharray="5 4"/>
+  <text x="130" y="194" text-anchor="middle" font-size="12">Z_DIN_Module_36mm</text>
+</svg>
