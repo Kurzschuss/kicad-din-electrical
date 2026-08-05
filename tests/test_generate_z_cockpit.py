@@ -29,12 +29,7 @@ def test_generic_manufacturer_is_shown_in_german():
     assert device["symbol_preview_url"] == "symbol-previews/Z_MCB/MCB.svg"
     assert device["symbol_preview_available"] is True
     assert device["footprint"]
-    assert device["footprint_preview_status"] in {
-        "Kontur",
-        "Platzhalter",
-        "Fehlt",
-        "Nicht zugeordnet",
-    }
+    assert device["footprint_preview_status"] in {"Kontur", "Platzhalter", "Fehlt", "Nicht zugeordnet"}
 
 
 def test_summary_uses_real_catalog_values():
@@ -50,9 +45,11 @@ def test_navigation_is_generated_from_registered_pages():
     navigation = navigation_html()
     assert 'data-page="start"' in navigation
     assert 'data-page="geraete"' in navigation
+    assert 'data-page="bibliotheken"' in navigation
     assert "Bibliotheken" in navigation
     assert "Qualität" in navigation
     assert "Sicherheit" in navigation
+    assert 'data-page="bibliotheken" title="Symbole, Footprints und Modelle">Bibliotheken</button>' in navigation
 
 
 def test_project_status_cards_distinguish_present_and_prepared_components():
@@ -67,9 +64,10 @@ def test_project_status_cards_distinguish_present_and_prepared_components():
     assert "noch nicht aktiviert" in cards
 
 
-def test_security_is_not_generated_as_placeholder():
+def test_security_and_libraries_are_not_generated_as_placeholders():
     placeholders = placeholder_pages_html()
     assert 'id="page-sicherheit"' not in placeholders
+    assert 'id="page-bibliotheken"' not in placeholders
     assert 'id="page-diagnose"' in placeholders
 
 
@@ -82,6 +80,13 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Fortschritt bis Version 1.0" in html
     assert "Gesamtfortschritt" in html
     assert "Bibliotheken" in html
+    assert 'id="page-bibliotheken"' in html
+    assert 'class="cards library-summary"' in html
+    assert 'class="library-card"' in html
+    assert 'class="library-table"' in html
+    assert "Gerätezuordnungen" in html
+    assert "Vorschaupaare" in html
+    assert html.count('id="page-bibliotheken"') == 1
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
@@ -89,7 +94,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
     assert "Als Nächstes empfohlen" in html
-    assert "Bibliotheksbrowser umsetzen" in html
+    assert "Bibliotheksgesundheit auswerten" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
@@ -122,4 +127,4 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Footprint vorhanden, aber noch ohne darstellbare Geometrie." in html
     assert "Technische SVG-Schnellansicht" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
-    assert "Z_Cockpit 0.9" in html
+    assert "Z_Cockpit 1.0" in html
