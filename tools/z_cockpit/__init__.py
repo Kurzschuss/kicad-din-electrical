@@ -28,6 +28,12 @@ from .project_dashboard import (
 )
 from .project_model import ProjectState, load_project_state
 from .project_status import StatusItem, collect_project_status
+from .quality_engine import (
+    LibraryQualityResult,
+    QualityIssue,
+    evaluate_libraries,
+    evaluate_library,
+)
 from .security_page import security_page_html, security_state_label, security_table_html
 from .security_status import SecurityItem, collect_security_status
 from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_preview
@@ -36,10 +42,12 @@ __all__ = [
     "DEFAULT_PAGES",
     "DashboardTask",
     "FootprintAssignment",
+    "LibraryQualityResult",
     "LibrarySymbol",
     "NavigatorRecommendation",
     "PageSpec",
     "ProjectState",
+    "QualityIssue",
     "SecurityItem",
     "StatusItem",
     "SymbolLibrary",
@@ -49,6 +57,8 @@ __all__ = [
     "collect_security_status",
     "collect_symbol_libraries",
     "development_navigator_html",
+    "evaluate_libraries",
+    "evaluate_library",
     "footprint_assignment",
     "library_page_html",
     "load_footprint_mapping",
