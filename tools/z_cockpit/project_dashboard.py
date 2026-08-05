@@ -36,7 +36,7 @@ def progress_bar_html(percent: int, label_de: str) -> str:
     label = escape(label_de)
     return (
         f'<div class="progress-row"><div class="progress-label">'
-        f'<span>{label}</span><strong>{percent} %</strong></div>'
+        f'<span>{label}</span><strong class="progress-percent">{percent} %</strong></div>'
         f'<div class="progress-track" role="progressbar" aria-label="{label}" '
         f'aria-valuemin="0" aria-valuemax="100" aria-valuenow="{percent}">'
         f'<div class="progress-fill" style="width:{percent}%"></div></div></div>'
