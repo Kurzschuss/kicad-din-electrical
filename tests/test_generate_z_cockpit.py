@@ -103,7 +103,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "generic.mcb-1p-b16-template" in html
     assert '"symbol_preview_url": "symbol-previews/Z_MCB/MCB.svg"' in html
     assert '"symbol_preview_available": true' in html
-    assert 'alt="Symbolvorschau ${{item.symbol}}"' in html
+    assert 'alt="Symbolvorschau ${item.symbol}"' in html
     assert "Für dieses Symbol ist keine Vorschau verfügbar." in html
     assert "Technische SVG-Schnellansicht" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
