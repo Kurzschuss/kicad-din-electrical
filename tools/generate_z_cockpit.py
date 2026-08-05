@@ -16,6 +16,7 @@ from tools.z_cockpit import (
     load_project_state,
     next_tasks_html,
     project_progress_html,
+    security_page_html,
 )
 
 OUTPUT_PATH = REPO_ROOT / "docs" / "site" / "z-cockpit.html"
@@ -90,7 +91,7 @@ def project_status_html() -> str:
 def placeholder_pages_html() -> str:
     pages = []
     for page in DEFAULT_PAGES:
-        if page.page_id in {"start", "geraete"}:
+        if page.page_id in {"start", "geraete", "sicherheit"}:
             continue
         pages.append(
             f'<section class="page" id="page-{page.page_id}"><h2>{page.label_de}</h2>'
@@ -109,6 +110,7 @@ def render_html(devices: list[dict[str, object]]) -> str:
     project_progress = project_progress_html(project)
     next_tasks = next_tasks_html(project, limit=5)
     navigator = development_navigator_html(project)
+    security_page = security_page_html()
     placeholders = placeholder_pages_html()
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -128,6 +130,7 @@ main{{display:grid;grid-template-columns:230px 1fr;min-height:0}}aside{{padding:
 .next-tasks{{margin:0;padding-left:1.4rem}}.next-tasks li{{margin:.55rem 0}}.task-state{{font-weight:700}}
 .status-section{{margin-top:1.5rem}}.status-heading{{display:flex;gap:.55rem;align-items:center}}.status-state{{font-weight:700;margin:.65rem 0 .25rem}}
 .status-card p{{margin:.35rem 0 0;line-height:1.4}}.status-card.available{{border-left:5px solid #2e8b57}}.status-card.prepared{{border-left:5px solid #c58a00}}.status-card.missing{{border-left:5px solid #b33a3a}}
+.security-table-wrap{{overflow:auto;margin-top:1rem;border:1px solid #8886;border-radius:.5rem}}.security-table{{min-width:760px}}.security-table th[scope="row"]{{position:static;background:transparent}}.security-table tr[data-state="vorhanden"]{{border-left:5px solid #2e8b57}}.security-table tr[data-state="vorbereitet"]{{border-left:5px solid #c58a00}}.security-table tr[data-state="laufzeitpruefung"]{{border-left:5px solid #2878c8}}.security-table tr[data-state="fehlt"]{{border-left:5px solid #b33a3a}}.security-notice{{margin-top:1rem;padding:1rem;border:1px solid #c58a0088;border-left:5px solid #c58a00;border-radius:.5rem}}
 .device-layout{{display:grid;grid-template-columns:1fr 310px;min-height:0}}.device-main,.details{{padding:1rem;overflow:auto}}.details{{border-left:1px solid #8886}}
 .filters{{display:grid;grid-template-columns:repeat(6,minmax(125px,1fr));gap:.6rem;margin-bottom:.8rem}}label{{display:grid;gap:.2rem;font-size:.8rem}}select{{padding:.45rem}}
 .table-wrap{{overflow:auto;border:1px solid #8886}}table{{border-collapse:collapse;width:100%;min-width:1050px}}th,td{{padding:.55rem .65rem;border-bottom:1px solid #8884;text-align:left;white-space:nowrap}}
@@ -146,8 +149,8 @@ footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:
 <section class="page" id="page-geraete"><div class="device-layout"><div class="device-main"><h2>Geräte</h2><div class="filters">
 <label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label>
 </div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
-<section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div></section></div></section>{placeholders}</div></main>
-<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.6</span></footer>
+<section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div></section></div></section>{security_page}{placeholders}</div></main>
+<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.7</span></footer>
 <script>const data={payload};const fields={{family:'family',manufacturer:'manufacturer',poles:'poles',curve:'curve',current:'current',status:'status'}};
 function showPage(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${{id}}`));document.querySelectorAll('.page-link').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}}
 document.querySelectorAll('.page-link').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.page)));document.querySelector('[data-page="start"]').classList.add('active');
