@@ -15,7 +15,8 @@
         {"id": "geraetekatalog", "title_de": "Technischen Gerätekatalog pflegen", "state": "done"},
         {"id": "symbolbibliothek", "title_de": "Symbolbibliothek bereitstellen", "state": "done"},
         {"id": "footprints", "title_de": "Footprintbibliothek bereitstellen", "state": "done"},
-        {"id": "symbolvorschau", "title_de": "Symbolvorschau anbinden", "state": "planned"}
+        {"id": "symbolvorschau", "title_de": "Symbolvorschau anbinden", "state": "done"},
+        {"id": "footprintvorschau", "title_de": "Footprintvorschau anbinden", "state": "planned"}
       ]
     },
     {
