@@ -59,6 +59,15 @@ def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
     assert "Projektstatus" in html
     assert "Gerätefamilien" in html
     assert "Geprüfte Geräte" in html
+    assert "Fortschritt bis Version 1.0" in html
+    assert "Gesamtfortschritt" in html
+    assert "Bibliotheken" in html
+    assert "Z_Cockpit" in html
+    assert "Repository-Sicherheit" in html
+    assert "Nächste Aufgaben" in html
+    assert "In Arbeit" in html
+    assert "Geplant" in html
+    assert "Blockiert" in html
     assert "Projektbestandteile" in html
     assert 'class="status-card prepared" data-status="ruleset"' in html
     assert 'id="page-geraete"' in html
@@ -68,5 +77,5 @@ def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
     assert "Hersteller" in html
     assert "Charakteristik" in html
     assert "generic.mcb-1p-b16-template" in html
-    assert "Datenquelle: technischer Gerätekatalog" in html
-    assert "Z_Cockpit 0.4" in html
+    assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
+    assert "Z_Cockpit 0.5" in html
