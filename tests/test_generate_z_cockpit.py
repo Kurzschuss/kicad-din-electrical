@@ -14,6 +14,8 @@ def test_cockpit_uses_catalog_devices():
     assert any(item["id"] == "generic.mcb-1p-b16-template" for item in devices)
     assert all(item["family"] for item in devices)
     assert all(item["symbol"] for item in devices)
+    assert all(item["symbol_preview_url"] for item in devices)
+    assert all(isinstance(item["symbol_preview_available"], bool) for item in devices)
 
 
 def test_generic_manufacturer_is_shown_in_german():
@@ -22,6 +24,8 @@ def test_generic_manufacturer_is_shown_in_german():
     assert device["name"] == "Leitungsschutzschalter"
     assert device["current"] == "16 A"
     assert device["curve"] == "B"
+    assert device["symbol_preview_url"] == "symbol-previews/Z_MCB/MCB.svg"
+    assert device["symbol_preview_available"] is True
 
 
 def test_summary_uses_real_catalog_values():
@@ -60,7 +64,7 @@ def test_security_is_not_generated_as_placeholder():
     assert 'id="page-diagnose"' in placeholders
 
 
-def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_and_catalog_data():
+def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_preview_and_catalog_data():
     html = render_html(cockpit_devices())
     assert 'lang="de"' in html
     assert "Projektstatus" in html
@@ -97,5 +101,10 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_and_c
     assert "Hersteller" in html
     assert "Charakteristik" in html
     assert "generic.mcb-1p-b16-template" in html
+    assert '"symbol_preview_url": "symbol-previews/Z_MCB/MCB.svg"' in html
+    assert '"symbol_preview_available": true' in html
+    assert 'alt="Symbolvorschau ${{item.symbol}}"' in html
+    assert "Für dieses Symbol ist keine Vorschau verfügbar." in html
+    assert "Technische SVG-Schnellansicht" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
-    assert "Z_Cockpit 0.7" in html
+    assert "Z_Cockpit 0.8" in html
