@@ -6,6 +6,11 @@ from .development_navigator import (
     development_navigator_html,
     recommended_work,
 )
+from .footprint_preview import (
+    FootprintAssignment,
+    footprint_assignment,
+    load_footprint_mapping,
+)
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
 from .project_dashboard import (
     DashboardTask,
@@ -23,6 +28,7 @@ from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_previe
 __all__ = [
     "DEFAULT_PAGES",
     "DashboardTask",
+    "FootprintAssignment",
     "NavigatorRecommendation",
     "PageSpec",
     "ProjectState",
@@ -33,6 +39,8 @@ __all__ = [
     "collect_project_status",
     "collect_security_status",
     "development_navigator_html",
+    "footprint_assignment",
+    "load_footprint_mapping",
     "load_project_state",
     "next_dashboard_tasks",
     "next_tasks_html",
