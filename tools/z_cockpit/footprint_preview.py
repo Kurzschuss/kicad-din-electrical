@@ -17,6 +17,8 @@ class FootprintAssignment:
     mapped: bool
     footprint_available: bool
     preview_available: bool
+    preview_relative_url: str | None
+    preview_status: str
 
 
 def load_footprint_mapping(repo_root: Path = REPO_ROOT) -> dict[str, str]:
@@ -40,12 +42,33 @@ def load_footprint_mapping(repo_root: Path = REPO_ROOT) -> dict[str, str]:
         return mapping
 
 
+def _preview_status(preview_file: Path, mapped: bool, footprint_available: bool) -> str:
+    if not mapped:
+        return "Nicht zugeordnet"
+    if not footprint_available or not preview_file.is_file():
+        return "Fehlt"
+    content = preview_file.read_text(encoding="utf-8")
+    if "Keine unterstützte Footprint-Geometrie" in content:
+        return "Platzhalter"
+    return "Kontur"
+
+
 def footprint_assignment(reference: str, repo_root: Path = REPO_ROOT) -> FootprintAssignment:
-    """Ermittelt Zuordnung und Dateistatus für eine Symbolreferenz."""
+    """Ermittelt Zuordnung, Dateien und Vorschauzustand für eine Symbolreferenz."""
     _, symbol_name = parse_symbol_reference(reference)
     footprint_name = load_footprint_mapping(repo_root).get(symbol_name)
     if footprint_name is None:
-        return FootprintAssignment(reference, symbol_name, None, None, False, False, False)
+        return FootprintAssignment(
+            reference,
+            symbol_name,
+            None,
+            None,
+            False,
+            False,
+            False,
+            None,
+            "Nicht zugeordnet",
+        )
 
     footprint_file = (
         repo_root
@@ -60,12 +83,18 @@ def footprint_assignment(reference: str, repo_root: Path = REPO_ROOT) -> Footpri
         / "footprint-previews"
         / f"{footprint_name}.svg"
     )
+    footprint_available = footprint_file.is_file()
+    preview_available = preview_file.is_file()
     return FootprintAssignment(
         symbol_reference=reference,
         symbol_name=symbol_name,
         footprint_name=footprint_name,
         footprint_file=footprint_file,
         mapped=True,
-        footprint_available=footprint_file.is_file(),
-        preview_available=preview_file.is_file(),
+        footprint_available=footprint_available,
+        preview_available=preview_available,
+        preview_relative_url=(
+            f"footprint-previews/{footprint_name}.svg" if preview_available else None
+        ),
+        preview_status=_preview_status(preview_file, True, footprint_available),
     )

@@ -16,6 +16,8 @@ def test_cockpit_uses_catalog_devices():
     assert all(item["symbol"] for item in devices)
     assert all(item["symbol_preview_url"] for item in devices)
     assert all(isinstance(item["symbol_preview_available"], bool) for item in devices)
+    assert all("footprint_preview_status" in item for item in devices)
+    assert all(isinstance(item["footprint_preview_available"], bool) for item in devices)
 
 
 def test_generic_manufacturer_is_shown_in_german():
@@ -26,6 +28,13 @@ def test_generic_manufacturer_is_shown_in_german():
     assert device["curve"] == "B"
     assert device["symbol_preview_url"] == "symbol-previews/Z_MCB/MCB.svg"
     assert device["symbol_preview_available"] is True
+    assert device["footprint"]
+    assert device["footprint_preview_status"] in {
+        "Kontur",
+        "Platzhalter",
+        "Fehlt",
+        "Nicht zugeordnet",
+    }
 
 
 def test_summary_uses_real_catalog_values():
@@ -64,7 +73,7 @@ def test_security_is_not_generated_as_placeholder():
     assert 'id="page-diagnose"' in placeholders
 
 
-def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_preview_and_catalog_data():
+def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previews_and_catalog_data():
     html = render_html(cockpit_devices())
     assert 'lang="de"' in html
     assert "Projektstatus" in html
@@ -80,7 +89,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
     assert "Als Nächstes empfohlen" in html
-    assert "Footprintvorschau anbinden" in html
+    assert "Bibliotheksbrowser umsetzen" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
@@ -103,8 +112,14 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "generic.mcb-1p-b16-template" in html
     assert '"symbol_preview_url": "symbol-previews/Z_MCB/MCB.svg"' in html
     assert '"symbol_preview_available": true' in html
+    assert '"footprint_preview_status"' in html
+    assert 'id="symbol-preview"' in html
+    assert 'id="footprint-preview"' in html
     assert 'alt="Symbolvorschau ${item.symbol}"' in html
+    assert 'alt="Footprintvorschau ${item.footprint}"' in html
     assert "Für dieses Symbol ist keine Vorschau verfügbar." in html
+    assert "Für diesen Footprint ist keine Vorschau verfügbar." in html
+    assert "Footprint vorhanden, aber noch ohne darstellbare Geometrie." in html
     assert "Technische SVG-Schnellansicht" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
-    assert "Z_Cockpit 0.8" in html
+    assert "Z_Cockpit 0.9" in html
