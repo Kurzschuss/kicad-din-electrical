@@ -17,6 +17,7 @@ from .library_browser import (
     collect_symbol_libraries,
     parse_library_symbols,
 )
+from .library_health_page import library_health_page_html
 from .library_page import library_page_html
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
 from .project_dashboard import (
@@ -60,6 +61,7 @@ __all__ = [
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
+    "library_health_page_html",
     "library_page_html",
     "load_footprint_mapping",
     "load_project_state",
