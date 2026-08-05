@@ -17,6 +17,7 @@ from tools.z_cockpit import (
     next_tasks_html,
     project_progress_html,
     security_page_html,
+    symbol_preview,
 )
 
 OUTPUT_PATH = REPO_ROOT / "docs" / "site" / "z-cockpit.html"
@@ -32,6 +33,7 @@ def cockpit_devices() -> list[dict[str, object]]:
     result: list[dict[str, object]] = []
     for item in collect_devices()["devices"]:
         manufacturer = str(item["manufacturer"])
+        preview = symbol_preview(str(item["symbol"]))
         result.append(
             {
                 "name": str(item.get("name_de") or item["device_type"]),
@@ -42,6 +44,8 @@ def cockpit_devices() -> list[dict[str, object]]:
                 "curve": _text(item.get("trip_curve")),
                 "current": _text(item.get("rated_current_a"), " A"),
                 "symbol": str(item["symbol"]),
+                "symbol_preview_url": preview.relative_url,
+                "symbol_preview_available": preview.available,
                 "footprint": str(item["footprint_policy"]),
                 "model": False,
                 "status": "Geprüft" if item.get("source_status") == "template" else "Entwurf",
@@ -135,7 +139,7 @@ main{{display:grid;grid-template-columns:230px 1fr;min-height:0}}aside{{padding:
 .filters{{display:grid;grid-template-columns:repeat(6,minmax(125px,1fr));gap:.6rem;margin-bottom:.8rem}}label{{display:grid;gap:.2rem;font-size:.8rem}}select{{padding:.45rem}}
 .table-wrap{{overflow:auto;border:1px solid #8886}}table{{border-collapse:collapse;width:100%;min-width:1050px}}th,td{{padding:.55rem .65rem;border-bottom:1px solid #8884;text-align:left;white-space:nowrap}}
 th{{position:sticky;top:0;background:Canvas}}tbody tr{{cursor:pointer}}tbody tr:hover{{background:#2878c812}}tbody tr.selected{{background:#2878c81f;font-weight:700}}
-dl{{display:grid;grid-template-columns:1fr 1.4fr;gap:.45rem .7rem}}dt{{font-weight:700}}dd{{margin:0}}.preview,.placeholder{{margin-top:1rem;min-height:150px;display:grid;place-items:center;border:1px dashed #8888;text-align:center;padding:1rem}}
+dl{{display:grid;grid-template-columns:1fr 1.4fr;gap:.45rem .7rem}}dt{{font-weight:700}}dd{{margin:0}}.preview,.placeholder{{margin-top:1rem;min-height:150px;display:grid;place-items:center;border:1px dashed #8888;text-align:center;padding:1rem}}.preview img{{display:block;width:100%;max-width:260px;height:auto}}.preview-note{{margin:.6rem 0 0;font-size:.85rem;opacity:.75}}
 footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:space-between;gap:1rem}}
 @media(max-width:1050px){{main{{grid-template-columns:190px 1fr}}.device-layout,.dashboard-grid{{grid-template-columns:1fr}}.details{{border-left:0;border-top:1px solid #8886}}}}
 </style></head><body>
@@ -150,14 +154,15 @@ footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:
 <label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label>
 </div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 <section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div></section></div></section>{security_page}{placeholders}</div></main>
-<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.7</span></footer>
+<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.8</span></footer>
 <script>const data={payload};const fields={{family:'family',manufacturer:'manufacturer',poles:'poles',curve:'curve',current:'current',status:'status'}};
 function showPage(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${{id}}`));document.querySelectorAll('.page-link').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}}
 document.querySelectorAll('.page-link').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.page)));document.querySelector('[data-page="start"]').classList.add('active');
 function values(key){{return[...new Set(data.map(x=>x[key]))].sort((a,b)=>a.localeCompare(b,'de',{{numeric:true}}))}}function option(select,value){{const o=document.createElement('option');o.value=value;o.textContent=value;select.appendChild(o)}}
 Object.entries(fields).forEach(([id,key])=>{{const el=document.getElementById(id);values(key).forEach(v=>option(el,v));el.addEventListener('change',render)}});
 function mark(v){{return v?'<strong>✓</strong>':'–'}}function render(){{const tbody=document.querySelector('#devices tbody');tbody.innerHTML='';const rows=data.filter(item=>Object.entries(fields).every(([id,key])=>{{const v=document.getElementById(id).value;return!v||item[key]===v}}));rows.forEach(item=>{{const tr=document.createElement('tr');tr.innerHTML=`<td>${{item.name}}</td><td><code>${{item.id}}</code></td><td>${{item.family}}</td><td>${{item.manufacturer}}</td><td>${{item.poles}}</td><td>${{item.curve}}</td><td>${{item.current}}</td><td><code>${{item.symbol}}</code></td><td>${{item.footprint}}</td><td>${{mark(item.model)}}</td><td>${{item.status}}</td>`;tr.addEventListener('click',()=>selectRow(tr,item));tbody.appendChild(tr)}});document.getElementById('count').textContent=`${{rows.length}} Gerät(e)`}}
-function selectRow(tr,item){{document.querySelectorAll('#devices tbody tr').forEach(x=>x.classList.remove('selected'));tr.classList.add('selected');document.getElementById('properties').innerHTML=`<dt>Name</dt><dd>${{item.name}}</dd><dt>Technische ID</dt><dd><code>${{item.id}}</code></dd><dt>Symbol</dt><dd><code>${{item.symbol}}</code></dd><dt>Familie</dt><dd>${{item.family}}</dd><dt>Nennstrom</dt><dd>${{item.current}}</dd><dt>Status</dt><dd>${{item.status}}</dd>`;document.getElementById('preview').innerHTML=`<strong>${{item.name}}</strong><br><br>Symbolvorschau wird im nächsten Ausbau angebunden.`}}render();</script></body></html>"""
+function previewHtml(item){{if(!item.symbol_preview_available)return `<div><strong>${{item.name}}</strong><p>Für dieses Symbol ist keine Vorschau verfügbar.</p></div>`;return `<div><img src="${{item.symbol_preview_url}}" alt="Symbolvorschau ${{item.symbol}}"><p class="preview-note">Technische SVG-Schnellansicht · ${{item.symbol}}</p></div>`}}
+function selectRow(tr,item){{document.querySelectorAll('#devices tbody tr').forEach(x=>x.classList.remove('selected'));tr.classList.add('selected');document.getElementById('properties').innerHTML=`<dt>Name</dt><dd>${{item.name}}</dd><dt>Technische ID</dt><dd><code>${{item.id}}</code></dd><dt>Symbol</dt><dd><code>${{item.symbol}}</code></dd><dt>Familie</dt><dd>${{item.family}}</dd><dt>Nennstrom</dt><dd>${{item.current}}</dd><dt>Status</dt><dd>${{item.status}}</dd>`;document.getElementById('preview').innerHTML=previewHtml(item)}}render();</script></body></html>"""
 
 
 def generated_content() -> str:
@@ -178,7 +183,7 @@ def main() -> int:
         return 1
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(expected, encoding="utf-8")
-    print(f"Erzeugt: {OUTPUT_PATH.relative_to(REPO_ROOT)}")
+    print(f"Z_Cockpit erzeugt: {OUTPUT_PATH}")
     return 0
 
 
