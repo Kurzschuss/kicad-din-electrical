@@ -11,6 +11,12 @@ from .footprint_preview import (
     footprint_assignment,
     load_footprint_mapping,
 )
+from .library_browser import (
+    LibrarySymbol,
+    SymbolLibrary,
+    collect_symbol_libraries,
+    parse_library_symbols,
+)
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
 from .project_dashboard import (
     DashboardTask,
@@ -29,15 +35,18 @@ __all__ = [
     "DEFAULT_PAGES",
     "DashboardTask",
     "FootprintAssignment",
+    "LibrarySymbol",
     "NavigatorRecommendation",
     "PageSpec",
     "ProjectState",
     "SecurityItem",
     "StatusItem",
+    "SymbolLibrary",
     "SymbolPreview",
     "blocked_tasks",
     "collect_project_status",
     "collect_security_status",
+    "collect_symbol_libraries",
     "development_navigator_html",
     "footprint_assignment",
     "load_footprint_mapping",
@@ -45,6 +54,7 @@ __all__ = [
     "next_dashboard_tasks",
     "next_tasks_html",
     "page_by_id",
+    "parse_library_symbols",
     "parse_symbol_reference",
     "progress_bar_html",
     "project_progress_html",
