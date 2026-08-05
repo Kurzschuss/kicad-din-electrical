@@ -16,6 +16,7 @@ from .project_dashboard import (
 )
 from .project_model import ProjectState, load_project_state
 from .project_status import StatusItem, collect_project_status
+from .security_page import security_page_html, security_state_label, security_table_html
 from .security_status import SecurityItem, collect_security_status
 
 __all__ = [
@@ -37,4 +38,7 @@ __all__ = [
     "progress_bar_html",
     "project_progress_html",
     "recommended_work",
+    "security_page_html",
+    "security_state_label",
+    "security_table_html",
 ]
