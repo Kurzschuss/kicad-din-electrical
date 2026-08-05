@@ -10,16 +10,17 @@ def test_default_pages_have_unique_ids_and_german_labels() -> None:
     assert all(page.description_de for page in DEFAULT_PAGES)
 
 
-def test_start_and_device_pages_are_implemented() -> None:
+def test_implemented_core_pages_are_registered() -> None:
     assert page_by_id("start").implemented is True
     assert page_by_id("geraete").implemented is True
+    assert page_by_id("bibliotheken").implemented is True
+    assert page_by_id("qualitaet").implemented is True
+    assert page_by_id("sicherheit").implemented is True
 
 
-def test_planned_core_pages_are_registered() -> None:
-    assert page_by_id("bibliotheken").label_de == "Bibliotheken"
-    assert page_by_id("qualitaet").label_de == "Qualität"
+def test_remaining_planned_core_pages_are_registered() -> None:
     assert page_by_id("diagnose").label_de == "Diagnose"
-    assert page_by_id("sicherheit").label_de == "Sicherheit"
+    assert page_by_id("diagnose").implemented is False
 
 
 def test_unknown_page_is_rejected() -> None:

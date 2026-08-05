@@ -55,7 +55,7 @@ def test_progress_bar_contains_accessible_values():
     assert 'aria-label="Z_Cockpit"' in html
     assert 'aria-valuenow="50"' in html
     assert 'style="width:50%"' in html
-    assert "50 %" in html
+    assert 'class="progress-percent">50 %' in html
 
 
 def test_invalid_progress_is_rejected():
@@ -68,7 +68,7 @@ def test_invalid_progress_is_rejected():
             raise AssertionError("Ungültiger Fortschritt muss abgelehnt werden")
 
 
-def test_project_progress_uses_calculated_values():
+def test_project_progress_uses_calculated_values_and_layout_css():
     html = project_progress_html(sample_project())
     assert "Gesamtfortschritt bis Version 1.0" in html
     assert "Z_Cockpit" in html
@@ -76,6 +76,10 @@ def test_project_progress_uses_calculated_values():
     assert html.count('aria-valuenow="25"') == 1
     assert html.count('aria-valuenow="50"') == 1
     assert html.count('aria-valuenow="0"') == 1
+    assert html.count("data-cockpit-layout") == 1
+    assert ".progress-label" in html
+    assert "#page-geraete.active" in html
+    assert ".device-main .table-wrap" in html
 
 
 def test_next_tasks_html_is_german_and_shows_states():
