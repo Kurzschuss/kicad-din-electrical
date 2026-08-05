@@ -80,7 +80,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
     assert "Als Nächstes empfohlen" in html
-    assert "Symbolvorschau anbinden" in html
+    assert "Footprintvorschau anbinden" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
