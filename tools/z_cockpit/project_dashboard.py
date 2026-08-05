@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from html import escape
 
 from .project_model import ProjectState, TaskState
+from .ui_layout import cockpit_layout_css
 
 
 TASK_STATE_LABELS = {
@@ -45,6 +46,7 @@ def progress_bar_html(percent: int, label_de: str) -> str:
 
 def project_progress_html(project: ProjectState) -> str:
     parts = [
+        f'<style data-cockpit-layout>{cockpit_layout_css()}</style>',
         '<section class="project-progress"><h3>Projektfortschritt</h3>',
         progress_bar_html(project.progress_percent, f"Gesamtfortschritt bis Version {project.target_release}"),
         '<div class="milestone-progress">',
