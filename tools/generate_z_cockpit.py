@@ -5,12 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
 
 from tools.generate_device_catalog_html import collect_devices
 from tools.validate_device_catalog import REPO_ROOT
-from tools.z_cockpit import DEFAULT_PAGES
+from tools.z_cockpit import DEFAULT_PAGES, collect_project_status
 
 OUTPUT_PATH = REPO_ROOT / "docs" / "site" / "z-cockpit.html"
 
@@ -63,6 +62,30 @@ def navigation_html() -> str:
     return "".join(entries)
 
 
+def project_status_html() -> str:
+    cards = []
+    for item in collect_project_status():
+        if item.status_id == "ruleset" and item.available:
+            state_class = "prepared"
+            state_label = "Vorbereitet"
+            symbol = "●"
+        elif item.available:
+            state_class = "available"
+            state_label = "Vorhanden"
+            symbol = "✓"
+        else:
+            state_class = "missing"
+            state_label = "Fehlt"
+            symbol = "!"
+        cards.append(
+            f'<article class="status-card {state_class}" data-status="{item.status_id}">'
+            f'<div class="status-heading"><span aria-hidden="true">{symbol}</span>'
+            f'<strong>{item.label_de}</strong></div>'
+            f'<div class="status-state">{state_label}</div><p>{item.detail_de}</p></article>'
+        )
+    return "".join(cards)
+
+
 def placeholder_pages_html() -> str:
     pages = []
     for page in DEFAULT_PAGES:
@@ -79,22 +102,23 @@ def render_html(devices: list[dict[str, object]]) -> str:
     payload = json.dumps(devices, ensure_ascii=False).replace("</", "<\\/")
     summary = cockpit_summary(devices)
     navigation = navigation_html()
+    project_status = project_status_html()
     placeholders = placeholder_pages_html()
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Z_Cockpit</title><style>
-:root{{font-family:system-ui,sans-serif;color-scheme:light dark}}*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}}header,footer{{padding:.75rem 1rem;border-bottom:1px solid #8886}}header h1{{margin:0;font-size:1.25rem}}main{{display:grid;grid-template-columns:230px 1fr;min-height:0}}aside{{padding:1rem;border-right:1px solid #8886;overflow:auto}}.page-link{{display:block;width:100%;padding:.65rem .7rem;margin:.2rem 0;text-align:left;border:0;background:transparent;cursor:pointer;border-radius:.35rem}}.page-link.active{{background:#2878c824;font-weight:700}}.page-link small{{opacity:.65}}.workspace{{min-width:0;overflow:auto}}.page{{display:none;padding:1rem}}.page.active{{display:block}}.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}}.card{{border:1px solid #8886;border-radius:.5rem;padding:1rem}}.card strong{{display:block;font-size:1.8rem;margin-top:.35rem}}.device-layout{{display:grid;grid-template-columns:1fr 310px;min-height:0}}.device-main,.details{{padding:1rem;overflow:auto}}.details{{border-left:1px solid #8886}}.filters{{display:grid;grid-template-columns:repeat(6,minmax(125px,1fr));gap:.6rem;margin-bottom:.8rem}}label{{display:grid;gap:.2rem;font-size:.8rem}}select{{padding:.45rem}}.table-wrap{{overflow:auto;border:1px solid #8886}}table{{border-collapse:collapse;width:100%;min-width:1050px}}th,td{{padding:.55rem .65rem;border-bottom:1px solid #8884;text-align:left;white-space:nowrap}}th{{position:sticky;top:0;background:Canvas}}tbody tr{{cursor:pointer}}tbody tr:hover{{background:#2878c812}}tbody tr.selected{{background:#2878c81f;font-weight:700}}dl{{display:grid;grid-template-columns:1fr 1.4fr;gap:.45rem .7rem}}dt{{font-weight:700}}dd{{margin:0}}.preview,.placeholder{{margin-top:1rem;min-height:150px;display:grid;place-items:center;border:1px dashed #8888;text-align:center;padding:1rem}}footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:space-between;gap:1rem}}@media(max-width:1050px){{main{{grid-template-columns:190px 1fr}}.device-layout{{grid-template-columns:1fr}}.details{{border-left:0;border-top:1px solid #8886}}}}
+:root{{font-family:system-ui,sans-serif;color-scheme:light dark}}*{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}}header,footer{{padding:.75rem 1rem;border-bottom:1px solid #8886}}header h1{{margin:0;font-size:1.25rem}}main{{display:grid;grid-template-columns:230px 1fr;min-height:0}}aside{{padding:1rem;border-right:1px solid #8886;overflow:auto}}.page-link{{display:block;width:100%;padding:.65rem .7rem;margin:.2rem 0;text-align:left;border:0;background:transparent;cursor:pointer;border-radius:.35rem}}.page-link.active{{background:#2878c824;font-weight:700}}.page-link small{{opacity:.65}}.workspace{{min-width:0;overflow:auto}}.page{{display:none;padding:1rem}}.page.active{{display:block}}.cards,.status-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}}.card,.status-card{{border:1px solid #8886;border-radius:.5rem;padding:1rem}}.card strong{{display:block;font-size:1.8rem;margin-top:.35rem}}.status-section{{margin-top:1.5rem}}.status-heading{{display:flex;gap:.55rem;align-items:center}}.status-state{{font-weight:700;margin:.65rem 0 .25rem}}.status-card p{{margin:.35rem 0 0;line-height:1.4}}.status-card.available{{border-left:5px solid #2e8b57}}.status-card.prepared{{border-left:5px solid #c58a00}}.status-card.missing{{border-left:5px solid #b33a3a}}.device-layout{{display:grid;grid-template-columns:1fr 310px;min-height:0}}.device-main,.details{{padding:1rem;overflow:auto}}.details{{border-left:1px solid #8886}}.filters{{display:grid;grid-template-columns:repeat(6,minmax(125px,1fr));gap:.6rem;margin-bottom:.8rem}}label{{display:grid;gap:.2rem;font-size:.8rem}}select{{padding:.45rem}}.table-wrap{{overflow:auto;border:1px solid #8886}}table{{border-collapse:collapse;width:100%;min-width:1050px}}th,td{{padding:.55rem .65rem;border-bottom:1px solid #8884;text-align:left;white-space:nowrap}}th{{position:sticky;top:0;background:Canvas}}tbody tr{{cursor:pointer}}tbody tr:hover{{background:#2878c812}}tbody tr.selected{{background:#2878c81f;font-weight:700}}dl{{display:grid;grid-template-columns:1fr 1.4fr;gap:.45rem .7rem}}dt{{font-weight:700}}dd{{margin:0}}.preview,.placeholder{{margin-top:1rem;min-height:150px;display:grid;place-items:center;border:1px dashed #8888;text-align:center;padding:1rem}}footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:space-between;gap:1rem}}@media(max-width:1050px){{main{{grid-template-columns:190px 1fr}}.device-layout{{grid-template-columns:1fr}}.details{{border-left:0;border-top:1px solid #8886}}}}
 </style></head><body>
 <header><h1>Z_Cockpit – Bibliotheks- und Geräteübersicht</h1></header>
 <main><aside><h2>Bereiche</h2>{navigation}</aside><div class="workspace">
 <section class="page active" id="page-start"><h2>Projektstatus</h2><p>Zentrale Übersicht auf Basis des technischen Gerätekatalogs.</p><div class="cards">
 <div class="card">Geräte<strong>{summary['devices']}</strong></div><div class="card">Gerätefamilien<strong>{summary['families']}</strong></div><div class="card">Hersteller<strong>{summary['manufacturers']}</strong></div><div class="card">Geprüfte Geräte<strong>{summary['checked']}</strong></div>
-</div><div class="placeholder">Repository-Sicherheit, CI, Qualität und Diagnose werden in den nächsten Ausbaustufen angebunden.</div></section>
+</div><section class="status-section"><h3>Projektbestandteile</h3><div class="status-grid">{project_status}</div></section></section>
 <section class="page" id="page-geraete"><div class="device-layout"><div class="device-main"><h2>Geräte</h2><div class="filters">
 <label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label>
 </div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 <section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div></section></div></section>{placeholders}</div></main>
-<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquelle: technischer Gerätekatalog</span><span>Z_Cockpit 0.3</span></footer>
+<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquelle: technischer Gerätekatalog</span><span>Z_Cockpit 0.4</span></footer>
 <script>const data={payload};const fields={{family:'family',manufacturer:'manufacturer',poles:'poles',curve:'curve',current:'current',status:'status'}};
 function showPage(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${{id}}`));document.querySelectorAll('.page-link').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}}
 document.querySelectorAll('.page-link').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.page)));document.querySelector('[data-page="start"]').classList.add('active');
