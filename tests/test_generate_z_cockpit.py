@@ -53,7 +53,7 @@ def test_project_status_cards_distinguish_present_and_prepared_components():
     assert "noch nicht aktiviert" in cards
 
 
-def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
+def test_rendered_cockpit_contains_navigation_dashboard_navigator_and_catalog_data():
     html = render_html(cockpit_devices())
     assert 'lang="de"' in html
     assert "Projektstatus" in html
@@ -68,6 +68,11 @@ def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
     assert "In Arbeit" in html
     assert "Geplant" in html
     assert "Blockiert" in html
+    assert "Entwicklungsnavigator" in html
+    assert "Als Nächstes empfohlen" in html
+    assert "Sicherheitsseite sichtbar anbinden" in html
+    assert "Später nach Freigabe" in html
+    assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
     assert 'class="status-card prepared" data-status="ruleset"' in html
     assert 'id="page-geraete"' in html
@@ -78,4 +83,4 @@ def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
     assert "Charakteristik" in html
     assert "generic.mcb-1p-b16-template" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
-    assert "Z_Cockpit 0.5" in html
+    assert "Z_Cockpit 0.6" in html
