@@ -17,6 +17,7 @@ from .library_browser import (
     collect_symbol_libraries,
     parse_library_symbols,
 )
+from .library_page import library_page_html
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
 from .project_dashboard import (
     DashboardTask,
@@ -49,6 +50,7 @@ __all__ = [
     "collect_symbol_libraries",
     "development_navigator_html",
     "footprint_assignment",
+    "library_page_html",
     "load_footprint_mapping",
     "load_project_state",
     "next_dashboard_tasks",
