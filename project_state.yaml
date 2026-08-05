@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "kicad-din-electrical",
+    "display_name": "KiCad DIN Electrical Suite",
+    "language": "de",
+    "phase": "Entwicklung",
+    "target_release": "1.0"
+  },
+  "milestones": [
+    {
+      "id": "bibliotheken",
+      "title_de": "Bibliotheken",
+      "tasks": [
+        {"id": "geraetekatalog", "title_de": "Technischen Gerätekatalog pflegen", "state": "done"},
+        {"id": "symbolbibliothek", "title_de": "Symbolbibliothek bereitstellen", "state": "done"},
+        {"id": "footprints", "title_de": "Footprintbibliothek bereitstellen", "state": "done"},
+        {"id": "symbolvorschau", "title_de": "Symbolvorschau anbinden", "state": "planned"}
+      ]
+    },
+    {
+      "id": "cockpit",
+      "title_de": "Z_Cockpit",
+      "tasks": [
+        {"id": "seitenmodell", "title_de": "Modulares Seitenmodell", "state": "done"},
+        {"id": "navigation", "title_de": "Navigation und Startseite", "state": "done"},
+        {"id": "projektstatus", "title_de": "Projektstatus-Karten", "state": "done"},
+        {"id": "sicherheitsseite", "title_de": "Sicherheitsseite sichtbar anbinden", "state": "in_progress"}
+      ]
+    },
+    {
+      "id": "sicherheit",
+      "title_de": "Repository-Sicherheit",
+      "tasks": [
+        {"id": "versionspruefung", "title_de": "Versionsprüfung", "state": "done"},
+        {"id": "originalitaetspruefung", "title_de": "Originalitätsprüfung", "state": "done"},
+        {"id": "entwickler_whitelist", "title_de": "Entwickler-Whitelist", "state": "done"},
+        {"id": "codeowners", "title_de": "CODEOWNERS", "state": "done"},
+        {"id": "ruleset", "title_de": "GitHub-Ruleset gemeinsam prüfen und aktivieren", "state": "blocked"}
+      ]
+    }
+  ]
+}
