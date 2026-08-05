@@ -12,6 +12,7 @@ from tools.validate_device_catalog import REPO_ROOT
 from tools.z_cockpit import (
     DEFAULT_PAGES,
     collect_project_status,
+    development_navigator_html,
     load_project_state,
     next_tasks_html,
     project_progress_html,
@@ -107,6 +108,7 @@ def render_html(devices: list[dict[str, object]]) -> str:
     project_status = project_status_html()
     project_progress = project_progress_html(project)
     next_tasks = next_tasks_html(project, limit=5)
+    navigator = development_navigator_html(project)
     placeholders = placeholder_pages_html()
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -117,8 +119,10 @@ main{{display:grid;grid-template-columns:230px 1fr;min-height:0}}aside{{padding:
 .page-link{{display:block;width:100%;padding:.65rem .7rem;margin:.2rem 0;text-align:left;border:0;background:transparent;cursor:pointer;border-radius:.35rem}}
 .page-link.active{{background:#2878c824;font-weight:700}}.page-link small{{opacity:.65}}.workspace{{min-width:0;overflow:auto}}
 .page{{display:none;padding:1rem}}.page.active{{display:block}}.cards,.status-grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}}
-.card,.status-card,.dashboard-panel{{border:1px solid #8886;border-radius:.5rem;padding:1rem}}.card strong{{display:block;font-size:1.8rem;margin-top:.35rem}}
+.card,.status-card,.dashboard-panel,.development-navigator{{border:1px solid #8886;border-radius:.5rem;padding:1rem}}.card strong{{display:block;font-size:1.8rem;margin-top:.35rem}}
 .dashboard-grid{{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:1rem;margin-top:1.5rem}}
+.development-navigator{{margin-top:1rem;border-left:5px solid #2878c8}}.development-navigator h3{{margin-top:0}}.navigator-kicker{{font-weight:700;opacity:.8}}
+.navigator-recommendation h4{{font-size:1.2rem;margin:.55rem 0}}.navigator-recommendation p{{margin:.35rem 0}}.navigator-blocked{{margin-top:1rem;padding-top:.75rem;border-top:1px solid #8885}}.navigator-blocked h4{{margin:.25rem 0}}
 .progress-row{{display:grid;grid-template-columns:minmax(150px,1fr) minmax(160px,2fr) 4rem;gap:.75rem;align-items:center;margin:.65rem 0}}
 .progress-track{{height:.75rem;border-radius:999px;background:#8883;overflow:hidden}}.progress-fill{{height:100%;background:currentColor}}
 .next-tasks{{margin:0;padding-left:1.4rem}}.next-tasks li{{margin:.55rem 0}}.task-state{{font-weight:700}}
@@ -137,13 +141,13 @@ footer{{border-top:1px solid #8886;border-bottom:0;display:flex;justify-content:
 <section class="page active" id="page-start"><h2>Projektstatus</h2><p>Zentrale Übersicht aus Gerätekatalog und Projektmodell.</p>
 <div class="cards"><div class="card">Geräte<strong>{summary['devices']}</strong></div><div class="card">Gerätefamilien<strong>{summary['families']}</strong></div><div class="card">Hersteller<strong>{summary['manufacturers']}</strong></div><div class="card">Geprüfte Geräte<strong>{summary['checked']}</strong></div></div>
 <div class="dashboard-grid"><section class="dashboard-panel"><h3>Fortschritt bis Version {project.target_release}</h3>{project_progress}</section>
-<section class="dashboard-panel"><h3>Nächste Aufgaben</h3>{next_tasks}</section></div>
+<section class="dashboard-panel"><h3>Nächste Aufgaben</h3>{next_tasks}</section></div>{navigator}
 <section class="status-section"><h3>Projektbestandteile</h3><div class="status-grid">{project_status}</div></section></section>
 <section class="page" id="page-geraete"><div class="device-layout"><div class="device-main"><h2>Geräte</h2><div class="filters">
 <label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label>
 </div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 <section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview" id="preview">Vorschau wird nach Auswahl angezeigt.</div></section></div></section>{placeholders}</div></main>
-<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.5</span></footer>
+<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 0.6</span></footer>
 <script>const data={payload};const fields={{family:'family',manufacturer:'manufacturer',poles:'poles',curve:'curve',current:'current',status:'status'}};
 function showPage(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${{id}}`));document.querySelectorAll('.page-link').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}}
 document.querySelectorAll('.page-link').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.page)));document.querySelector('[data-page="start"]').classList.add('active');
