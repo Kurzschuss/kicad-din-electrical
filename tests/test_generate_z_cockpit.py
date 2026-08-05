@@ -1,4 +1,9 @@
-from tools.generate_z_cockpit import cockpit_devices, render_html
+from tools.generate_z_cockpit import (
+    cockpit_devices,
+    cockpit_summary,
+    navigation_html,
+    render_html,
+)
 
 
 def test_cockpit_uses_catalog_devices():
@@ -17,9 +22,33 @@ def test_generic_manufacturer_is_shown_in_german():
     assert device["curve"] == "B"
 
 
-def test_rendered_cockpit_contains_filters_and_catalog_data():
+def test_summary_uses_real_catalog_values():
+    devices = cockpit_devices()
+    summary = cockpit_summary(devices)
+    assert summary["devices"] == len(devices)
+    assert summary["families"] >= 1
+    assert summary["manufacturers"] >= 1
+    assert 0 <= summary["checked"] <= summary["devices"]
+
+
+def test_navigation_is_generated_from_registered_pages():
+    navigation = navigation_html()
+    assert 'data-page="start"' in navigation
+    assert 'data-page="geraete"' in navigation
+    assert "Bibliotheken" in navigation
+    assert "Qualität" in navigation
+    assert "Sicherheit" in navigation
+
+
+def test_rendered_cockpit_contains_navigation_dashboard_and_catalog_data():
     html = render_html(cockpit_devices())
     assert 'lang="de"' in html
+    assert "Projektstatus" in html
+    assert "Gerätefamilien" in html
+    assert "Geprüfte Geräte" in html
+    assert 'id="page-geraete"' in html
+    assert 'id="page-diagnose"' in html
+    assert "Dieser Bereich befindet sich im Aufbau." in html
     assert "Gerätefamilie" in html
     assert "Hersteller" in html
     assert "Charakteristik" in html
