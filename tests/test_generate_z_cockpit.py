@@ -72,12 +72,11 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_and_c
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
-    assert "In Arbeit" in html
     assert "Geplant" in html
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
     assert "Als Nächstes empfohlen" in html
-    assert "Sicherheitsseite sichtbar anbinden" in html
+    assert "Symbolvorschau anbinden" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
