@@ -50,6 +50,7 @@ def test_navigation_is_generated_from_registered_pages():
     assert "Qualität" in navigation
     assert "Sicherheit" in navigation
     assert 'data-page="bibliotheken" title="Symbole, Footprints und Modelle">Bibliotheken</button>' in navigation
+    assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
 
 
 def test_project_status_cards_distinguish_present_and_prepared_components():
@@ -64,14 +65,15 @@ def test_project_status_cards_distinguish_present_and_prepared_components():
     assert "noch nicht aktiviert" in cards
 
 
-def test_security_and_libraries_are_not_generated_as_placeholders():
+def test_implemented_pages_are_not_generated_as_placeholders():
     placeholders = placeholder_pages_html()
     assert 'id="page-sicherheit"' not in placeholders
     assert 'id="page-bibliotheken"' not in placeholders
+    assert 'id="page-qualitaet"' not in placeholders
     assert 'id="page-diagnose"' in placeholders
 
 
-def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previews_and_catalog_data():
+def test_rendered_cockpit_contains_navigation_dashboard_quality_security_previews_and_catalog_data():
     html = render_html(cockpit_devices())
     assert 'lang="de"' in html
     assert "Projektstatus" in html
@@ -87,6 +89,15 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Gerätezuordnungen" in html
     assert "Vorschaupaare" in html
     assert html.count('id="page-bibliotheken"') == 1
+    assert 'id="page-qualitaet"' in html
+    assert html.count('id="page-qualitaet"') == 1
+    assert "Bibliotheksgesundheit" in html
+    assert 'class="cards quality-summary"' in html
+    assert 'class="quality-card"' in html
+    assert 'role="progressbar"' in html
+    assert "Gesundheitswert" in html
+    assert "Warnungen" in html
+    assert "Fehler" in html
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
@@ -94,7 +105,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
     assert "Als Nächstes empfohlen" in html
-    assert "Bibliotheksgesundheit auswerten" in html
+    assert "Projektanalyse und Konsistenzprüfung umsetzen" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
@@ -127,4 +138,4 @@ def test_rendered_cockpit_contains_navigation_dashboard_navigator_security_previ
     assert "Footprint vorhanden, aber noch ohne darstellbare Geometrie." in html
     assert "Technische SVG-Schnellansicht" in html
     assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
-    assert "Z_Cockpit 1.0" in html
+    assert "Z_Cockpit 1.1" in html
