@@ -66,7 +66,7 @@ class AuthorizedCommandAdministrationService:
         if acting_role not in context.role_ids:
             raise PermissionError("ERR-AUTH-0002: Die handelnde Rolle ist im Kontext nicht aktiv.")
 
-        previous = self._administration._history.get(command_id)
+        previous = self._administration.get(command_id)
         if previous is None:
             raise LookupError("ERR-PRJ-CMD-0006: Command wurde nicht gefunden.")
 
