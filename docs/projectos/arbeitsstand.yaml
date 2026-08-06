@@ -5,7 +5,7 @@ projectos:
   repository: Kurzschuss/kicad-din-electrical
   branch: agent/projectos-foundation
   implementation_language: python
-  package_version: "0.37.0"
+  package_version: "0.38.0"
 
 principles:
   - single_source_of_truth
@@ -68,7 +68,7 @@ sprints:
       - AP-0037
   - id: SPRINT-004
     name: Persistente Runtime und Projektintegration
-    status: in_progress
+    status: completed
     completed_work_packages:
       - AP-0038
       - AP-0039
@@ -92,7 +92,11 @@ sprints:
       - AP-0057
       - AP-0058
       - AP-0059
-    next_work_package: AP-0060
+      - AP-0060
+  - id: SPRINT-005
+    name: Engineering Domain
+    status: planned
+    next_work_package: AP-0061
 
 adrs:
   - ADR-0001
@@ -110,7 +114,7 @@ initial_validation_domains:
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 687
-  last_successful_commit: bea0b024b651db3ef1d8c49da262adfc808a8b31
+  last_successful_run_number: 692
+  last_successful_commit: 834db580db91e0e405b466f3fbb1f8bf79bbd126
   result: success
-  note: AP-0059 benötigt den neu ausgelösten CI-Lauf
+  note: AP-0060 benötigt den neu ausgelösten CI-Lauf
