@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 import sqlite3
 import pytest
@@ -41,7 +42,7 @@ def test_security_event_roundtrip_and_source_listing():
 
 def test_security_event_requires_timezone_and_content():
     repo = SQLiteSecurityEventRepository(sqlite3.connect(":memory:"))
-    invalid_time = _event().__class__(**{**_event().__dict__, "occurred_at": datetime(2026, 8, 6, 22)})
+    invalid_time = replace(_event(), occurred_at=datetime(2026, 8, 6, 22))
     with pytest.raises(ValueError, match="ERR-KICAD-0337"):
         repo.append(invalid_time)
 
