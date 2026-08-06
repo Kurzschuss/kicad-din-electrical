@@ -3,6 +3,14 @@
 from .application import Command, LocalCommandBus, LocalQueryBus, Query
 from .audit import AuditEntry, InMemoryAuditRepository
 from .authorization import AuthorizationContext, AuthorizationResult, AuthorizationService, ExceptionRight, Role
+from .device_persistence import (
+    create_mcb_sqlite_repository,
+    create_rccb_sqlite_repository,
+    decode_mcb,
+    decode_rccb,
+    encode_mcb,
+    encode_rccb,
+)
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
@@ -36,7 +44,9 @@ __all__ = [
     "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock", "SimulationContext",
     "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "ValidationProfile",
     "ValidationResult", "ValidationRule", "Validator", "VersionBump",
-    "create_mcb_validation_profile", "create_rccb_validation_profile", "create_runtime_info",
-    "validate_mcb", "validate_protection_pair", "validate_rccb",
+    "create_mcb_sqlite_repository", "create_mcb_validation_profile",
+    "create_rccb_sqlite_repository", "create_rccb_validation_profile", "create_runtime_info",
+    "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
+    "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.16.0"
+__version__ = "0.17.0"
