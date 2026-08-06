@@ -21,7 +21,7 @@ def message(severity: MessageSeverity = MessageSeverity.ERROR) -> ResultMessage:
 
 
 def test_success_result_contains_value() -> None:
-    result = Result.success("ok", correlation_id=CorrelationId(12))
+    result = Result.success("ok", correlation_id=CorrelationId.from_sequence(12))
 
     assert result.is_success is True
     assert result.value == "ok"
