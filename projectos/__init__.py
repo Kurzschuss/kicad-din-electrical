@@ -6,6 +6,7 @@ from .authorization import AuthorizationContext, AuthorizationResult, Authorizat
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
+from .rccb import RCCB, RCCBPoleCount, RCCBRatedVoltage, RCCBType, RatedCurrent, ResidualCurrent, create_rccb_validation_profile, validate_rccb
 from .repositories import InMemoryRepository, Repository, RepositoryEntity, RepositoryRecord
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
@@ -17,10 +18,12 @@ __all__ = [
     "BreakingCapacity", "BusinessId", "Command", "CorrelationId", "DomainEvent",
     "DomainEventCollector", "ExceptionRight", "InMemoryAuditRepository", "InMemoryRepository",
     "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity",
-    "NominalCurrent", "ObjectId", "PoleCount", "Query", "RatedVoltage", "Repository",
-    "RepositoryEntity", "RepositoryRecord", "Result", "ResultMessage", "Role", "RuntimeInfo",
-    "SimulationClock", "SimulationContext", "SimulationTrace", "SimulationTraceEntry",
-    "TripCharacteristic", "ValidationProfile", "ValidationResult", "ValidationRule", "Validator",
-    "create_mcb_validation_profile", "create_runtime_info", "validate_mcb",
+    "NominalCurrent", "ObjectId", "PoleCount", "Query", "RCCB", "RCCBPoleCount",
+    "RCCBRatedVoltage", "RCCBType", "RatedCurrent", "RatedVoltage", "Repository",
+    "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result", "ResultMessage",
+    "Role", "RuntimeInfo", "SimulationClock", "SimulationContext", "SimulationTrace",
+    "SimulationTraceEntry", "TripCharacteristic", "ValidationProfile", "ValidationResult",
+    "ValidationRule", "Validator", "create_mcb_validation_profile", "create_rccb_validation_profile",
+    "create_runtime_info", "validate_mcb", "validate_rccb",
 ]
-__version__ = "0.11.0"
+__version__ = "0.12.0"
