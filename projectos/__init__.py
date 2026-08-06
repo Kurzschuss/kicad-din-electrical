@@ -15,6 +15,7 @@ from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
 from .outbox import AtomicOutboxResult, OutboxMessage, SQLiteOutboxRepository, add_with_outbox
+from .outbox_admin import DeadLetterRecovery, OutboxAdministrationService, OutboxDiagnostic
 from .outbox_delivery import (
     DeliveryState,
     DeliveryStatus,
@@ -42,9 +43,10 @@ from .workflows import (
 __all__ = [
     "AtomicOutboxResult", "AtomicPersistenceResult", "AuditEntry", "AuthorizationContext",
     "AuthorizationResult", "AuthorizationService", "BreakingCapacity", "BusinessId", "Command",
-    "CorrelationId", "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector",
-    "ExceptionRight", "InMemoryAuditRepository", "InMemoryRepository", "LocalCommandBus",
-    "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity", "NominalCurrent", "ObjectId",
+    "CorrelationId", "DeadLetterRecovery", "DeliveryState", "DeliveryStatus", "DomainEvent",
+    "DomainEventCollector", "ExceptionRight", "InMemoryAuditRepository", "InMemoryRepository",
+    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity",
+    "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic",
     "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor", "PERM_PROTECTION_REGISTER",
     "PoleCount", "ProtectionDevicePair", "ProtectionRegistrationResult",
     "ProtectionValidationResult", "Query", "RCCB", "RCCBPoleCount", "RCCBRatedVoltage",
@@ -60,4 +62,4 @@ __all__ = [
     "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
     "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.20.0"
+__version__ = "0.21.0"
