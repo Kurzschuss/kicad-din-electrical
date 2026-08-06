@@ -204,7 +204,7 @@ def validate_required_terminal_assignments(
 ) -> tuple[BusinessId, ...]:
     """Liefert erforderliche, noch nicht zugeordnete Anschlüsse."""
     if symbol_asset.asset_type is not KiCadAssetType.SYMBOL:
-        raise ValueError("ERR-KICAD-0011: Die Vollständigkeitsprüfung benötigt ein KiCad-Symbol.")
+        raise ValueError("ERR-KICAD-0011: Anschlusszuordnungen benötigen ein KiCad-Symbol.")
 
     assigned = {
         assignment.terminal_id
