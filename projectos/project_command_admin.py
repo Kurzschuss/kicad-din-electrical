@@ -70,8 +70,14 @@ class CommandAdministrationService:
         )
 
     def get(self, command_id: BusinessId) -> CommandExecutionRecord | None:
-        """Lädt den aktuellen persistenten Status eines Commands."""
         return self._history.get(command_id)
+
+    def get_recovery(self, recovery_id: BusinessId) -> CommandRecoveryRecord | None:
+        row = self._connection.execute(
+            "SELECT * FROM projectos_command_recoveries WHERE recovery_id = ?",
+            (str(recovery_id),),
+        ).fetchone()
+        return None if row is None else self._decode_recovery(row)
 
     def list_by_status(
         self, status: CommandExecutionStatus
@@ -92,13 +98,7 @@ class CommandAdministrationService:
             raise LookupError("ERR-PRJ-CMD-0006: Command wurde nicht gefunden.")
         if record.status is not CommandExecutionStatus.REJECTED:
             raise ValueError("ERR-PRJ-CMD-0007: Nur abgelehnte Commands können wiederaufgenommen werden.")
-        recovery = CommandRecoveryRecord(
-            recovery_id=recovery_id,
-            command_id=command_id,
-            actor_id=actor_id,
-            reason=reason,
-            recovered_at=recovered_at,
-        )
+        recovery = CommandRecoveryRecord(recovery_id, command_id, actor_id, reason, recovered_at)
         try:
             self._connection.execute(
                 """
@@ -106,10 +106,8 @@ class CommandAdministrationService:
                     recovery_id, command_id, actor_id, reason, recovered_at
                 ) VALUES (?, ?, ?, ?, ?)
                 """,
-                (
-                    str(recovery.recovery_id), str(recovery.command_id),
-                    str(recovery.actor_id), recovery.reason, recovery.recovered_at.isoformat(),
-                ),
+                (str(recovery.recovery_id), str(recovery.command_id), str(recovery.actor_id),
+                 recovery.reason, recovery.recovered_at.isoformat()),
             )
         except sqlite3.IntegrityError as exc:
             raise ValueError("ERR-PRJ-CMD-0008: Wiederaufnahme-ID wurde bereits verwendet.") from exc
@@ -123,13 +121,14 @@ class CommandAdministrationService:
         rows = self._connection.execute(
             "SELECT * FROM projectos_command_recoveries ORDER BY recovered_at, recovery_id"
         ).fetchall()
-        return tuple(
-            CommandRecoveryRecord(
-                recovery_id=BusinessId.parse(row["recovery_id"]),
-                command_id=BusinessId.parse(row["command_id"]),
-                actor_id=BusinessId.parse(row["actor_id"]),
-                reason=row["reason"],
-                recovered_at=datetime.fromisoformat(row["recovered_at"]),
-            )
-            for row in rows
+        return tuple(self._decode_recovery(row) for row in rows)
+
+    @staticmethod
+    def _decode_recovery(row: sqlite3.Row) -> CommandRecoveryRecord:
+        return CommandRecoveryRecord(
+            recovery_id=BusinessId.parse(row["recovery_id"]),
+            command_id=BusinessId.parse(row["command_id"]),
+            actor_id=BusinessId.parse(row["actor_id"]),
+            reason=row["reason"],
+            recovered_at=datetime.fromisoformat(row["recovered_at"]),
         )
