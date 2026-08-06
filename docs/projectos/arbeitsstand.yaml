@@ -5,7 +5,7 @@ projectos:
   repository: Kurzschuss/kicad-din-electrical
   branch: agent/projectos-foundation
   implementation_language: python
-  package_version: "0.53.0"
+  package_version: "0.54.0"
 
 principles:
   - single_source_of_truth
@@ -113,7 +113,8 @@ sprints:
       - AP-0073
       - AP-0074
       - AP-0075
-    next_work_package: AP-0076
+      - AP-0076
+    next_work_package: AP-0077
 
 adrs:
   - ADR-0001
@@ -131,7 +132,7 @@ initial_validation_domains:
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 768
-  last_successful_commit: 14a22c360d5a954565522bbfa041029d39d74c09
+  last_successful_run_number: 773
+  last_successful_commit: b30ec31e00f3673fbfcb16c733e2ffc97e80ee51
   result: success
-  note: AP-0075 benötigt den neu ausgelösten CI-Lauf
+  note: AP-0076 benötigt den neu ausgelösten CI-Lauf
