@@ -8,6 +8,7 @@ from .device_persistence import create_mcb_sqlite_repository, create_rccb_sqlite
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .identity_persistence import SQLiteIdentityRepository, UserAccount
+from .kicad_assets import KiCadAssetReference, KiCadAssetStatus, KiCadAssetTargetType, KiCadAssetType, KiCadLibraryReference, ensure_unique_kicad_asset
 from .manufacturer import Manufacturer, ManufacturerReference, ManufacturerStatus, ProductSeries, ensure_unique_series_name
 from .manufacturer_product import ManufacturerProduct, ProductIdentifier, ProductIdentifierType, ProductStatus, ensure_unique_product_identifiers
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
@@ -43,50 +44,5 @@ from .standards import ConformityReference, ConformityStatus, ConformityTargetTy
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
-__all__ = [
-    "AtomicOutboxResult", "AtomicPersistenceResult", "AuditEntry", "AuditedProjectActionResult",
-    "AuditedProjectActionService", "AuditedProjectQueryPipeline", "AuditedProjectQueryResult",
-    "AuthorizationContext", "AuthorizationResult", "AuthorizationService",
-    "AuthorizedCommandAdministrationService", "AuthorizedCommandRecovery", "AuthorizedDeadLetterRecovery",
-    "AuthorizedOutboxAdministrationService", "AuthorizedProjectQueryPipeline", "AuthorizedProjectQueryResult",
-    "BreakingCapacity", "BusinessId", "CatalogDevice", "CatalogDeviceStatus", "Command",
-    "CommandAdministrationService", "CommandExecutionDiagnostic", "CommandExecutionRecord",
-    "CommandExecutionStatus", "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView",
-    "CommandQueryHandlers", "CommandRecoveryRecord", "CommandRetryRecord", "CommandSearchFilter",
-    "CommandSearchItem", "CommandSearchPage", "CommandSearchService", "ConformityReference",
-    "ConformityStatus", "ConformityTargetType", "CorrelationId", "DeadLetterRecovery",
-    "DeliveryState", "DeliveryStatus", "DeviceCategory", "DeviceProperty", "DomainEvent",
-    "DomainEventCollector", "ExceptionRight", "IdempotentProjectCommandPipeline",
-    "IdempotentProjectCommandResult", "InMemoryAuditRepository", "InMemoryRepository",
-    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "Manufacturer",
-    "ManufacturerProduct", "ManufacturerReference", "ManufacturerStatus", "MessageSeverity",
-    "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage",
-    "OutboxProcessingResult", "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER",
-    "PERM_PROJECT_COMMAND_DIAGNOSTIC_READ", "PERM_PROJECT_COMMAND_LIFECYCLE_READ",
-    "PERM_PROJECT_COMMAND_RECOVER", "PERM_PROJECT_COMMAND_SEARCH", "PERM_PROJECT_QUERY_UNMAPPED",
-    "PERM_PROTECTION_REGISTER", "ProductIdentifier", "ProductIdentifierType", "ProductSeries",
-    "ProductStatus", "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
-    "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectCommandDefinition",
-    "ProjectCommandExecutionResult", "ProjectCommandPipeline", "ProjectQueryExecutionResult",
-    "ProjectQueryPipeline", "ProjectResponsibility", "ProjectResponsibilitySnapshot",
-    "ProjectResponsibilityType", "ProtectionDevicePair", "ProtectionRegistrationResult",
-    "ProtectionValidationResult", "QUERY_COMMAND_DIAGNOSTIC", "QUERY_COMMAND_LIFECYCLE",
-    "QUERY_COMMAND_SEARCH", "Query", "QueryAuditFilter", "QueryAuditItem", "QueryAuditPage",
-    "QueryAuditSearchService", "QueryAuditStatistics", "RCCB", "RCCBPoleCount", "RCCBRatedVoltage",
-    "RCCBType", "REGISTER_PROTECTION_PAIR", "RatedCurrent", "RatedVoltage",
-    "RecoveredCommandExecutionResult", "RecoveredCommandExecutionService", "RegisterProtectionPairHandler",
-    "ReleaseManifest", "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
-    "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository", "SQLiteCommandExecutionRepository",
-    "SQLiteDeliveryRepository", "SQLiteIdentityRepository", "SQLiteJsonRepository", "SQLiteOutboxRepository",
-    "SQLiteProjectAuthorityPolicyRepository", "SQLiteProjectResponsibilityRepository",
-    "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock",
-    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "StandardBody",
-    "StandardReference", "StandardStatus", "TripCharacteristic", "UserAccount", "ValidationProfile",
-    "ValidationResult", "ValidationRule", "Validator", "VersionBump", "add_with_audit",
-    "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
-    "create_mcb_validation_profile", "create_rccb_sqlite_repository", "create_rccb_validation_profile",
-    "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb",
-    "ensure_unique_product_identifiers", "ensure_unique_series_name", "ensure_unique_standard_edition",
-    "validate_mcb", "validate_protection_pair", "validate_rccb",
-]
-__version__ = "0.42.0"
+__all__ = [name for name in globals() if not name.startswith("_")]
+__version__ = "0.43.0"
