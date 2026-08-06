@@ -1,5 +1,6 @@
 """ProjectOS-Kernpaket für kicad-din-electrical."""
 
+from .application import Command, LocalCommandBus, LocalQueryBus, Query
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .repositories import InMemoryRepository, Repository, RepositoryEntity, RepositoryRecord
@@ -9,13 +10,17 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 
 __all__ = [
     "BusinessId",
+    "Command",
     "CorrelationId",
     "DomainEvent",
     "DomainEventCollector",
     "InMemoryRepository",
+    "LocalCommandBus",
     "LocalEventBus",
+    "LocalQueryBus",
     "MessageSeverity",
     "ObjectId",
+    "Query",
     "Repository",
     "RepositoryEntity",
     "RepositoryRecord",
@@ -28,4 +33,4 @@ __all__ = [
     "Validator",
     "create_runtime_info",
 ]
-__version__ = "0.6.0"
+__version__ = "0.7.0"
