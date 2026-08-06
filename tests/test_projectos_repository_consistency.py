@@ -8,10 +8,26 @@ import ast
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
+ERROR_CODE_PATTERN = re.compile(r"(?:ERR|WARN)-KICAD-\d{4}")
 
 
 def _duplicates(values: list[str]) -> set[str]:
     return {value for value, count in Counter(values).items() if count > 1}
+
+
+def _string_template(node: ast.AST) -> str | None:
+    """Liefert eine stabile Textschablone für String- und f-String-Knoten."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return " ".join(node.value.split())
+    if isinstance(node, ast.JoinedStr):
+        parts: list[str] = []
+        for value in node.values:
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                parts.append(value.value)
+            elif isinstance(value, ast.FormattedValue):
+                parts.append("{...}")
+        return " ".join("".join(parts).split())
+    return None
 
 
 def test_ap_document_ids_are_unique():
@@ -40,14 +56,29 @@ def test_package_exports_do_not_redefine_names():
     assert not _duplicates(names), f"Doppelte Paketexporte: {sorted(_duplicates(names))}"
 
 
-def test_error_codes_are_defined_by_only_one_runtime_module():
-    owners: dict[str, set[str]] = {}
-    pattern = re.compile(r"(?:ERR|WARN)-KICAD-\d{4}")
-    for path in (ROOT / "projectos").glob("*.py"):
-        for code in set(pattern.findall(path.read_text(encoding="utf-8"))):
-            owners.setdefault(code, set()).add(path.name)
-    duplicates = {code: sorted(paths) for code, paths in owners.items() if len(paths) > 1}
-    assert not duplicates, f"Mehrfach definierte Fehlercodes: {duplicates}"
+def test_error_codes_have_one_consistent_meaning():
+    """Mehrfachnutzung ist nur bei identischer Meldungsbedeutung zulässig.
+
+    Die eingefrorenen Kompatibilitätsmodule dürfen denselben öffentlichen
+    Fehlervertrag wiederverwenden. Derselbe Code darf jedoch niemals mit
+    unterschiedlichen Meldungstexten beziehungsweise Bedeutungen auftreten.
+    """
+    definitions: dict[str, dict[str, set[str]]] = {}
+    for path in sorted((ROOT / "projectos").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            template = _string_template(node)
+            if not template:
+                continue
+            for code in ERROR_CODE_PATTERN.findall(template):
+                definitions.setdefault(code, {}).setdefault(template, set()).add(path.name)
+
+    conflicts = {
+        code: {message: sorted(paths) for message, paths in messages.items()}
+        for code, messages in definitions.items()
+        if len(messages) > 1
+    }
+    assert not conflicts, f"Widersprüchlich definierte Fehlercodes: {conflicts}"
 
 
 def test_workflow_display_names_are_unique():
