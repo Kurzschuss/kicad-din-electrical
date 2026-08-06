@@ -19,6 +19,7 @@ from .project_command_authorization import AuthorizedCommandAdministrationServic
 from .project_command_history import CommandExecutionRecord, CommandExecutionStatus, IdempotentProjectCommandPipeline, IdempotentProjectCommandResult, SQLiteCommandExecutionRepository, command_fingerprint
 from .project_command_lifecycle import CommandLifecycleService, CommandLifecycleState, CommandLifecycleView
 from .project_command_retry import CommandRetryRecord, RecoveredCommandExecutionResult, RecoveredCommandExecutionService
+from .project_command_search import CommandSearchFilter, CommandSearchItem, CommandSearchPage, CommandSearchService
 from .project_commands import ProjectCommandDefinition, ProjectCommandExecutionResult, ProjectCommandPipeline
 from .project_execution import AuditedProjectActionResult, AuditedProjectActionService
 from .project_responsibilities import ProjectResponsibility, ProjectResponsibilitySnapshot, ProjectResponsibilityType, SQLiteProjectResponsibilityRepository
@@ -41,7 +42,8 @@ __all__ = [
     "AuthorizedOutboxAdministrationService", "BreakingCapacity", "BusinessId", "Command",
     "CommandAdministrationService", "CommandExecutionDiagnostic", "CommandExecutionRecord",
     "CommandExecutionStatus", "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView",
-    "CommandRecoveryRecord", "CommandRetryRecord", "CorrelationId", "DeadLetterRecovery",
+    "CommandRecoveryRecord", "CommandRetryRecord", "CommandSearchFilter", "CommandSearchItem",
+    "CommandSearchPage", "CommandSearchService", "CorrelationId", "DeadLetterRecovery",
     "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector", "ExceptionRight",
     "IdempotentProjectCommandPipeline", "IdempotentProjectCommandResult", "InMemoryAuditRepository",
     "InMemoryRepository", "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB",
@@ -69,4 +71,4 @@ __all__ = [
     "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.33.0"
+__version__ = "0.34.0"
