@@ -13,6 +13,7 @@ from .repositories import InMemoryRepository, Repository, RepositoryEntity, Repo
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
 from .simulation import SimulationClock, SimulationContext, SimulationTrace, SimulationTraceEntry
+from .sqlite import SQLiteJsonRepository, SQLiteRepositoryConfig, SQLiteUnitOfWork
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 from .workflows import (
     PERM_PROTECTION_REGISTER,
@@ -31,10 +32,11 @@ __all__ = [
     "RCCB", "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
     "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
     "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
-    "ResultMessage", "Role", "RuntimeInfo", "SemanticVersion", "SimulationClock",
-    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic",
-    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
+    "ResultMessage", "Role", "RuntimeInfo", "SQLiteJsonRepository", "SQLiteRepositoryConfig",
+    "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock", "SimulationContext",
+    "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "ValidationProfile",
+    "ValidationResult", "ValidationRule", "Validator", "VersionBump",
     "create_mcb_validation_profile", "create_rccb_validation_profile", "create_runtime_info",
     "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.15.0"
+__version__ = "0.16.0"
