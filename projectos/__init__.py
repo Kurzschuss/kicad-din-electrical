@@ -35,6 +35,11 @@ from .project_authorization import (
     ProjectActionAuthorizationService,
     SQLiteProjectAuthorityPolicyRepository,
 )
+from .project_commands import (
+    ProjectCommandDefinition,
+    ProjectCommandExecutionResult,
+    ProjectCommandPipeline,
+)
 from .project_execution import AuditedProjectActionResult, AuditedProjectActionService
 from .project_responsibilities import (
     ProjectResponsibility,
@@ -70,7 +75,8 @@ __all__ = [
     "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage", "OutboxProcessingResult",
     "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROTECTION_REGISTER",
     "PoleCount", "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
-    "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectResponsibility",
+    "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectCommandDefinition",
+    "ProjectCommandExecutionResult", "ProjectCommandPipeline", "ProjectResponsibility",
     "ProjectResponsibilitySnapshot", "ProjectResponsibilityType", "ProtectionDevicePair",
     "ProtectionRegistrationResult", "ProtectionValidationResult", "Query", "RCCB",
     "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
@@ -88,4 +94,4 @@ __all__ = [
     "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.27.0"
+__version__ = "0.28.0"
