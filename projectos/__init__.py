@@ -8,6 +8,7 @@ from .device_persistence import create_mcb_sqlite_repository, create_rccb_sqlite
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .identity_persistence import SQLiteIdentityRepository, UserAccount
+from .manufacturer import Manufacturer, ManufacturerReference, ManufacturerStatus, ProductSeries, ensure_unique_series_name
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
 from .outbox import AtomicOutboxResult, OutboxMessage, SQLiteOutboxRepository, add_with_outbox
 from .outbox_admin import DeadLetterRecovery, OutboxAdministrationService, OutboxDiagnostic
@@ -54,12 +55,13 @@ __all__ = [
     "DeliveryState", "DeliveryStatus", "DeviceCategory", "DeviceProperty", "DomainEvent",
     "DomainEventCollector", "ExceptionRight", "IdempotentProjectCommandPipeline",
     "IdempotentProjectCommandResult", "InMemoryAuditRepository", "InMemoryRepository",
-    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity",
-    "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage",
-    "OutboxProcessingResult", "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER",
-    "PERM_PROJECT_COMMAND_DIAGNOSTIC_READ", "PERM_PROJECT_COMMAND_LIFECYCLE_READ",
-    "PERM_PROJECT_COMMAND_RECOVER", "PERM_PROJECT_COMMAND_SEARCH", "PERM_PROJECT_QUERY_UNMAPPED",
-    "PERM_PROTECTION_REGISTER", "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
+    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "Manufacturer",
+    "ManufacturerReference", "ManufacturerStatus", "MessageSeverity", "NominalCurrent", "ObjectId",
+    "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage", "OutboxProcessingResult",
+    "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROJECT_COMMAND_DIAGNOSTIC_READ",
+    "PERM_PROJECT_COMMAND_LIFECYCLE_READ", "PERM_PROJECT_COMMAND_RECOVER",
+    "PERM_PROJECT_COMMAND_SEARCH", "PERM_PROJECT_QUERY_UNMAPPED", "PERM_PROTECTION_REGISTER",
+    "ProductSeries", "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
     "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectCommandDefinition",
     "ProjectCommandExecutionResult", "ProjectCommandPipeline", "ProjectQueryExecutionResult",
     "ProjectQueryPipeline", "ProjectResponsibility", "ProjectResponsibilitySnapshot",
@@ -78,7 +80,7 @@ __all__ = [
     "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
     "add_with_audit", "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
     "create_mcb_validation_profile", "create_rccb_sqlite_repository", "create_rccb_validation_profile",
-    "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
-    "validate_protection_pair", "validate_rccb",
+    "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb",
+    "ensure_unique_series_name", "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.39.0"
+__version__ = "0.40.0"
