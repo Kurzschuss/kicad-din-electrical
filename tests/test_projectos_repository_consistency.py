@@ -1,7 +1,8 @@
-"""Repositoryweite Schutzprüfungen gegen erneute AP- und Export-Doppelungen."""
+"""Repositoryweite Schutzprüfungen gegen strukturelle Doppelungen."""
 from __future__ import annotations
 
 from collections import Counter
+from hashlib import sha256
 from pathlib import Path
 import ast
 import re
@@ -47,3 +48,42 @@ def test_error_codes_are_defined_by_only_one_runtime_module():
             owners.setdefault(code, set()).add(path.name)
     duplicates = {code: sorted(paths) for code, paths in owners.items() if len(paths) > 1}
     assert not duplicates, f"Mehrfach definierte Fehlercodes: {duplicates}"
+
+
+def test_workflow_display_names_are_unique():
+    workflow_dir = ROOT / ".github" / "workflows"
+    names: dict[str, list[str]] = {}
+    for path in sorted(workflow_dir.glob("*.y*ml")):
+        text = path.read_text(encoding="utf-8")
+        match = re.search(r"(?m)^name:\s*[\"']?([^\n\"']+)", text)
+        assert match, f"Workflow ohne Namen: {path.relative_to(ROOT)}"
+        name = match.group(1).strip()
+        names.setdefault(name, []).append(path.name)
+    duplicates = {name: paths for name, paths in names.items() if len(paths) > 1}
+    assert not duplicates, f"Doppelte Workflow-Anzeigenamen: {duplicates}"
+
+
+def test_legacy_and_primary_documentation_have_no_identical_files():
+    primary = ROOT / "docs"
+    legacy = ROOT / "documentation"
+    if not legacy.exists():
+        return
+
+    primary_hashes: dict[str, list[str]] = {}
+    for path in primary.rglob("*"):
+        if path.is_file():
+            digest = sha256(path.read_bytes()).hexdigest()
+            primary_hashes.setdefault(digest, []).append(str(path.relative_to(ROOT)))
+
+    duplicates: dict[str, dict[str, list[str]]] = {}
+    for path in legacy.rglob("*"):
+        if not path.is_file():
+            continue
+        digest = sha256(path.read_bytes()).hexdigest()
+        if digest in primary_hashes:
+            duplicates[digest[:12]] = {
+                "docs": primary_hashes[digest],
+                "documentation": [str(path.relative_to(ROOT))],
+            }
+
+    assert not duplicates, f"Bytegleiche Dokumentationsdubletten: {duplicates}"
