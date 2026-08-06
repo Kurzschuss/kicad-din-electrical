@@ -77,6 +77,12 @@ class SQLiteDeliveryRepository:
             return DeliveryState(event_id, DeliveryStatus.PENDING, 0)
         return self._decode(row)
 
+    def all(self) -> tuple[DeliveryState, ...]:
+        rows = self._connection.execute(
+            "SELECT * FROM projectos_outbox_delivery ORDER BY rowid"
+        ).fetchall()
+        return tuple(self._decode(row) for row in rows)
+
     def due(self, messages: tuple[OutboxMessage, ...], *, now: datetime) -> tuple[OutboxMessage, ...]:
         if now.tzinfo is None:
             raise ValueError("now benötigt einen Zeitzonenbezug.")
@@ -91,9 +97,7 @@ class SQLiteDeliveryRepository:
         return tuple(due_messages)
 
     def mark_published(self, event_id: ObjectId, *, attempts: int) -> DeliveryState:
-        return self._write(
-            DeliveryState(event_id, DeliveryStatus.PUBLISHED, attempts),
-        )
+        return self._write(DeliveryState(event_id, DeliveryStatus.PUBLISHED, attempts))
 
     def mark_failure(
         self,
@@ -113,6 +117,22 @@ class SQLiteDeliveryRepository:
             (DeliveryStatus.DEAD_LETTER.value,),
         ).fetchall()
         return tuple(self._decode(row) for row in rows)
+
+    def resume_dead_letter(self, event_id: ObjectId, *, next_attempt_at: datetime) -> DeliveryState:
+        if next_attempt_at.tzinfo is None:
+            raise ValueError("next_attempt_at benötigt einen Zeitzonenbezug.")
+        current = self.get(event_id)
+        if current.status is not DeliveryStatus.DEAD_LETTER:
+            raise ValueError("ERR-OUT-0003: Nur Dead-Letter-Nachrichten dürfen wiederaufgenommen werden.")
+        return self._write(
+            DeliveryState(
+                event_id=event_id,
+                status=DeliveryStatus.RETRY,
+                attempts=0,
+                next_attempt_at=next_attempt_at,
+                last_error=None,
+            )
+        )
 
     def _write(self, state: DeliveryState) -> DeliveryState:
         self._connection.execute(
