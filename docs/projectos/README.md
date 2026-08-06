@@ -6,7 +6,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 
 - Architecture Freeze 1.0: beschlossen
 - Sprint 001 – ProjectOS Foundation: abgeschlossen
-- Sprint 002 – Core Object Model: in Bearbeitung
+- Sprint 002 – Core Object Model: AP-0011 bis AP-0016 abgeschlossen, Konsistenzreview ausstehend
 - Dokumentationsstand gesichert am 6. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -43,4 +43,10 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 - [Sprint 001 – ProjectOS Foundation](sprint-001-projectos-foundation.md)
 - [Sprint 002 – Core Object Model](sprint-002-core-object-model.md)
+- [AP-0016 – Persistenzmodell, Offline-Datenspeicher und Migrationen](AP-0016-persistenz-offline-speicher-migrationen.md)
+- [Maschinenlesbarer Arbeitsstand](arbeitsstand.yaml)
 - [Architekturentscheidungen](../adr/)
+
+## Nächster Schritt
+
+Konsistenzreview für Sprint 002 und Festlegung der ersten konkreten Implementierungstechnologien.
