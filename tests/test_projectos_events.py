@@ -14,7 +14,7 @@ def make_event(*, event_type: str = "mcb.component.created") -> DomainEvent:
         aggregate_id=ObjectId.new(),
         aggregate_business_id=BusinessId("MCB-000123"),
         aggregate_revision=1,
-        correlation_id=CorrelationId(45),
+        correlation_id=CorrelationId.from_sequence(45),
         payload={"status": "DRAFT"},
     )
 
