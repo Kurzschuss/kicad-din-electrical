@@ -3,28 +3,50 @@ from datetime import datetime, timezone
 import pytest
 
 from projectos import (
-    AuditEntry, BusinessId, CorrelationId, MCB, NominalCurrent, ObjectId,
-    PoleCount, RatedVoltage, TripCharacteristic, BreakingCapacity,
-    SQLiteAuditRepository, SQLiteUnitOfWork, add_with_audit,
+    AuditEntry,
+    BreakingCapacity,
+    BusinessId,
+    CorrelationId,
+    MCB,
+    NominalCurrent,
+    ObjectId,
+    PoleCount,
+    RatedVoltage,
+    SQLiteAuditRepository,
+    SQLiteUnitOfWork,
+    TripCharacteristic,
+    add_with_audit,
     create_mcb_sqlite_repository,
 )
 
 
 def make_mcb() -> MCB:
     return MCB(
-        ObjectId.new(), BusinessId("MCB-AUD-0001"), "Test", "B16",
-        NominalCurrent(16), RatedVoltage(230), BreakingCapacity(6000),
-        PoleCount(1), TripCharacteristic.B,
+        object_id=ObjectId.new(),
+        business_id=BusinessId("MCB-AUD-0001"),
+        manufacturer="Test",
+        product_name="B16",
+        nominal_current=NominalCurrent(16),
+        rated_voltage=RatedVoltage(230),
+        trip_characteristic=TripCharacteristic.B,
+        pole_count=PoleCount(1),
+        breaking_capacity=BreakingCapacity(6000),
     )
 
 
 def make_audit(mcb: MCB, previous_hash: str, audit_id: str = "AUD-0001") -> AuditEntry:
     return AuditEntry(
-        audit_id=BusinessId(audit_id), occurred_at=datetime(2026, 8, 6, tzinfo=timezone.utc),
-        actor_id=BusinessId("USR-0001"), acting_role=BusinessId("ROLE-ENGINEER"),
-        permission_id=BusinessId("PERM-MCB-CREATE"), object_id=mcb.object_id,
-        object_business_id=mcb.business_id, action="mcb_created", reason="Test",
-        correlation_id=CorrelationId.from_sequence(1), new_values={"device": str(mcb.business_id)},
+        audit_id=BusinessId(audit_id),
+        occurred_at=datetime(2026, 8, 6, tzinfo=timezone.utc),
+        actor_id=BusinessId("USR-0001"),
+        acting_role=BusinessId("ROLE-ENGINEER"),
+        permission_id=BusinessId("PERM-MCB-CREATE"),
+        object_id=mcb.object_id,
+        object_business_id=mcb.business_id,
+        action="mcb_created",
+        reason="Test",
+        correlation_id=CorrelationId.from_sequence(1),
+        new_values={"device": str(mcb.business_id)},
         previous_hash=previous_hash,
     )
 
@@ -64,9 +86,15 @@ def test_audit_kette_bleibt_nach_mehreren_eintraegen_gueltig(tmp_path) -> None:
     database = tmp_path / "projectos.db"
     first = make_mcb()
     second = MCB(
-        ObjectId.new(), BusinessId("MCB-AUD-0002"), "Test", "C16",
-        NominalCurrent(16), RatedVoltage(230), BreakingCapacity(6000),
-        PoleCount(1), TripCharacteristic.C,
+        object_id=ObjectId.new(),
+        business_id=BusinessId("MCB-AUD-0002"),
+        manufacturer="Test",
+        product_name="C16",
+        nominal_current=NominalCurrent(16),
+        rated_voltage=RatedVoltage(230),
+        trip_characteristic=TripCharacteristic.C,
+        pole_count=PoleCount(1),
+        breaking_capacity=BreakingCapacity(6000),
     )
     with SQLiteUnitOfWork(database) as uow:
         repository = create_mcb_sqlite_repository(uow.connection)
