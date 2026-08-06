@@ -35,6 +35,11 @@ from .project_authorization import (
     ProjectActionAuthorizationService,
     SQLiteProjectAuthorityPolicyRepository,
 )
+from .project_command_admin import (
+    CommandAdministrationService,
+    CommandExecutionDiagnostic,
+    CommandRecoveryRecord,
+)
 from .project_command_history import (
     CommandExecutionRecord,
     CommandExecutionStatus,
@@ -76,8 +81,9 @@ __all__ = [
     "AtomicOutboxResult", "AtomicPersistenceResult", "AuditEntry", "AuditedProjectActionResult",
     "AuditedProjectActionService", "AuthorizationContext", "AuthorizationResult",
     "AuthorizationService", "AuthorizedDeadLetterRecovery", "AuthorizedOutboxAdministrationService",
-    "BreakingCapacity", "BusinessId", "Command", "CommandExecutionRecord",
-    "CommandExecutionStatus", "CorrelationId", "DeadLetterRecovery", "DeliveryState",
+    "BreakingCapacity", "BusinessId", "Command", "CommandAdministrationService",
+    "CommandExecutionDiagnostic", "CommandExecutionRecord", "CommandExecutionStatus",
+    "CommandRecoveryRecord", "CorrelationId", "DeadLetterRecovery", "DeliveryState",
     "DeliveryStatus", "DomainEvent", "DomainEventCollector", "ExceptionRight",
     "IdempotentProjectCommandPipeline", "IdempotentProjectCommandResult",
     "InMemoryAuditRepository", "InMemoryRepository", "LocalCommandBus", "LocalEventBus",
@@ -104,4 +110,4 @@ __all__ = [
     "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
     "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.29.0"
+__version__ = "0.30.0"
