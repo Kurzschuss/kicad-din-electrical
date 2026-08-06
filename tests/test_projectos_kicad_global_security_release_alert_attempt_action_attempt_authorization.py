@@ -1,7 +1,17 @@
 from datetime import datetime, timezone
 import sqlite3
 import pytest
-from projectos import *
+from projectos.identifiers import BusinessId, CorrelationId
+from projectos.identity_persistence import SQLiteIdentityRepository
+from projectos.kicad_global_security import GlobalSecurityResponsibilityType, SQLiteGlobalSecurityResponsibilityRepository
+from projectos.kicad_global_security_release_alert_attempt_action_attempt_history import SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryRepository
+from projectos.kicad_global_security_release_alert_attempt_action_attempt_authorization import (
+    GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction,
+    GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRecord,
+    PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_ACKNOWLEDGE,
+    PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_RESOLVE,
+    SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRepository,
+)
 
 NOW=datetime(2026,8,6,18,0,tzinfo=timezone.utc)
 
