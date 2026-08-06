@@ -48,18 +48,27 @@ class SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistory
         return tuple(GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRecord(BusinessId(str(r[0])),BusinessId(str(r[1])),GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction(str(r[2])),datetime.fromisoformat(str(r[3])),BusinessId(str(r[4])),BusinessId(str(r[5])),BusinessId(str(r[6])),GlobalSecurityResponsibilityType(str(r[7])),str(r[8]),CorrelationId(str(r[9]))) for r in rows)
 
 class AuthorizedGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryService:
-    def __init__(self,responsibilities:SQLiteGlobalSecurityResponsibilityRepository,identities:SQLiteIdentityRepository,alerts:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryRepository,audit:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRepository):
-        self._responsibilities=responsibilities; self._identities=identities; self._alerts=alerts; self._audit=audit
-    def acknowledge(self,alert_id:BusinessId,*,action_id:BusinessId,acknowledged_at:datetime,acting_role:BusinessId,reason:str,correlation_id:CorrelationId,unavailable_user_ids:frozenset[BusinessId]=frozenset()):
-        return self._execute(alert_id,action_id,acknowledged_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_ACKNOWLEDGE,GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction.ACKNOWLEDGE,unavailable_user_ids)
-    def resolve(self,alert_id:BusinessId,*,action_id:BusinessId,resolved_at:datetime,acting_role:BusinessId,reason:str,correlation_id:CorrelationId,unavailable_user_ids:frozenset[BusinessId]=frozenset()):
-        return self._execute(alert_id,action_id,resolved_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_RESOLVE,GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction.RESOLVE,unavailable_user_ids)
-    def _execute(self,alert_id,action_id,at,acting_role,reason,correlation_id,permission,action,unavailable_user_ids):
+    def __init__(self,responsibilities:SQLiteGlobalSecurityResponsibilityRepository,identities:SQLiteIdentityRepository,alerts:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryRepository,audit:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRepository,attempt_audit=None):
+        self._responsibilities=responsibilities; self._identities=identities; self._alerts=alerts; self._audit=audit; self._attempt_audit=attempt_audit
+    def acknowledge(self,alert_id:BusinessId,*,action_id:BusinessId,acknowledged_at:datetime,acting_role:BusinessId,reason:str,correlation_id:CorrelationId,attempt_id:BusinessId|None=None,unavailable_user_ids:frozenset[BusinessId]=frozenset()):
+        return self._execute(alert_id,action_id,acknowledged_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_ACKNOWLEDGE,GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction.ACKNOWLEDGE,attempt_id,unavailable_user_ids)
+    def resolve(self,alert_id:BusinessId,*,action_id:BusinessId,resolved_at:datetime,acting_role:BusinessId,reason:str,correlation_id:CorrelationId,attempt_id:BusinessId|None=None,unavailable_user_ids:frozenset[BusinessId]=frozenset()):
+        return self._execute(alert_id,action_id,resolved_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACTION_ATTEMPT_RESOLVE,GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction.RESOLVE,attempt_id,unavailable_user_ids)
+    def _execute(self,alert_id,action_id,at,acting_role,reason,correlation_id,permission,action,attempt_id,unavailable_user_ids):
         if at.tzinfo is None or at.utcoffset() is None: raise ValueError("ERR-KICAD-0250: Bearbeitungszeitpunkte benötigen eine Zeitzone.")
-        instant=at.astimezone(timezone.utc); authority=self._responsibilities.resolve(at=instant,unavailable_user_ids=unavailable_user_ids)
-        authorization=self._identities.create_authorization_service().authorize(self._identities.create_context(authority.user.user_id),permission,at=instant)
-        if not authorization.allowed: raise PermissionError(f"ERR-KICAD-0255: {authorization.reason}")
-        if acting_role not in authorization.matched_roles: raise PermissionError("ERR-KICAD-0256: Die handelnde Rolle erteilt die erforderliche Alarmbearbeitungsberechtigung nicht.")
+        if self._attempt_audit is not None and attempt_id is None: raise ValueError("ERR-KICAD-0262: Das Versuchsaudit ist aktiviert, aber die Versuchskennung fehlt.")
+        instant=at.astimezone(timezone.utc); authority=None
+        try:
+            authority=self._responsibilities.resolve(at=instant,unavailable_user_ids=unavailable_user_ids)
+            authorization=self._identities.create_authorization_service().authorize(self._identities.create_context(authority.user.user_id),permission,at=instant)
+            if not authorization.allowed: raise PermissionError(f"ERR-KICAD-0255: {authorization.reason}")
+            if acting_role not in authorization.matched_roles: raise PermissionError("ERR-KICAD-0256: Die handelnde Rolle erteilt die erforderliche Alarmbearbeitungsberechtigung nicht.")
+        except (PermissionError,ValueError) as exc:
+            if self._attempt_audit is not None:
+                from .kicad_global_security_release_alert_attempt_action_attempt_action_attempt_audit import GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAttemptRecord
+                text=str(exc); code=text.split(":",1)[0] if ":" in text else "ERR-KICAD-UNKNOWN"
+                self._attempt_audit.append(GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAttemptRecord(attempt_id,alert_id,action,instant,authority.user.user_id if authority else None,acting_role,permission,code,text,correlation_id))
+            raise
         alert=self._alerts.acknowledge(alert_id,acknowledged_at=instant,acknowledged_by=authority.user.user_id,reason=reason) if action is GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction.ACKNOWLEDGE else self._alerts.resolve(alert_id,resolved_at=instant,resolved_by=authority.user.user_id,reason=reason)
         record=GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRecord(action_id,alert_id,action,instant,authority.user.user_id,acting_role,permission,authority.source,reason.strip(),correlation_id); self._audit.append(record)
         return AuthorizedGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryAction(authority,authorization,alert,record)
