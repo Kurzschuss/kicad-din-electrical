@@ -3,6 +3,7 @@
 from .application import Command, LocalCommandBus, LocalQueryBus, Query
 from .audit import AuditEntry, InMemoryAuditRepository
 from .authorization import AuthorizationContext, AuthorizationResult, AuthorizationService, ExceptionRight, Role
+from .device_catalog import CatalogDevice, CatalogDeviceStatus, DeviceCategory, DeviceProperty
 from .device_persistence import create_mcb_sqlite_repository, create_rccb_sqlite_repository, decode_mcb, decode_rccb, encode_mcb, encode_rccb
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
@@ -45,20 +46,20 @@ __all__ = [
     "AuthorizationContext", "AuthorizationResult", "AuthorizationService",
     "AuthorizedCommandAdministrationService", "AuthorizedCommandRecovery", "AuthorizedDeadLetterRecovery",
     "AuthorizedOutboxAdministrationService", "AuthorizedProjectQueryPipeline", "AuthorizedProjectQueryResult",
-    "BreakingCapacity", "BusinessId", "Command", "CommandAdministrationService",
-    "CommandExecutionDiagnostic", "CommandExecutionRecord", "CommandExecutionStatus",
-    "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView", "CommandQueryHandlers",
-    "CommandRecoveryRecord", "CommandRetryRecord", "CommandSearchFilter", "CommandSearchItem",
-    "CommandSearchPage", "CommandSearchService", "CorrelationId", "DeadLetterRecovery",
-    "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector", "ExceptionRight",
-    "IdempotentProjectCommandPipeline", "IdempotentProjectCommandResult", "InMemoryAuditRepository",
-    "InMemoryRepository", "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB",
-    "MessageSeverity", "NominalCurrent", "ObjectId", "OutboxAdministrationService",
-    "OutboxDiagnostic", "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor",
-    "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROJECT_COMMAND_DIAGNOSTIC_READ",
-    "PERM_PROJECT_COMMAND_LIFECYCLE_READ", "PERM_PROJECT_COMMAND_RECOVER",
-    "PERM_PROJECT_COMMAND_SEARCH", "PERM_PROJECT_QUERY_UNMAPPED", "PERM_PROTECTION_REGISTER",
-    "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
+    "BreakingCapacity", "BusinessId", "CatalogDevice", "CatalogDeviceStatus", "Command",
+    "CommandAdministrationService", "CommandExecutionDiagnostic", "CommandExecutionRecord",
+    "CommandExecutionStatus", "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView",
+    "CommandQueryHandlers", "CommandRecoveryRecord", "CommandRetryRecord", "CommandSearchFilter",
+    "CommandSearchItem", "CommandSearchPage", "CommandSearchService", "CorrelationId", "DeadLetterRecovery",
+    "DeliveryState", "DeliveryStatus", "DeviceCategory", "DeviceProperty", "DomainEvent",
+    "DomainEventCollector", "ExceptionRight", "IdempotentProjectCommandPipeline",
+    "IdempotentProjectCommandResult", "InMemoryAuditRepository", "InMemoryRepository",
+    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity",
+    "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage",
+    "OutboxProcessingResult", "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER",
+    "PERM_PROJECT_COMMAND_DIAGNOSTIC_READ", "PERM_PROJECT_COMMAND_LIFECYCLE_READ",
+    "PERM_PROJECT_COMMAND_RECOVER", "PERM_PROJECT_COMMAND_SEARCH", "PERM_PROJECT_QUERY_UNMAPPED",
+    "PERM_PROTECTION_REGISTER", "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
     "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectCommandDefinition",
     "ProjectCommandExecutionResult", "ProjectCommandPipeline", "ProjectQueryExecutionResult",
     "ProjectQueryPipeline", "ProjectResponsibility", "ProjectResponsibilitySnapshot",
@@ -69,16 +70,15 @@ __all__ = [
     "RCCBType", "REGISTER_PROTECTION_PAIR", "RatedCurrent", "RatedVoltage",
     "RecoveredCommandExecutionResult", "RecoveredCommandExecutionService", "RegisterProtectionPairHandler",
     "ReleaseManifest", "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
-    "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository",
-    "SQLiteCommandExecutionRepository", "SQLiteDeliveryRepository", "SQLiteIdentityRepository",
-    "SQLiteJsonRepository", "SQLiteOutboxRepository", "SQLiteProjectAuthorityPolicyRepository",
-    "SQLiteProjectResponsibilityRepository", "SQLiteRepositoryConfig", "SQLiteUnitOfWork",
-    "SemanticVersion", "SimulationClock", "SimulationContext", "SimulationTrace",
-    "SimulationTraceEntry", "TripCharacteristic", "UserAccount", "ValidationProfile",
-    "ValidationResult", "ValidationRule", "Validator", "VersionBump", "add_with_audit",
-    "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
+    "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository", "SQLiteCommandExecutionRepository",
+    "SQLiteDeliveryRepository", "SQLiteIdentityRepository", "SQLiteJsonRepository", "SQLiteOutboxRepository",
+    "SQLiteProjectAuthorityPolicyRepository", "SQLiteProjectResponsibilityRepository",
+    "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock",
+    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "UserAccount",
+    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
+    "add_with_audit", "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
     "create_mcb_validation_profile", "create_rccb_sqlite_repository", "create_rccb_validation_profile",
     "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.38.0"
+__version__ = "0.39.0"
