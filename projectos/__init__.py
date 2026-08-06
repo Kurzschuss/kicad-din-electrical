@@ -14,6 +14,7 @@ from .kicad_global_security import AuthorizedGlobalKiCadSecurityAlertAction, Aut
 from .kicad_global_security_history import GlobalSecurityResponsibilityDiagnostic, GlobalSecurityResponsibilityHistoryRecord, GlobalSecurityResponsibilityHistoryService, GlobalSecurityResponsibilitySearchFilter, GlobalSecurityResponsibilitySearchPage, SQLiteTrackedGlobalSecurityResponsibilityRepository
 from .kicad_global_security_quality_gate import GlobalSecurityStaffingDecision, GlobalSecurityStaffingFinding, GlobalSecurityStaffingGateResult, GlobalSecurityStaffingPolicy, GlobalSecurityStaffingQualityGate
 from .kicad_global_security_release_audit import GlobalSecurityStaffingReleaseRecord, SQLiteGlobalSecurityStaffingReleaseRepository
+from .kicad_global_security_release_authorization import AuthorizedGlobalSecurityStaffingReleaseDecision, AuthorizedGlobalSecurityStaffingReleaseService, PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_DECIDE
 from .kicad_library_snapshot import KiCadCompleteSnapshotBuilder, KiCadCompleteSnapshotResult, KiCadLocalFileSet
 from .kicad_library_tables import KiCadLibraryTable, KiCadLibraryTableEntry, KiCadLibraryTableParser, KiCadLibraryTableType, KiCadVariableContext
 from .kicad_library_validation import KiCadAssetRequirement, KiCadLibraryItemSnapshot, KiCadLibraryValidationResult, KiCadLibraryValidator, KiCadTargetRequirements, KiCadValidationFinding, KiCadValidationSeverity
@@ -65,4 +66,4 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
 __all__ = [name for name in globals() if not name.startswith("_")]
-__version__ = "0.63.0"
+__version__ = "0.64.0"
