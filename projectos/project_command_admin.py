@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import json
 import sqlite3
 
-from .identifiers import BusinessId
+from .identifiers import BusinessId, ObjectId
 from .project_command_history import (
     CommandExecutionRecord,
     CommandExecutionStatus,
@@ -60,6 +61,22 @@ class CommandAdministrationService:
             )
             """
         )
+        self._connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS projectos_command_execution_archive (
+                recovery_id TEXT PRIMARY KEY,
+                command_id TEXT NOT NULL,
+                command_type TEXT NOT NULL,
+                project_id TEXT NOT NULL,
+                project_object_id TEXT NOT NULL,
+                payload_hash TEXT NOT NULL,
+                status TEXT NOT NULL,
+                processed_at TEXT NOT NULL,
+                correlation_id TEXT NOT NULL,
+                message_codes TEXT NOT NULL
+            )
+            """
+        )
 
     def diagnostic(self) -> CommandExecutionDiagnostic:
         records = self._history.all()
@@ -72,16 +89,7 @@ class CommandAdministrationService:
     def get(self, command_id: BusinessId) -> CommandExecutionRecord | None:
         return self._history.get(command_id)
 
-    def get_recovery(self, recovery_id: BusinessId) -> CommandRecoveryRecord | None:
-        row = self._connection.execute(
-            "SELECT * FROM projectos_command_recoveries WHERE recovery_id = ?",
-            (str(recovery_id),),
-        ).fetchone()
-        return None if row is None else self._decode_recovery(row)
-
-    def list_by_status(
-        self, status: CommandExecutionStatus
-    ) -> tuple[CommandExecutionRecord, ...]:
+    def list_by_status(self, status: CommandExecutionStatus) -> tuple[CommandExecutionRecord, ...]:
         return tuple(record for record in self._history.all() if record.status is status)
 
     def recover_rejected(
@@ -101,13 +109,21 @@ class CommandAdministrationService:
         recovery = CommandRecoveryRecord(recovery_id, command_id, actor_id, reason, recovered_at)
         try:
             self._connection.execute(
-                """
-                INSERT INTO projectos_command_recoveries(
+                """INSERT INTO projectos_command_recoveries(
                     recovery_id, command_id, actor_id, reason, recovered_at
-                ) VALUES (?, ?, ?, ?, ?)
-                """,
+                ) VALUES (?, ?, ?, ?, ?)""",
                 (str(recovery.recovery_id), str(recovery.command_id), str(recovery.actor_id),
                  recovery.reason, recovery.recovered_at.isoformat()),
+            )
+            self._connection.execute(
+                """INSERT INTO projectos_command_execution_archive(
+                    recovery_id, command_id, command_type, project_id, project_object_id,
+                    payload_hash, status, processed_at, correlation_id, message_codes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (str(recovery_id), str(record.command_id), record.command_type, str(record.project_id),
+                 str(record.project_object_id), record.payload_hash, record.status.value,
+                 record.processed_at.isoformat(), record.correlation_id,
+                 json.dumps(record.message_codes, ensure_ascii=False)),
             )
         except sqlite3.IntegrityError as exc:
             raise ValueError("ERR-PRJ-CMD-0008: Wiederaufnahme-ID wurde bereits verwendet.") from exc
@@ -121,14 +137,40 @@ class CommandAdministrationService:
         rows = self._connection.execute(
             "SELECT * FROM projectos_command_recoveries ORDER BY recovered_at, recovery_id"
         ).fetchall()
-        return tuple(self._decode_recovery(row) for row in rows)
+        return tuple(CommandRecoveryRecord(
+            BusinessId.parse(row["recovery_id"]), BusinessId.parse(row["command_id"]),
+            BusinessId.parse(row["actor_id"]), row["reason"],
+            datetime.fromisoformat(row["recovered_at"]),
+        ) for row in rows)
 
-    @staticmethod
-    def _decode_recovery(row: sqlite3.Row) -> CommandRecoveryRecord:
+    def get_recovery(self, recovery_id: BusinessId) -> CommandRecoveryRecord | None:
+        row = self._connection.execute(
+            "SELECT * FROM projectos_command_recoveries WHERE recovery_id = ?",
+            (str(recovery_id),),
+        ).fetchone()
+        if row is None:
+            return None
         return CommandRecoveryRecord(
-            recovery_id=BusinessId.parse(row["recovery_id"]),
-            command_id=BusinessId.parse(row["command_id"]),
-            actor_id=BusinessId.parse(row["actor_id"]),
-            reason=row["reason"],
-            recovered_at=datetime.fromisoformat(row["recovered_at"]),
+            BusinessId.parse(row["recovery_id"]), BusinessId.parse(row["command_id"]),
+            BusinessId.parse(row["actor_id"]), row["reason"],
+            datetime.fromisoformat(row["recovered_at"]),
         )
+
+    def archived_executions(self, command_id: BusinessId) -> tuple[CommandExecutionRecord, ...]:
+        """Lädt unveränderliche Ausführungsstände, die vor Wiederaufnahmen archiviert wurden."""
+        rows = self._connection.execute(
+            """SELECT * FROM projectos_command_execution_archive
+               WHERE command_id = ? ORDER BY processed_at, recovery_id""",
+            (str(command_id),),
+        ).fetchall()
+        return tuple(CommandExecutionRecord(
+            command_id=BusinessId.parse(row["command_id"]),
+            command_type=row["command_type"],
+            project_id=BusinessId.parse(row["project_id"]),
+            project_object_id=ObjectId.parse(row["project_object_id"]),
+            payload_hash=row["payload_hash"],
+            status=CommandExecutionStatus(row["status"]),
+            processed_at=datetime.fromisoformat(row["processed_at"]),
+            correlation_id=row["correlation_id"],
+            message_codes=tuple(json.loads(row["message_codes"])),
+        ) for row in rows)
