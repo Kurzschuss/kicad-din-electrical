@@ -30,6 +30,11 @@ from .outbox_delivery import (
     SQLiteDeliveryRepository,
 )
 from .project_authority import ProjectAuthorityResolution, ProjectAuthorityService
+from .project_authorization import (
+    ProjectActionAuthorizationResult,
+    ProjectActionAuthorizationService,
+    SQLiteProjectAuthorityPolicyRepository,
+)
 from .project_responsibilities import (
     ProjectResponsibility,
     ProjectResponsibilitySnapshot,
@@ -63,6 +68,7 @@ __all__ = [
     "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic",
     "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor",
     "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROTECTION_REGISTER", "PoleCount",
+    "ProjectActionAuthorizationResult", "ProjectActionAuthorizationService",
     "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectResponsibility",
     "ProjectResponsibilitySnapshot", "ProjectResponsibilityType", "ProtectionDevicePair",
     "ProtectionRegistrationResult", "ProtectionValidationResult", "Query", "RCCB",
@@ -71,13 +77,14 @@ __all__ = [
     "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
     "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository",
     "SQLiteDeliveryRepository", "SQLiteIdentityRepository", "SQLiteJsonRepository",
-    "SQLiteOutboxRepository", "SQLiteProjectResponsibilityRepository", "SQLiteRepositoryConfig",
-    "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock", "SimulationContext",
-    "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "UserAccount",
-    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
-    "add_with_audit", "add_with_outbox", "create_mcb_sqlite_repository",
-    "create_mcb_validation_profile", "create_rccb_sqlite_repository",
-    "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
-    "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
+    "SQLiteOutboxRepository", "SQLiteProjectAuthorityPolicyRepository",
+    "SQLiteProjectResponsibilityRepository", "SQLiteRepositoryConfig", "SQLiteUnitOfWork",
+    "SemanticVersion", "SimulationClock", "SimulationContext", "SimulationTrace",
+    "SimulationTraceEntry", "TripCharacteristic", "UserAccount", "ValidationProfile",
+    "ValidationResult", "ValidationRule", "Validator", "VersionBump", "add_with_audit",
+    "add_with_outbox", "create_mcb_sqlite_repository", "create_mcb_validation_profile",
+    "create_rccb_sqlite_repository", "create_rccb_validation_profile", "create_runtime_info",
+    "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
+    "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.25.0"
+__version__ = "0.26.0"
