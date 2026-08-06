@@ -62,7 +62,7 @@ def configure(uow, *, role_permissions=True):
         GlobalSecurityResponsibilityType.DEPUTY, DEPUTY, NOW, "Globale Vertretung"
     ))
     alerts = SQLiteKiCadSecurityAlertRepository(uow.connection)
-    alerts.create(alert_id=ALERT, result=alert_result(), correlation_id=CorrelationId("COR-GLOBAL-0001"))
+    alerts.create(alert_id=ALERT, result=alert_result(), correlation_id=CorrelationId("COR-00000001"))
     audit = SQLiteGlobalKiCadSecurityAlertActionAuditRepository(uow.connection)
     return AuthorizedGlobalKiCadSecurityAlertService(responsibilities, identities, alerts, audit), alerts, audit
 
@@ -72,13 +72,13 @@ def test_globale_verantwortung_bestaetigt_und_schliesst_projektlosen_alarm(tmp_p
         service, alerts, audit = configure(uow)
         acknowledged = service.acknowledge(
             ALERT, action_id=BusinessId("KACT-G-0001"), acknowledged_at=NOW,
-            acting_role=ROLE, reason="Global geprüft.", correlation_id=CorrelationId("COR-GLOBAL-0002")
+            acting_role=ROLE, reason="Global geprüft.", correlation_id=CorrelationId("COR-00000002")
         )
         assert acknowledged.authority.source is GlobalSecurityResponsibilityType.PRIMARY
         assert acknowledged.alert.status is KiCadSecurityAlertStatus.ACKNOWLEDGED
         resolved = service.resolve(
             ALERT, action_id=BusinessId("KACT-G-0002"), resolved_at=NOW + timedelta(minutes=5),
-            acting_role=ROLE, reason="Global abgeschlossen.", correlation_id=CorrelationId("COR-GLOBAL-0003")
+            acting_role=ROLE, reason="Global abgeschlossen.", correlation_id=CorrelationId("COR-00000003")
         )
         assert resolved.alert.status is KiCadSecurityAlertStatus.RESOLVED
         assert len(audit.list_for_alert(ALERT)) == 2
@@ -90,7 +90,7 @@ def test_stellvertretung_uebernimmt_bei_abwesenheit(tmp_path):
         service, _, _ = configure(uow)
         result = service.acknowledge(
             ALERT, action_id=BusinessId("KACT-G-0003"), acknowledged_at=NOW,
-            acting_role=ROLE, reason="Vertretung übernimmt.", correlation_id=CorrelationId("COR-GLOBAL-0004"),
+            acting_role=ROLE, reason="Vertretung übernimmt.", correlation_id=CorrelationId("COR-00000004"),
             unavailable_user_ids=frozenset({PRIMARY}),
         )
         assert result.authority.source is GlobalSecurityResponsibilityType.DEPUTY
@@ -103,7 +103,7 @@ def test_falsche_rolle_lehnt_ab_und_veraendert_nichts(tmp_path):
         with pytest.raises(PermissionError, match="ERR-KICAD-0128"):
             service.acknowledge(
                 ALERT, action_id=BusinessId("KACT-G-0004"), acknowledged_at=NOW,
-                acting_role=WRONG_ROLE, reason="Falsche Rolle.", correlation_id=CorrelationId("COR-GLOBAL-0005")
+                acting_role=WRONG_ROLE, reason="Falsche Rolle.", correlation_id=CorrelationId("COR-00000005")
             )
         assert alerts.get(ALERT).status is KiCadSecurityAlertStatus.OPEN
         assert audit.list_for_alert(ALERT) == ()
@@ -115,7 +115,7 @@ def test_fehlende_rollenerlaubnis_lehnt_ab(tmp_path):
         with pytest.raises(PermissionError, match="ERR-KICAD-0127"):
             service.acknowledge(
                 ALERT, action_id=BusinessId("KACT-G-0005"), acknowledged_at=NOW,
-                acting_role=ROLE, reason="Keine Berechtigung.", correlation_id=CorrelationId("COR-GLOBAL-0006")
+                acting_role=ROLE, reason="Keine Berechtigung.", correlation_id=CorrelationId("COR-00000006")
             )
         assert alerts.get(ALERT).status is KiCadSecurityAlertStatus.OPEN
         assert audit.list_for_alert(ALERT) == ()
@@ -128,12 +128,12 @@ def test_projektbezogener_alarm_darf_nicht_global_bearbeitet_werden(tmp_path):
         alerts.create(
             alert_id=project_alert,
             result=alert_result(BusinessId("PRJ-0001")),
-            correlation_id=CorrelationId("COR-GLOBAL-0007"),
+            correlation_id=CorrelationId("COR-00000007"),
         )
         with pytest.raises(ValueError, match="ERR-KICAD-0126"):
             service.acknowledge(
                 project_alert, action_id=BusinessId("KACT-G-0006"), acknowledged_at=NOW,
-                acting_role=ROLE, reason="Nicht global.", correlation_id=CorrelationId("COR-GLOBAL-0008")
+                acting_role=ROLE, reason="Nicht global.", correlation_id=CorrelationId("COR-00000008")
             )
         assert alerts.get(project_alert).status is KiCadSecurityAlertStatus.OPEN
         assert audit.list_for_alert(project_alert) == ()
