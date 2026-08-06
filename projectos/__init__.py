@@ -13,6 +13,7 @@ from .kicad_connections import DeviceTerminal, KiCadPinElectricalType, KiCadStan
 from .kicad_global_security import AuthorizedGlobalKiCadSecurityAlertAction, AuthorizedGlobalKiCadSecurityAlertService, GlobalKiCadSecurityAlertActionAuditRecord, GlobalSecurityAuthorityResolution, GlobalSecurityResponsibility, GlobalSecurityResponsibilityType, SQLiteGlobalKiCadSecurityAlertActionAuditRepository, SQLiteGlobalSecurityResponsibilityRepository
 from .kicad_global_security_history import GlobalSecurityResponsibilityDiagnostic, GlobalSecurityResponsibilityHistoryRecord, GlobalSecurityResponsibilityHistoryService, GlobalSecurityResponsibilitySearchFilter, GlobalSecurityResponsibilitySearchPage, SQLiteTrackedGlobalSecurityResponsibilityRepository
 from .kicad_global_security_quality_gate import GlobalSecurityStaffingDecision, GlobalSecurityStaffingFinding, GlobalSecurityStaffingGateResult, GlobalSecurityStaffingPolicy, GlobalSecurityStaffingQualityGate
+from .kicad_global_security_release_audit import GlobalSecurityStaffingReleaseRecord, SQLiteGlobalSecurityStaffingReleaseRepository
 from .kicad_library_snapshot import KiCadCompleteSnapshotBuilder, KiCadCompleteSnapshotResult, KiCadLocalFileSet
 from .kicad_library_tables import KiCadLibraryTable, KiCadLibraryTableEntry, KiCadLibraryTableParser, KiCadLibraryTableType, KiCadVariableContext
 from .kicad_library_validation import KiCadAssetRequirement, KiCadLibraryItemSnapshot, KiCadLibraryValidationResult, KiCadLibraryValidator, KiCadTargetRequirements, KiCadValidationFinding, KiCadValidationSeverity
@@ -64,4 +65,4 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
 __all__ = [name for name in globals() if not name.startswith("_")]
-__version__ = "0.62.0"
+__version__ = "0.63.0"
