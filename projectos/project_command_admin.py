@@ -69,6 +69,10 @@ class CommandAdministrationService:
             rejected=sum(record.status is CommandExecutionStatus.REJECTED for record in records),
         )
 
+    def get(self, command_id: BusinessId) -> CommandExecutionRecord | None:
+        """Lädt den aktuellen persistenten Status eines Commands."""
+        return self._history.get(command_id)
+
     def list_by_status(
         self, status: CommandExecutionStatus
     ) -> tuple[CommandExecutionRecord, ...]:
