@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 
 from .application import Command
 from .audit import AuditEntry, InMemoryAuditRepository
@@ -88,10 +87,10 @@ class RegisterProtectionPairHandler:
 
         if simulation_mode:
             if self._simulation_trace is not None:
-                self._simulation_trace.append(
+                self._simulation_trace.record(
                     occurred_at=command.issued_at,
-                    category="application",
-                    name="protection_pair_validated",
+                    category="APPLICATION",
+                    reference="protection_pair_validated",
                     data={"pair_id": str(pair.pair_id), "valid": True},
                 )
             return Result.success(
@@ -113,13 +112,13 @@ class RegisterProtectionPairHandler:
 
         rccb_result = self._rccb_repository.add(pair.rccb)
         if not rccb_result.is_success:
-            # Kompensation der bereits erfolgten MCB-Speicherung.
             assert mcb_result.value is not None
             self._mcb_repository.delete(pair.mcb.object_id, expected_revision=mcb_result.value.revision)
             return Result.failure(*rccb_result.errors, correlation_id=command.correlation_id)
 
         assert mcb_result.value is not None and rccb_result.value is not None
-        previous_hash = self._audit_repository.all()[-1].entry_hash if self._audit_repository.all() else ""
+        entries = self._audit_repository.all()
+        previous_hash = entries[-1].entry_hash if entries else ""
         audit_entry = AuditEntry(
             audit_id=audit_id,
             occurred_at=command.issued_at,
