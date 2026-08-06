@@ -29,6 +29,7 @@ from .outbox_delivery import (
     OutboxProcessor,
     SQLiteDeliveryRepository,
 )
+from .project_authority import ProjectAuthorityResolution, ProjectAuthorityService
 from .project_responsibilities import (
     ProjectResponsibility,
     ProjectResponsibilitySnapshot,
@@ -62,9 +63,10 @@ __all__ = [
     "NominalCurrent", "ObjectId", "OutboxAdministrationService", "OutboxDiagnostic",
     "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor",
     "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROTECTION_REGISTER", "PoleCount",
-    "ProjectResponsibility", "ProjectResponsibilitySnapshot", "ProjectResponsibilityType",
-    "ProtectionDevicePair", "ProtectionRegistrationResult", "ProtectionValidationResult", "Query",
-    "RCCB", "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
+    "ProjectAuthorityResolution", "ProjectAuthorityService", "ProjectResponsibility",
+    "ProjectResponsibilitySnapshot", "ProjectResponsibilityType", "ProtectionDevicePair",
+    "ProtectionRegistrationResult", "ProtectionValidationResult", "Query", "RCCB",
+    "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
     "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
     "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
     "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository",
@@ -78,4 +80,4 @@ __all__ = [
     "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
     "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.24.0"
+__version__ = "0.25.0"
