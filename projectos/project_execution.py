@@ -74,7 +74,8 @@ class AuditedProjectActionService:
             unavailable_user_ids=unavailable_user_ids,
         )
         actor = decision.authority.authorized_user.user_id
-        acting_role = BusinessId(f"PRJROLE-{decision.authority.source.value}")
+        responsibility_id = decision.authority.source.value.replace("_", "-")
+        acting_role = BusinessId(f"PRJROLE-{responsibility_id}")
         audit_entry = AuditEntry(
             audit_id=audit_id,
             occurred_at=instant,
