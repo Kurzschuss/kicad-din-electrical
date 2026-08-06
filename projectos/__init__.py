@@ -17,6 +17,7 @@ from .project_authorization import ProjectActionAuthorizationResult, ProjectActi
 from .project_command_admin import CommandAdministrationService, CommandExecutionDiagnostic, CommandRecoveryRecord
 from .project_command_authorization import AuthorizedCommandAdministrationService, AuthorizedCommandRecovery, PERM_PROJECT_COMMAND_RECOVER
 from .project_command_history import CommandExecutionRecord, CommandExecutionStatus, IdempotentProjectCommandPipeline, IdempotentProjectCommandResult, SQLiteCommandExecutionRepository, command_fingerprint
+from .project_command_lifecycle import CommandLifecycleService, CommandLifecycleState, CommandLifecycleView
 from .project_command_retry import CommandRetryRecord, RecoveredCommandExecutionResult, RecoveredCommandExecutionService
 from .project_commands import ProjectCommandDefinition, ProjectCommandExecutionResult, ProjectCommandPipeline
 from .project_execution import AuditedProjectActionResult, AuditedProjectActionService
@@ -39,13 +40,14 @@ __all__ = [
     "AuthorizedCommandAdministrationService", "AuthorizedCommandRecovery", "AuthorizedDeadLetterRecovery",
     "AuthorizedOutboxAdministrationService", "BreakingCapacity", "BusinessId", "Command",
     "CommandAdministrationService", "CommandExecutionDiagnostic", "CommandExecutionRecord",
-    "CommandExecutionStatus", "CommandRecoveryRecord", "CommandRetryRecord", "CorrelationId",
-    "DeadLetterRecovery", "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector",
-    "ExceptionRight", "IdempotentProjectCommandPipeline", "IdempotentProjectCommandResult",
-    "InMemoryAuditRepository", "InMemoryRepository", "LocalCommandBus", "LocalEventBus",
-    "LocalQueryBus", "MCB", "MessageSeverity", "NominalCurrent", "ObjectId",
-    "OutboxAdministrationService", "OutboxDiagnostic", "OutboxMessage", "OutboxProcessingResult",
-    "OutboxProcessor", "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROJECT_COMMAND_RECOVER",
+    "CommandExecutionStatus", "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView",
+    "CommandRecoveryRecord", "CommandRetryRecord", "CorrelationId", "DeadLetterRecovery",
+    "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector", "ExceptionRight",
+    "IdempotentProjectCommandPipeline", "IdempotentProjectCommandResult", "InMemoryAuditRepository",
+    "InMemoryRepository", "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB",
+    "MessageSeverity", "NominalCurrent", "ObjectId", "OutboxAdministrationService",
+    "OutboxDiagnostic", "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor",
+    "PERM_OUTBOX_DEAD_LETTER_RECOVER", "PERM_PROJECT_COMMAND_RECOVER",
     "PERM_PROTECTION_REGISTER", "PoleCount", "ProjectActionAuthorizationResult",
     "ProjectActionAuthorizationService", "ProjectAuthorityResolution", "ProjectAuthorityService",
     "ProjectCommandDefinition", "ProjectCommandExecutionResult", "ProjectCommandPipeline",
@@ -67,4 +69,4 @@ __all__ = [
     "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.32.0"
+__version__ = "0.33.0"
