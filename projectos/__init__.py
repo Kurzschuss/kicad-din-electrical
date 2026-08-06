@@ -22,6 +22,7 @@ from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
 from .simulation import SimulationClock, SimulationContext, SimulationTrace, SimulationTraceEntry
 from .sqlite import SQLiteJsonRepository, SQLiteRepositoryConfig, SQLiteUnitOfWork
+from .sqlite_audit import AtomicPersistenceResult, SQLiteAuditRepository, add_with_audit
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 from .workflows import (
     PERM_PROTECTION_REGISTER,
@@ -31,22 +32,22 @@ from .workflows import (
 )
 
 __all__ = [
-    "AuditEntry", "AuthorizationContext", "AuthorizationResult", "AuthorizationService",
-    "BreakingCapacity", "BusinessId", "Command", "CorrelationId", "DomainEvent",
-    "DomainEventCollector", "ExceptionRight", "InMemoryAuditRepository", "InMemoryRepository",
-    "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity",
-    "NominalCurrent", "ObjectId", "PERM_PROTECTION_REGISTER", "PoleCount",
+    "AtomicPersistenceResult", "AuditEntry", "AuthorizationContext", "AuthorizationResult",
+    "AuthorizationService", "BreakingCapacity", "BusinessId", "Command", "CorrelationId",
+    "DomainEvent", "DomainEventCollector", "ExceptionRight", "InMemoryAuditRepository",
+    "InMemoryRepository", "LocalCommandBus", "LocalEventBus", "LocalQueryBus", "MCB",
+    "MessageSeverity", "NominalCurrent", "ObjectId", "PERM_PROTECTION_REGISTER", "PoleCount",
     "ProtectionDevicePair", "ProtectionRegistrationResult", "ProtectionValidationResult", "Query",
     "RCCB", "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
     "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
     "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
-    "ResultMessage", "Role", "RuntimeInfo", "SQLiteJsonRepository", "SQLiteRepositoryConfig",
-    "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock", "SimulationContext",
-    "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "ValidationProfile",
-    "ValidationResult", "ValidationRule", "Validator", "VersionBump",
-    "create_mcb_sqlite_repository", "create_mcb_validation_profile",
+    "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository", "SQLiteJsonRepository",
+    "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock",
+    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic",
+    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
+    "add_with_audit", "create_mcb_sqlite_repository", "create_mcb_validation_profile",
     "create_rccb_sqlite_repository", "create_rccb_validation_profile", "create_runtime_info",
     "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.17.0"
+__version__ = "0.18.0"
