@@ -14,6 +14,7 @@ from .identifiers import BusinessId, CorrelationId, ObjectId
 from .repositories import InMemoryRepository, Repository, RepositoryEntity, RepositoryRecord
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
+from .simulation import SimulationClock, SimulationContext, SimulationTrace, SimulationTraceEntry
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 
 __all__ = [
@@ -42,10 +43,14 @@ __all__ = [
     "ResultMessage",
     "Role",
     "RuntimeInfo",
+    "SimulationClock",
+    "SimulationContext",
+    "SimulationTrace",
+    "SimulationTraceEntry",
     "ValidationProfile",
     "ValidationResult",
     "ValidationRule",
     "Validator",
     "create_runtime_info",
 ]
-__version__ = "0.9.0"
+__version__ = "0.10.0"
