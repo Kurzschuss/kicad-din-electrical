@@ -8,6 +8,7 @@ from .identifiers import BusinessId, CorrelationId, ObjectId
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
 from .protection import ProtectionDevicePair, ProtectionValidationResult, validate_protection_pair
 from .rccb import RCCB, RCCBPoleCount, RCCBRatedVoltage, RCCBType, RatedCurrent, ResidualCurrent, create_rccb_validation_profile, validate_rccb
+from .release import ReleaseManifest, SemanticVersion, VersionBump
 from .repositories import InMemoryRepository, Repository, RepositoryEntity, RepositoryRecord
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
@@ -28,12 +29,12 @@ __all__ = [
     "NominalCurrent", "ObjectId", "PERM_PROTECTION_REGISTER", "PoleCount",
     "ProtectionDevicePair", "ProtectionRegistrationResult", "ProtectionValidationResult", "Query",
     "RCCB", "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
-    "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "Repository",
-    "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result", "ResultMessage",
-    "Role", "RuntimeInfo", "SimulationClock", "SimulationContext", "SimulationTrace",
-    "SimulationTraceEntry", "TripCharacteristic", "ValidationProfile", "ValidationResult",
-    "ValidationRule", "Validator", "create_mcb_validation_profile",
-    "create_rccb_validation_profile", "create_runtime_info", "validate_mcb",
-    "validate_protection_pair", "validate_rccb",
+    "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
+    "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
+    "ResultMessage", "Role", "RuntimeInfo", "SemanticVersion", "SimulationClock",
+    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic",
+    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
+    "create_mcb_validation_profile", "create_rccb_validation_profile", "create_runtime_info",
+    "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.14.0"
+__version__ = "0.15.0"
