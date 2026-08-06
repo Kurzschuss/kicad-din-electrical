@@ -27,6 +27,7 @@ from .project_query_audit import AuditedProjectQueryPipeline, AuditedProjectQuer
 from .project_query_authorization import AuthorizedProjectQueryPipeline, AuthorizedProjectQueryResult, PERM_PROJECT_COMMAND_DIAGNOSTIC_READ, PERM_PROJECT_COMMAND_LIFECYCLE_READ, PERM_PROJECT_COMMAND_SEARCH
 from .project_responsibilities import ProjectResponsibility, ProjectResponsibilitySnapshot, ProjectResponsibilityType, SQLiteProjectResponsibilityRepository
 from .protection import ProtectionDevicePair, ProtectionValidationResult, validate_protection_pair
+from .query_audit_search import QueryAuditFilter, QueryAuditItem, QueryAuditPage, QueryAuditSearchService, QueryAuditStatistics
 from .rccb import RCCB, RCCBPoleCount, RCCBRatedVoltage, RCCBType, RatedCurrent, ResidualCurrent, create_rccb_validation_profile, validate_rccb
 from .release import ReleaseManifest, SemanticVersion, VersionBump
 from .repositories import InMemoryRepository, Repository, RepositoryEntity, RepositoryRecord
@@ -63,10 +64,11 @@ __all__ = [
     "ProjectQueryPipeline", "ProjectResponsibility", "ProjectResponsibilitySnapshot",
     "ProjectResponsibilityType", "ProtectionDevicePair", "ProtectionRegistrationResult",
     "ProtectionValidationResult", "QUERY_COMMAND_DIAGNOSTIC", "QUERY_COMMAND_LIFECYCLE",
-    "QUERY_COMMAND_SEARCH", "Query", "RCCB", "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType",
-    "REGISTER_PROTECTION_PAIR", "RatedCurrent", "RatedVoltage", "RecoveredCommandExecutionResult",
-    "RecoveredCommandExecutionService", "RegisterProtectionPairHandler", "ReleaseManifest",
-    "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
+    "QUERY_COMMAND_SEARCH", "Query", "QueryAuditFilter", "QueryAuditItem", "QueryAuditPage",
+    "QueryAuditSearchService", "QueryAuditStatistics", "RCCB", "RCCBPoleCount", "RCCBRatedVoltage",
+    "RCCBType", "REGISTER_PROTECTION_PAIR", "RatedCurrent", "RatedVoltage",
+    "RecoveredCommandExecutionResult", "RecoveredCommandExecutionService", "RegisterProtectionPairHandler",
+    "ReleaseManifest", "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
     "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository",
     "SQLiteCommandExecutionRepository", "SQLiteDeliveryRepository", "SQLiteIdentityRepository",
     "SQLiteJsonRepository", "SQLiteOutboxRepository", "SQLiteProjectAuthorityPolicyRepository",
@@ -79,4 +81,4 @@ __all__ = [
     "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
     "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.37.0"
+__version__ = "0.38.0"
