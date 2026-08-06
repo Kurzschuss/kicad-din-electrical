@@ -5,7 +5,7 @@ projectos:
   repository: Kurzschuss/kicad-din-electrical
   branch: agent/projectos-foundation
   implementation_language: python
-  package_version: "0.18.0"
+  package_version: "0.19.0"
 
 principles:
   - single_source_of_truth
@@ -73,7 +73,8 @@ sprints:
       - AP-0038
       - AP-0039
       - AP-0040
-    next_work_package: AP-0041
+      - AP-0041
+    next_work_package: AP-0042
 
 adrs:
   - ADR-0001
@@ -91,7 +92,9 @@ initial_validation_domains:
 
 verification:
   workflow: Complete test suite
-  run_number: 582
-  commit: 8c2599e4aae7fd9830ae5a9c68256f75b8396289
-  result: success
-  note: AP-0040 changes require the newly triggered CI run
+  last_successful_run_number: 582
+  last_successful_commit: 8c2599e4aae7fd9830ae5a9c68256f75b8396289
+  latest_failed_run_number: 587
+  latest_failure: positionsbasierte MCB-Testkonstruktion vertauschte trip_characteristic und breaking_capacity
+  fix_commit: ad877f8d51f818636dc6b53bbb71a92e4360cff0
+  note: AP-0040-Korrektur und AP-0041 erfordern den neu ausgelösten CI-Lauf
