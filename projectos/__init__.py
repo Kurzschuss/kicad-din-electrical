@@ -21,6 +21,7 @@ from .kicad_release_attempt_audit import KiCadReleaseAttemptAuditRecord, SQLiteK
 from .kicad_release_attempt_search import KiCadReleaseAttemptSearchFilter, KiCadReleaseAttemptSearchPage, KiCadReleaseAttemptSearchService, KiCadReleaseAttemptSecurityDiagnostic
 from .kicad_release_audit import KiCadReleaseAuditRecord, SQLiteKiCadReleaseAuditRepository
 from .kicad_release_authorization import AuthorizedKiCadReleaseDecision, AuthorizedKiCadReleaseService, PERM_KICAD_RELEASE_DECIDE
+from .kicad_security_alert_authorization import AuthorizedKiCadSecurityAlertAction, AuthorizedKiCadSecurityAlertService, KiCadSecurityAlertAction, KiCadSecurityAlertActionAuditRecord, PERM_KICAD_SECURITY_ALERT_ACKNOWLEDGE, PERM_KICAD_SECURITY_ALERT_RESOLVE, SQLiteKiCadSecurityAlertActionAuditRepository
 from .kicad_security_alert_history import KiCadSecurityAlertRecord, KiCadSecurityAlertStatus, SQLiteKiCadSecurityAlertRepository
 from .kicad_validation_history import KiCadValidationComparison, KiCadValidationHistoryRecord, SQLiteKiCadValidationHistoryRepository
 from .kicad_validation_search import KiCadValidationSearchFilter, KiCadValidationSearchPage, KiCadValidationSearchService, KiCadValidationTrend
@@ -60,4 +61,4 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
 __all__ = [name for name in globals() if not name.startswith("_")]
-__version__ = "0.58.0"
+__version__ = "0.59.0"
