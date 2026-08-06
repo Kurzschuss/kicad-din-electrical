@@ -1,5 +1,6 @@
 """ProjectOS-Kernpaket für kicad-din-electrical."""
 
+from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
@@ -8,6 +9,9 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 __all__ = [
     "BusinessId",
     "CorrelationId",
+    "DomainEvent",
+    "DomainEventCollector",
+    "LocalEventBus",
     "MessageSeverity",
     "ObjectId",
     "Result",
@@ -19,4 +23,4 @@ __all__ = [
     "Validator",
     "create_runtime_info",
 ]
-__version__ = "0.4.0"
+__version__ = "0.5.0"
