@@ -41,7 +41,8 @@ sprints:
       - AP-0016
       - AP-0017
       - AP-0018
-    next_work_package: AP-0019
+      - AP-0019
+    next_work_package: AP-0020
 
 adrs:
   - ADR-0001
@@ -50,6 +51,7 @@ adrs:
   - ADR-0004
   - ADR-0005
   - ADR-0006
+  - ADR-0007
 
 initial_validation_domains:
   - MCB
