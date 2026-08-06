@@ -31,8 +31,8 @@ sprints:
       - AP-0010
   - id: SPRINT-002
     name: Core Object Model
-    status: in_progress
-    completed_work_packages:
+    status: completed
+    work_packages:
       - AP-0011
       - AP-0012
       - AP-0013
@@ -42,7 +42,11 @@ sprints:
       - AP-0017
       - AP-0018
       - AP-0019
-    next_work_package: AP-0020
+      - AP-0020
+  - id: SPRINT-003
+    name: Core Implementation
+    status: planned
+    next_work_package: AP-0021
 
 adrs:
   - ADR-0001
