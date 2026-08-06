@@ -1,7 +1,7 @@
 projectos:
   architecture_freeze: "1.0"
   language: de-DE
-  status_date: "2026-08-06"
+  status_date: "2026-08-07"
   repository: Kurzschuss/kicad-din-electrical
   branch: agent/projectos-foundation
   implementation_language: python
@@ -46,6 +46,10 @@ initial_validation_domains: [MCB, RCCB]
 verification:
   workflow: Complete test suite
   last_successful_run_number: 842
-  last_successful_commit: 84fd9dccf3063b0c38501f07d809deb7c3c5c458
-  result: pending
-  note: "AP-0112 und AP-0113 sind implementiert; der vollstaendige CI-Nachweis fuer den aktuellen Branch-Kopf steht noch aus."
+  last_successful_commit: 8d77780e7458e8fa6ee5fcc7d8134de5b548c17a
+  result: pending_final_head
+  repository_health_check: enabled
+  local_runner: run_tests.bat
+  pr_workflow: .github/workflows/test-distributions.yml
+  release_workflow: .github/workflows/projectos-release.yml
+  note: "Der letzte bestaetigte Lauf 842 war erfolgreich. Dieser Abschluss-Commit aktualisiert den Arbeitsstand und loest den finalen CI-Lauf fuer den neuesten Branch-Kopf aus."
