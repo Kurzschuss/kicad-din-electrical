@@ -5,7 +5,7 @@ projectos:
   repository: Kurzschuss/kicad-din-electrical
   branch: agent/projectos-foundation
   implementation_language: python
-  package_version: "0.69.0"
+  package_version: "0.70.0"
 
 principles:
   - single_source_of_truth
@@ -21,133 +21,31 @@ sprints:
   - id: SPRINT-001
     name: ProjectOS Foundation
     status: completed
-    work_packages:
-      - AP-0001
-      - AP-0002
-      - AP-0003
-      - AP-0004
-      - AP-0005
-      - AP-0006
-      - AP-0007
-      - AP-0008
-      - AP-0009
-      - AP-0010
+    work_packages: [AP-0001, AP-0002, AP-0003, AP-0004, AP-0005, AP-0006, AP-0007, AP-0008, AP-0009, AP-0010]
   - id: SPRINT-002
     name: Core Object Model
     status: completed
-    work_packages:
-      - AP-0011
-      - AP-0012
-      - AP-0013
-      - AP-0014
-      - AP-0015
-      - AP-0016
-      - AP-0017
-      - AP-0018
-      - AP-0019
-      - AP-0020
+    work_packages: [AP-0011, AP-0012, AP-0013, AP-0014, AP-0015, AP-0016, AP-0017, AP-0018, AP-0019, AP-0020]
   - id: SPRINT-003
     name: Core Implementation
     status: completed
-    work_packages:
-      - AP-0021
-      - AP-0022
-      - AP-0023
-      - AP-0024
-      - AP-0025
-      - AP-0026
-      - AP-0027
-      - AP-0028
-      - AP-0029
-      - AP-0030
-      - AP-0031
-      - AP-0032
-      - AP-0033
-      - AP-0034
-      - AP-0035
-      - AP-0036
-      - AP-0037
+    work_packages: [AP-0021, AP-0022, AP-0023, AP-0024, AP-0025, AP-0026, AP-0027, AP-0028, AP-0029, AP-0030, AP-0031, AP-0032, AP-0033, AP-0034, AP-0035, AP-0036, AP-0037]
   - id: SPRINT-004
     name: Persistente Runtime und Projektintegration
     status: completed
-    completed_work_packages:
-      - AP-0038
-      - AP-0039
-      - AP-0040
-      - AP-0041
-      - AP-0042
-      - AP-0043
-      - AP-0044
-      - AP-0045
-      - AP-0046
-      - AP-0047
-      - AP-0048
-      - AP-0049
-      - AP-0050
-      - AP-0051
-      - AP-0052
-      - AP-0053
-      - AP-0054
-      - AP-0055
-      - AP-0056
-      - AP-0057
-      - AP-0058
-      - AP-0059
-      - AP-0060
+    completed_work_packages: [AP-0038, AP-0039, AP-0040, AP-0041, AP-0042, AP-0043, AP-0044, AP-0045, AP-0046, AP-0047, AP-0048, AP-0049, AP-0050, AP-0051, AP-0052, AP-0053, AP-0054, AP-0055, AP-0056, AP-0057, AP-0058, AP-0059, AP-0060]
   - id: SPRINT-005
     name: Engineering Domain
     status: in_progress
-    completed_work_packages:
-      - AP-0061
-      - AP-0062
-      - AP-0063
-      - AP-0064
-      - AP-0065
-      - AP-0066
-      - AP-0067
-      - AP-0068
-      - AP-0069
-      - AP-0070
-      - AP-0071
-      - AP-0072
-      - AP-0073
-      - AP-0074
-      - AP-0075
-      - AP-0076
-      - AP-0077
-      - AP-0078
-      - AP-0079
-      - AP-0080
-      - AP-0081
-      - AP-0082
-      - AP-0083
-      - AP-0084
-      - AP-0085
-      - AP-0086
-      - AP-0087
-      - AP-0088
-      - AP-0089
-      - AP-0090
-      - AP-0091
-    next_work_package: AP-0092
+    completed_work_packages: [AP-0061, AP-0062, AP-0063, AP-0064, AP-0065, AP-0066, AP-0067, AP-0068, AP-0069, AP-0070, AP-0071, AP-0072, AP-0073, AP-0074, AP-0075, AP-0076, AP-0077, AP-0078, AP-0079, AP-0080, AP-0081, AP-0082, AP-0083, AP-0084, AP-0085, AP-0086, AP-0087, AP-0088, AP-0089, AP-0090, AP-0091, AP-0092]
+    next_work_package: AP-0093
 
-adrs:
-  - ADR-0001
-  - ADR-0002
-  - ADR-0003
-  - ADR-0004
-  - ADR-0005
-  - ADR-0006
-  - ADR-0007
-  - ADR-0008
-
-initial_validation_domains:
-  - MCB
-  - RCCB
+adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
+initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
   last_successful_run_number: 842
   last_successful_commit: 84fd9dccf3063b0c38501f07d809deb7c3c5c458
   result: success
-  note: AP-0090 hatte beim letzten Abruf keinen registrierten CI-Lauf; AP-0091 benötigt den neu ausgelösten CI-Lauf
+  note: AP-0091 hatte beim letzten Abruf keinen registrierten CI-Lauf; AP-0092 benötigt den neu ausgelösten CI-Lauf
