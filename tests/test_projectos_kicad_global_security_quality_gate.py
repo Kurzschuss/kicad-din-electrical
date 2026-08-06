@@ -23,8 +23,8 @@ DEPUTY = BusinessId("USR-SECURITY-DEPUTY")
 
 def setup_gate(uow, *, primary=True, deputy=True, same=False, active_primary=True, active_deputy=True):
     identities = SQLiteIdentityRepository(uow.connection)
-    identities.upsert_user(UserAccount(PRIMARY, "Sicherheitsleitung", active_primary))
-    identities.upsert_user(UserAccount(DEPUTY, "Sicherheitsvertretung", active_deputy))
+    identities.upsert_user(UserAccount(PRIMARY, "Sicherheitsleitung", True))
+    identities.upsert_user(UserAccount(DEPUTY, "Sicherheitsvertretung", True))
     tracked = SQLiteTrackedGlobalSecurityResponsibilityRepository(uow.connection, identities)
     if primary:
         tracked.assign_tracked(
@@ -41,6 +41,10 @@ def setup_gate(uow, *, primary=True, deputy=True, same=False, active_primary=Tru
             ),
             change_id=BusinessId("GSEC-CHANGE-0002"),
         )
+    if not active_primary:
+        identities.upsert_user(UserAccount(PRIMARY, "Sicherheitsleitung", False))
+    if not active_deputy:
+        identities.upsert_user(UserAccount(DEPUTY, "Sicherheitsvertretung", False))
     history = GlobalSecurityResponsibilityHistoryService(uow.connection, identities)
     return GlobalSecurityStaffingQualityGate(history)
 
