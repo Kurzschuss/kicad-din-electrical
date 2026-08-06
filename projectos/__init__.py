@@ -10,6 +10,7 @@ from .identifiers import BusinessId, CorrelationId, ObjectId
 from .identity_persistence import SQLiteIdentityRepository, UserAccount
 from .kicad_assets import KiCadAssetReference, KiCadAssetStatus, KiCadAssetTargetType, KiCadAssetType, KiCadLibraryReference, ensure_unique_kicad_asset
 from .kicad_connections import DeviceTerminal, KiCadPinElectricalType, KiCadStandardConformance, KiCadSymbolPin, TerminalFunction, TerminalPinAssignment, ensure_unique_terminal_pin_assignment, validate_required_terminal_assignments
+from .kicad_global_security import AuthorizedGlobalKiCadSecurityAlertAction, AuthorizedGlobalKiCadSecurityAlertService, GlobalKiCadSecurityAlertActionAuditRecord, GlobalSecurityAuthorityResolution, GlobalSecurityResponsibility, GlobalSecurityResponsibilityType, SQLiteGlobalKiCadSecurityAlertActionAuditRepository, SQLiteGlobalSecurityResponsibilityRepository
 from .kicad_library_snapshot import KiCadCompleteSnapshotBuilder, KiCadCompleteSnapshotResult, KiCadLocalFileSet
 from .kicad_library_tables import KiCadLibraryTable, KiCadLibraryTableEntry, KiCadLibraryTableParser, KiCadLibraryTableType, KiCadVariableContext
 from .kicad_library_validation import KiCadAssetRequirement, KiCadLibraryItemSnapshot, KiCadLibraryValidationResult, KiCadLibraryValidator, KiCadTargetRequirements, KiCadValidationFinding, KiCadValidationSeverity
@@ -61,4 +62,4 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
 __all__ = [name for name in globals() if not name.startswith("_")]
-__version__ = "0.59.0"
+__version__ = "0.60.0"
