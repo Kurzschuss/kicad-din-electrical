@@ -15,6 +15,13 @@ from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
 from .outbox import AtomicOutboxResult, OutboxMessage, SQLiteOutboxRepository, add_with_outbox
+from .outbox_delivery import (
+    DeliveryState,
+    DeliveryStatus,
+    OutboxProcessingResult,
+    OutboxProcessor,
+    SQLiteDeliveryRepository,
+)
 from .protection import ProtectionDevicePair, ProtectionValidationResult, validate_protection_pair
 from .rccb import RCCB, RCCBPoleCount, RCCBRatedVoltage, RCCBType, RatedCurrent, ResidualCurrent, create_rccb_validation_profile, validate_rccb
 from .release import ReleaseManifest, SemanticVersion, VersionBump
@@ -35,15 +42,16 @@ from .workflows import (
 __all__ = [
     "AtomicOutboxResult", "AtomicPersistenceResult", "AuditEntry", "AuthorizationContext",
     "AuthorizationResult", "AuthorizationService", "BreakingCapacity", "BusinessId", "Command",
-    "CorrelationId", "DomainEvent", "DomainEventCollector", "ExceptionRight",
-    "InMemoryAuditRepository", "InMemoryRepository", "LocalCommandBus", "LocalEventBus",
-    "LocalQueryBus", "MCB", "MessageSeverity", "NominalCurrent", "ObjectId", "OutboxMessage",
-    "PERM_PROTECTION_REGISTER", "PoleCount", "ProtectionDevicePair",
-    "ProtectionRegistrationResult", "ProtectionValidationResult", "Query", "RCCB",
-    "RCCBPoleCount", "RCCBRatedVoltage", "RCCBType", "REGISTER_PROTECTION_PAIR",
-    "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
-    "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
-    "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository", "SQLiteJsonRepository",
+    "CorrelationId", "DeliveryState", "DeliveryStatus", "DomainEvent", "DomainEventCollector",
+    "ExceptionRight", "InMemoryAuditRepository", "InMemoryRepository", "LocalCommandBus",
+    "LocalEventBus", "LocalQueryBus", "MCB", "MessageSeverity", "NominalCurrent", "ObjectId",
+    "OutboxMessage", "OutboxProcessingResult", "OutboxProcessor", "PERM_PROTECTION_REGISTER",
+    "PoleCount", "ProtectionDevicePair", "ProtectionRegistrationResult",
+    "ProtectionValidationResult", "Query", "RCCB", "RCCBPoleCount", "RCCBRatedVoltage",
+    "RCCBType", "REGISTER_PROTECTION_PAIR", "RatedCurrent", "RatedVoltage",
+    "RegisterProtectionPairHandler", "ReleaseManifest", "Repository", "RepositoryEntity",
+    "RepositoryRecord", "ResidualCurrent", "Result", "ResultMessage", "Role", "RuntimeInfo",
+    "SQLiteAuditRepository", "SQLiteDeliveryRepository", "SQLiteJsonRepository",
     "SQLiteOutboxRepository", "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion",
     "SimulationClock", "SimulationContext", "SimulationTrace", "SimulationTraceEntry",
     "TripCharacteristic", "ValidationProfile", "ValidationResult", "ValidationRule", "Validator",
@@ -52,4 +60,4 @@ __all__ = [
     "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
     "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.19.0"
+__version__ = "0.20.0"
