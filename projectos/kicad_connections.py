@@ -1,4 +1,8 @@
-"""Fachliche Anschlüsse und ihre Zuordnung zu KiCad-Symbolpins."""
+"""Fachliche Anschlüsse und ihre Zuordnung zu KiCad-Symbolpins.
+
+KiCad-Verträge sind der verbindliche Regelfall. Abweichungen sind nur als ausdrücklich
+begründete Ausnahme zulässig.
+"""
 
 from __future__ import annotations
 
@@ -25,16 +29,25 @@ class TerminalFunction(StrEnum):
 
 
 class KiCadPinElectricalType(StrEnum):
+    """Elektrische Pin-Typen entsprechend dem KiCad-Symbolmodell."""
+
     INPUT = "INPUT"
     OUTPUT = "OUTPUT"
     BIDIRECTIONAL = "BIDIRECTIONAL"
+    TRI_STATE = "TRI_STATE"
     PASSIVE = "PASSIVE"
+    FREE = "FREE"
+    UNSPECIFIED = "UNSPECIFIED"
     POWER_INPUT = "POWER_INPUT"
     POWER_OUTPUT = "POWER_OUTPUT"
     OPEN_COLLECTOR = "OPEN_COLLECTOR"
     OPEN_EMITTER = "OPEN_EMITTER"
     NO_CONNECT = "NO_CONNECT"
-    UNSPECIFIED = "UNSPECIFIED"
+
+
+class KiCadStandardConformance(StrEnum):
+    STANDARD = "STANDARD"
+    EXCEPTION = "EXCEPTION"
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +85,7 @@ class DeviceTerminal:
 
 @dataclass(frozen=True, slots=True)
 class KiCadSymbolPin:
-    """Identität und elektrische Art eines Pins innerhalb eines KiCad-Symbols."""
+    """Pinidentität gemäß KiCad-Symbolmodell."""
 
     number: str
     name: str
@@ -99,11 +112,23 @@ class TerminalPinAssignment:
     terminal_id: BusinessId
     symbol_asset_id: BusinessId
     pin: KiCadSymbolPin
+    conformance: KiCadStandardConformance = KiCadStandardConformance.STANDARD
+    exception_reason: str | None = None
     revision: int = 0
 
     def __post_init__(self) -> None:
+        reason = self.exception_reason.strip() if self.exception_reason else None
+        if self.conformance is KiCadStandardConformance.EXCEPTION and not reason:
+            raise ValueError(
+                "ERR-KICAD-0016: Eine Abweichung vom KiCad-Standard benötigt eine Begründung."
+            )
+        if self.conformance is KiCadStandardConformance.STANDARD and reason is not None:
+            raise ValueError(
+                "ERR-KICAD-0017: Ein standardkonformer Eintrag darf keinen Ausnahmegrund enthalten."
+            )
         if self.revision < 0:
             raise ValueError("Die Revision darf nicht negativ sein.")
+        object.__setattr__(self, "exception_reason", reason)
 
     @classmethod
     def create(
@@ -114,6 +139,8 @@ class TerminalPinAssignment:
         terminal: DeviceTerminal,
         symbol_asset: KiCadAssetReference,
         pin: KiCadSymbolPin,
+        conformance: KiCadStandardConformance = KiCadStandardConformance.STANDARD,
+        exception_reason: str | None = None,
     ) -> "TerminalPinAssignment":
         if symbol_asset.asset_type is not KiCadAssetType.SYMBOL:
             raise ValueError("ERR-KICAD-0011: Anschlusszuordnungen benötigen ein KiCad-Symbol.")
@@ -130,10 +157,24 @@ class TerminalPinAssignment:
             terminal_id=terminal.terminal_id,
             symbol_asset_id=symbol_asset.asset_id,
             pin=pin,
+            conformance=conformance,
+            exception_reason=exception_reason,
         )
 
-    def change_pin(self, pin: KiCadSymbolPin) -> "TerminalPinAssignment":
-        return replace(self, pin=pin, revision=self.revision + 1)
+    def change_pin(
+        self,
+        pin: KiCadSymbolPin,
+        *,
+        conformance: KiCadStandardConformance = KiCadStandardConformance.STANDARD,
+        exception_reason: str | None = None,
+    ) -> "TerminalPinAssignment":
+        return replace(
+            self,
+            pin=pin,
+            conformance=conformance,
+            exception_reason=exception_reason,
+            revision=self.revision + 1,
+        )
 
 
 def ensure_unique_terminal_pin_assignment(
@@ -161,7 +202,7 @@ def validate_required_terminal_assignments(
     assignments: tuple[TerminalPinAssignment, ...],
     symbol_asset: KiCadAssetReference,
 ) -> tuple[BusinessId, ...]:
-    """Liefert die Kennungen aller erforderlichen, noch nicht zugeordneten Anschlüsse."""
+    """Liefert erforderliche, noch nicht zugeordnete Anschlüsse."""
     if symbol_asset.asset_type is not KiCadAssetType.SYMBOL:
         raise ValueError("ERR-KICAD-0011: Die Vollständigkeitsprüfung benötigt ein KiCad-Symbol.")
 
@@ -170,7 +211,7 @@ def validate_required_terminal_assignments(
         for assignment in assignments
         if assignment.symbol_asset_id == symbol_asset.asset_id
     }
-    missing = tuple(
+    return tuple(
         terminal.terminal_id
         for terminal in terminals
         if terminal.required
@@ -178,4 +219,3 @@ def validate_required_terminal_assignments(
         and terminal.target_id == symbol_asset.target_id
         and terminal.terminal_id not in assigned
     )
-    return missing
