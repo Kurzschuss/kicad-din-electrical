@@ -6,13 +6,14 @@ Sie ersetzen keine vollständige Normen- oder Herstellerprüfung.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
 from .identifiers import BusinessId, ObjectId
 from .repositories import RepositoryEntity
 from .results import MessageSeverity, ResultMessage
-from .validation import ValidationProfile, ValidationRule, Validator
+from .validation import ValidationProfile, ValidationResult, Validator
 
 
 class TripCharacteristic(StrEnum):
@@ -25,8 +26,6 @@ class TripCharacteristic(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class NominalCurrent:
-    """Nennstrom in Ampere."""
-
     amperes: int
 
     def __post_init__(self) -> None:
@@ -38,8 +37,6 @@ class NominalCurrent:
 
 @dataclass(frozen=True, slots=True)
 class RatedVoltage:
-    """Bemessungsspannung in Volt."""
-
     volts: int
 
     def __post_init__(self) -> None:
@@ -51,8 +48,6 @@ class RatedVoltage:
 
 @dataclass(frozen=True, slots=True)
 class BreakingCapacity:
-    """Bemessungsschaltvermögen in Ampere."""
-
     amperes: int
 
     def __post_init__(self) -> None:
@@ -64,8 +59,6 @@ class BreakingCapacity:
 
 @dataclass(frozen=True, slots=True)
 class PoleCount:
-    """Anzahl der Pole."""
-
     value: int
 
     def __post_init__(self) -> None:
@@ -100,6 +93,20 @@ class MCB(RepositoryEntity):
             raise ValueError("Die fachliche Kennung eines MCB muss mit MCB- beginnen.")
         object.__setattr__(self, "manufacturer", manufacturer)
         object.__setattr__(self, "product_name", product_name)
+
+
+RuleFunction = Callable[[MCB], tuple[ResultMessage, ...]]
+
+
+@dataclass(frozen=True, slots=True)
+class MCBValidationRule:
+    """Kleiner Adapter für den generischen ValidationRule-Vertrag."""
+
+    rule_id: BusinessId
+    check: RuleFunction
+
+    def validate(self, value: MCB) -> tuple[ResultMessage, ...]:
+        return self.check(value)
 
 
 _SUPPORTED_NOMINAL_CURRENTS = frozenset({2, 4, 6, 10, 13, 16, 20, 25, 32, 40, 50, 63})
@@ -165,15 +172,15 @@ def create_mcb_validation_profile() -> ValidationProfile[MCB]:
     return ValidationProfile(
         profile_id=BusinessId("VAL-MCB-DEFAULT-0001"),
         rules=(
-            ValidationRule(BusinessId("REQ-MCB-0001"), _validate_nominal_current),
-            ValidationRule(BusinessId("REQ-MCB-0002"), _validate_voltage),
-            ValidationRule(BusinessId("REQ-MCB-0003"), _validate_breaking_capacity),
-            ValidationRule(BusinessId("REQ-MCB-0004"), _warn_high_current_single_pole),
+            MCBValidationRule(BusinessId("REQ-MCB-0001"), _validate_nominal_current),
+            MCBValidationRule(BusinessId("REQ-MCB-0002"), _validate_voltage),
+            MCBValidationRule(BusinessId("REQ-MCB-0003"), _validate_breaking_capacity),
+            MCBValidationRule(BusinessId("REQ-MCB-0004"), _warn_high_current_single_pole),
         ),
     )
 
 
-def validate_mcb(mcb: MCB):
+def validate_mcb(mcb: MCB) -> ValidationResult:
     """Validiert ein MCB gegen das ProjectOS-Startprofil."""
 
-    return Validator(create_mcb_validation_profile()).validate(mcb)
+    return Validator[MCB]().validate(mcb, create_mcb_validation_profile())
