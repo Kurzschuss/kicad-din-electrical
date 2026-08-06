@@ -108,7 +108,7 @@ def test_kritische_meldung_kann_weiterlaufen_lassen():
 
 
 def test_korrelation_wird_uebernommen():
-    correlation = CorrelationId(42)
+    correlation = CorrelationId.from_sequence(42)
     profile = ValidationProfile(BusinessId("VAL-PROFILE-0001"), (PositiveRule(),))
 
     result = Validator[int]().validate(5, profile, correlation_id=correlation)
