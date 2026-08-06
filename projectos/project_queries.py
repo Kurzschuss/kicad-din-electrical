@@ -77,7 +77,7 @@ class ProjectQueryPipeline:
     def _dummy_correlation_id():
         from .identifiers import CorrelationId
 
-        return CorrelationId.from_sequence(0)
+        return CorrelationId.from_sequence(1)
 
 
 class CommandQueryHandlers:
