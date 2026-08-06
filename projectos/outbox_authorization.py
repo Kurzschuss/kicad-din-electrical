@@ -10,6 +10,7 @@ from .authorization import AuthorizationContext, AuthorizationResult, Authorizat
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .outbox import SQLiteOutboxRepository
 from .outbox_admin import DeadLetterRecovery, OutboxAdministrationService
+from .outbox_delivery import SQLiteDeliveryRepository
 from .sqlite_audit import SQLiteAuditRepository
 
 PERM_OUTBOX_DEAD_LETTER_RECOVER = BusinessId("PERM-OUTBOX-DEAD-LETTER-RECOVER")
@@ -32,11 +33,13 @@ class AuthorizedOutboxAdministrationService:
         authorization: AuthorizationService,
         administration: OutboxAdministrationService,
         outbox: SQLiteOutboxRepository,
+        deliveries: SQLiteDeliveryRepository,
         audit: SQLiteAuditRepository,
     ) -> None:
         self._authorization = authorization
         self._administration = administration
         self._outbox = outbox
+        self._deliveries = deliveries
         self._audit = audit
 
     def recover_dead_letter(
@@ -75,7 +78,7 @@ class AuthorizedOutboxAdministrationService:
         if message is None:
             raise LookupError("ERR-OUT-0004: Outbox-Nachricht wurde nicht gefunden.")
 
-        previous_state = self._administration._deliveries.get(event_id)  # interne atomare Orchestrierung
+        previous_state = self._deliveries.get(event_id)
         recovery = self._administration.recover_dead_letter(
             event_id,
             actor_id=context.user_id,
