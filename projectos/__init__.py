@@ -13,6 +13,7 @@ from .device_persistence import (
 )
 from .events import DomainEvent, DomainEventCollector, LocalEventBus
 from .identifiers import BusinessId, CorrelationId, ObjectId
+from .identity_persistence import SQLiteIdentityRepository, UserAccount
 from .mcb import BreakingCapacity, MCB, NominalCurrent, PoleCount, RatedVoltage, TripCharacteristic, create_mcb_validation_profile, validate_mcb
 from .outbox import AtomicOutboxResult, OutboxMessage, SQLiteOutboxRepository, add_with_outbox
 from .outbox_admin import DeadLetterRecovery, OutboxAdministrationService, OutboxDiagnostic
@@ -60,13 +61,14 @@ __all__ = [
     "RatedCurrent", "RatedVoltage", "RegisterProtectionPairHandler", "ReleaseManifest",
     "Repository", "RepositoryEntity", "RepositoryRecord", "ResidualCurrent", "Result",
     "ResultMessage", "Role", "RuntimeInfo", "SQLiteAuditRepository",
-    "SQLiteDeliveryRepository", "SQLiteJsonRepository", "SQLiteOutboxRepository",
-    "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock",
-    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic",
-    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
-    "add_with_audit", "add_with_outbox", "create_mcb_sqlite_repository",
-    "create_mcb_validation_profile", "create_rccb_sqlite_repository",
-    "create_rccb_validation_profile", "create_runtime_info", "decode_mcb", "decode_rccb",
-    "encode_mcb", "encode_rccb", "validate_mcb", "validate_protection_pair", "validate_rccb",
+    "SQLiteDeliveryRepository", "SQLiteIdentityRepository", "SQLiteJsonRepository",
+    "SQLiteOutboxRepository", "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion",
+    "SimulationClock", "SimulationContext", "SimulationTrace", "SimulationTraceEntry",
+    "TripCharacteristic", "UserAccount", "ValidationProfile", "ValidationResult",
+    "ValidationRule", "Validator", "VersionBump", "add_with_audit", "add_with_outbox",
+    "create_mcb_sqlite_repository", "create_mcb_validation_profile",
+    "create_rccb_sqlite_repository", "create_rccb_validation_profile", "create_runtime_info",
+    "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb", "validate_mcb",
+    "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.22.0"
+__version__ = "0.23.0"
