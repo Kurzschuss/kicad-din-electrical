@@ -16,6 +16,7 @@ from .kicad_library_validation import KiCadAssetRequirement, KiCadLibraryItemSna
 from .kicad_native_snapshot import KiCadNativeSnapshotBuilder, KiCadSnapshotBuildResult, NativeKiCadSource
 from .kicad_project_validation import KiCadProjectValidationPipeline, KiCadProjectValidationResult, KiCadProjectValidationTarget
 from .kicad_quality_gate import KiCadQualityGateFinding, KiCadQualityGateResult, KiCadQualityGateService, KiCadQualityPolicy, KiCadReleaseDecision
+from .kicad_release_attempt_alert import KiCadReleaseAttemptAlertPolicy, KiCadReleaseAttemptAlertResult, KiCadReleaseAttemptAlertService, KiCadSecurityAlertFinding, KiCadSecurityAlertLevel
 from .kicad_release_attempt_audit import KiCadReleaseAttemptAuditRecord, SQLiteKiCadReleaseAttemptAuditRepository
 from .kicad_release_attempt_search import KiCadReleaseAttemptSearchFilter, KiCadReleaseAttemptSearchPage, KiCadReleaseAttemptSearchService, KiCadReleaseAttemptSecurityDiagnostic
 from .kicad_release_audit import KiCadReleaseAuditRecord, SQLiteKiCadReleaseAuditRepository
@@ -58,4 +59,4 @@ from .validation import ValidationProfile, ValidationResult, ValidationRule, Val
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
 __all__ = [name for name in globals() if not name.startswith("_")]
-__version__ = "0.56.0"
+__version__ = "0.57.0"
