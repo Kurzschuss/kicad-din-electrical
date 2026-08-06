@@ -47,8 +47,8 @@ sprints:
       - AP-0020
   - id: SPRINT-003
     name: Core Implementation
-    status: in_progress
-    completed_work_packages:
+    status: completed
+    work_packages:
       - AP-0021
       - AP-0022
       - AP-0023
@@ -65,7 +65,11 @@ sprints:
       - AP-0034
       - AP-0035
       - AP-0036
-    next_work_package: AP-0037
+      - AP-0037
+  - id: SPRINT-004
+    name: Persistente Runtime und Projektintegration
+    status: planned
+    next_work_package: AP-0038
 
 adrs:
   - ADR-0001
@@ -80,3 +84,9 @@ adrs:
 initial_validation_domains:
   - MCB
   - RCCB
+
+verification:
+  workflow: Complete test suite
+  run_number: 570
+  commit: 06b870d7d95a761dd77dae6eb7c15e7a00d96c33
+  result: success
