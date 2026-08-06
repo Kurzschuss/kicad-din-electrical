@@ -31,7 +31,7 @@ sprints:
       - AP-0010
   - id: SPRINT-002
     name: Core Object Model
-    status: review
+    status: in_progress
     completed_work_packages:
       - AP-0011
       - AP-0012
@@ -39,13 +39,15 @@ sprints:
       - AP-0014
       - AP-0015
       - AP-0016
-    next_step: sprint_consistency_review
+      - AP-0017
+    next_work_package: AP-0018
 
 adrs:
   - ADR-0001
   - ADR-0002
   - ADR-0003
   - ADR-0004
+  - ADR-0005
 
 initial_validation_domains:
   - MCB
