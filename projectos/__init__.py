@@ -3,6 +3,7 @@
 from .identifiers import BusinessId, CorrelationId, ObjectId
 from .results import MessageSeverity, Result, ResultMessage
 from .runtime import RuntimeInfo, create_runtime_info
+from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 
 __all__ = [
     "BusinessId",
@@ -12,6 +13,10 @@ __all__ = [
     "Result",
     "ResultMessage",
     "RuntimeInfo",
+    "ValidationProfile",
+    "ValidationResult",
+    "ValidationRule",
+    "Validator",
     "create_runtime_info",
 ]
-__version__ = "0.3.0"
+__version__ = "0.4.0"
