@@ -1,4 +1,4 @@
-name: Complete test suite
+name: ProjectOS complete test suite
 
 on:
   workflow_dispatch:
