@@ -38,9 +38,9 @@ class SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRepositor
         reason TEXT NOT NULL, correlation_id TEXT NOT NULL)""")
         connection.commit()
     def append(self, record:GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRecord):
-        if record.occurred_at.tzinfo is None or record.occurred_at.utcoffset() is None: raise ValueError("ERR-KICAD-0215: Der Auditzeitpunkt benoetigt eine Zeitzone.")
+        if record.occurred_at.tzinfo is None or record.occurred_at.utcoffset() is None: raise ValueError("ERR-KICAD-0215: Der Auditzeitpunkt benötigt eine Zeitzone.")
         reason=record.reason.strip()
-        if not reason: raise ValueError("ERR-KICAD-0216: Das Bearbeitungsaudit benoetigt eine Begruendung.")
+        if not reason: raise ValueError("ERR-KICAD-0216: Das Bearbeitungsaudit benötigt eine Begründung.")
         try:
             self._connection.execute("INSERT INTO projectos_global_security_staffing_release_alert_attempt_action_audit VALUES (?,?,?,?,?,?,?,?,?,?)",(str(record.action_id),str(record.alert_id),record.action.value,record.occurred_at.astimezone(timezone.utc).isoformat(),str(record.actor_id),str(record.acting_role),str(record.permission_id),record.responsibility.value,reason,str(record.correlation_id)))
             self._connection.commit()
@@ -51,19 +51,28 @@ class SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRepositor
         return tuple(GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRecord(BusinessId(str(r[0])),BusinessId(str(r[1])),GlobalSecurityStaffingReleaseAlertAttemptHistoryAction(str(r[2])),datetime.fromisoformat(str(r[3])),BusinessId(str(r[4])),BusinessId(str(r[5])),BusinessId(str(r[6])),GlobalSecurityResponsibilityType(str(r[7])),str(r[8]),CorrelationId(str(r[9]))) for r in rows)
 
 class AuthorizedGlobalSecurityStaffingReleaseAlertAttemptHistoryService:
-    def __init__(self, responsibilities:SQLiteGlobalSecurityResponsibilityRepository, identities:SQLiteIdentityRepository, alerts:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryRepository, audit:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRepository):
-        self._responsibilities=responsibilities; self._identities=identities; self._alerts=alerts; self._audit=audit
-    def acknowledge(self, alert_id:BusinessId, *, action_id:BusinessId, acknowledged_at:datetime, acting_role:BusinessId, reason:str, correlation_id:CorrelationId, unavailable_user_ids:frozenset[BusinessId]=frozenset()):
-        return self._execute(alert_id,action_id,acknowledged_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACKNOWLEDGE,GlobalSecurityStaffingReleaseAlertAttemptHistoryAction.ACKNOWLEDGE,unavailable_user_ids)
-    def resolve(self, alert_id:BusinessId, *, action_id:BusinessId, resolved_at:datetime, acting_role:BusinessId, reason:str, correlation_id:CorrelationId, unavailable_user_ids:frozenset[BusinessId]=frozenset()):
-        return self._execute(alert_id,action_id,resolved_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_RESOLVE,GlobalSecurityStaffingReleaseAlertAttemptHistoryAction.RESOLVE,unavailable_user_ids)
-    def _execute(self, alert_id, action_id, at, acting_role, reason, correlation_id, permission, action, unavailable_user_ids):
-        if at.tzinfo is None or at.utcoffset() is None: raise ValueError("ERR-KICAD-0213: Bearbeitungszeitpunkte benoetigen eine Zeitzone.")
-        instant=at.astimezone(timezone.utc)
-        authority=self._responsibilities.resolve(at=instant,unavailable_user_ids=unavailable_user_ids)
-        authorization=self._identities.create_authorization_service().authorize(self._identities.create_context(authority.user.user_id),permission,at=instant)
-        if not authorization.allowed: raise PermissionError(f"ERR-KICAD-0218: {authorization.reason}")
-        if acting_role not in authorization.matched_roles: raise PermissionError("ERR-KICAD-0219: Die handelnde Rolle erteilt die erforderliche Alarmbearbeitungsberechtigung nicht.")
+    def __init__(self, responsibilities:SQLiteGlobalSecurityResponsibilityRepository, identities:SQLiteIdentityRepository, alerts:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryRepository, audit:SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAuditRepository, attempt_audit=None):
+        self._responsibilities=responsibilities; self._identities=identities; self._alerts=alerts; self._audit=audit; self._attempt_audit=attempt_audit
+    def acknowledge(self, alert_id:BusinessId, *, action_id:BusinessId, acknowledged_at:datetime, acting_role:BusinessId, reason:str, correlation_id:CorrelationId, unavailable_user_ids:frozenset[BusinessId]=frozenset(), attempt_id:BusinessId|None=None):
+        return self._execute(alert_id,action_id,acknowledged_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_ACKNOWLEDGE,GlobalSecurityStaffingReleaseAlertAttemptHistoryAction.ACKNOWLEDGE,unavailable_user_ids,attempt_id)
+    def resolve(self, alert_id:BusinessId, *, action_id:BusinessId, resolved_at:datetime, acting_role:BusinessId, reason:str, correlation_id:CorrelationId, unavailable_user_ids:frozenset[BusinessId]=frozenset(), attempt_id:BusinessId|None=None):
+        return self._execute(alert_id,action_id,resolved_at,acting_role,reason,correlation_id,PERM_KICAD_GLOBAL_SECURITY_STAFFING_RELEASE_ALERT_ATTEMPT_RESOLVE,GlobalSecurityStaffingReleaseAlertAttemptHistoryAction.RESOLVE,unavailable_user_ids,attempt_id)
+    def _execute(self, alert_id, action_id, at, acting_role, reason, correlation_id, permission, action, unavailable_user_ids, attempt_id):
+        if at.tzinfo is None or at.utcoffset() is None: raise ValueError("ERR-KICAD-0213: Bearbeitungszeitpunkte benötigen eine Zeitzone.")
+        if self._attempt_audit is not None and attempt_id is None: raise ValueError("ERR-KICAD-0225: Das Versuchsaudit ist aktiviert, aber die Versuchskennung fehlt.")
+        instant=at.astimezone(timezone.utc); actor_id=None
+        try:
+            authority=self._responsibilities.resolve(at=instant,unavailable_user_ids=unavailable_user_ids)
+            actor_id=authority.user.user_id
+            authorization=self._identities.create_authorization_service().authorize(self._identities.create_context(actor_id),permission,at=instant)
+            if not authorization.allowed: raise PermissionError(f"ERR-KICAD-0218: {authorization.reason}")
+            if acting_role not in authorization.matched_roles: raise PermissionError("ERR-KICAD-0219: Die handelnde Rolle erteilt die erforderliche Alarmbearbeitungsberechtigung nicht.")
+        except (LookupError, PermissionError) as exc:
+            if self._attempt_audit is not None:
+                from .kicad_global_security_release_alert_attempt_action_attempt_audit import GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptRecord
+                message=str(exc); code=message.split(":",1)[0].strip() or "ERR-KICAD-0218"
+                self._attempt_audit.append(GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptRecord(attempt_id,alert_id,action,instant,actor_id,acting_role,permission,code,message,correlation_id))
+            raise
         if action is GlobalSecurityStaffingReleaseAlertAttemptHistoryAction.ACKNOWLEDGE:
             alert=self._alerts.acknowledge(alert_id,acknowledged_at=instant,acknowledged_by=authority.user.user_id,reason=reason)
         else:
