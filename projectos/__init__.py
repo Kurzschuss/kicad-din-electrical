@@ -39,6 +39,7 @@ from .runtime import RuntimeInfo, create_runtime_info
 from .simulation import SimulationClock, SimulationContext, SimulationTrace, SimulationTraceEntry
 from .sqlite import SQLiteJsonRepository, SQLiteRepositoryConfig, SQLiteUnitOfWork
 from .sqlite_audit import AtomicPersistenceResult, SQLiteAuditRepository, add_with_audit
+from .standards import ConformityReference, ConformityStatus, ConformityTargetType, StandardBody, StandardReference, StandardStatus, ensure_unique_standard_edition
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 from .workflows import PERM_PROTECTION_REGISTER, REGISTER_PROTECTION_PAIR, ProtectionRegistrationResult, RegisterProtectionPairHandler
 
@@ -52,7 +53,8 @@ __all__ = [
     "CommandAdministrationService", "CommandExecutionDiagnostic", "CommandExecutionRecord",
     "CommandExecutionStatus", "CommandLifecycleService", "CommandLifecycleState", "CommandLifecycleView",
     "CommandQueryHandlers", "CommandRecoveryRecord", "CommandRetryRecord", "CommandSearchFilter",
-    "CommandSearchItem", "CommandSearchPage", "CommandSearchService", "CorrelationId", "DeadLetterRecovery",
+    "CommandSearchItem", "CommandSearchPage", "CommandSearchService", "ConformityReference",
+    "ConformityStatus", "ConformityTargetType", "CorrelationId", "DeadLetterRecovery",
     "DeliveryState", "DeliveryStatus", "DeviceCategory", "DeviceProperty", "DomainEvent",
     "DomainEventCollector", "ExceptionRight", "IdempotentProjectCommandPipeline",
     "IdempotentProjectCommandResult", "InMemoryAuditRepository", "InMemoryRepository",
@@ -78,12 +80,13 @@ __all__ = [
     "SQLiteDeliveryRepository", "SQLiteIdentityRepository", "SQLiteJsonRepository", "SQLiteOutboxRepository",
     "SQLiteProjectAuthorityPolicyRepository", "SQLiteProjectResponsibilityRepository",
     "SQLiteRepositoryConfig", "SQLiteUnitOfWork", "SemanticVersion", "SimulationClock",
-    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "TripCharacteristic", "UserAccount",
-    "ValidationProfile", "ValidationResult", "ValidationRule", "Validator", "VersionBump",
-    "add_with_audit", "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
+    "SimulationContext", "SimulationTrace", "SimulationTraceEntry", "StandardBody",
+    "StandardReference", "StandardStatus", "TripCharacteristic", "UserAccount", "ValidationProfile",
+    "ValidationResult", "ValidationRule", "Validator", "VersionBump", "add_with_audit",
+    "add_with_outbox", "command_fingerprint", "create_mcb_sqlite_repository",
     "create_mcb_validation_profile", "create_rccb_sqlite_repository", "create_rccb_validation_profile",
     "create_runtime_info", "decode_mcb", "decode_rccb", "encode_mcb", "encode_rccb",
-    "ensure_unique_product_identifiers", "ensure_unique_series_name", "validate_mcb",
-    "validate_protection_pair", "validate_rccb",
+    "ensure_unique_product_identifiers", "ensure_unique_series_name", "ensure_unique_standard_edition",
+    "validate_mcb", "validate_protection_pair", "validate_rccb",
 ]
-__version__ = "0.41.0"
+__version__ = "0.42.0"
