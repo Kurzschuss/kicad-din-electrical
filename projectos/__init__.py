@@ -1,6 +1,7 @@
 """ProjectOS-Kernpaket für kicad-din-electrical."""
 
 from .application import Command, LocalCommandBus, LocalQueryBus, Query
+from .audit import AuditEntry, InMemoryAuditRepository
 from .authorization import (
     AuthorizationContext,
     AuthorizationResult,
@@ -16,6 +17,7 @@ from .runtime import RuntimeInfo, create_runtime_info
 from .validation import ValidationProfile, ValidationResult, ValidationRule, Validator
 
 __all__ = [
+    "AuditEntry",
     "AuthorizationContext",
     "AuthorizationResult",
     "AuthorizationService",
@@ -25,6 +27,7 @@ __all__ = [
     "DomainEvent",
     "DomainEventCollector",
     "ExceptionRight",
+    "InMemoryAuditRepository",
     "InMemoryRepository",
     "LocalCommandBus",
     "LocalEventBus",
@@ -45,4 +48,4 @@ __all__ = [
     "Validator",
     "create_runtime_info",
 ]
-__version__ = "0.8.0"
+__version__ = "0.9.0"
