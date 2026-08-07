@@ -53,7 +53,7 @@
   )
   (model "${Z_PROJECTOS_3DMODEL_DIR}/Z_MCB_1P/generated/Z_MCB_1P.wrl"
     (offset (xyz 0 0 0))
-    (scale (xyz 1 1 1))
+    (scale (xyz 0.3940 0.3940 0.3940))
     (rotate (xyz 0 0 0))
   )
 )
