@@ -42,24 +42,24 @@ sprints:
   - id: SPRINT-006
     name: MCB Goldstandard und Domain Validation
     status: in_progress
-    completed_work_packages: [AP-0114, AP-0115, AP-0116]
-    next_work_package: AP-0117
+    completed_work_packages: [AP-0114, AP-0115, AP-0116, AP-0117]
+    next_work_package: AP-0118
     active_validation_domain: MCB
     reference_issue: 87
-    current_focus: "MCB-1P Referenzsymbol gemaess Goldstandard umsetzen und automatisiert absichern"
+    current_focus: "MCB-1P Vorschau und Referenzprojekt an das neue Symbol anpassen; KiCad-Praxisvalidierung vorbereiten"
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
 initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  result: local_success
+  result: pending_sprint_validation
   repository_health_check: enabled
   local_runner: run_tests.bat
-  local_repository_health: "6 passed"
-  local_pytest: "705 passed"
-  local_python_syntax: success
-  local_z_quality: "17/17 z_conform"
+  baseline_repository_health: "6 passed"
+  baseline_pytest: "705 passed"
+  baseline_python_syntax: success
+  baseline_z_quality: "17/17 z_conform"
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "AP-0116 definiert den verbindlichen MCB-1P-Fachvertrag, Pinvertrag, grafische Mindestanforderungen und die Statusfolge Entwurf-Geprueft-Praxisgetestet. AP-0117 setzt diesen Vertrag im KiCad-Referenzsymbol um."
+  note: "AP-0117 hat das MCB-1P-Referenzsymbol grafisch erweitert, den Pinvertrag automatisiert abgesichert und den Referenzprojektstatus bis zum Praxisnachweis auf Entwurf gesetzt. Die neuen Sprint-006-Aenderungen muessen im Folgeprueflauf erneut nachgewiesen werden."
