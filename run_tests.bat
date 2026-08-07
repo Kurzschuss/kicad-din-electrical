@@ -85,15 +85,17 @@ echo   [8] Bibliotheksreferenz pruefen
 echo   [9] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo   [A] KiCad-Umgebungsvariablen anzeigen
 echo   [T] 3D-Werkzeuge OpenSCAD/FreeCAD pruefen
+echo   [G] MCB-3D-Masshaltigkeit STEP/WRL pruefen
 echo   [R] Repository installieren / Version pruefen / aktualisieren
 echo   [I] Entwicklungsumgebung reparieren
 echo   [0] Programm verlassen
 echo.
-choice /c 123456789ATRI0 /n /m "Auswahl: "
+choice /c 123456789ATGRI0 /n /m "Auswahl: "
 
-if errorlevel 14 goto :end
-if errorlevel 13 goto :repair_environment
-if errorlevel 12 goto :repository_manager
+if errorlevel 15 goto :end
+if errorlevel 14 goto :repair_environment
+if errorlevel 13 goto :repository_manager
+if errorlevel 12 goto :geometry
 if errorlevel 11 goto :toolchain
 if errorlevel 10 goto :environment
 if errorlevel 9 goto :quality
@@ -141,6 +143,10 @@ goto :menu
 
 :toolchain
 call :run "3D-Werkzeuge OpenSCAD/FreeCAD" "python tools\export_z_mcb_3d.py --check-tools"
+goto :menu
+
+:geometry
+call :run "MCB-3D-Masshaltigkeit STEP/WRL" "python tools\export_z_mcb_3d.py --check-geometry"
 goto :menu
 
 :repository_manager
@@ -259,31 +265,37 @@ echo   Alle Pruefungen
 echo ============================================================
 echo.
 
-echo [1/5] Repository-Health-Check
+echo [1/6] Repository-Health-Check
 echo.
 call "tools\windows\run_with_error_report.bat" "Repository-Health-Check" "build\ALLE_PRUEFUNGEN_HEALTH.log" python -m pytest -q %HEALTH_TEST%
 if errorlevel 1 goto :allchecks_failed
 
 echo.
-echo [2/5] Vollstaendige Testsuite
+echo [2/6] Vollstaendige Testsuite
 echo.
 call "tools\windows\run_with_error_report.bat" "Vollstaendige Testsuite" "build\ALLE_PRUEFUNGEN_PYTEST.log" python -m pytest -q
 if errorlevel 1 goto :allchecks_failed
 
 echo.
-echo [3/5] Python-Syntaxpruefung
+echo [3/6] Python-Syntaxpruefung
 echo.
 call "tools\windows\run_with_error_report.bat" "Python-Syntaxpruefung" "build\ALLE_PRUEFUNGEN_SYNTAX.log" python -m compileall -q distributions tests tools
 if errorlevel 1 goto :allchecks_failed
 
 echo.
-echo [4/5] 3D-Werkzeuge OpenSCAD/FreeCAD
+echo [4/6] 3D-Werkzeuge OpenSCAD/FreeCAD
 echo.
 call "tools\windows\run_with_error_report.bat" "3D-Werkzeuge OpenSCAD/FreeCAD" "build\ALLE_PRUEFUNGEN_3D_WERKZEUGE.log" python tools\export_z_mcb_3d.py --check-tools
 if errorlevel 1 goto :allchecks_failed
 
 echo.
-echo [5/5] Z_-Qualitaetspruefung fuer Symbol und Footprint
+echo [5/6] MCB-3D-Masshaltigkeit STEP/WRL
+echo.
+call "tools\windows\run_with_error_report.bat" "MCB-3D-Masshaltigkeit STEP/WRL" "build\ALLE_PRUEFUNGEN_3D_MASSHALTIGKEIT.log" python tools\export_z_mcb_3d.py --check-geometry
+if errorlevel 1 goto :allchecks_failed
+
+echo.
+echo [6/6] Z_-Qualitaetspruefung fuer Symbol und Footprint
 echo.
 call "tools\windows\run_with_error_report.bat" "Z_-Qualitaetspruefung" "build\ALLE_PRUEFUNGEN_QUALITAET.log" %QUALITY_CMD%
 if errorlevel 1 goto :allchecks_failed
