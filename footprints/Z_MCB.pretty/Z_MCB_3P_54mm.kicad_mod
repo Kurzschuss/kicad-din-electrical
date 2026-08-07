@@ -16,6 +16,13 @@
     (end 27 52)
     (stroke (width 0.1) (type default))
     (fill none)
+    (layer "Edge.Cuts")
+  )
+  (fp_rect
+    (start -27 -52)
+    (end 27 52)
+    (stroke (width 0.1) (type default))
+    (fill none)
     (layer "F.Fab")
   )
   (fp_rect
