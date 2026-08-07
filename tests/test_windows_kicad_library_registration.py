@@ -41,17 +41,28 @@ def test_design_block_path_is_registered_in_kicad_paths() -> None:
     assert "designblocks" in content
 
 
-def test_projectos_3d_model_path_is_registered_from_repository_root() -> None:
+def test_projectos_3d_model_path_points_to_kicad_runtime_not_repository() -> None:
     detect = (REPO_ROOT / "tools/windows/detect_kicad.bat").read_text(encoding="utf-8")
     paths = (REPO_ROOT / "tools/windows/register_kicad_z_paths.ps1").read_text(
         encoding="utf-8"
     )
 
-    assert "Z_PROJECTOS_3DMODEL_DIR" in detect
-    assert 'set "Z_PROJECTOS_3DMODEL_DIR=%PROJECTOS_REPOSITORY_ROOT%\\models"' in detect
-    assert '-RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%"' in detect
+    assert "PROJECTOS_MODEL_SOURCE_DIR=%PROJECTOS_REPOSITORY_ROOT%\\models" in detect
+    assert 'set "Z_PROJECTOS_3DMODEL_DIR=%KICAD_Z_3DMODEL_DIR%"' in detect
     assert "Z_PROJECTOS_3DMODEL_DIR" in paths
-    assert "Join-Path $RepositoryRoot 'models'" in paths
+    assert "$projectOs3dRuntime" in paths
+    assert "Z_PROJECTOS_3DMODEL_DIR   = $projectOs3dRuntime" in paths
+
+
+def test_projectos_models_are_synchronized_from_repository_to_kicad_runtime() -> None:
+    libraries = (REPO_ROOT / "tools/windows/register_kicad_z_libraries.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "$modelSource = Join-Path $RepositoryRoot 'models'" in libraries
+    assert "$modelTarget = Join-Path $UserRoot '3dmodels\\Z_3DModell.3dshapes'" in libraries
+    assert "Copy-Item -LiteralPath $model.FullName -Destination $target -Force" in libraries
+    assert "Substring($modelSource.Length)" in libraries
 
 
 def test_z_3d_model_library_is_created_registered_and_synchronized() -> None:
