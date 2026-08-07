@@ -30,6 +30,34 @@ def _string_template(node: ast.AST) -> str | None:
     return None
 
 
+def _message_templates(tree: ast.AST) -> list[str]:
+    """Liefert vollständige Meldungsschablonen ohne f-String-Teilfragmente."""
+    joined_parts = {
+        id(value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.JoinedStr)
+        for value in node.values
+    }
+    templates: list[str] = []
+    for node in ast.walk(tree):
+        if id(node) in joined_parts:
+            continue
+        template = _string_template(node)
+        if not template:
+            continue
+        codes = ERROR_CODE_PATTERN.findall(template)
+        if not codes:
+            continue
+        # Reine Codekonstanten und Präfixfragmente sind keine Meldungsdefinitionen.
+        meaningful = template
+        for code in codes:
+            meaningful = meaningful.replace(code, "")
+        meaningful = meaningful.replace(":", "").replace("{...}", "").strip()
+        if meaningful:
+            templates.append(template)
+    return templates
+
+
 def test_ap_document_ids_are_unique():
     ids = []
     for path in (ROOT / "docs" / "projectos").glob("AP-*.md"):
@@ -66,10 +94,7 @@ def test_error_codes_have_one_consistent_meaning():
     definitions: dict[str, dict[str, set[str]]] = {}
     for path in sorted((ROOT / "projectos").glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            template = _string_template(node)
-            if not template:
-                continue
+        for template in _message_templates(tree):
             for code in ERROR_CODE_PATTERN.findall(template):
                 definitions.setdefault(code, {}).setdefault(template, set()).add(path.name)
 
