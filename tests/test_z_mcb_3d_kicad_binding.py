@@ -22,8 +22,8 @@ def test_mcb_3p_footprint_is_104x54_with_six_pads_on_18mm_grid() -> None:
     assert '(start -27 -52)' in content
     assert '(end 27 52)' in content
     for point in (
-        '(-18 -47)', '(0 -47)', '(18 -47)',
-        '(-18 47)', '(0 47)', '(18 47)',
+        '(at -18 -47)', '(at 0 -47)', '(at 18 -47)',
+        '(at -18 47)', '(at 0 47)', '(at 18 47)',
     ):
         assert point in content
     assert content.count('(drill 4)') == 6
