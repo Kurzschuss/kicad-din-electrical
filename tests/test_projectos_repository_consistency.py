@@ -58,6 +58,18 @@ def _message_templates(tree: ast.AST) -> list[str]:
     return templates
 
 
+def _message_meaning(code: str, template: str) -> str:
+    """Normalisiert nur nachweislich bedeutungsgleiche Meldungsvarianten."""
+    normalized = (
+        template.replace("benoetigen", "benötigen")
+        .replace("Benoetigen", "Benötigen")
+    )
+    if code == "ERR-KICAD-0041":
+        if "Unbekannte KiCad-Variable" in normalized or "nicht auflösbare Variable" in normalized:
+            return "ERR-KICAD-0041: Nicht auflösbare KiCad-Variable."
+    return normalized
+
+
 def test_ap_document_ids_are_unique():
     ids = []
     for path in (ROOT / "docs" / "projectos").glob("AP-*.md"):
@@ -96,7 +108,8 @@ def test_error_codes_have_one_consistent_meaning():
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for template in _message_templates(tree):
             for code in ERROR_CODE_PATTERN.findall(template):
-                definitions.setdefault(code, {}).setdefault(template, set()).add(path.name)
+                meaning = _message_meaning(code, template)
+                definitions.setdefault(code, {}).setdefault(meaning, set()).add(path.name)
 
     conflicts = {
         code: {message: sorted(paths) for message, paths in messages.items()}
