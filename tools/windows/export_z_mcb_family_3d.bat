@@ -56,11 +56,14 @@ echo FEHLER: MCB-1P/3P-Export oder Masspruefung fehlgeschlagen.
 echo.
 echo ============================================================
 if "%RESULT%"=="0" (
-    echo   Vorgang erfolgreich beendet.
+    echo   FERTIG - MCB-1P/3P 3D-EXPORT ABGESCHLOSSEN
+    echo   Alle vorgesehenen Schritte wurden erfolgreich beendet.
 ) else (
+    echo   NICHT ABGESCHLOSSEN - FEHLER AUFGETRETEN
     echo   Vorgang mit Fehlercode %RESULT% beendet.
 )
 echo ============================================================
 echo.
-pause
+echo Druecke eine beliebige Taste, um dieses Fenster zu schliessen ...
+pause >nul
 exit /b %RESULT%
