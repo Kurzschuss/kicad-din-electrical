@@ -7,9 +7,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$projectOs3dRuntime = Join-Path $RootDirectory '3dmodels\Z_3DModell.3dshapes'
+
 $managedVariables = [ordered]@{
     KICAD_Z_ROOT_DIR          = $RootDirectory
-    KICAD_Z_3DMODEL_DIR       = Join-Path $RootDirectory '3dmodels\Z_3DModell.3dshapes'
+    KICAD_Z_3DMODEL_DIR       = $projectOs3dRuntime
     KICAD_Z_3RDPARTY_DIR      = Join-Path $RootDirectory '3rdparty'
     KICAD_Z_DESIGN_BLOCK_DIR  = Join-Path $RootDirectory 'designblocks'
     KICAD_Z_FOOTPRINT_DIR     = Join-Path $RootDirectory 'footprints'
@@ -18,7 +20,7 @@ $managedVariables = [ordered]@{
     KICAD_Z_SCRIPTING_DIR     = Join-Path $RootDirectory 'scripting'
     KICAD_Z_SYMBOL_DIR        = Join-Path $RootDirectory 'symbols'
     KICAD_Z_TEMPLATE_DIR      = Join-Path $RootDirectory 'template'
-    Z_PROJECTOS_3DMODEL_DIR   = Join-Path $RepositoryRoot 'models'
+    Z_PROJECTOS_3DMODEL_DIR   = $projectOs3dRuntime
 }
 
 function Write-Result([string]$Name, [object]$Value) {
@@ -82,6 +84,7 @@ foreach ($configFile in $configFiles) {
                 [void]$existingNames.Add($entry.Key)
             }
             else {
+                # Bestehende, abweichende Werte werden bewusst nicht automatisch überschrieben.
                 [void]$mismatchNames.Add($entry.Key)
             }
         }
