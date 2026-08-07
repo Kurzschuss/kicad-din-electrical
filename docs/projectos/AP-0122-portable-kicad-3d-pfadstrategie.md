@@ -4,78 +4,98 @@
 
 ProjectOS-KiCad-Footprints dürfen keine benutzerspezifischen absoluten 3D-Modellpfade enthalten. Die 3D-Bindung muss nach einem Repository-Clone auf unterschiedlichen Entwicklungsrechnern reproduzierbar konfigurierbar sein.
 
-## Ausgangslage
+## Architekturentscheidung
 
-AP-0121 hat nachgewiesen, dass `Z_MCB_1P.step` und `Z_MCB_1P.wrl` von KiCad korrekt dargestellt werden können. Ein direkter Windows-Pfad funktioniert technisch, ist aber nicht portabel.
-
-Die bisherige Footprint-Referenz
+ProjectOS trennt ab jetzt strikt zwischen Entwicklungsquelle und produktiver KiCad-Laufzeit:
 
 ```text
-${KIPRJMOD}/../../models/Z_MCB_1P/generated/Z_MCB_1P.step
+Repository / Single Source of Truth
+<Documents>/GitHub/kicad-din-electrical
+        |
+        | run_tests.bat / detect_kicad.bat
+        v
+produktive KiCad-Laufzeit
+<Documents>/kicad
 ```
 
-ist für einen wiederverwendbaren Bibliotheks-Footprint ungeeignet, weil `${KIPRJMOD}` vom jeweils geöffneten KiCad-Projekt abhängt.
+Das Repository enthält Quellcode, Tests, Dokumentation und erzeugte bzw. erzeugbare Artefakte. KiCad arbeitet mit den synchronisierten Z_-Bibliotheken und 3D-Modellen aus dem Benutzerordner `Documents/kicad`.
 
-## Entscheidung
+Damit muss KiCad nicht dauerhaft auf einen GitHub-Arbeitsordner zugreifen.
 
-ProjectOS führt für eigene 3D-Modelle die KiCad-Pfadvariable im Z_-Namensraum
+## 3D-Pfadvertrag
+
+ProjectOS verwendet für eigene 3D-Modelle die KiCad-Pfadvariable
 
 ```text
 Z_PROJECTOS_3DMODEL_DIR
 ```
 
-ein.
-
-Der MCB-Footprint referenziert sein Modell künftig ausschließlich über:
+Der MCB-Footprint referenziert sein Modell über:
 
 ```text
 ${Z_PROJECTOS_3DMODEL_DIR}/Z_MCB_1P/generated/Z_MCB_1P.wrl
 ```
 
-`Z_PROJECTOS_3DMODEL_DIR` zeigt lokal auf den Repository-Ordner `models`.
-
-Beispiel Windows:
+`Z_PROJECTOS_3DMODEL_DIR` zeigt auf die produktive KiCad-3D-Laufzeit:
 
 ```text
-C:/Users/<Benutzer>/Documents/GitHub/kicad-din-electrical/models
+<Documents>/kicad/3dmodels/Z_3DModell.3dshapes
 ```
 
-Dieser konkrete absolute Wert ist nur lokale Konfiguration und wird nicht in Bibliotheksdateien versioniert.
+und nicht mehr auf `<Repository>/models`.
+
+Die Entwicklungsquelle bleibt separat:
+
+```text
+<Repository>/models
+```
+
+`detect_kicad.bat` synchronisiert STEP-/STP-/WRL-Artefakte aus `models/` in die produktive 3D-Laufzeit und erhält dabei die relative Ordnerstruktur.
 
 ## Namensregel
 
-Die Variable trägt bewusst das Präfix `Z_`. Damit ist sie eindeutig als ProjectOS-/Z_-Ressource erkennbar und folgt der bestehenden Namenskonvention der eigenen KiCad-Ressourcen. Die frühere Arbeitsbezeichnung `PROJECTOS_3DMODEL_DIR` ist verworfen und darf nicht als endgültiger Vertrag verwendet werden.
+Die Variable trägt bewusst das Präfix `Z_`. Damit ist sie eindeutig als ProjectOS-/Z_-Ressource erkennbar. Die frühere Arbeitsbezeichnung `PROJECTOS_3DMODEL_DIR` ist verworfen.
 
-## Warum WRL im Footprint
+## Repository-Verwaltung
 
-Für die KiCad-Bibliotheksbindung wird zunächst das im Praxislauf bestätigte WRL-Artefakt verwendet. STEP bleibt parallel als reproduzierbares neutrales CAD-Austauschformat erhalten.
+`run_tests.bat` stellt Repositoryquelle und KiCad-Laufzeit getrennt dar. Zusätzlich zeigt die Repository-Verwaltung:
+
+- verwendetes `git.exe`,
+- lokalen Branch,
+- lokalen Commit,
+- zugehörigen GitHub-Commit,
+- Ahead-/Behind-Status,
+- lokale Änderungen.
+
+Git wird über PATH, übliche Git-for-Windows-Pfade und GitHub Desktop gesucht.
+
+Das Repository kann über den Menüpunkt `R` in den Windows-Dokumenteordner unter `GitHub/kicad-din-electrical` installiert werden. Vorhandene Verzeichnisse werden nicht überschrieben. Updates erfolgen ausschließlich per Fast-Forward und werden bei lokalen Änderungen oder divergierenden Historien blockiert.
 
 ## Regeln
 
-1. Keine Pfade mit `C:/Users/...` oder anderen benutzerspezifischen Verzeichnissen in versionierten Footprints.
-2. Keine Abhängigkeit der Bibliotheksobjekte von `${KIPRJMOD}` für ProjectOS-eigene 3D-Bibliotheken.
-3. ProjectOS-eigene Modelle werden über `${Z_PROJECTOS_3DMODEL_DIR}` adressiert.
-4. Der lokale Variablenwert zeigt auf `<Repository>/models`.
-5. OpenSCAD bleibt Geometrie-Single-Source-of-Truth; STEP und WRL bleiben erzeugte Artefakte.
-6. Die Pfadregel wird durch automatisierte Tests abgesichert.
-
-## Lokale KiCad-Konfiguration
-
-In KiCad wird unter den konfigurierbaren 3D-/Umgebungs-Pfaden die Variable `Z_PROJECTOS_3DMODEL_DIR` auf den lokalen `models`-Ordner des geklonten Repositorys gesetzt.
-
-Danach darf der Footprint keine benutzerspezifische Pfadangabe mehr benötigen.
+1. Keine benutzerspezifischen absoluten 3D-Pfade in versionierten Footprints.
+2. Keine `${KIPRJMOD}`-Abhängigkeit für ProjectOS-eigene 3D-Bibliotheken.
+3. Footprints adressieren ProjectOS-3D-Modelle über `${Z_PROJECTOS_3DMODEL_DIR}`.
+4. Repository und produktive KiCad-Laufzeit sind getrennte Ebenen.
+5. `models/` im Repository ist Quelle; `Documents/kicad/3dmodels/Z_3DModell.3dshapes` ist Laufzeitkopie.
+6. OpenSCAD bleibt Geometrie-Single-Source-of-Truth; STEP und WRL sind reproduzierbare Zielartefakte.
+7. Automatische Synchronisation darf vorhandene fremde KiCad-Ressourcen nicht löschen.
+8. Repository-Updates dürfen lokale Änderungen nicht überschreiben.
 
 ## Abnahmekriterien
 
 AP-0122 ist abgeschlossen, wenn:
 
 - der MCB-Footprint `${Z_PROJECTOS_3DMODEL_DIR}` verwendet,
-- die verworfene Arbeitsbezeichnung `${PROJECTOS_3DMODEL_DIR}` nicht mehr verwendet wird,
-- kein `${KIPRJMOD}` für die MCB-3D-Bindung verbleibt,
+- die Variable auf die KiCad-Laufzeit zeigt,
+- das MCB-WRL aus dem Repository in die KiCad-Laufzeit synchronisiert wird,
 - kein absoluter Benutzerpfad im Footprint vorhanden ist,
-- ein Test diese Regeln absichert,
-- das Modell nach lokaler Konfiguration der Variablen in KiCad ohne rotes X geladen wird.
+- Repositoryquelle und KiCad-Laufzeit im Testmenü getrennt angezeigt werden,
+- Git lokal inklusive GitHub-Desktop-Installation gefunden werden kann,
+- lokale und GitHub-Version vergleichbar sind,
+- automatisierte Tests die Architektur absichern,
+- das Modell aus der KiCad-Laufzeit ohne rotes X dargestellt wird.
 
 ## Status
 
-`in Bearbeitung – Z_-Pfadvertrag implementiert, automatisierter und lokaler KiCad-Nachweis folgen`
+`in Bearbeitung – Repository/Laufzeit-Trennung implementiert; lokaler Windows- und KiCad-Nachweis steht aus`
