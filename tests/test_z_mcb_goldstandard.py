@@ -7,8 +7,13 @@ PREVIEW = Path("docs/site/symbol-previews/Z_MCB/MCB.svg")
 MANIFEST = Path("projects/Z_MCB_reference/Z_PROJECT_MANIFEST.json")
 
 
-def test_mcb_1p_pin_contract_is_exactly_two_passive_pins() -> None:
+def _mcb_1p_symbol_text() -> str:
     content = MCB.read_text(encoding="utf-8")
+    return content.split('\n  (symbol "MCB_3P"', 1)[0]
+
+
+def test_mcb_1p_pin_contract_is_exactly_two_passive_pins() -> None:
+    content = _mcb_1p_symbol_text()
 
     assert content.count("(pin passive line") == 2
     assert '(number "1"' in content
@@ -18,7 +23,7 @@ def test_mcb_1p_pin_contract_is_exactly_two_passive_pins() -> None:
 
 
 def test_mcb_1p_has_visible_switch_protection_graphic() -> None:
-    content = MCB.read_text(encoding="utf-8")
+    content = _mcb_1p_symbol_text()
 
     assert content.count("(polyline") >= 2
     assert '(xy -2.54 0)' in content
@@ -27,7 +32,7 @@ def test_mcb_1p_has_visible_switch_protection_graphic() -> None:
 
 
 def test_mcb_1p_remains_manufacturer_neutral() -> None:
-    content = MCB.read_text(encoding="utf-8")
+    content = _mcb_1p_symbol_text()
 
     assert '(property "Manufacturer" ""' in content
     assert '(property "Part Number" ""' in content
