@@ -34,20 +34,14 @@ function Ensure-LibraryTable {
         $namePattern = '\(name\s+"' + [regex]::Escape($library.Name) + '"\)'
         if ($content -match $namePattern) {
             $uriPattern = '\(uri\s+"' + [regex]::Escape((Escape-SexprString $library.Uri)) + '"\)'
-            if ($content -match $uriPattern) {
-                $existing.Add($library.Name)
-            }
-            else {
-                $mismatch.Add($library.Name)
-            }
+            if ($content -match $uriPattern) { $existing.Add($library.Name) }
+            else { $mismatch.Add($library.Name) }
             continue
         }
 
         $row = "  (lib (name `"$($library.Name)`")(type `"KiCad`")(uri `"$(Escape-SexprString $library.Uri)`")(options `"`")(descr `"Z_-Bibliothek, automatisch registriert`"))`n"
         $lastClose = $content.LastIndexOf(')')
-        if ($lastClose -lt 0) {
-            throw "Ungültige KiCad-Bibliothekstabelle: $TablePath"
-        }
+        if ($lastClose -lt 0) { throw "Ungültige KiCad-Bibliothekstabelle: $TablePath" }
         $content = $content.Insert($lastClose, $row)
         $added.Add($library.Name)
     }
@@ -61,17 +55,13 @@ function Ensure-LibraryTable {
         [System.IO.File]::WriteAllText($TablePath, $content, [System.Text.UTF8Encoding]::new($false))
     }
 
-    return [pscustomobject]@{
-        Added = $added
-        Existing = $existing
-        Mismatch = $mismatch
-    }
+    return [pscustomobject]@{ Added = $added; Existing = $existing; Mismatch = $mismatch }
 }
 
 $symbolSource = Join-Path $RepositoryRoot 'symbols'
 $footprintSource = Join-Path $RepositoryRoot 'footprints'
 $designBlockSource = Join-Path $RepositoryRoot 'designblocks'
-$modelSource = Join-Path $RepositoryRoot '3dmodels\Z_3DModell.3dshapes'
+$modelSource = Join-Path $RepositoryRoot 'models'
 
 $symbolTarget = Join-Path $UserRoot 'symbols'
 $footprintTarget = Join-Path $UserRoot 'footprints'
@@ -87,10 +77,7 @@ if (Test-Path -LiteralPath $symbolSource) {
     Get-ChildItem -LiteralPath $symbolSource -File -Filter 'Z_*.kicad_sym' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $symbolTarget $_.Name
         Copy-Item -LiteralPath $_.FullName -Destination $target -Force
-        $symbolLibraries += [pscustomobject]@{
-            Name = $_.BaseName
-            Uri = '${KICAD_Z_SYMBOL_DIR}/' + $_.Name
-        }
+        $symbolLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_SYMBOL_DIR}/' + $_.Name }
     }
 }
 
@@ -99,10 +86,7 @@ if (Test-Path -LiteralPath $footprintSource) {
     Get-ChildItem -LiteralPath $footprintSource -Directory -Filter 'Z_*.pretty' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $footprintTarget $_.Name
         Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
-        $footprintLibraries += [pscustomobject]@{
-            Name = $_.BaseName
-            Uri = '${KICAD_Z_FOOTPRINT_DIR}/' + $_.Name
-        }
+        $footprintLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_FOOTPRINT_DIR}/' + $_.Name }
     }
 }
 
@@ -111,17 +95,16 @@ if (Test-Path -LiteralPath $designBlockSource) {
     Get-ChildItem -LiteralPath $designBlockSource -Directory -Filter 'Z_*.kicad_blocks' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $designBlockTarget $_.Name
         Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
-        $designBlockLibraries += [pscustomobject]@{
-            Name = $_.BaseName
-            Uri = '${KICAD_Z_DESIGN_BLOCK_DIR}/' + $_.Name
-        }
+        $designBlockLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_DESIGN_BLOCK_DIR}/' + $_.Name }
     }
 }
 
+# ProjectOS-3D-Artefakte werden aus dem Repository in die produktive KiCad-Laufzeit gespiegelt.
+# Die relative Struktur unter models/ bleibt erhalten, damit Footprints portable Pfade verwenden können.
 $modelFiles = @()
 if (Test-Path -LiteralPath $modelSource) {
     $modelFiles = Get-ChildItem -LiteralPath $modelSource -File -Recurse |
-        Where-Object { $_.Extension -in @('.step', '.stp', '.wrl') }
+        Where-Object { $_.Extension.ToLowerInvariant() -in @('.step', '.stp', '.wrl') }
     foreach ($model in $modelFiles) {
         $relative = $model.FullName.Substring($modelSource.Length).TrimStart('\', '/')
         $target = Join-Path $modelTarget $relative
@@ -146,7 +129,6 @@ foreach ($configDirectory in $configDirectories) {
         Ensure-LibraryTable -TablePath (Join-Path $configDirectory.FullName 'fp-lib-table') -RootName 'fp_lib_table' -Libraries $footprintLibraries
         Ensure-LibraryTable -TablePath (Join-Path $configDirectory.FullName 'design-block-lib-table') -RootName 'design_block_lib_table' -Libraries $designBlockLibraries
     )
-
     foreach ($result in $results) {
         $totalAdded += $result.Added.Count
         $totalExisting += $result.Existing.Count
@@ -154,12 +136,8 @@ foreach ($configDirectory in $configDirectories) {
     }
 }
 
-if ($configDirectories.Count -eq 0) {
-    Write-Output 'KICAD_Z_LIBRARY_REGISTRATION=NO_CONFIG'
-}
-else {
-    Write-Output 'KICAD_Z_LIBRARY_REGISTRATION=OK'
-}
+if ($configDirectories.Count -eq 0) { Write-Output 'KICAD_Z_LIBRARY_REGISTRATION=NO_CONFIG' }
+else { Write-Output 'KICAD_Z_LIBRARY_REGISTRATION=OK' }
 Write-Output "KICAD_Z_LIBRARY_ADDED=$totalAdded"
 Write-Output "KICAD_Z_LIBRARY_EXISTING=$totalExisting"
 Write-Output "KICAD_Z_LIBRARY_MISMATCH=$totalMismatch"
@@ -167,4 +145,4 @@ Write-Output "KICAD_Z_SYMBOL_LIBRARIES=$($symbolLibraries.Count)"
 Write-Output "KICAD_Z_FOOTPRINT_LIBRARIES=$($footprintLibraries.Count)"
 Write-Output "KICAD_Z_DESIGN_BLOCK_LIBRARIES=$($designBlockLibraries.Count)"
 Write-Output "KICAD_Z_3DMODEL_FILES=$($modelFiles.Count)"
-Write-Output "KICAD_Z_REQUIRED_ENTRIES=$($symbolLibraries.Count + $footprintLibraries.Count + $designBlockLibraries.Count + 10)"
+Write-Output "KICAD_Z_REQUIRED_ENTRIES=$($symbolLibraries.Count + $footprintLibraries.Count + $designBlockLibraries.Count + 11)"
