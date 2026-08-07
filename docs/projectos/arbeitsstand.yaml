@@ -42,11 +42,11 @@ sprints:
   - id: SPRINT-006
     name: MCB Goldstandard und Domain Validation
     status: in_progress
-    completed_work_packages: [AP-0114, AP-0115, AP-0116, AP-0117]
-    next_work_package: AP-0118
+    completed_work_packages: [AP-0114, AP-0115, AP-0116, AP-0117, AP-0118]
+    next_work_package: AP-0119
     active_validation_domain: MCB
     reference_issue: 87
-    current_focus: "MCB-1P Vorschau und Referenzprojekt an das neue Symbol anpassen; KiCad-Praxisvalidierung vorbereiten"
+    current_focus: "Reproduzierbaren STEP/WRL-Export fuer das eigene MCB-1P-3D-Modell vorbereiten und danach KiCad-3D-Praxispruefung durchfuehren"
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
 initial_validation_domains: [MCB, RCCB]
@@ -62,4 +62,4 @@ verification:
   baseline_z_quality: "17/17 z_conform"
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "AP-0117 hat das MCB-1P-Referenzsymbol grafisch erweitert, den Pinvertrag automatisiert abgesichert und den Referenzprojektstatus bis zum Praxisnachweis auf Entwurf gesetzt. Die neuen Sprint-006-Aenderungen muessen im Folgeprueflauf erneut nachgewiesen werden."
+  note: "AP-0118 hat Vorschauunterstuetzung fuer die MCB-Funktionsgrafik erweitert und ein von Grund auf neu erstelltes, herstellerneutrales MCB-1P-3D-Referenzmodell samt Herkunfts- und Massmanifest angelegt. Externe TraceParts-/Hersteller-CAD-Geometrie wird nicht als ProjectOS-Asset uebernommen. Der neue Sprintstand muss erneut vollstaendig getestet werden."
