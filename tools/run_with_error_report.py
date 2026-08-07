@@ -26,7 +26,10 @@ def run_command(title: str, command: list[str], log_path: Path, report_path: Pat
         text = f"Befehl konnte nicht gestartet werden: {exc}\n"
         print(text, end="", file=sys.stderr)
         log_path.write_text(text, encoding="utf-8")
-        report_path.write_text(build_report(title, subprocess.list2cmdline(command), 127, text), encoding="utf-8")
+        report_path.write_text(
+            build_report(title, subprocess.list2cmdline(command), 127, text),
+            encoding="utf-8",
+        )
         return 127
 
     assert process.stdout is not None
@@ -36,6 +39,14 @@ def run_command(title: str, command: list[str], log_path: Path, report_path: Pat
 
     exit_code = process.wait()
     log_text = "".join(collected)
+    if exit_code == 0 and not log_text.strip():
+        log_text = (
+            f"Prüfung: {title}\n"
+            "Status: ERFOLGREICH\n"
+            f"Befehl: {subprocess.list2cmdline(command)}\n"
+            "Ausgabe: keine; der Befehl wurde ohne Fehler beendet.\n"
+        )
+        print(log_text, end="")
     log_path.write_text(log_text, encoding="utf-8")
 
     if exit_code != 0:
