@@ -107,7 +107,7 @@ def detect_toolchain() -> Toolchain:
 
 def freecad_conversion_script(stl_path: Path, step_path: Path, wrl_path: Path) -> str:
     """Erzeugt das FreeCAD-Python-Skript für STEP- und WRL-Ausgabe."""
-    return f'''import FreeCAD as App\nimport Mesh\nimport Part\n\nstl = r"{stl_path}"\nstep = r"{step_path}"\nwrl = r"{wrl_path}"\n\ndoc = App.newDocument("Z_MCB_1P")\nmesh_obj = doc.addObject("Mesh::Feature", "SourceMesh")\nmesh_obj.Mesh = Mesh.Mesh(stl)\n\nshape = Part.Shape()\nshape.makeShapeFromMesh(mesh_obj.Mesh.Topology, 0.05)\nsolid = Part.makeSolid(shape) if shape.Shells else shape\npart_obj = doc.addObject("Part::Feature", "Z_MCB_1P")\npart_obj.Shape = solid\n\ndoc.recompute()\nPart.export([part_obj], step)\nGuiUp = False\ntry:\n    import FreeCADGui  # noqa: F401\n    GuiUp = True\nexcept Exception:\n    pass\n\n# VRML kann über das Mesh-Modul headless exportiert werden.\nMesh.export([part_obj], wrl)\n\ndoc.close()\n'''
+    return f'''import FreeCAD as App\nimport Mesh\nimport Part\n\nstl = r"{stl_path}"\nstep = r"{step_path}"\nwrl = r"{wrl_path}"\n\ndoc = App.newDocument("Z_MCB_1P")\nmesh_obj = doc.addObject("Mesh::Feature", "SourceMesh")\nmesh_obj.Mesh = Mesh.Mesh(stl)\n\nshape = Part.Shape()\nshape.makeShapeFromMesh(mesh_obj.Mesh.Topology, 0.05)\nsolid = Part.makeSolid(shape) if shape.Shells else shape\npart_obj = doc.addObject("Part::Feature", "Z_MCB_1P")\npart_obj.Shape = solid\n\ndoc.recompute()\nPart.export([part_obj], step)\n\n# VRML kann über das Mesh-Modul headless exportiert werden.\nMesh.export([part_obj], wrl)\n\nApp.closeDocument(doc.Name)\n'''
 
 
 def export_model(toolchain: Toolchain, *, output_dir: Path = OUTPUT_DIR) -> tuple[Path, Path]:
