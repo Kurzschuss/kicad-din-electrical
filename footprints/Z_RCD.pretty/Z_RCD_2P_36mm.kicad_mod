@@ -13,7 +13,7 @@
   (pad "4" thru_hole circle (at 9 47) (size 6 6) (drill 4) (layers "*.Cu" "*.Mask"))
   (model "${Z_PROJECTOS_3DMODEL_DIR}/Z_RCD_2P/generated/Z_RCD_2P.wrl"
     (offset (xyz 0 0 0))
-    (scale (xyz 1 1 1))
+    (scale (xyz 0.3940 0.3940 0.3940))
     (rotate (xyz 0 0 0))
   )
 )
