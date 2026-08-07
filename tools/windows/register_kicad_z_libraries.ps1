@@ -58,6 +58,21 @@ function Ensure-LibraryTable {
     return [pscustomobject]@{ Added = $added; Existing = $existing; Mismatch = $mismatch }
 }
 
+function Mirror-Directory {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+
+    # Copy-Item -Recurse in ein bereits vorhandenes gleichnamiges Verzeichnis
+    # erzeugt sonst z. B. Z_MCB.pretty\Z_MCB.pretty. Daher wird jede
+    # produktive Bibliothek atomar als Verzeichnisbestand neu gespiegelt.
+    if (Test-Path -LiteralPath $Target) {
+        Remove-Item -LiteralPath $Target -Recurse -Force
+    }
+    Copy-Item -LiteralPath $Source -Destination $Target -Recurse -Force
+}
+
 $symbolSource = Join-Path $RepositoryRoot 'symbols'
 $footprintSource = Join-Path $RepositoryRoot 'footprints'
 $designBlockSource = Join-Path $RepositoryRoot 'designblocks'
@@ -85,7 +100,7 @@ $footprintLibraries = @()
 if (Test-Path -LiteralPath $footprintSource) {
     Get-ChildItem -LiteralPath $footprintSource -Directory -Filter 'Z_*.pretty' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $footprintTarget $_.Name
-        Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
+        Mirror-Directory -Source $_.FullName -Target $target
         $footprintLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_FOOTPRINT_DIR}/' + $_.Name }
     }
 }
@@ -94,7 +109,7 @@ $designBlockLibraries = @()
 if (Test-Path -LiteralPath $designBlockSource) {
     Get-ChildItem -LiteralPath $designBlockSource -Directory -Filter 'Z_*.kicad_blocks' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $designBlockTarget $_.Name
-        Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
+        Mirror-Directory -Source $_.FullName -Target $target
         $designBlockLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_DESIGN_BLOCK_DIR}/' + $_.Name }
     }
 }
