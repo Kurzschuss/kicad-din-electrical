@@ -20,16 +20,50 @@ function Resolve-DocumentsDirectory {
     return $documents
 }
 
+function Resolve-GitExecutable {
+    $command = Get-Command git.exe -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+
+    $candidates = @(
+        (Join-Path $env:ProgramFiles 'Git\cmd\git.exe'),
+        (Join-Path $env:ProgramFiles 'Git\bin\git.exe'),
+        (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd\git.exe')
+    )
+    if (${env:ProgramFiles(x86)}) {
+        $candidates += Join-Path ${env:ProgramFiles(x86)} 'Git\cmd\git.exe'
+    }
+
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) { return $candidate }
+    }
+
+    $desktopRoot = Join-Path $env:LOCALAPPDATA 'GitHubDesktop'
+    if (Test-Path -LiteralPath $desktopRoot) {
+        $apps = Get-ChildItem -LiteralPath $desktopRoot -Directory -Filter 'app-*' -ErrorAction SilentlyContinue |
+            Sort-Object Name -Descending
+        foreach ($app in $apps) {
+            foreach ($relative in @('resources\app\git\cmd\git.exe', 'resources\app\git\bin\git.exe')) {
+                $candidate = Join-Path $app.FullName $relative
+                if (Test-Path -LiteralPath $candidate) { return $candidate }
+            }
+        }
+    }
+
+    return $null
+}
+
 if ([string]::IsNullOrWhiteSpace($TargetDirectory)) {
     $TargetDirectory = Join-Path (Resolve-DocumentsDirectory) 'GitHub\kicad-din-electrical'
 }
 
-$git = Get-Command git.exe -ErrorAction SilentlyContinue
-if (-not $git) {
+$gitExe = Resolve-GitExecutable
+if (-not $gitExe) {
+    Write-Result 'PROJECTOS_GIT_EXE' 'nicht verfügbar'
     Write-Result 'PROJECTOS_REPO_STATUS' 'GIT_NOT_FOUND'
     Write-Result 'PROJECTOS_REPO_TARGET' $TargetDirectory
     exit 2
 }
+Write-Result 'PROJECTOS_GIT_EXE' $gitExe
 
 if ($Mode -eq 'install') {
     if (Test-Path -LiteralPath $TargetDirectory) {
@@ -45,7 +79,7 @@ if ($Mode -eq 'install') {
 
     $parent = Split-Path -Parent $TargetDirectory
     New-Item -ItemType Directory -Path $parent -Force | Out-Null
-    & $git.Source clone --branch $DefaultBranch --single-branch $RepositoryUrl $TargetDirectory
+    & $gitExe clone --branch $DefaultBranch --single-branch $RepositoryUrl $TargetDirectory
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Write-Result 'PROJECTOS_REPO_STATUS' 'INSTALLED'
     Write-Result 'PROJECTOS_REPO_TARGET' $TargetDirectory
@@ -60,17 +94,17 @@ if (-not (Test-Path -LiteralPath (Join-Path $TargetDirectory '.git'))) {
 
 Push-Location $TargetDirectory
 try {
-    $branch = (& $git.Source branch --show-current).Trim()
+    $branch = (& $gitExe branch --show-current).Trim()
     if ([string]::IsNullOrWhiteSpace($branch)) { $branch = $DefaultBranch }
-    $localCommit = (& $git.Source rev-parse HEAD).Trim()
-    $dirty = -not [string]::IsNullOrWhiteSpace((& $git.Source status --porcelain | Out-String).Trim())
+    $localCommit = (& $gitExe rev-parse HEAD).Trim()
+    $dirty = -not [string]::IsNullOrWhiteSpace((& $gitExe status --porcelain | Out-String).Trim())
 
     Write-Result 'PROJECTOS_REPO_TARGET' $TargetDirectory
     Write-Result 'PROJECTOS_REPO_BRANCH' $branch
     Write-Result 'PROJECTOS_REPO_LOCAL_COMMIT' $localCommit
     Write-Result 'PROJECTOS_REPO_DIRTY' $dirty
 
-    & $git.Source fetch origin --quiet
+    & $gitExe fetch origin --quiet
     if ($LASTEXITCODE -ne 0) {
         Write-Result 'PROJECTOS_REPO_STATUS' 'REMOTE_UNAVAILABLE'
         Write-Result 'PROJECTOS_REPO_REMOTE_COMMIT' 'nicht verfügbar'
@@ -79,13 +113,11 @@ try {
     }
 
     $remoteRef = "origin/$branch"
-    & $git.Source rev-parse --verify $remoteRef *> $null
-    if ($LASTEXITCODE -ne 0) {
-        $remoteRef = "origin/$DefaultBranch"
-    }
-    $remoteCommit = (& $git.Source rev-parse $remoteRef).Trim()
+    & $gitExe rev-parse --verify $remoteRef *> $null
+    if ($LASTEXITCODE -ne 0) { $remoteRef = "origin/$DefaultBranch" }
+    $remoteCommit = (& $gitExe rev-parse $remoteRef).Trim()
 
-    $counts = (& $git.Source rev-list --left-right --count "HEAD...$remoteRef").Trim() -split '\s+'
+    $counts = (& $gitExe rev-list --left-right --count "HEAD...$remoteRef").Trim() -split '\s+'
     $ahead = [int]$counts[0]
     $behind = [int]$counts[1]
 
@@ -105,7 +137,7 @@ try {
             exit 4
         }
         if ($relation -eq 'BEHIND') {
-            & $git.Source pull --ff-only origin $branch
+            & $gitExe pull --ff-only origin $branch
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             Write-Result 'PROJECTOS_REPO_UPDATE' 'UPDATED'
         }
