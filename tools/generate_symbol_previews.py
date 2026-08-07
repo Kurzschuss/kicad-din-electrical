@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Erzeugt einfache SVG-Vorschauen aus KiCad-Symbolbibliotheken.
 
-Phase 1 unterstützt die in den vorhandenen Bibliotheken verwendeten
-Grundelemente Rechteck und Pin. Die Quelldateien werden nicht verändert.
+Unterstützt die im Goldstandard benötigten Grundelemente Rechteck, Polylinie
+und Pin. Die Quelldateien werden nicht verändert.
 """
 
 from __future__ import annotations
@@ -27,6 +27,8 @@ PIN_RE = re.compile(
     r'\(pin\s+\S+\s+\S+\s+\(at\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
     r'\(length\s+(-?[\d.]+)\)'
 )
+POLYLINE_RE = re.compile(r'\(polyline\s+\(pts\s+((?:\(xy\s+-?[\d.]+\s+-?[\d.]+\)\s*)+)\)', re.MULTILINE)
+XY_RE = re.compile(r'\(xy\s+(-?[\d.]+)\s+(-?[\d.]+)\)')
 
 
 @dataclass(frozen=True)
@@ -45,6 +47,11 @@ class Pin:
     length: float
 
 
+@dataclass(frozen=True)
+class Polyline:
+    points: tuple[tuple[float, float], ...]
+
+
 def symbol_names(text: str) -> list[str]:
     return TOP_LEVEL_SYMBOL_RE.findall(text)
 
@@ -57,11 +64,26 @@ def parse_pins(text: str) -> list[Pin]:
     return [Pin(*(float(value) for value in match)) for match in PIN_RE.findall(text)]
 
 
+def parse_polylines(text: str) -> list[Polyline]:
+    polylines: list[Polyline] = []
+    for block in POLYLINE_RE.findall(text):
+        points = tuple((float(x), float(y)) for x, y in XY_RE.findall(block))
+        if len(points) >= 2:
+            polylines.append(Polyline(points))
+    return polylines
+
+
 def _point(x: float, y: float, scale: float = 12.0) -> tuple[float, float]:
     return 120 + x * scale, 90 - y * scale
 
 
-def render_svg(library: str, symbol: str, rectangles: list[Rectangle], pins: list[Pin]) -> str:
+def render_svg(
+    library: str,
+    symbol: str,
+    rectangles: list[Rectangle],
+    pins: list[Pin],
+    polylines: list[Polyline] | None = None,
+) -> str:
     shapes: list[str] = []
     for item in rectangles:
         x1, y1 = _point(item.x1, item.y1)
@@ -70,6 +92,12 @@ def render_svg(library: str, symbol: str, rectangles: list[Rectangle], pins: lis
             f'<rect x="{min(x1, x2):.2f}" y="{min(y1, y2):.2f}" '
             f'width="{abs(x2-x1):.2f}" height="{abs(y2-y1):.2f}" '
             'fill="none" stroke="currentColor" stroke-width="2"/>'
+        )
+    for item in polylines or []:
+        points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (_point(x, y) for x, y in item.points))
+        shapes.append(
+            f'<polyline points="{points}" fill="none" stroke="currentColor" stroke-width="2" '
+            'stroke-linejoin="round" stroke-linecap="round"/>'
         )
     for item in pins:
         x1, y1 = _point(item.x, item.y)
@@ -104,9 +132,10 @@ def generated_files(symbol_root: Path = SYMBOL_ROOT) -> dict[Path, str]:
             continue
         rectangles = parse_rectangles(text)
         pins = parse_pins(text)
+        polylines = parse_polylines(text)
         for name in names:
             target = OUTPUT_ROOT / source.stem / f"{name}.svg"
-            files[target] = render_svg(source.stem, name, rectangles, pins)
+            files[target] = render_svg(source.stem, name, rectangles, pins, polylines)
     return files
 
 
