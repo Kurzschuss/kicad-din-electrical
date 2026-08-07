@@ -17,7 +17,7 @@ shift
 set "COMMAND_EXE=%~1"
 shift
 if /I "%COMMAND_EXE%"=="python" set "COMMAND_EXE=%PYTHON_EXE%"
-set "COMMAND_ARGS=""%COMMAND_EXE%""
+set "COMMAND_ARGS=%COMMAND_EXE%"
 
 :collect_command_args
 if "%~1"=="" goto :run_command
@@ -30,7 +30,7 @@ goto :collect_command_args
   --title "%REPORT_TITLE%" ^
   --log "%REPORT_LOG%" ^
   --report "build\FEHLERBERICHT.md" ^
-  -- %COMMAND_ARGS%
+  -- "%COMMAND_EXE%" %COMMAND_ARGS:* =%
 
 set "RESULT=%ERRORLEVEL%"
 if not "%RESULT%"=="0" (
