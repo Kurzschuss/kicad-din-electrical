@@ -17,7 +17,7 @@ NOW=datetime(2026,8,6,18,0,tzinfo=timezone.utc)
 
 def _setup():
     c=sqlite3.connect(":memory:")
-    ids=SQLiteIdentityRepository(c); resp=SQLiteGlobalSecurityResponsibilityRepository(c)
+    ids=SQLiteIdentityRepository(c); resp=SQLiteGlobalSecurityResponsibilityRepository(c, ids)
     alerts=SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryRepository(c)
     audit=SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptHistoryActionAuditRepository(c)
     return c,ids,resp,alerts,audit
