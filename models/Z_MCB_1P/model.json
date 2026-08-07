@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "Z_MCB_1P",
+  "kind": "manufacturer_neutral_reference_model",
+  "units": "mm",
+  "dimensions": {
+    "module_width": 18.0,
+    "body_height": 90.0,
+    "body_depth": 70.0,
+    "din_rail_nominal_width": 35.0,
+    "din_rail_nominal_height": 7.5
+  },
+  "coordinate_system": {
+    "x": "module_width",
+    "y": "depth_from_front_to_back",
+    "z": "height_bottom_to_top"
+  },
+  "source": {
+    "type": "project_original",
+    "traceparts_geometry_imported": false,
+    "manufacturer_geometry_imported": false,
+    "external_reference_only": [
+      "https://www.traceparts.com/de/product/rs-americas-1-pole-type-b-mcb10ka-16a?CatalogPath=TRACEPARTS%3ATP09004001007&Product=90-06122023-053192"
+    ]
+  },
+  "status": "Entwurf",
+  "limitations": [
+    "Keine exakte Herstellergeometrie.",
+    "Nicht als mechanischer Kollisionsnachweis fuer ein konkretes Produkt freigegeben.",
+    "STEP/WRL-Ausgabe folgt erst nach reproduzierbarer Exportkette und KiCad-Pruefung."
+  ]
+}
