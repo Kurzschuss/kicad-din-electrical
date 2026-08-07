@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 
-from tools.export_z_mcb_3d import (
+from export_z_mcb_3d import (
     GEOMETRY_TOLERANCE_MM,
     REPO_ROOT,
     Toolchain,
