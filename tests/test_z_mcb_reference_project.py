@@ -27,7 +27,7 @@ def test_manifest_uses_z_prefix_and_keeps_practice_status_honest():
     assert manifest["id"].startswith("Z_")
     assert manifest["device_family"] == "Z_MCB"
     assert manifest["symbol_id"] == "Z_MCB:MCB"
-    assert manifest["quality_level"] == "Geprüft"
+    assert manifest["quality_level"] == "Entwurf"
     assert manifest["validation"] == {
         "library_binding": True,
         "symbol_placed": False,
