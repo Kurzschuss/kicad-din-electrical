@@ -21,6 +21,8 @@ set "KICAD_Z_DESIGN_BLOCK_LIBRARIES="
 set "KICAD_Z_3DMODEL_FILES="
 set "KICAD_Z_REQUIRED_ENTRIES="
 set "Z_PROJECTOS_3DMODEL_DIR="
+set "PROJECTOS_REPOSITORY_ROOT="
+set "PROJECTOS_MODEL_SOURCE_DIR="
 
 rem 1. kicad-cli.exe ueber PATH suchen.
 for /f "delims=" %%I in ('where kicad-cli.exe 2^>nul') do if not defined KICAD_CLI set "KICAD_CLI=%%~fI"
@@ -47,17 +49,19 @@ for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass
 if not defined KICAD_DOCUMENTS_DIR set "KICAD_DOCUMENTS_DIR=%USERPROFILE%\Documents"
 set "KICAD_USER_DIR=%KICAD_DOCUMENTS_DIR%\kicad"
 
+rem Repository ist Entwicklungsquelle; Documents\kicad ist produktive KiCad-Laufzeit.
+for %%I in ("%~dp0..\..") do set "PROJECTOS_REPOSITORY_ROOT=%%~fI"
+set "PROJECTOS_MODEL_SOURCE_DIR=%PROJECTOS_REPOSITORY_ROOT%\models"
+
 rem Fehlende Standardordner anlegen; vorhandene Inhalte niemals loeschen.
 for %%D in (3dmodels 3rdparty designblocks footprints plugins projects scripting symbols template) do (
     if not exist "%KICAD_USER_DIR%\%%D" mkdir "%KICAD_USER_DIR%\%%D" >nul 2>nul
 )
 
-rem Eigene KiCad-3D-Modellbibliothek anlegen. KiCad erwartet fuer
-rem 3D-Modellbibliotheken die Endung .3dshapes.
+rem Eigene produktive KiCad-3D-Modellbibliothek anlegen.
 if not exist "%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes" mkdir "%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes" >nul 2>nul
 
-rem Unsere projektspezifischen Variablen fuer den aktuellen Prozess setzen.
-rem Allgemeine KiCad-Variablen werden bewusst nicht veraendert.
+rem Projektspezifische Variablen fuer den aktuellen Prozess setzen.
 set "KICAD_Z_ROOT_DIR=%KICAD_USER_DIR%"
 set "KICAD_Z_3DMODEL_DIR=%KICAD_USER_DIR%\3dmodels\Z_3DModell.3dshapes"
 set "KICAD_Z_3RDPARTY_DIR=%KICAD_USER_DIR%\3rdparty"
@@ -68,11 +72,10 @@ set "KICAD_Z_PROJECT_DIR=%KICAD_USER_DIR%\projects"
 set "KICAD_Z_SCRIPTING_DIR=%KICAD_USER_DIR%\scripting"
 set "KICAD_Z_SYMBOL_DIR=%KICAD_USER_DIR%\symbols"
 set "KICAD_Z_TEMPLATE_DIR=%KICAD_USER_DIR%\template"
-for %%I in ("%~dp0..\..") do set "PROJECTOS_REPOSITORY_ROOT=%%~fI"
-set "Z_PROJECTOS_3DMODEL_DIR=%PROJECTOS_REPOSITORY_ROOT%\models"
+set "Z_PROJECTOS_3DMODEL_DIR=%KICAD_Z_3DMODEL_DIR%"
 
-rem Fehlende KICAD_Z_- und ProjectOS-Pfade direkt in vorhandenen KiCad-Konfigurationen
-rem registrieren. Vorhandene oder abweichende Eintraege bleiben unveraendert.
+rem Fehlende KICAD_Z_- und ProjectOS-Pfade direkt in vorhandenen KiCad-Konfigurationen registrieren.
+rem Vorhandene oder abweichende Eintraege bleiben unveraendert und werden als Mismatch gemeldet.
 for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_paths.ps1" -RootDirectory "%KICAD_USER_DIR%" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" 2^>nul`) do (
     if /i "%%A"=="KICAD_Z_REGISTRATION" set "KICAD_Z_REGISTRATION=%%B"
     if /i "%%A"=="KICAD_Z_REGISTERED" set "KICAD_Z_REGISTERED=%%B"
@@ -83,8 +86,8 @@ for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionP
     if /i "%%A"=="KICAD_Z_MISMATCH_NAMES" set "KICAD_Z_MISMATCH_NAMES=%%B"
 )
 
-rem Z_-Bibliotheksdateien in den Benutzerordner kopieren und in allen
-rem vorhandenen globalen KiCad-Bibliothekstabellen registrieren.
+rem Freigegebene Z_-Bibliotheken und 3D-Modelle aus dem Repository in die
+rem produktive KiCad-Laufzeit kopieren und global registrieren.
 for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_libraries.ps1" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" -UserRoot "%KICAD_USER_DIR%" 2^>nul`) do (
     if /i "%%A"=="KICAD_Z_LIBRARY_REGISTRATION" set "KICAD_Z_LIBRARY_REGISTRATION=%%B"
     if /i "%%A"=="KICAD_Z_LIBRARY_ADDED" set "KICAD_Z_LIBRARY_ADDED=%%B"
