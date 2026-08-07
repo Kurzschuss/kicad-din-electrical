@@ -42,10 +42,11 @@ sprints:
   - id: SPRINT-006
     name: MCB Goldstandard und Domain Validation
     status: in_progress
-    completed_work_packages: [AP-0114]
-    next_work_package: AP-0115
+    completed_work_packages: [AP-0114, AP-0115]
+    next_work_package: AP-0116
     active_validation_domain: MCB
     reference_issue: 87
+    current_focus: "MCB-1P fachliche und grafische Goldstandard-Definition sowie Pinvertrag"
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
 initial_validation_domains: [MCB, RCCB]
@@ -61,4 +62,4 @@ verification:
   local_z_quality: "17/17 z_conform"
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Sprint 006 wurde nach erfolgreichem lokalen Komplettlauf gestartet. CI-Nachweis fuer den neuen Sprint-Branch folgt mit dem ersten Pull Request."
+  note: "AP-0115 hat den vorhandenen MCB-1P-Stand aufgenommen. AP-0116 definiert den verbindlichen fachlich-grafischen Goldstandard und den Pinvertrag."
