@@ -22,6 +22,25 @@ def test_success_writes_log_without_report(tmp_path: Path) -> None:
     assert not report_path.exists()
 
 
+def test_silent_success_writes_explicit_status_log(tmp_path: Path) -> None:
+    log_path = tmp_path / "syntax.log"
+    report_path = tmp_path / "bericht.md"
+
+    result = run_command(
+        "Python-Syntaxpruefung",
+        [sys.executable, "-c", "pass"],
+        log_path,
+        report_path,
+    )
+
+    assert result == 0
+    log = log_path.read_text(encoding="utf-8")
+    assert "Prüfung: Python-Syntaxpruefung" in log
+    assert "Status: ERFOLGREICH" in log
+    assert "Ausgabe: keine; der Befehl wurde ohne Fehler beendet." in log
+    assert not report_path.exists()
+
+
 def test_failure_writes_log_and_report(tmp_path: Path) -> None:
     log_path = tmp_path / "lauf.log"
     report_path = tmp_path / "bericht.md"
