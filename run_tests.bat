@@ -53,19 +53,22 @@ echo   KiCad DIN Electrical - Tests und Werkzeuge
 echo ============================================================
 echo.
 if defined KICAD_CLI (
-    echo   KiCad CLI        : %KICAD_CLI%
+    echo   KiCad CLI           : %KICAD_CLI%
 ) else (
-    echo   KiCad CLI        : nicht gefunden
+    echo   KiCad CLI           : nicht gefunden
 )
-echo   Python-Umgebung     : %CD%\.venv
-echo   KiCad Benutzerordner: %KICAD_USER_DIR%
-echo   ProjectOS 3D-Modelle: %Z_PROJECTOS_3DMODEL_DIR%
+echo   Python-Umgebung        : %CD%\.venv
+echo   Repository-Quelle      : %PROJECTOS_REPOSITORY_ROOT%
+echo   KiCad-Laufzeit         : %KICAD_USER_DIR%
+echo   3D-Quelle Repository   : %PROJECTOS_MODEL_SOURCE_DIR%
+echo   3D-Modelle KiCad       : %Z_PROJECTOS_3DMODEL_DIR%
 echo.
 echo   REPOSITORY-VERSION
-echo   Branch              : %PROJECTOS_REPO_BRANCH%
-echo   Lokal               : %PROJECTOS_REPO_LOCAL_COMMIT%
-echo   GitHub              : %PROJECTOS_REPO_REMOTE_COMMIT%
-echo   Status              : %PROJECTOS_REPO_STATUS%
+echo   Git                  : %PROJECTOS_GIT_EXE%
+echo   Branch               : %PROJECTOS_REPO_BRANCH%
+echo   Lokal                : %PROJECTOS_REPO_LOCAL_COMMIT%
+echo   GitHub               : %PROJECTOS_REPO_REMOTE_COMMIT%
+echo   Status               : %PROJECTOS_REPO_STATUS%
 echo.
 echo   AUTOMATISCHE FEHLERBERICHTE
 echo   Fehlgeschlagene Pruefungen erzeugen build\FEHLERBERICHT.md
@@ -146,11 +149,12 @@ echo ============================================================
 echo   ProjectOS Repository-Verwaltung
 echo ============================================================
 echo.
-echo   Aktuelles Repository: %CD%
-echo   Standardinstallation: %%USERPROFILE%%\Documents\GitHub\kicad-din-electrical
+echo   Repository-Quelle : %PROJECTOS_REPOSITORY_ROOT%
+echo   KiCad-Laufzeit    : %KICAD_USER_DIR%
+echo   Git               : %PROJECTOS_GIT_EXE%
 echo.
 echo   [S] Versionsstatus dieses Repositorys neu laden
-echo   [I] Repository automatisch in den Benutzerordner installieren
+echo   [I] Repository automatisch in den Windows-Dokumenteordner installieren
 echo   [U] Dieses Repository sicher aktualisieren ^(nur Fast-Forward^)
 echo   [0] Zurueck
 echo.
@@ -168,6 +172,7 @@ echo ============================================================
 echo   Repository-Versionsstatus
 echo ============================================================
 echo.
+echo   Git    : %PROJECTOS_GIT_EXE%
 echo   Branch : %PROJECTOS_REPO_BRANCH%
 echo   Lokal  : %PROJECTOS_REPO_LOCAL_COMMIT%
 echo   GitHub : %PROJECTOS_REPO_REMOTE_COMMIT%
@@ -185,8 +190,9 @@ echo ============================================================
 echo   ProjectOS Repository installieren
 echo ============================================================
 echo.
-echo Ziel ist der GitHub-Ordner im Windows-Dokumenteordner.
+echo Standardziel: Windows-Dokumenteordner\GitHub\kicad-din-electrical
 echo Vorhandene Ordner werden nicht ueberschrieben.
+echo Die produktive KiCad-Laufzeit bleibt getrennt unter Documents\kicad.
 echo.
 choice /c JN /n /m "Repository jetzt von GitHub herunterladen? [J/N]: "
 if errorlevel 2 goto :menu
@@ -209,6 +215,7 @@ echo ============================================================
 echo.
 echo Es wird nur ein sicherer Fast-Forward-Pull ausgefuehrt.
 echo Lokale Aenderungen oder abweichende Historien blockieren die Aktualisierung.
+echo Nach einem Update run_tests.bat neu starten, damit die KiCad-Laufzeit neu synchronisiert wird.
 echo.
 choice /c JN /n /m "Aktuelles Repository jetzt aktualisieren? [J/N]: "
 if errorlevel 2 goto :menu
@@ -225,6 +232,7 @@ pause
 goto :menu
 
 :refresh_repository_status
+set "PROJECTOS_GIT_EXE=nicht verfuegbar"
 set "PROJECTOS_REPO_STATUS=UNBEKANNT"
 set "PROJECTOS_REPO_BRANCH=nicht verfuegbar"
 set "PROJECTOS_REPO_LOCAL_COMMIT=nicht verfuegbar"
@@ -233,6 +241,7 @@ set "PROJECTOS_REPO_AHEAD=-"
 set "PROJECTOS_REPO_BEHIND=-"
 set "PROJECTOS_REPO_DIRTY=-"
 for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "tools\windows\manage_projectos_repository.ps1" -Mode status -TargetDirectory "%CD%" 2^>nul`) do (
+    if /i "%%A"=="PROJECTOS_GIT_EXE" set "PROJECTOS_GIT_EXE=%%B"
     if /i "%%A"=="PROJECTOS_REPO_STATUS" set "PROJECTOS_REPO_STATUS=%%B"
     if /i "%%A"=="PROJECTOS_REPO_BRANCH" set "PROJECTOS_REPO_BRANCH=%%B"
     if /i "%%A"=="PROJECTOS_REPO_LOCAL_COMMIT" set "PROJECTOS_REPO_LOCAL_COMMIT=%%B"
@@ -247,7 +256,7 @@ exit /b 0
 cls
 echo ============================================================
 echo   Alle Pruefungen
- echo ============================================================
+echo ============================================================
 echo.
 
 echo [1/5] Repository-Health-Check
@@ -302,7 +311,7 @@ exit /b %ERRORLEVEL%
 cls
 echo ============================================================
 echo   Repository-Health-Check
- echo ============================================================
+echo ============================================================
 echo.
 echo Pruefe AP-Nummern, Arbeitsstand, Fehlercodes und Paketexporte ...
 call "tools\windows\run_with_error_report.bat" "Repository-Health-Check" "build\REPOSITORY_HEALTH.log" python -m pytest -q %HEALTH_TEST%
@@ -321,7 +330,7 @@ exit /b %HEALTH_RESULT%
 cls
 echo ============================================================
 echo   Entwicklungsumgebung reparieren
- echo ============================================================
+echo ============================================================
 echo.
 choice /c JN /n /m "Reparatur jetzt starten? [J/N]: "
 if errorlevel 2 goto :menu
@@ -333,10 +342,12 @@ goto :menu
 cls
 echo ============================================================
 echo   KiCad-Umgebungsvariablen
- echo ============================================================
+echo ============================================================
 echo.
 set KICAD_ 2>nul
 if errorlevel 1 echo Keine KICAD_-Variablen im aktuellen Prozess vorhanden.
+echo PROJECTOS_REPOSITORY_ROOT=%PROJECTOS_REPOSITORY_ROOT%
+echo PROJECTOS_MODEL_SOURCE_DIR=%PROJECTOS_MODEL_SOURCE_DIR%
 echo Z_PROJECTOS_3DMODEL_DIR=%Z_PROJECTOS_3DMODEL_DIR%
 echo.
 echo KICAD_Z_-Registrierung: %KICAD_Z_REGISTRATION%
@@ -382,7 +393,7 @@ exit /b 1
 cls
 echo ============================================================
 echo   %~1
- echo ============================================================
+echo ============================================================
 echo.
 call "tools\windows\run_with_error_report.bat" "%~1" "build\LETZTER_TESTLAUF.log" %~2
 set "RESULT=%ERRORLEVEL%"
