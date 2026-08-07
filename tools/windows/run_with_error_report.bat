@@ -9,10 +9,15 @@ if "%~3"=="" (
 
 set "REPORT_TITLE=%~1"
 set "REPORT_LOG=%~2"
+set "PYTHON_EXE=%~dp0..\..\.venv\Scripts\python.exe"
+if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
 shift
 shift
 
-set "COMMAND_ARGS="
+set "COMMAND_EXE=%~1"
+shift
+if /I "%COMMAND_EXE%"=="python" set "COMMAND_EXE=%PYTHON_EXE%"
+set "COMMAND_ARGS=""%COMMAND_EXE%""
 
 :collect_command_args
 if "%~1"=="" goto :run_command
@@ -21,7 +26,7 @@ shift
 goto :collect_command_args
 
 :run_command
-python -m tools.run_with_error_report ^
+"%PYTHON_EXE%" -m tools.run_with_error_report ^
   --title "%REPORT_TITLE%" ^
   --log "%REPORT_LOG%" ^
   --report "build\FEHLERBERICHT.md" ^
