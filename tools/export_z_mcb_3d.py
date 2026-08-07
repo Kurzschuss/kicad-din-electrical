@@ -31,6 +31,7 @@ OUTPUT_DIR = MODEL_DIR / "generated"
 STEP_OUTPUT = OUTPUT_DIR / "Z_MCB_1P.step"
 WRL_OUTPUT = OUTPUT_DIR / "Z_MCB_1P.wrl"
 EXPECTED_MODULE_WIDTH_MM = 18.0
+EXPECTED_MODULE_LENGTH_MM = 84.0
 GEOMETRY_TOLERANCE_MM = 0.05
 
 
@@ -121,7 +122,7 @@ def detect_toolchain() -> Toolchain:
 
 def freecad_conversion_script(stl_path: Path, step_path: Path, wrl_path: Path) -> str:
     """Erzeugt das FreeCAD-Python-Skript für STEP- und WRL-Ausgabe."""
-    return f'''import FreeCAD as App\nimport Mesh\nimport Part\n\nstl = r"{stl_path}"\nstep = r"{step_path}"\nwrl = r"{wrl_path}"\n\ndoc = App.newDocument("Z_MCB_1P")\nmesh_obj = doc.addObject("Mesh::Feature", "SourceMesh")\nmesh_obj.Mesh = Mesh.Mesh(stl)\n\nshape = Part.Shape()\nshape.makeShapeFromMesh(mesh_obj.Mesh.Topology, 0.05)\nsolid = Part.makeSolid(shape) if shape.Shells else shape\npart_obj = doc.addObject("Part::Feature", "Z_MCB_1P")\npart_obj.Shape = solid\n\ndoc.recompute()\nPart.export([part_obj], step)\n\n# VRML kann über das Mesh-Modul headless exportiert werden.\nMesh.export([part_obj], wrl)\n\nApp.closeDocument(doc.Name)\n'''
+    return f'''import FreeCAD as App\nimport Mesh\nimport Part\n\nstl = r"{stl_path}"\nstep = r"{step_path}"\nwrl = r"{wrl_path}"\n\ndoc = App.newDocument("Z_MCB")\nmesh_obj = doc.addObject("Mesh::Feature", "SourceMesh")\nmesh_obj.Mesh = Mesh.Mesh(stl)\n\nshape = Part.Shape()\nshape.makeShapeFromMesh(mesh_obj.Mesh.Topology, 0.05)\nsolid = Part.makeSolid(shape) if shape.Shells else shape\npart_obj = doc.addObject("Part::Feature", "Z_MCB")\npart_obj.Shape = solid\n\ndoc.recompute()\nPart.export([part_obj], step)\nMesh.export([part_obj], wrl)\nApp.closeDocument(doc.Name)\n'''
 
 
 def freecad_step_measurement_script(step_path: Path) -> str:
@@ -140,15 +141,8 @@ def export_model(toolchain: Toolchain, *, output_dir: Path = OUTPUT_DIR) -> tupl
         temp = Path(temp_dir)
         stl = temp / "Z_MCB_1P.stl"
         converter = temp / "convert.py"
-
-        subprocess.run(
-            [toolchain.openscad, "-o", str(stl), str(SOURCE)],
-            check=True,
-        )
-        converter.write_text(
-            freecad_conversion_script(stl, step_output, wrl_output),
-            encoding="utf-8",
-        )
+        subprocess.run([toolchain.openscad, "-o", str(stl), str(SOURCE)], check=True)
+        converter.write_text(freecad_conversion_script(stl, step_output, wrl_output), encoding="utf-8")
         subprocess.run([toolchain.freecadcmd, str(converter)], check=True)
 
     missing_outputs = [path for path in (step_output, wrl_output) if not path.is_file()]
@@ -198,13 +192,17 @@ def measure_wrl(wrl_path: Path) -> Bounds:
     return Bounds(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
 
 
-def validate_module_width(bounds: Bounds, *, label: str) -> None:
-    difference = abs(bounds.x - EXPECTED_MODULE_WIDTH_MM)
-    if difference > GEOMETRY_TOLERANCE_MM:
-        raise RuntimeError(
-            f"{label}-Modulbreite ist nicht maßhaltig: {bounds.x:.4f} mm statt "
-            f"{EXPECTED_MODULE_WIDTH_MM:.4f} mm (Toleranz {GEOMETRY_TOLERANCE_MM:.2f} mm)."
-        )
+def validate_geometry(bounds: Bounds, *, label: str) -> None:
+    checks = (
+        ("Breite", bounds.x, EXPECTED_MODULE_WIDTH_MM),
+        ("Länge", bounds.y, EXPECTED_MODULE_LENGTH_MM),
+    )
+    for name, actual, expected in checks:
+        if abs(actual - expected) > GEOMETRY_TOLERANCE_MM:
+            raise RuntimeError(
+                f"{label}-{name} ist nicht maßhaltig: {actual:.4f} mm statt "
+                f"{expected:.4f} mm (Toleranz {GEOMETRY_TOLERANCE_MM:.2f} mm)."
+            )
 
 
 def check_geometry(toolchain: Toolchain) -> tuple[Bounds, Bounds]:
@@ -214,23 +212,15 @@ def check_geometry(toolchain: Toolchain) -> tuple[Bounds, Bounds]:
         step_bounds = measure_step(toolchain, step)
         wrl_bounds = measure_wrl(wrl)
 
-    validate_module_width(step_bounds, label="STEP")
-    validate_module_width(wrl_bounds, label="WRL")
+    validate_geometry(step_bounds, label="STEP")
+    validate_geometry(wrl_bounds, label="WRL")
     return step_bounds, wrl_bounds
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check-tools",
-        action="store_true",
-        help="nur prüfen, ob OpenSCAD und FreeCADCmd verfügbar sind",
-    )
-    parser.add_argument(
-        "--check-geometry",
-        action="store_true",
-        help="temporär exportieren und STEP-/WRL-Maßhaltigkeit prüfen",
-    )
+    parser.add_argument("--check-tools", action="store_true", help="OpenSCAD und FreeCADCmd prüfen")
+    parser.add_argument("--check-geometry", action="store_true", help="18x84-mm-Draufsicht prüfen")
     args = parser.parse_args()
 
     try:
@@ -250,10 +240,10 @@ def main() -> int:
         except (FileNotFoundError, RuntimeError, subprocess.CalledProcessError) as exc:
             print(f"3D-Maßhaltigkeitsprüfung fehlgeschlagen: {exc}", file=sys.stderr)
             return 1
-        print(f"Soll-Modulbreite: {EXPECTED_MODULE_WIDTH_MM:.4f} mm")
+        print(f"Soll-Draufsicht: X={EXPECTED_MODULE_WIDTH_MM:.4f} mm, Y={EXPECTED_MODULE_LENGTH_MM:.4f} mm")
         print(f"STEP-Abmessungen: {step_bounds.format()}")
         print(f"WRL-Abmessungen:  {wrl_bounds.format()}")
-        print("3D-Maßhaltigkeitsprüfung erfolgreich.")
+        print("MCB-1P-3D-Maßhaltigkeitsprüfung erfolgreich.")
         return 0
 
     try:
