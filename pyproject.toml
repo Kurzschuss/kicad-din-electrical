@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kicad-din-projectos"
+dynamic = ["version"]
+description = "ProjectOS-Kern für kicad-din-electrical"
+readme = "docs/projectos/README.md"
+requires-python = ">=3.11"
+license = {text = "Projektlizenz siehe Repository"}
+authors = [{name = "kicad-din-electrical contributors"}]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "projectos.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["projectos*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

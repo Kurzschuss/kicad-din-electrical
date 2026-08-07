@@ -1,0 +1,54 @@
+name: ProjectOS Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "projectos-v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v5
+
+      - name: Python einrichten
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Build-Werkzeuge und Testabhängigkeiten installieren
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install build
+
+      - name: Repository-Health-Check
+        run: python -m pytest -q tests/test_projectos_repository_consistency.py
+
+      - name: ProjectOS-Syntax prüfen
+        run: python -m compileall -q projectos tests tools
+
+      - name: Tests ausführen
+        run: python -m pytest -q
+
+      - name: Distributionen bauen
+        run: python -m build
+
+      - name: Prüfsummen erzeugen
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Build-Artefakte speichern
+        uses: actions/upload-artifact@v7
+        with:
+          name: projectos-${{ github.ref_name }}
+          path: |
+            dist/*
+          if-no-files-found: error
