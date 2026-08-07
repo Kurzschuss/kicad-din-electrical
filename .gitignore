@@ -1,0 +1,19 @@
+# Python-Laufzeitartefakte
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Lokale virtuelle Entwicklungsumgebung
+.venv/
+
+# Lokale Test- und Qualitaetsprotokolle
+build/*.log
+build/*_RESULTS.json
+build/FEHLERBERICHT.md
+
+# Typische lokale Editor-/Betriebssystemdateien
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
