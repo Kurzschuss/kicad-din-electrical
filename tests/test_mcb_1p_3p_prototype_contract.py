@@ -41,7 +41,7 @@ def test_3p_export_checks_54x84_geometry() -> None:
 
 def test_windows_family_export_generates_both_variants() -> None:
     content = FAMILY_BAT.read_text(encoding="utf-8")
-    assert 'export_z_mcb_3d.py --check-geometry' in content
-    assert 'export_z_mcb_3p_3d.py --check-geometry' in content
+    assert '-Script "tools\\export_z_mcb_3d.py" -Argument "--check-geometry"' in content
+    assert '-Script "tools\\export_z_mcb_3p_3d.py" -Argument "--check-geometry"' in content
     assert 'models\\Z_MCB_1P\\generated\\Z_MCB_1P.wrl' in content
     assert 'models\\Z_MCB_3P\\generated\\Z_MCB_3P.wrl' in content
