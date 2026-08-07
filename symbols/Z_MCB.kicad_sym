@@ -11,7 +11,7 @@
     (property "Footprint" "Z_MCB:Z_MCB_1P_18mm" (at 0 -6.35 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Datasheet" "" (at 0 -7.62 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Description" "Herstellerneutraler einpoliger Leitungsschutzschalter (MCB)" (at 0 -8.89 0) (effects (font (size 1.0 1.0)) (hide yes)))
-    (property "Z_Footprint_Policy" "prototype" (at 0 -10.16 0) (effects (font (size 1.0 1.0)) (hide yes)))
+    (property "Z_Footprint_Policy" "optional" (at 0 -10.16 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (symbol "MCB_0_1"
       (rectangle (start -2.54 2.54) (end 2.54 -2.54) (stroke (width 0.254) (type default)) (fill (type background)))
       (polyline (pts (xy -2.54 0) (xy -1.27 0) (xy 1.27 -1.27) (xy 2.54 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
@@ -35,7 +35,7 @@
     (property "Footprint" "Z_MCB:Z_MCB_3P_54mm" (at 0 -10.16 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Datasheet" "" (at 0 -11.43 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Description" "Herstellerneutraler dreipoliger Leitungsschutzschalter (MCB), 3 x 18 mm" (at 0 -12.7 0) (effects (font (size 1.0 1.0)) (hide yes)))
-    (property "Z_Footprint_Policy" "prototype" (at 0 -13.97 0) (effects (font (size 1.0 1.0)) (hide yes)))
+    (property "Z_Footprint_Policy" "optional" (at 0 -13.97 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (symbol "MCB_3P_0_1"
       (rectangle (start -3.81 5.08) (end 3.81 -5.08) (stroke (width 0.254) (type default)) (fill (type background)))
       (polyline (pts (xy -3.81 2.54) (xy -1.27 2.54) (xy 1.27 1.27) (xy 3.81 1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
