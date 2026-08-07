@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -8,7 +9,23 @@ from pathlib import Path
 from tools.create_error_report import build_report
 
 
+def _configure_utf8_console() -> None:
+    """Verhindert verstümmelte Umlaute in Windows-Testausgaben."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
+
+
+def _utf8_subprocess_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    environment["PYTHONIOENCODING"] = "utf-8"
+    environment["PYTHONUTF8"] = "1"
+    return environment
+
+
 def run_command(title: str, command: list[str], log_path: Path, report_path: Path) -> int:
+    _configure_utf8_console()
     log_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -21,6 +38,7 @@ def run_command(title: str, command: list[str], log_path: Path, report_path: Pat
             text=True,
             encoding="utf-8",
             errors="replace",
+            env=_utf8_subprocess_environment(),
         )
     except OSError as exc:
         text = f"Befehl konnte nicht gestartet werden: {exc}\n"
