@@ -6,6 +6,8 @@ from tools.export_z_mcb_3d import (
     STEP_OUTPUT,
     WRL_OUTPUT,
     Toolchain,
+    find_windows_freecadcmd,
+    find_windows_openscad,
     freecad_conversion_script,
 )
 
@@ -38,3 +40,29 @@ def test_toolchain_keeps_tools_explicit() -> None:
 
     assert toolchain.openscad == "openscad"
     assert toolchain.freecadcmd == "FreeCADCmd"
+
+
+def test_windows_openscad_detection_uses_program_files(monkeypatch, tmp_path: Path) -> None:
+    program_files = tmp_path / "Program Files"
+    exe = program_files / "OpenSCAD" / "openscad.exe"
+    exe.parent.mkdir(parents=True)
+    exe.write_text("", encoding="utf-8")
+
+    monkeypatch.setenv("ProgramFiles", str(program_files))
+    monkeypatch.delenv("ProgramFiles(x86)", raising=False)
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
+
+    assert find_windows_openscad() == str(exe)
+
+
+def test_windows_freecad_detection_accepts_versioned_folder(monkeypatch, tmp_path: Path) -> None:
+    program_files = tmp_path / "Program Files"
+    exe = program_files / "FreeCAD 1.0" / "bin" / "FreeCADCmd.exe"
+    exe.parent.mkdir(parents=True)
+    exe.write_text("", encoding="utf-8")
+
+    monkeypatch.setenv("ProgramFiles", str(program_files))
+    monkeypatch.delenv("ProgramFiles(x86)", raising=False)
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
+
+    assert find_windows_freecadcmd() == str(exe)
