@@ -14,12 +14,12 @@ def test_windows_mcb_3d_export_uses_project_python() -> None:
 def test_windows_mcb_3d_export_checks_tools_before_export() -> None:
     content = SCRIPT.read_text(encoding="utf-8")
 
-    check_call = 'tools\\export_z_mcb_3d.py --check-tools'
-    export_call = 'tools\\export_z_mcb_3d.py"'
+    check_call = '"%PYTHON_EXE%" tools\\export_z_mcb_3d.py --check-tools'
+    export_call = '"%PYTHON_EXE%" tools\\export_z_mcb_3d.py\n'
 
     assert check_call in content
     assert export_call in content
-    assert content.index(check_call) < content.rindex(export_call)
+    assert content.index(check_call) < content.index(export_call)
 
 
 def test_windows_mcb_3d_export_names_expected_outputs() -> None:
