@@ -65,7 +65,19 @@ try {
     $localCommit = (& $git.Source rev-parse HEAD).Trim()
     $dirty = -not [string]::IsNullOrWhiteSpace((& $git.Source status --porcelain | Out-String).Trim())
 
+    Write-Result 'PROJECTOS_REPO_TARGET' $TargetDirectory
+    Write-Result 'PROJECTOS_REPO_BRANCH' $branch
+    Write-Result 'PROJECTOS_REPO_LOCAL_COMMIT' $localCommit
+    Write-Result 'PROJECTOS_REPO_DIRTY' $dirty
+
     & $git.Source fetch origin --quiet
+    if ($LASTEXITCODE -ne 0) {
+        Write-Result 'PROJECTOS_REPO_STATUS' 'REMOTE_UNAVAILABLE'
+        Write-Result 'PROJECTOS_REPO_REMOTE_COMMIT' 'nicht verfügbar'
+        if ($Mode -eq 'update') { exit 6 }
+        exit 0
+    }
+
     $remoteRef = "origin/$branch"
     & $git.Source rev-parse --verify $remoteRef *> $null
     if ($LASTEXITCODE -ne 0) {
@@ -83,13 +95,9 @@ try {
     else { $relation = 'DIVERGED' }
 
     Write-Result 'PROJECTOS_REPO_STATUS' $relation
-    Write-Result 'PROJECTOS_REPO_TARGET' $TargetDirectory
-    Write-Result 'PROJECTOS_REPO_BRANCH' $branch
-    Write-Result 'PROJECTOS_REPO_LOCAL_COMMIT' $localCommit
     Write-Result 'PROJECTOS_REPO_REMOTE_COMMIT' $remoteCommit
     Write-Result 'PROJECTOS_REPO_AHEAD' $ahead
     Write-Result 'PROJECTOS_REPO_BEHIND' $behind
-    Write-Result 'PROJECTOS_REPO_DIRTY' $dirty
 
     if ($Mode -eq 'update') {
         if ($dirty) {
