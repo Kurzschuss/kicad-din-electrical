@@ -33,6 +33,7 @@ WRL_OUTPUT = OUTPUT_DIR / "Z_MCB_1P.wrl"
 EXPECTED_MODULE_WIDTH_MM = 18.0
 EXPECTED_MODULE_LENGTH_MM = 84.0
 GEOMETRY_TOLERANCE_MM = 0.05
+_FLOAT_COMPARISON_EPSILON_MM = 1e-9
 
 
 @dataclass(frozen=True)
@@ -198,7 +199,8 @@ def validate_geometry(bounds: Bounds, *, label: str) -> None:
         ("Länge", bounds.y, EXPECTED_MODULE_LENGTH_MM),
     )
     for name, actual, expected in checks:
-        if abs(actual - expected) > GEOMETRY_TOLERANCE_MM:
+        deviation = abs(actual - expected)
+        if deviation > GEOMETRY_TOLERANCE_MM + _FLOAT_COMPARISON_EPSILON_MM:
             raise RuntimeError(
                 f"{label}-{name} ist nicht maßhaltig: {actual:.4f} mm statt "
                 f"{expected:.4f} mm (Toleranz {GEOMETRY_TOLERANCE_MM:.2f} mm)."
