@@ -13,6 +13,6 @@
     "erc_checked": false,
     "opened_in_kicad": false
   },
-  "quality_level": "Geprüft",
-  "notes": "Praxisgetestet erst nach echter Platzierung und dokumentierter ERC-Prüfung."
+  "quality_level": "Entwurf",
+  "notes": "Geprüft erst nach Goldstandard-Nachweisen; Praxisgetestet erst nach echter Platzierung, KiCad-Öffnung und dokumentierter ERC-Prüfung."
 }
