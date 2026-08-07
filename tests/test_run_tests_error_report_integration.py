@@ -20,7 +20,8 @@ def test_error_report_adapter_forwards_only_command_arguments() -> None:
     assert content.count("shift") >= 3
     assert ':collect_command_args' in content
     assert 'set "COMMAND_ARGS=%COMMAND_ARGS% "%~1""' in content
-    assert '-- %COMMAND_ARGS%' in content
+    assert '-- "%COMMAND_EXE%" %COMMAND_ARGS:* =%' in content
+    assert '-- %COMMAND_ARGS%' not in content
     assert '-- %*' not in content
 
 
