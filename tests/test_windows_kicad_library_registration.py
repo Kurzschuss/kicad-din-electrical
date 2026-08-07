@@ -41,6 +41,19 @@ def test_design_block_path_is_registered_in_kicad_paths() -> None:
     assert "designblocks" in content
 
 
+def test_projectos_3d_model_path_is_registered_from_repository_root() -> None:
+    detect = (REPO_ROOT / "tools/windows/detect_kicad.bat").read_text(encoding="utf-8")
+    paths = (REPO_ROOT / "tools/windows/register_kicad_z_paths.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Z_PROJECTOS_3DMODEL_DIR" in detect
+    assert 'set "Z_PROJECTOS_3DMODEL_DIR=%PROJECTOS_REPOSITORY_ROOT%\\models"' in detect
+    assert '-RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%"' in detect
+    assert "Z_PROJECTOS_3DMODEL_DIR" in paths
+    assert "Join-Path $RepositoryRoot 'models'" in paths
+
+
 def test_z_3d_model_library_is_created_registered_and_synchronized() -> None:
     detect = (REPO_ROOT / "tools/windows/detect_kicad.bat").read_text(encoding="utf-8")
     paths = (REPO_ROOT / "tools/windows/register_kicad_z_paths.ps1").read_text(
