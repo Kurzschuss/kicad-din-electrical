@@ -59,6 +59,10 @@ if defined KICAD_CLI (
 echo   Python-Umgebung     : %CD%\.venv
 echo   KiCad Benutzerordner: %KICAD_USER_DIR%
 echo.
+echo   AUTOMATISCHE FEHLERBERICHTE
+echo   Fehlgeschlagene Pruefungen erzeugen build\FEHLERBERICHT.md
+echo   und bieten eine lokale Aktion zur Erstellung eines GitHub-Issue an.
+echo.
 echo   [1] Schneller Testlauf
 echo   [2] Ausfuehrlicher Testlauf
 echo   [3] Alle Pruefungen
@@ -141,7 +145,7 @@ if errorlevel 1 goto :allchecks_failed
 echo.
 echo [3/4] Python-Syntaxpruefung
 echo.
-call "tools\windows\run_with_error_report.bat" "Python-Syntaxpruefung" "build\ALLE_PRUEFUNGEN_SYNTAX.log" python -m compileall -q projectos tests tools
+call "tools\windows\run_with_error_report.bat" "Python-Syntaxpruefung" "build\ALLE_PRUEFUNGEN_SYNTAX.log" python -m compileall -q distributions tests tools
 if errorlevel 1 goto :allchecks_failed
 
 echo.
