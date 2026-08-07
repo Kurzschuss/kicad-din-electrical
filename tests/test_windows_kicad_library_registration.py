@@ -54,6 +54,16 @@ def test_projectos_3d_model_path_points_to_kicad_runtime_not_repository() -> Non
     assert "Z_PROJECTOS_3DMODEL_DIR   = $projectOs3dRuntime" in paths
 
 
+def test_projectos_3d_path_migrates_legacy_repository_value() -> None:
+    paths = (REPO_ROOT / "tools/windows/register_kicad_z_paths.ps1").read_text(
+        encoding="utf-8"
+    )
+
+    assert "$entry.Key -eq 'Z_PROJECTOS_3DMODEL_DIR'" in paths
+    assert "$property.Value = $entry.Value" in paths
+    assert "Andere bestehende, abweichende Benutzerwerte niemals automatisch überschreiben" in paths
+
+
 def test_projectos_models_are_synchronized_from_repository_to_kicad_runtime() -> None:
     libraries = (REPO_ROOT / "tools/windows/register_kicad_z_libraries.ps1").read_text(
         encoding="utf-8"
