@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -43,9 +44,57 @@ def find_tool(names: tuple[str, ...]) -> str | None:
     return None
 
 
+def windows_program_roots() -> tuple[Path, ...]:
+    """Liefert vorhandene Windows-Installationswurzeln ohne PATH-Abhängigkeit."""
+    roots: list[Path] = []
+    for variable in ("ProgramFiles", "ProgramFiles(x86)"):
+        value = os.environ.get(variable)
+        if value:
+            path = Path(value)
+            if path not in roots:
+                roots.append(path)
+    return tuple(roots)
+
+
+def find_windows_openscad() -> str | None:
+    for root in windows_program_roots():
+        candidate = root / "OpenSCAD" / "openscad.exe"
+        if candidate.is_file():
+            return str(candidate)
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        candidate = Path(local_app_data) / "Programs" / "OpenSCAD" / "openscad.exe"
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
+def find_windows_freecadcmd() -> str | None:
+    candidates: list[Path] = []
+    for root in windows_program_roots():
+        candidates.extend(root.glob("FreeCAD*/bin/FreeCADCmd.exe"))
+        candidates.extend(root.glob("FreeCAD*/bin/freecadcmd.exe"))
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        local_root = Path(local_app_data) / "Programs"
+        candidates.extend(local_root.glob("FreeCAD*/bin/FreeCADCmd.exe"))
+        candidates.extend(local_root.glob("FreeCAD*/bin/freecadcmd.exe"))
+    existing = sorted(
+        (path for path in candidates if path.is_file()),
+        key=lambda path: path.as_posix().casefold(),
+        reverse=True,
+    )
+    return str(existing[0]) if existing else None
+
+
 def detect_toolchain() -> Toolchain:
-    openscad = find_tool(("openscad", "OpenSCAD"))
+    openscad = find_tool(("openscad", "OpenSCAD", "openscad.exe"))
     freecadcmd = find_tool(("FreeCADCmd", "freecadcmd", "FreeCADCmd.exe"))
+
+    if sys.platform == "win32":
+        openscad = openscad or find_windows_openscad()
+        freecadcmd = freecadcmd or find_windows_freecadcmd()
+
     missing: list[str] = []
     if openscad is None:
         missing.append("OpenSCAD")
