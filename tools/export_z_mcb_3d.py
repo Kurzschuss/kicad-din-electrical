@@ -7,6 +7,7 @@ werden ausschließlich lokal installierte Open-Source-Werkzeuge aufgerufen:
 1. OpenSCAD rendert die Quelle nach STL.
 2. FreeCADCmd wandelt das STL-Netz in einen Volumenkörper um.
 3. FreeCAD exportiert STEP und VRML/WRL für KiCad.
+4. Optional wird die geometrische Maßhaltigkeit der Exportartefakte geprüft.
 
 Das Skript lädt keine externen CAD-Daten und verwendet keine Herstellergeometrie.
 """
@@ -17,6 +18,7 @@ import argparse
 from dataclasses import dataclass
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -28,12 +30,24 @@ SOURCE = MODEL_DIR / "Z_MCB_1P.scad"
 OUTPUT_DIR = MODEL_DIR / "generated"
 STEP_OUTPUT = OUTPUT_DIR / "Z_MCB_1P.step"
 WRL_OUTPUT = OUTPUT_DIR / "Z_MCB_1P.wrl"
+EXPECTED_MODULE_WIDTH_MM = 18.0
+GEOMETRY_TOLERANCE_MM = 0.05
 
 
 @dataclass(frozen=True)
 class Toolchain:
     openscad: str
     freecadcmd: str
+
+
+@dataclass(frozen=True)
+class Bounds:
+    x: float
+    y: float
+    z: float
+
+    def format(self) -> str:
+        return f"X={self.x:.4f} mm, Y={self.y:.4f} mm, Z={self.z:.4f} mm"
 
 
 def find_tool(names: tuple[str, ...]) -> str | None:
@@ -110,6 +124,10 @@ def freecad_conversion_script(stl_path: Path, step_path: Path, wrl_path: Path) -
     return f'''import FreeCAD as App\nimport Mesh\nimport Part\n\nstl = r"{stl_path}"\nstep = r"{step_path}"\nwrl = r"{wrl_path}"\n\ndoc = App.newDocument("Z_MCB_1P")\nmesh_obj = doc.addObject("Mesh::Feature", "SourceMesh")\nmesh_obj.Mesh = Mesh.Mesh(stl)\n\nshape = Part.Shape()\nshape.makeShapeFromMesh(mesh_obj.Mesh.Topology, 0.05)\nsolid = Part.makeSolid(shape) if shape.Shells else shape\npart_obj = doc.addObject("Part::Feature", "Z_MCB_1P")\npart_obj.Shape = solid\n\ndoc.recompute()\nPart.export([part_obj], step)\n\n# VRML kann über das Mesh-Modul headless exportiert werden.\nMesh.export([part_obj], wrl)\n\nApp.closeDocument(doc.Name)\n'''
 
 
+def freecad_step_measurement_script(step_path: Path) -> str:
+    return f'''import Part\nshape = Part.Shape()\nshape.read(r"{step_path}")\nb = shape.BoundBox\nprint("PROJECTOS_BOUNDS={{:.9f}},{{:.9f}},{{:.9f}}".format(b.XLength, b.YLength, b.ZLength))\n'''
+
+
 def export_model(toolchain: Toolchain, *, output_dir: Path = OUTPUT_DIR) -> tuple[Path, Path]:
     if not SOURCE.is_file():
         raise FileNotFoundError(f"OpenSCAD-Quelle fehlt: {SOURCE}")
@@ -142,12 +160,76 @@ def export_model(toolchain: Toolchain, *, output_dir: Path = OUTPUT_DIR) -> tupl
     return step_output, wrl_output
 
 
+def measure_step(toolchain: Toolchain, step_path: Path) -> Bounds:
+    with tempfile.TemporaryDirectory(prefix="projectos-z-mcb-measure-") as temp_dir:
+        script = Path(temp_dir) / "measure_step.py"
+        script.write_text(freecad_step_measurement_script(step_path), encoding="utf-8")
+        result = subprocess.run(
+            [toolchain.freecadcmd, str(script)],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+    for line in result.stdout.splitlines():
+        if line.startswith("PROJECTOS_BOUNDS="):
+            values = line.partition("=")[2].split(",")
+            if len(values) == 3:
+                return Bounds(*(float(value) for value in values))
+    raise RuntimeError("FreeCAD lieferte keine auswertbaren STEP-Abmessungen.")
+
+
+def measure_wrl(wrl_path: Path) -> Bounds:
+    """Liest die Koordinatenausdehnung aus einer textuellen VRML/WRL-Datei."""
+    text = wrl_path.read_text(encoding="utf-8", errors="replace")
+    number = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
+    points: list[tuple[float, float, float]] = []
+    for match in re.finditer(r"point\s*\[(.*?)\]", text, flags=re.IGNORECASE | re.DOTALL):
+        values = [float(value) for value in re.findall(number, match.group(1))]
+        for index in range(0, len(values) - 2, 3):
+            points.append((values[index], values[index + 1], values[index + 2]))
+
+    if not points:
+        raise RuntimeError("WRL enthält keine auswertbaren Koordinatenpunkte.")
+
+    xs, ys, zs = zip(*points)
+    return Bounds(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+
+
+def validate_module_width(bounds: Bounds, *, label: str) -> None:
+    difference = abs(bounds.x - EXPECTED_MODULE_WIDTH_MM)
+    if difference > GEOMETRY_TOLERANCE_MM:
+        raise RuntimeError(
+            f"{label}-Modulbreite ist nicht maßhaltig: {bounds.x:.4f} mm statt "
+            f"{EXPECTED_MODULE_WIDTH_MM:.4f} mm (Toleranz {GEOMETRY_TOLERANCE_MM:.2f} mm)."
+        )
+
+
+def check_geometry(toolchain: Toolchain) -> tuple[Bounds, Bounds]:
+    """Exportiert temporär und prüft STEP/WRL ohne versionierte Artefakte zu verändern."""
+    with tempfile.TemporaryDirectory(prefix="projectos-z-mcb-geometry-") as temp_dir:
+        step, wrl = export_model(toolchain, output_dir=Path(temp_dir))
+        step_bounds = measure_step(toolchain, step)
+        wrl_bounds = measure_wrl(wrl)
+
+    validate_module_width(step_bounds, label="STEP")
+    validate_module_width(wrl_bounds, label="WRL")
+    return step_bounds, wrl_bounds
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--check-tools",
         action="store_true",
         help="nur prüfen, ob OpenSCAD und FreeCADCmd verfügbar sind",
+    )
+    parser.add_argument(
+        "--check-geometry",
+        action="store_true",
+        help="temporär exportieren und STEP-/WRL-Maßhaltigkeit prüfen",
     )
     args = parser.parse_args()
 
@@ -160,6 +242,18 @@ def main() -> int:
     if args.check_tools:
         print(f"OpenSCAD: {toolchain.openscad}")
         print(f"FreeCADCmd: {toolchain.freecadcmd}")
+        return 0
+
+    if args.check_geometry:
+        try:
+            step_bounds, wrl_bounds = check_geometry(toolchain)
+        except (FileNotFoundError, RuntimeError, subprocess.CalledProcessError) as exc:
+            print(f"3D-Maßhaltigkeitsprüfung fehlgeschlagen: {exc}", file=sys.stderr)
+            return 1
+        print(f"Soll-Modulbreite: {EXPECTED_MODULE_WIDTH_MM:.4f} mm")
+        print(f"STEP-Abmessungen: {step_bounds.format()}")
+        print(f"WRL-Abmessungen:  {wrl_bounds.format()}")
+        print("3D-Maßhaltigkeitsprüfung erfolgreich.")
         return 0
 
     try:
