@@ -14,7 +14,7 @@ NOW=datetime(2026,8,6,20,tzinfo=timezone.utc)
 
 def setup_rows(count=0,action=Action.ACKNOWLEDGE,actor=True,code="ERR-X"):
  c=sqlite3.connect(":memory:"); repo=Audit(c)
- for i in range(count): repo.append(Record(BusinessId(f"TRY-{i:08d}"),BusinessId("ALT-00000001"),action,NOW-timedelta(minutes=i),BusinessId("USR-00000001") if actor else None,BusinessId("ROL-00000001"),BusinessId("PERM-00000001"),code,"Abgelehnt",CorrelationId(f"COR-{i:08d}")))
+ for i in range(count): repo.append(Record(BusinessId(f"TRY-{i:08d}"),BusinessId("ALT-00000001"),action,NOW-timedelta(minutes=i),BusinessId("USR-00000001") if actor else None,BusinessId("ROL-00000001"),BusinessId("PERM-00000001"),code,"Abgelehnt",CorrelationId(f"COR-{i + 1:08d}")))
  return c
 
 def test_clear_without_attempts():
