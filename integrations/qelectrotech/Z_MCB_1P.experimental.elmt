@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE definition SYSTEM "definition_element.dtd">
+<definition type="element" width="60" height="40" hotspot_x="30" hotspot_y="20" orientation="dyyy">
+  <names>
+    <name lang="de">Leitungsschutzschalter MCB 1P</name>
+    <name lang="en">Miniature circuit breaker MCB 1P</name>
+  </names>
+  <informations>ProjectOS experimenteller QElectroTech-Adapter; herstellerneutral; Quelle: ProjectOS MCB-1P-Goldstandard.</informations>
+  <description>
+    <rectangle x="-16" y="-12" width="32" height="24" style="line-style:normal;line-weight:normal;filling:none;color:black" antialias="true"/>
+    <line x1="-20" y1="0" x2="-8" y2="0" style="line-style:normal;line-weight:normal;color:black" antialias="true"/>
+    <line x1="-8" y1="0" x2="7" y2="7" style="line-style:normal;line-weight:normal;color:black" antialias="true"/>
+    <line x1="7" y1="7" x2="20" y2="7" style="line-style:normal;line-weight:normal;color:black" antialias="true"/>
+    <line x1="7" y1="7" x2="7" y2="-6" style="line-style:normal;line-weight:normal;color:black" antialias="true"/>
+    <line x1="7" y1="-6" x2="3" y2="-10" style="line-style:normal;line-weight:normal;color:black" antialias="true"/>
+    <terminal orientation="w" x="-20" y="0"/>
+    <terminal orientation="e" x="20" y="7"/>
+  </description>
+</definition>
