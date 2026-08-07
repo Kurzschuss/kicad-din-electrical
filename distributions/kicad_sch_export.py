@@ -26,9 +26,15 @@ def build_kicad_sch(plan: dict, connections: list[dict] | None = None) -> str:
             f'  (text {_quote(str(symbol.get("pins", [])))} (exclude_from_sim no) (effects (font (size 0.9 0.9))))',
         ])
     for field in fields:
-        lines.append(f'  (text {_quote(f"{field[\"reference\"]} | {field[\"field_name\"]}={field[\"label\"]}")} (exclude_from_sim no) (effects (font (size 1.0 1.0))))')
+        field_text = f'{field["reference"]} | {field["field_name"]}={field["label"]}'
+        lines.append(
+            f'  (text {_quote(field_text)} (exclude_from_sim no) (effects (font (size 1.0 1.0))))'
+        )
     for net_name, pins in schematic["nets"].items():
-        lines.append(f'  (text {_quote(f"NET {net_name}: {pins}")} (exclude_from_sim no) (effects (font (size 1.0 1.0))))')
+        net_text = f"NET {net_name}: {pins}"
+        lines.append(
+            f'  (text {_quote(net_text)} (exclude_from_sim no) (effects (font (size 1.0 1.0))))'
+        )
     lines.append(')')
     return "\n".join(lines) + "\n"
 
