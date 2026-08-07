@@ -12,7 +12,9 @@ def _append(repo, suffix, at, *, actor=True, action=GlobalSecurityStaffingReleas
     repo.append(GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptRecord(BusinessId(f"ATT-{suffix}"),BusinessId("ALT-1"),action,at,BusinessId("USR-1") if actor else None,BusinessId("ROL-1"),BusinessId("PERM-1"),code,"abgelehnt",CorrelationId("COR-00000001")))
 
 def test_clear_without_attempts():
-    result=GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptAlertService(sqlite3.connect(":memory:")).evaluate(evaluated_at=datetime(2026,8,6,tzinfo=UTC))
+    c=sqlite3.connect(":memory:")
+    SQLiteGlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptRepository(c)
+    result=GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptAlertService(c).evaluate(evaluated_at=datetime(2026,8,6,tzinfo=UTC))
     assert result.level is GlobalSecurityStaffingReleaseAlertAttemptHistoryActionAttemptAlertLevel.CLEAR
 
 def test_warning_and_critical_actor_threshold():
