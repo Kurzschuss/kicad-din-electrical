@@ -22,7 +22,7 @@ def test_extracts_explicit_z_footprint_policy():
     facts = extract_symbol_facts(MCB)
     assert facts["footprint_policy"] == "optional"
     assert facts["footprint_policy_valid"] is True
-    assert facts["footprint_value"] == ""
+    assert facts["footprint_value"] == "Z_MCB:Z_MCB_1P_18mm"
 
 
 def test_z_mcb_geometry_is_z_conform():
