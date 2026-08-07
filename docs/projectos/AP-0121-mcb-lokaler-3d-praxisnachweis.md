@@ -4,61 +4,51 @@
 
 Der in AP-0119 vorbereitete Export und die in AP-0120 angelegte KiCad-3D-Bindung werden auf einem realen Windows-Entwicklungsrechner praktisch geprüft.
 
-Dieses Arbeitspaket gilt erst als abgeschlossen, wenn der Export tatsächlich ausgeführt und das Modell im KiCad-3D-Viewer visuell bestätigt wurde.
+## Verwendeter Ablauf
 
-## Vorbereitung
+1. Branch `agent/sprint-006-mcb-goldstandard` lokal aktualisiert,
+2. `tools\windows\export_z_mcb_3d.bat` ausgeführt,
+3. OpenSCAD und FreeCAD/FreeCADCmd durch die Windows-Werkzeugerkennung gefunden,
+4. `models\Z_MCB_1P\generated\Z_MCB_1P.step` erzeugt,
+5. `models\Z_MCB_1P\generated\Z_MCB_1P.wrl` erzeugt,
+6. Modell in KiCad über die Footprint-Eigenschaften und den 3D-Betrachter praktisch geprüft.
 
-Für Windows steht der Starter bereit:
+## Ergebnis
+
+Der lokale Praxisnachweis ist erfolgreich.
+
+Bestätigt wurden:
+
+- STEP-Export erfolgreich,
+- WRL-Export erfolgreich,
+- Exportprozess endet ohne FreeCAD-Aufräumfehler,
+- KiCad kann das erzeugte MCB-Modell darstellen,
+- Skalierung `1 / 1 / 1` ist als reale Ausgangsskalierung verwendbar,
+- Rotation `0 / 0 / 0` ist als Ausgangsorientierung verwendbar,
+- Versatz `0 / 0 / 0` ist als Ausgangslage verwendbar,
+- die herstellerneutrale MCB-Geometrie ist sichtbar,
+- keine Herstellerkennzeichnung oder Fremdgeometrie ist Bestandteil des ProjectOS-Modells.
+
+## Erkenntnis zur 3D-Pfadbindung
+
+Während des Praxislaufs lag das erzeugte Modell zunächst nur in einem temporären Repository-Arbeitsverzeichnis. Dadurch konnte die im Footprint hinterlegte `${KIPRJMOD}`-Referenz das Modell nicht auflösen.
+
+Nach Bereitstellung des erzeugten Modells im eigentlichen lokalen Repository unter
 
 ```text
-tools\windows\export_z_mcb_3d.bat
+models/Z_MCB_1P/generated/
 ```
 
-Der Starter verwendet bevorzugt `.venv\Scripts\python.exe`, prüft zuerst die externen Werkzeuge und startet den Export nur bei vollständiger Toolchain.
+konnte KiCad das Modell über einen direkten lokalen Pfad erfolgreich laden und darstellen. Damit ist nachgewiesen, dass die erzeugten STEP-/WRL-Dateien selbst funktionsfähig sind.
 
-Benötigt werden:
+Der direkte lokale Windows-Pfad ist ausdrücklich **kein** portabler Repository-Vertrag und darf nicht als benutzerspezifischer Pfad in den ProjectOS-Footprint übernommen werden.
 
-- OpenSCAD,
-- FreeCAD mit `FreeCADCmd`,
-- KiCad für die anschließende 3D-Viewer-Prüfung.
+Die portable, repository-unabhängige KiCad-3D-Pfadstrategie wird deshalb separat in AP-0122 festgelegt und automatisiert abgesichert.
 
-## Ablauf
+## Architekturregel
 
-1. aktuellen Branch `agent/sprint-006-mcb-goldstandard` lokal holen,
-2. `tools\windows\export_z_mcb_3d.bat` starten,
-3. prüfen, ob folgende Dateien erzeugt wurden:
-   - `models\Z_MCB_1P\generated\Z_MCB_1P.step`,
-   - `models\Z_MCB_1P\generated\Z_MCB_1P.wrl`,
-4. `footprints\Z_MCB.pretty\Z_MCB_1P_18mm.kicad_mod` in KiCad öffnen,
-5. 3D-Viewer starten,
-6. Lage, Skalierung und Orientierung des Modells prüfen.
-
-## Prüfkriterien
-
-Der Praxisnachweis ist bestanden, wenn:
-
-- STEP und WRL ohne Fehler erzeugt werden,
-- das Modell mit realer Größe dargestellt wird,
-- die 18-mm-Modulbreite zum Footprint passt,
-- Vorderseite und Rückseite korrekt orientiert sind,
-- das Modell nicht seitlich oder vertikal versetzt erscheint,
-- keine Herstellerkennzeichnung oder Fremdgeometrie sichtbar ist.
-
-## Korrekturregel
-
-Falls Offset, Skalierung oder Rotation im KiCad-3D-Viewer nicht stimmen, werden ausschließlich die Transformationswerte der MCB-spezifischen Footprint-Bindung korrigiert. Die herstellerneutrale OpenSCAD-Quelle bleibt die Geometrie-Single-Source-of-Truth.
-
-## Nachweis
-
-Für den Abschluss werden dokumentiert:
-
-- Ausgabe des Windows-Starters,
-- erzeugte STEP-/WRL-Dateien,
-- verwendete OpenSCAD-/FreeCAD-Versionen,
-- bestätigte KiCad-Version,
-- finale Offset-, Scale- und Rotate-Werte,
-- Ergebnis der visuellen 3D-Viewer-Prüfung.
+Die herstellerneutrale OpenSCAD-Quelle bleibt die Geometrie-Single-Source-of-Truth. STEP und WRL sind reproduzierbar erzeugte Zielartefakte. Benutzerabhängige absolute Pfade gehören nicht in versionierte KiCad-Bibliotheksobjekte.
 
 ## Status
 
-`vorbereitet – lokaler Praxislauf ausstehend`
+`abgeschlossen – lokaler STEP/WRL-Export und visuelle KiCad-3D-Prüfung erfolgreich nachgewiesen`
