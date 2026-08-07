@@ -42,7 +42,20 @@ while (-not $process.HasExited) {
     $process.Refresh()
 }
 
+# WICHTIG: ExitCode erst nach WaitForExit auslesen. Bei Start-Process kann
+# HasExited bereits true sein, bevor PowerShell den finalen Exitcode sauber
+# aktualisiert hat. Genau das fuehrte zu falschen [FEHLER]-Meldungen trotz
+# erfolgreichem Python-Lauf.
 $process.WaitForExit()
+$process.Refresh()
+$exitCode = $process.ExitCode
 $elapsed = [int]((Get-Date) - $started).TotalSeconds
-Write-Host ("`r[{0}] {1} - beendet nach {2}s                    " -f ($(if ($process.ExitCode -eq 0) { 'OK' } else { 'FEHLER' })), $Label, $elapsed)
-exit $process.ExitCode
+
+if ($exitCode -eq 0) {
+    Write-Host ("`r[OK]     {0} - erfolgreich beendet nach {1}s                    " -f $Label, $elapsed)
+}
+else {
+    Write-Host ("`r[FEHLER] {0} - beendet nach {1}s (Exitcode {2})               " -f $Label, $elapsed, $exitCode)
+}
+
+exit $exitCode
