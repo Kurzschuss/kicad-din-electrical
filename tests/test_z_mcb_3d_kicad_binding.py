@@ -12,10 +12,12 @@ def test_mcb_1p_footprint_uses_18mm_reference_outline() -> None:
     assert '(fp_text reference "Q**"' in content
 
 
-def test_mcb_1p_footprint_references_project_original_step_model() -> None:
+def test_mcb_1p_footprint_references_project_original_wrl_model_portably() -> None:
     content = FOOTPRINT.read_text(encoding="utf-8")
 
-    assert 'models/Z_MCB_1P/generated/Z_MCB_1P.step' in content
+    assert '${PROJECTOS_3DMODEL_DIR}/Z_MCB_1P/generated/Z_MCB_1P.wrl' in content
+    assert '${KIPRJMOD}' not in content
+    assert 'C:/Users/' not in content
     assert '(offset (xyz 0 0 0))' in content
     assert '(scale (xyz 1 1 1))' in content
     assert '(rotate (xyz 0 0 0))' in content
