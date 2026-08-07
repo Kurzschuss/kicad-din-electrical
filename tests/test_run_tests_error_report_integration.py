@@ -10,6 +10,20 @@ def test_single_checks_use_error_report_adapter() -> None:
     assert ':run' in content
 
 
+def test_error_report_adapter_forwards_only_command_arguments() -> None:
+    content = Path("tools/windows/run_with_error_report.bat").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'set "REPORT_TITLE=%~1"' in content
+    assert 'set "REPORT_LOG=%~2"' in content
+    assert content.count("shift") >= 3
+    assert ':collect_command_args' in content
+    assert 'set "COMMAND_ARGS=%COMMAND_ARGS% "%~1""' in content
+    assert '-- %COMMAND_ARGS%' in content
+    assert '-- %*' not in content
+
+
 def test_error_report_adapter_opens_local_action_dialog_after_failure() -> None:
     content = Path("tools/windows/run_with_error_report.bat").read_text(
         encoding="utf-8"
