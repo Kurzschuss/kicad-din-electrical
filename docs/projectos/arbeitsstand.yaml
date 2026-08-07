@@ -42,11 +42,11 @@ sprints:
   - id: SPRINT-006
     name: MCB Goldstandard und Domain Validation
     status: in_progress
-    completed_work_packages: [AP-0114, AP-0115, AP-0116, AP-0117, AP-0118]
-    next_work_package: AP-0119
+    completed_work_packages: [AP-0114, AP-0115, AP-0116, AP-0117, AP-0118, AP-0119]
+    next_work_package: AP-0120
     active_validation_domain: MCB
     reference_issue: 87
-    current_focus: "Reproduzierbaren STEP/WRL-Export fuer das eigene MCB-1P-3D-Modell vorbereiten und danach KiCad-3D-Praxispruefung durchfuehren"
+    current_focus: "STEP/WRL lokal erzeugen, an KiCad-Footprint anbinden und Lage, Skalierung sowie Orientierung im 3D-Viewer pruefen"
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
 initial_validation_domains: [MCB, RCCB]
@@ -62,4 +62,4 @@ verification:
   baseline_z_quality: "17/17 z_conform"
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "AP-0118 hat Vorschauunterstuetzung fuer die MCB-Funktionsgrafik erweitert und ein von Grund auf neu erstelltes, herstellerneutrales MCB-1P-3D-Referenzmodell samt Herkunfts- und Massmanifest angelegt. Externe TraceParts-/Hersteller-CAD-Geometrie wird nicht als ProjectOS-Asset uebernommen. Der neue Sprintstand muss erneut vollstaendig getestet werden."
+  note: "AP-0119 hat eine reproduzierbare OpenSCAD-zu-STEP/WRL-Exportkette ueber OpenSCAD und FreeCADCmd implementiert und statisch abgesichert. Die externen CAD-Werkzeuge wurden in diesem Arbeitspaket nicht ausgefuehrt; AP-0120 fuehrt den lokalen Export und die KiCad-3D-Viewer-Praxispruefung durch."
