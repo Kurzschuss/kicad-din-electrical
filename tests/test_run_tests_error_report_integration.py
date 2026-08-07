@@ -24,6 +24,16 @@ def test_error_report_adapter_forwards_only_command_arguments() -> None:
     assert '-- %*' not in content
 
 
+def test_error_report_adapter_uses_project_venv_python() -> None:
+    content = Path("tools/windows/run_with_error_report.bat").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'set "PYTHON_EXE=%~dp0..\\..\\.venv\\Scripts\\python.exe"' in content
+    assert 'if /I "%COMMAND_EXE%"=="python" set "COMMAND_EXE=%PYTHON_EXE%"' in content
+    assert '"%PYTHON_EXE%" -m tools.run_with_error_report' in content
+
+
 def test_error_report_adapter_opens_local_action_dialog_after_failure() -> None:
     content = Path("tools/windows/run_with_error_report.bat").read_text(
         encoding="utf-8"
