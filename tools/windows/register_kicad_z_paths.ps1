@@ -1,21 +1,24 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string]$RootDirectory
+    [string]$RootDirectory,
+    [Parameter(Mandatory = $true)]
+    [string]$RepositoryRoot
 )
 
 $ErrorActionPreference = 'Stop'
 
 $managedVariables = [ordered]@{
-    KICAD_Z_ROOT_DIR         = $RootDirectory
-    KICAD_Z_3DMODEL_DIR      = Join-Path $RootDirectory '3dmodels\Z_3DModell.3dshapes'
-    KICAD_Z_3RDPARTY_DIR     = Join-Path $RootDirectory '3rdparty'
-    KICAD_Z_DESIGN_BLOCK_DIR = Join-Path $RootDirectory 'designblocks'
-    KICAD_Z_FOOTPRINT_DIR    = Join-Path $RootDirectory 'footprints'
-    KICAD_Z_PLUGIN_DIR       = Join-Path $RootDirectory 'plugins'
-    KICAD_Z_PROJECT_DIR      = Join-Path $RootDirectory 'projects'
-    KICAD_Z_SCRIPTING_DIR    = Join-Path $RootDirectory 'scripting'
-    KICAD_Z_SYMBOL_DIR       = Join-Path $RootDirectory 'symbols'
-    KICAD_Z_TEMPLATE_DIR     = Join-Path $RootDirectory 'template'
+    KICAD_Z_ROOT_DIR          = $RootDirectory
+    KICAD_Z_3DMODEL_DIR       = Join-Path $RootDirectory '3dmodels\Z_3DModell.3dshapes'
+    KICAD_Z_3RDPARTY_DIR      = Join-Path $RootDirectory '3rdparty'
+    KICAD_Z_DESIGN_BLOCK_DIR  = Join-Path $RootDirectory 'designblocks'
+    KICAD_Z_FOOTPRINT_DIR     = Join-Path $RootDirectory 'footprints'
+    KICAD_Z_PLUGIN_DIR        = Join-Path $RootDirectory 'plugins'
+    KICAD_Z_PROJECT_DIR       = Join-Path $RootDirectory 'projects'
+    KICAD_Z_SCRIPTING_DIR     = Join-Path $RootDirectory 'scripting'
+    KICAD_Z_SYMBOL_DIR        = Join-Path $RootDirectory 'symbols'
+    KICAD_Z_TEMPLATE_DIR      = Join-Path $RootDirectory 'template'
+    Z_PROJECTOS_3DMODEL_DIR   = Join-Path $RepositoryRoot 'models'
 }
 
 function Write-Result([string]$Name, [object]$Value) {
