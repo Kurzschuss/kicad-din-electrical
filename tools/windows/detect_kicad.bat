@@ -20,6 +20,7 @@ set "KICAD_Z_FOOTPRINT_LIBRARIES="
 set "KICAD_Z_DESIGN_BLOCK_LIBRARIES="
 set "KICAD_Z_3DMODEL_FILES="
 set "KICAD_Z_REQUIRED_ENTRIES="
+set "Z_PROJECTOS_3DMODEL_DIR="
 
 rem 1. kicad-cli.exe ueber PATH suchen.
 for /f "delims=" %%I in ('where kicad-cli.exe 2^>nul') do if not defined KICAD_CLI set "KICAD_CLI=%%~fI"
@@ -67,10 +68,12 @@ set "KICAD_Z_PROJECT_DIR=%KICAD_USER_DIR%\projects"
 set "KICAD_Z_SCRIPTING_DIR=%KICAD_USER_DIR%\scripting"
 set "KICAD_Z_SYMBOL_DIR=%KICAD_USER_DIR%\symbols"
 set "KICAD_Z_TEMPLATE_DIR=%KICAD_USER_DIR%\template"
+for %%I in ("%~dp0..\..") do set "PROJECTOS_REPOSITORY_ROOT=%%~fI"
+set "Z_PROJECTOS_3DMODEL_DIR=%PROJECTOS_REPOSITORY_ROOT%\models"
 
-rem Fehlende KICAD_Z_-Pfade direkt in vorhandenen KiCad-Konfigurationen
+rem Fehlende KICAD_Z_- und ProjectOS-Pfade direkt in vorhandenen KiCad-Konfigurationen
 rem registrieren. Vorhandene oder abweichende Eintraege bleiben unveraendert.
-for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_paths.ps1" -RootDirectory "%KICAD_USER_DIR%" 2^>nul`) do (
+for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_paths.ps1" -RootDirectory "%KICAD_USER_DIR%" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" 2^>nul`) do (
     if /i "%%A"=="KICAD_Z_REGISTRATION" set "KICAD_Z_REGISTRATION=%%B"
     if /i "%%A"=="KICAD_Z_REGISTERED" set "KICAD_Z_REGISTERED=%%B"
     if /i "%%A"=="KICAD_Z_EXISTING" set "KICAD_Z_EXISTING=%%B"
@@ -82,7 +85,7 @@ for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionP
 
 rem Z_-Bibliotheksdateien in den Benutzerordner kopieren und in allen
 rem vorhandenen globalen KiCad-Bibliothekstabellen registrieren.
-for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_libraries.ps1" -RepositoryRoot "%~dp0..\.." -UserRoot "%KICAD_USER_DIR%" 2^>nul`) do (
+for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_libraries.ps1" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" -UserRoot "%KICAD_USER_DIR%" 2^>nul`) do (
     if /i "%%A"=="KICAD_Z_LIBRARY_REGISTRATION" set "KICAD_Z_LIBRARY_REGISTRATION=%%B"
     if /i "%%A"=="KICAD_Z_LIBRARY_ADDED" set "KICAD_Z_LIBRARY_ADDED=%%B"
     if /i "%%A"=="KICAD_Z_LIBRARY_EXISTING" set "KICAD_Z_LIBRARY_EXISTING=%%B"
