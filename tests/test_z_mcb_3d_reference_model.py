@@ -4,6 +4,7 @@ from pathlib import Path
 
 MODEL_DIR = Path("models/Z_MCB_1P")
 SCAD = MODEL_DIR / "Z_MCB_1P.scad"
+COMMON_SCAD = Path("models/Z_MCB_common/Z_MCB_module.scad")
 MANIFEST = MODEL_DIR / "model.json"
 
 
@@ -30,12 +31,14 @@ def test_mcb_3d_reference_dimensions_match_18_mm_module_contract() -> None:
 
 def test_mcb_3d_source_contains_no_manufacturer_branding_or_rating() -> None:
     source = SCAD.read_text(encoding="utf-8")
-    lowered = source.casefold()
+    common = COMMON_SCAD.read_text(encoding="utf-8")
+    lowered = (source + common).casefold()
 
     assert "siemens" not in lowered
     assert "hager" not in lowered
     assert "abb" not in lowered
     assert "b16" not in lowered
     assert "10 ka" not in lowered
-    assert "module_width = 18.0" in source
-    assert "rail_width = 35.0" in source
+    assert "include <../Z_MCB_common/Z_MCB_module.scad>" in source
+    assert "mcb_module_width = 18.0;" in common
+    assert "mcb_module_length = 84.0;" in common
