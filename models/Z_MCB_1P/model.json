@@ -17,16 +17,27 @@
   },
   "source": {
     "type": "project_original",
+    "editable_source": "models/Z_MCB_1P/Z_MCB_1P.scad",
     "traceparts_geometry_imported": false,
     "manufacturer_geometry_imported": false,
     "external_reference_only": [
       "https://www.traceparts.com/de/product/rs-americas-1-pole-type-b-mcb10ka-16a?CatalogPath=TRACEPARTS%3ATP09004001007&Product=90-06122023-053192"
     ]
   },
+  "export": {
+    "script": "tools/export_z_mcb_3d.py",
+    "toolchain": ["OpenSCAD", "FreeCADCmd"],
+    "outputs": [
+      "models/Z_MCB_1P/generated/Z_MCB_1P.step",
+      "models/Z_MCB_1P/generated/Z_MCB_1P.wrl"
+    ],
+    "generated_files_committed": false,
+    "kicad_3d_viewer_validated": false
+  },
   "status": "Entwurf",
   "limitations": [
     "Keine exakte Herstellergeometrie.",
     "Nicht als mechanischer Kollisionsnachweis fuer ein konkretes Produkt freigegeben.",
-    "STEP/WRL-Ausgabe folgt erst nach reproduzierbarer Exportkette und KiCad-Pruefung."
+    "STEP/WRL-Dateien sind erst nach lokalem reproduzierbarem Export und KiCad-3D-Viewer-Pruefung freigegeben."
   ]
 }
