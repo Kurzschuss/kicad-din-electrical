@@ -83,8 +83,15 @@ foreach ($configFile in $configFiles) {
             elseif ([string]$property.Value -eq [string]$entry.Value) {
                 [void]$existingNames.Add($entry.Key)
             }
+            elseif ($entry.Key -eq 'Z_PROJECTOS_3DMODEL_DIR') {
+                # Diese Variable gehört vollständig ProjectOS. Der frühere Repository-Pfad
+                # wird beim Architekturwechsel gezielt auf die KiCad-Laufzeit migriert.
+                $property.Value = $entry.Value
+                [void]$addedNames.Add($entry.Key)
+                $changed = $true
+            }
             else {
-                # Bestehende, abweichende Werte werden bewusst nicht automatisch überschrieben.
+                # Andere bestehende, abweichende Benutzerwerte niemals automatisch überschreiben.
                 [void]$mismatchNames.Add($entry.Key)
             }
         }
