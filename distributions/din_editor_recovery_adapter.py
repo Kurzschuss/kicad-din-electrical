@@ -10,42 +10,45 @@ class DinEditorRecoveryAdapter:
     def __init__(self, manager: DinEditorProjectManager):
         self.manager = manager
 
+    @staticmethod
+    def _base_state(status: dict) -> dict:
+        return {
+            "path": status["path"],
+            "available": status["available"],
+            "valid": status["valid"],
+            "can_recover": status["can_recover"],
+            "metadata": status.get("metadata"),
+            "error": status["error"],
+        }
+
     def state(self, path: str | Path | None = None) -> dict:
         status = self.manager.recovery_status(path)
+        base = self._base_state(status)
         if not status["available"]:
             return {
+                **base,
                 "code": "RECOVERY_NOT_AVAILABLE",
                 "title": "Keine Wiederherstellung verfügbar",
                 "message": "Für dieses Projekt ist kein letzter gültiger Wiederherstellungsstand vorhanden.",
-                "path": status["path"],
-                "available": False,
-                "valid": status["valid"],
                 "can_recover": False,
                 "action_label": None,
-                "error": status["error"],
             }
         if not status["valid"]:
             return {
+                **base,
                 "code": "RECOVERY_INVALID",
                 "title": "Wiederherstellung nicht verwendbar",
                 "message": "Ein Wiederherstellungsstand ist vorhanden, hat die Validierung aber nicht bestanden.",
-                "path": status["path"],
-                "available": True,
-                "valid": False,
                 "can_recover": False,
                 "action_label": None,
-                "error": status["error"],
             }
         return {
+            **base,
             "code": "RECOVERY_AVAILABLE",
             "title": "Wiederherstellung verfügbar",
             "message": "Ein validierter letzter gültiger Projektstand kann ausdrücklich wiederhergestellt werden.",
-            "path": status["path"],
-            "available": True,
-            "valid": True,
             "can_recover": True,
             "action_label": "Letzten gültigen Stand wiederherstellen",
-            "error": None,
         }
 
     def recover(
