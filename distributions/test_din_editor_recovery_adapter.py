@@ -1,5 +1,6 @@
 """Tests für den read-only Recovery-Präsentationsadapter."""
 import json
+from datetime import datetime
 from pathlib import Path
 
 from .din_editor_project_bundle import recovery_path_for
@@ -150,3 +151,21 @@ def test_adapter_executes_explicit_recovery_only_when_allowed(tmp_path: Path):
     assert manager.session.components[0]["label"] == "+24V SPS"
     assert manager.has_unsaved_changes
     assert manager.state()["recovered_from"] == str(recovery_path_for(path))
+
+
+def test_adapter_exposes_recovery_origin_time_and_versions(tmp_path: Path):
+    manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    manager.save()
+    adapter = DinEditorRecoveryAdapter(manager)
+
+    metadata = adapter.state()["metadata"]
+
+    assert metadata["source_path"] == str(path)
+    assert metadata["recovery_path"] == str(recovery_path_for(path))
+    assert metadata["bundle_version"] == 2
+    assert metadata["session_version"] == 1
+    assert metadata["project_id"] is None
+    captured_at = datetime.fromisoformat(metadata["captured_at"])
+    assert captured_at.tzinfo is not None
