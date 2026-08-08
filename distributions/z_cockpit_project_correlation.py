@@ -7,6 +7,7 @@ from uuid import UUID
 
 from .din_editor_project_context import DinEditorProjectContext
 from .din_editor_project_manager import DinEditorProjectManager
+from .projectos_knowledge_path import ProjectOSKnowledgePathService
 from .projectos_message_envelope import ProjectOSMessageEnvelope
 from .projectos_project_memory import ProjectOSProjectMemory
 
@@ -39,6 +40,40 @@ class ZCockpitProjectCorrelationView:
             (message for message in self._messages if message.project_id == project_id),
             key=lambda message: (message.timestamp, message.message_id),
         )
+
+    def explain_knowledge_path(
+        self,
+        source_knowledge_id: str,
+        target_knowledge_id: str,
+        *,
+        correlation_id: str | None = None,
+    ) -> dict:
+        """Erklärt einen gespeicherten Wissenspfad, ohne Beziehungen herzuleiten."""
+        if self._memory is None:
+            return {
+                "found": False,
+                "project_id": self.manager.project_id,
+                "correlation_id": _normalize_uuid(correlation_id, "correlation_id") if correlation_id else None,
+                "source_knowledge_id": _normalize_uuid(source_knowledge_id, "source_knowledge_id"),
+                "target_knowledge_id": _normalize_uuid(target_knowledge_id, "target_knowledge_id"),
+                "nodes": [],
+                "relations": [],
+                "hop_count": None,
+                "explanation": None,
+                "note": "Kein Projektgedächtnis für diese Ansicht verfügbar.",
+                "read_only": True,
+            }
+        result = ProjectOSKnowledgePathService(self._memory).find_path(
+            source_knowledge_id,
+            target_knowledge_id,
+            correlation_id=correlation_id,
+        )
+        result["note"] = (
+            "Der Pfad enthält ausschließlich explizit gespeicherte, gerichtete Wissensbeziehungen. "
+            "Fehlende Zwischenschritte werden nicht ergänzt oder abgeleitet."
+        )
+        result["read_only"] = True
+        return result
 
     def state(self, correlation_id: str | None = None) -> dict:
         context = DinEditorProjectContext.from_manager(self.manager)
@@ -85,6 +120,7 @@ class ZCockpitProjectCorrelationView:
             "relation_count": 0,
             "causation_linked_element_count": 0,
             "causation_unresolved_element_count": 0,
+            "path_explanations_available": self._memory is not None,
             "note": (
                 "Projektwissen und typisierte Beziehungen werden nur explizit gespeichert. "
                 "Bei einem Vorgangsfilter werden nur Beziehungen zwischen den tatsächlich sichtbaren "
