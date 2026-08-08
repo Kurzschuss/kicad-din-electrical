@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -24,12 +25,29 @@ def _utf8_subprocess_environment() -> dict[str, str]:
     return environment
 
 
+def _compact_percent_progress(line: str) -> tuple[int, str] | None:
+    """Verdichtet FreeCAD-Zeilen wie ``(37 %)`` auf 10-Prozent-Schritte."""
+    match = re.fullmatch(r"\s*\((\d{1,3})\s*%\)\s*", line)
+    if not match:
+        return None
+
+    percent = max(0, min(100, int(match.group(1))))
+    if percent not in {0, 100} and percent % 10 != 0:
+        return percent, ""
+
+    width = 20
+    filled = round(width * percent / 100)
+    bar = "#" * filled + "." * (width - filled)
+    return percent, f"3D-Export: [{bar}] {percent:3d} %\n"
+
+
 def run_command(title: str, command: list[str], log_path: Path, report_path: Path) -> int:
     _configure_utf8_console()
     log_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     collected: list[str] = []
+    emitted_progress: set[int] = set()
     try:
         process = subprocess.Popen(
             command,
@@ -52,6 +70,15 @@ def run_command(title: str, command: list[str], log_path: Path, report_path: Pat
 
     assert process.stdout is not None
     for line in process.stdout:
+        progress = _compact_percent_progress(line)
+        if progress is not None:
+            percent, compact_line = progress
+            if compact_line and percent not in emitted_progress:
+                print(compact_line, end="")
+                collected.append(compact_line)
+                emitted_progress.add(percent)
+            continue
+
         print(line, end="")
         collected.append(line)
 
