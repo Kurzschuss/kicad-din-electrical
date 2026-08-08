@@ -180,3 +180,79 @@ def test_missing_recovery_does_not_change_current_manager_state(tmp_path: Path):
         raise AssertionError("missing recovery was accepted")
 
     _assert_manager_unchanged(manager, **before)
+
+
+def test_semantically_invalid_recovery_does_not_change_current_manager_state(tmp_path: Path):
+    manager, before = _dirty_manager_with_snapshot(tmp_path)
+    target = tmp_path / "semantic-recovery.json"
+    recovery = recovery_path_for(target)
+    recovery.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "session": {
+                    "version": 1,
+                    "components": [
+                        {
+                            "reference": "X5",
+                            "component_type": "DIN_RAIL_TERMINAL_BLOCK",
+                            "label": "",
+                            "can_edit_label": True,
+                        }
+                    ],
+                },
+                "sync_log": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        manager.recover(target, discard_changes=True)
+    except DinProjectBundleError as exc:
+        assert "recovery validation failed" in str(exc)
+        assert "Terminal label missing: X5" in str(exc)
+    else:
+        raise AssertionError("semantically invalid recovery was accepted")
+
+    _assert_manager_unchanged(manager, **before)
+
+
+def test_semantically_invalid_main_file_does_not_replace_valid_recovery(tmp_path: Path):
+    manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
+    manager.change_service.set_terminal_label(0, "Zweite Version")
+    manager.save()
+
+    recovery = recovery_path_for(path)
+    expected_recovery = recovery.read_text(encoding="utf-8")
+
+    path.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "session": {
+                    "version": 1,
+                    "components": [
+                        {
+                            "reference": "X5",
+                            "component_type": "DIN_RAIL_TERMINAL_BLOCK",
+                            "label": "",
+                            "can_edit_label": True,
+                        }
+                    ],
+                },
+                "sync_log": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    manager.change_service.set_terminal_label(0, "Dritte Version")
+    manager.save()
+
+    assert recovery.read_text(encoding="utf-8") == expected_recovery
+
+    restored = DinEditorProjectManager()
+    restored.recover(path)
+    assert restored.session.components[0]["label"] == "+24V SPS"
