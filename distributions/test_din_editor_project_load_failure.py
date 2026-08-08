@@ -96,3 +96,28 @@ def test_unsupported_bundle_version_preserves_current_manager_state(tmp_path: Pa
         raise AssertionError("unsupported project bundle version loaded without an error")
 
     _assert_manager_unchanged(manager, **before)
+
+
+def test_invalid_project_data_preserves_current_manager_state(tmp_path: Path):
+    manager, before = _dirty_manager_with_snapshot(tmp_path)
+
+    invalid_path = tmp_path / "invalid-project-data.json"
+    invalid_path.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "session": {"version": 1, "components": "not-a-list"},
+                "sync_log": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        manager.load(invalid_path, discard_changes=True)
+    except DinProjectBundleError as exc:
+        assert "invalid DIN editor project data" in str(exc)
+    else:
+        raise AssertionError("invalid project data loaded without an error")
+
+    _assert_manager_unchanged(manager, **before)
