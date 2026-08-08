@@ -1,6 +1,6 @@
 # Kontomodell
 
-**Dokument-ID:** PLT-0006  
+**Dokument-ID:** PLT-0007  
 **Titel:** Fachliches Modell eines Zugangskontos  
 **Version:** 0.1.0  
 **Status:** Entwurf  
