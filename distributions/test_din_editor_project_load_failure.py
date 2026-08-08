@@ -315,6 +315,39 @@ def test_recovery_status_reports_invalid_recovery_without_loading_it(tmp_path: P
     _assert_manager_unchanged(manager, **before)
 
 
+def test_recovery_status_reports_semantic_validation_error(tmp_path: Path):
+    manager, before = _dirty_manager_with_snapshot(tmp_path)
+    recovery = recovery_path_for(before["path"])
+    recovery.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "session": {
+                    "version": 1,
+                    "components": [
+                        {
+                            "reference": "X5",
+                            "component_type": "DIN_RAIL_TERMINAL_BLOCK",
+                            "label": "",
+                            "can_edit_label": True,
+                        }
+                    ],
+                },
+                "sync_log": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    status = manager.recovery_status()
+
+    assert status["available"] is True
+    assert status["valid"] is False
+    assert status["can_recover"] is False
+    assert "Terminal label missing: X5" in status["error"]
+    _assert_manager_unchanged(manager, **before)
+
+
 def test_project_state_exposes_recovery_status(tmp_path: Path):
     manager = _manager()
     path = manager.save(tmp_path / "anlage.json")
