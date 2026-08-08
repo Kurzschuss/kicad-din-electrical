@@ -136,6 +136,33 @@ def load_project_bundle(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]
     return import_project_bundle(data)
 
 
+def recovery_status_for(path: str | Path) -> dict:
+    recovery = recovery_path_for(path)
+    status = {
+        "path": str(recovery),
+        "available": recovery.exists(),
+        "valid": None,
+        "can_recover": False,
+        "error": None,
+    }
+    if not status["available"]:
+        return status
+    try:
+        session, _ = load_project_bundle(recovery)
+    except DinProjectBundleError as exc:
+        status["valid"] = False
+        status["error"] = str(exc)
+        return status
+    issues = validate_session(session)
+    if issues:
+        status["valid"] = False
+        status["error"] = "; ".join(issue.message for issue in issues)
+        return status
+    status["valid"] = True
+    status["can_recover"] = True
+    return status
+
+
 def _preserve_last_valid_project(path: str | Path) -> Path | None:
     target = Path(path)
     if not target.exists():
