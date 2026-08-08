@@ -1,0 +1,117 @@
+"""Read-only Projektleiter-Gesamtübersicht für Z_Cockpit."""
+from __future__ import annotations
+
+from typing import Any, Iterable
+
+from .din_editor_project_manager import DinEditorProjectManager
+from .projectos_message_envelope import ProjectOSMessageEnvelope
+from .projectos_project_memory import ProjectOSProjectMemory
+from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
+from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
+
+
+class ZCockpitProjectLeadOverview:
+    """Bündelt Projektzustand, Recovery, Audit/Korrelation und Wissensdiagnose rein lesend."""
+
+    def __init__(
+        self,
+        manager: DinEditorProjectManager,
+        messages: Iterable[ProjectOSMessageEnvelope] | None = None,
+        memory: ProjectOSProjectMemory | None = None,
+    ) -> None:
+        self.manager = manager
+        self._messages = tuple(messages or ())
+        self._memory = memory
+        self._correlation_view = ZCockpitProjectCorrelationView(
+            manager,
+            messages=self._messages,
+            memory=memory,
+        )
+
+    def state(self, *, correlation_id: str | None = None) -> dict[str, Any]:
+        correlation = self._correlation_view.state(correlation_id=correlation_id)
+        recovery = correlation["recovery"]
+        audit = correlation["audit"]
+
+        diagnostics = {
+            "available": self._memory is not None,
+            "traffic_light": "yellow" if self._memory is None else "green",
+            "issue_count": 0,
+            "red_count": 0,
+            "yellow_count": 0,
+            "groups": {"red": [], "yellow": [], "green": []},
+            "note": "Kein Projektgedächtnis verfügbar; Wissensdiagnose ist nicht vollständig bewertbar.",
+        }
+        if self._memory is not None:
+            message_ids = {message.message_id for message in self._messages if message.project_id == self.manager.project_id}
+            correlation_ids = {
+                message.correlation_id for message in self._messages
+                if message.project_id == self.manager.project_id
+            }
+            worklist = ZCockpitDiagnosticsWorklistView(
+                self._memory,
+                known_message_ids=message_ids,
+                known_correlation_ids=correlation_ids,
+            ).state(correlation_id=correlation_id, role="project_lead")
+            diagnostics = {
+                "available": True,
+                "traffic_light": worklist["traffic_light"],
+                "issue_count": worklist["issue_count"],
+                "red_count": len(worklist["groups"]["red"]),
+                "yellow_count": len(worklist["groups"]["yellow"]),
+                "groups": worklist["groups"],
+                "work_items": worklist["work_items"],
+                "note": worklist["note"],
+            }
+
+        audit_attention = (
+            audit["causation_unresolved_entry_count"] > 0
+            or audit["unlinked_entry_count"] > 0
+        )
+        recovery_attention = bool(recovery.get("available") and recovery.get("valid") is False)
+
+        if diagnostics["traffic_light"] == "red":
+            traffic_light = "red"
+        elif diagnostics["traffic_light"] == "yellow" or audit_attention or recovery_attention:
+            traffic_light = "yellow"
+        else:
+            traffic_light = "green"
+
+        attention_reasons = []
+        if diagnostics["traffic_light"] == "red":
+            attention_reasons.append("Wissensgraph enthält mindestens eine Fehlerdiagnose.")
+        elif diagnostics["traffic_light"] == "yellow":
+            attention_reasons.append("Wissensgraph enthält Hinweise/Warnungen oder ist nicht vollständig bewertbar.")
+        if audit["causation_unresolved_entry_count"] > 0:
+            attention_reasons.append("Mindestens eine Audit-Ursachenreferenz ist nicht auflösbar.")
+        if audit["unlinked_entry_count"] > 0:
+            attention_reasons.append("Mindestens ein Audit-Eintrag ist noch nicht vorgangskorreliert.")
+        if recovery_attention:
+            attention_reasons.append("Vorhandene Recovery ist nicht verwendbar.")
+
+        return {
+            "project": correlation["project"],
+            "filter": correlation["filter"],
+            "traffic_light": traffic_light,
+            "attention_required": traffic_light != "green",
+            "attention_reasons": attention_reasons,
+            "summary": {
+                "message_count": correlation["message_count"],
+                "audit_entry_count": audit["entry_count"],
+                "audit_unlinked_count": audit["unlinked_entry_count"],
+                "audit_unresolved_causation_count": audit["causation_unresolved_entry_count"],
+                "knowledge_issue_count": diagnostics["issue_count"],
+                "recovery_available": recovery.get("available", False),
+                "recovery_valid": recovery.get("valid"),
+                "can_recover": recovery.get("can_recover", False),
+            },
+            "diagnostics": diagnostics,
+            "audit": audit,
+            "recovery": recovery,
+            "correlations": correlation["correlations"],
+            "read_only": True,
+            "note": (
+                "Die Gesamtübersicht aggregiert ausschließlich bereits vorhandene read-only Nachweise. "
+                "Sie führt keine Reparatur, Recovery oder fachliche Entscheidung aus."
+            ),
+        }
