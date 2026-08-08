@@ -3,7 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
-from .din_editor_project_bundle import load_project_bundle, save_project_bundle
+from .din_editor_project_bundle import load_project_bundle, load_project_recovery, recovery_path_for, save_project_bundle
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_actions import DinEditorSyncActions
 from .din_editor_sync_log import DinSyncLog
@@ -17,6 +17,7 @@ class DinEditorProjectManager:
         self.history = DinEditorHistory(self.session, self.sync_log)
         self.path: Path | None = None
         self._saved_state = self._snapshot()
+        self._recovered_from: Path | None = None
         self.dirty = False
         self.change_service = self._build_change_service()
 
@@ -42,7 +43,7 @@ class DinEditorProjectManager:
         return history, change_service, saved_state
 
     def _refresh_dirty(self) -> None:
-        self.dirty = self._snapshot() != self._saved_state
+        self.dirty = self._snapshot() != self._saved_state or self._recovered_from is not None
 
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
@@ -89,6 +90,7 @@ class DinEditorProjectManager:
         result = save_project_bundle(self.session, self.sync_log, target)
         self.path = result
         self._saved_state = saved_state
+        self._recovered_from = None
         self.dirty = False
         self.history.clear()
         return result
@@ -104,7 +106,26 @@ class DinEditorProjectManager:
         self.change_service = change_service
         self.path = Path(path)
         self._saved_state = saved_state
+        self._recovered_from = None
         self.dirty = False
+        return self.session
+
+    def recover(self, path: str | Path | None = None, *, discard_changes: bool = False) -> DinEditorSession:
+        if self.has_unsaved_changes and not discard_changes:
+            raise RuntimeError("project has unsaved changes; save or discard them before recovery")
+        target = Path(path) if path is not None else self.path
+        if target is None:
+            raise ValueError("project path is not set")
+        session, sync_log = load_project_recovery(target)
+        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
+        self.session = session
+        self.sync_log = sync_log
+        self.history = history
+        self.change_service = change_service
+        self.path = target
+        self._saved_state = saved_state
+        self._recovered_from = recovery_path_for(target)
+        self.dirty = True
         return self.session
 
     def new_project(self, *, discard_changes: bool = False) -> DinEditorSession:
@@ -119,6 +140,7 @@ class DinEditorProjectManager:
         self.change_service = change_service
         self.path = None
         self._saved_state = saved_state
+        self._recovered_from = None
         self.dirty = False
         return self.session
 
@@ -135,6 +157,7 @@ class DinEditorProjectManager:
         self.history = history
         self.change_service = change_service
         self._saved_state = saved_state
+        self._recovered_from = None
         self.dirty = False
 
     def state(self) -> dict:
@@ -144,6 +167,7 @@ class DinEditorProjectManager:
             "path": str(self.path) if self.path else None,
             "dirty": dirty,
             "has_unsaved_changes": dirty,
+            "recovered_from": str(self._recovered_from) if self._recovered_from else None,
             "valid": not issues,
             "validation_issues": [issue.__dict__ for issue in issues],
             "history": self.history.state(),
