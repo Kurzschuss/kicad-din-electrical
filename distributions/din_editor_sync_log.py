@@ -27,6 +27,7 @@ class DinSyncLog:
         *,
         project_id: str | None = None,
         correlation_id: str | None = None,
+        causation_id: str | None = None,
     ) -> dict:
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -35,12 +36,14 @@ class DinSyncLog:
             "value": str(value),
             "action": str(action),
         }
-        normalized_project_id = _normalize_optional_uuid(project_id, "project_id")
-        if normalized_project_id is not None:
-            entry["project_id"] = normalized_project_id
-        normalized_correlation_id = _normalize_optional_uuid(correlation_id, "correlation_id")
-        if normalized_correlation_id is not None:
-            entry["correlation_id"] = normalized_correlation_id
+        for field_name, field_value in (
+            ("project_id", project_id),
+            ("correlation_id", correlation_id),
+            ("causation_id", causation_id),
+        ):
+            normalized = _normalize_optional_uuid(field_value, field_name)
+            if normalized is not None:
+                entry[field_name] = normalized
         self.entries.append(entry)
         return dict(entry)
 
@@ -85,9 +88,8 @@ class DinSyncLog:
                 raise ValueError("DIN synchronization log action is required")
             clean = dict(entry)
             clean["timestamp"] = normalized
-            if "project_id" in clean:
-                clean["project_id"] = _normalize_optional_uuid(clean["project_id"], "project_id")
-            if "correlation_id" in clean:
-                clean["correlation_id"] = _normalize_optional_uuid(clean["correlation_id"], "correlation_id")
+            for field_name in ("project_id", "correlation_id", "causation_id"):
+                if field_name in clean:
+                    clean[field_name] = _normalize_optional_uuid(clean[field_name], field_name)
             validated.append(clean)
         self.entries = validated
