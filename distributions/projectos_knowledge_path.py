@@ -13,6 +13,18 @@ class ProjectOSKnowledgePathService:
     def __init__(self, memory: ProjectOSProjectMemory) -> None:
         self.memory = memory
 
+    def _visible_graph(self, correlation_id: str | None = None):
+        normalized_correlation_id = _normalize_optional_uuid(correlation_id, "correlation_id")
+        visible_elements = self.memory.elements(correlation_id=normalized_correlation_id)
+        element_by_id = {element.knowledge_id: element for element in visible_elements}
+        visible_ids = set(element_by_id)
+        relations = [
+            relation for relation in self.memory.relations()
+            if relation.source_knowledge_id in visible_ids and relation.target_knowledge_id in visible_ids
+        ]
+        relations.sort(key=lambda relation: (relation.created_at, relation.relation_id))
+        return normalized_correlation_id, element_by_id, relations
+
     def find_path(
         self,
         source_knowledge_id: str,
@@ -22,10 +34,8 @@ class ProjectOSKnowledgePathService:
     ) -> dict[str, Any]:
         source_id = _normalize_uuid(source_knowledge_id, "source_knowledge_id")
         target_id = _normalize_uuid(target_knowledge_id, "target_knowledge_id")
-        normalized_correlation_id = _normalize_optional_uuid(correlation_id, "correlation_id")
+        normalized_correlation_id, element_by_id, relations = self._visible_graph(correlation_id)
 
-        visible_elements = self.memory.elements(correlation_id=normalized_correlation_id)
-        element_by_id = {element.knowledge_id: element for element in visible_elements}
         if source_id not in element_by_id:
             raise ValueError("source knowledge element is not visible in this scope")
         if target_id not in element_by_id:
@@ -45,16 +55,9 @@ class ProjectOSKnowledgePathService:
                 "explanation": element.title,
             }
 
-        visible_ids = set(element_by_id)
-        relations = [
-            relation for relation in self.memory.relations()
-            if relation.source_knowledge_id in visible_ids and relation.target_knowledge_id in visible_ids
-        ]
         outgoing: dict[str, list] = {}
         for relation in relations:
             outgoing.setdefault(relation.source_knowledge_id, []).append(relation)
-        for items in outgoing.values():
-            items.sort(key=lambda relation: (relation.created_at, relation.relation_id))
 
         queue = deque([source_id])
         previous: dict[str, tuple[str, object]] = {}
@@ -112,4 +115,57 @@ class ProjectOSKnowledgePathService:
             "relations": [relation.as_dict() for relation in relation_path],
             "hop_count": len(relation_path),
             "explanation": " ".join(explanation_parts),
+        }
+
+    def explain_origins(
+        self,
+        target_knowledge_id: str,
+        *,
+        correlation_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Ermittelt explizite Herkunftswurzeln eines Wissensknotens und ihre Pfade."""
+        target_id = _normalize_uuid(target_knowledge_id, "target_knowledge_id")
+        normalized_correlation_id, element_by_id, relations = self._visible_graph(correlation_id)
+        if target_id not in element_by_id:
+            raise ValueError("target knowledge element is not visible in this scope")
+
+        incoming: dict[str, list] = {}
+        for relation in relations:
+            incoming.setdefault(relation.target_knowledge_id, []).append(relation)
+
+        ancestors = {target_id}
+        queue = deque([target_id])
+        while queue:
+            current = queue.popleft()
+            for relation in incoming.get(current, []):
+                source = relation.source_knowledge_id
+                if source not in ancestors:
+                    ancestors.add(source)
+                    queue.append(source)
+
+        root_ids = sorted(
+            knowledge_id for knowledge_id in ancestors
+            if not any(
+                relation.source_knowledge_id in ancestors
+                for relation in incoming.get(knowledge_id, [])
+            )
+        )
+        paths = [
+            self.find_path(root_id, target_id, correlation_id=normalized_correlation_id)
+            for root_id in root_ids
+        ]
+        paths = [path for path in paths if path["found"]]
+
+        return {
+            "found": bool(paths),
+            "project_id": self.memory.project_id,
+            "correlation_id": normalized_correlation_id,
+            "target_knowledge_id": target_id,
+            "target": element_by_id[target_id].as_dict(),
+            "origin_count": len(paths),
+            "origins": paths,
+            "note": (
+                "Herkunftswurzeln sind ausschließlich sichtbare Wissensknoten ohne weitere explizite "
+                "eingehende Beziehung innerhalb des betrachteten Graphen."
+            ),
         }
