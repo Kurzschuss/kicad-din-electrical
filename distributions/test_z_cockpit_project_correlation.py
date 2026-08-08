@@ -135,6 +135,43 @@ def test_view_shows_memory_for_exact_correlation_and_resolves_message_cause():
     assert state["memory"]["causation_unresolved_element_count"] == 0
 
 
+def test_view_shows_only_relations_between_visible_memory_nodes():
+    manager = _manager()
+    context = DinEditorProjectContext.from_manager(manager)
+    correlation_id = str(uuid4())
+    memory = ProjectOSProjectMemory(manager.project_id)
+    requirement = memory.add(ProjectOSKnowledgeElement.from_project_context(
+        context,
+        knowledge_type="requirement",
+        title="Anforderung",
+        content="Recovery muss explizit bleiben.",
+        correlation_id=correlation_id,
+    ))
+    decision = memory.add(ProjectOSKnowledgeElement.from_project_context(
+        context,
+        knowledge_type="decision",
+        title="Entscheidung",
+        content="Recovery wird nur bewusst ausgelöst.",
+        correlation_id=correlation_id,
+    ))
+    project_wide = memory.add(ProjectOSKnowledgeElement.from_project_context(
+        context,
+        knowledge_type="insight",
+        title="Projektweite Erkenntnis",
+        content="Ohne Vorgangskorrelation.",
+    ))
+    memory.relate(requirement, decision, "justifies")
+    memory.relate(decision, project_wide, "causes")
+
+    state = ZCockpitProjectCorrelationView(manager, memory=memory).state(correlation_id)
+
+    assert state["memory"]["element_count"] == 2
+    assert state["memory"]["relation_count"] == 1
+    assert state["memory"]["relations"][0]["relation_type"] == "justifies"
+    assert state["memory"]["relations"][0]["source_knowledge_id"] == requirement.knowledge_id
+    assert state["memory"]["relations"][0]["target_knowledge_id"] == decision.knowledge_id
+
+
 def test_view_rejects_memory_from_another_project():
     manager = _manager()
     foreign = _manager("0V SPS")
