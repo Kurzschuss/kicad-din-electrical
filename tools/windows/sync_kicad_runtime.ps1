@@ -127,7 +127,7 @@ $groups = @('Symbol','Footprint','3D','Designblock')
 foreach ($category in $groups) {
     $items = @($changes | Where-Object Category -eq $category)
     if ($items.Count -eq 0) { continue }
-    Write-Host "$category`e[n]:"
+    Write-Host ("{0}:" -f $category)
     foreach ($item in $items) {
         Write-Host ("  [{0}] {1}" -f $item.Status, $item.Path)
     }
