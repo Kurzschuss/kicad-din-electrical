@@ -8,6 +8,7 @@ from uuid import UUID
 from .din_editor_project_context import DinEditorProjectContext
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_message_envelope import ProjectOSMessageEnvelope
+from .projectos_project_memory import ProjectOSProjectMemory
 
 
 def _normalize_uuid(value: str, field_name: str) -> str:
@@ -18,11 +19,19 @@ def _normalize_uuid(value: str, field_name: str) -> str:
 
 
 class ZCockpitProjectCorrelationView:
-    """Führt Projektkontext, Busnachrichten, Audit und Recovery rein lesend zusammen."""
+    """Führt Projektkontext, Busnachrichten, Audit, Wissen und Recovery rein lesend zusammen."""
 
-    def __init__(self, manager: DinEditorProjectManager, messages: Iterable[ProjectOSMessageEnvelope] | None = None) -> None:
+    def __init__(
+        self,
+        manager: DinEditorProjectManager,
+        messages: Iterable[ProjectOSMessageEnvelope] | None = None,
+        memory: ProjectOSProjectMemory | None = None,
+    ) -> None:
         self.manager = manager
         self._messages = tuple(messages or ())
+        if memory is not None and memory.project_id != manager.project_id:
+            raise ValueError("project memory belongs to another project")
+        self._memory = memory
 
     def _project_messages(self) -> list[ProjectOSMessageEnvelope]:
         project_id = self.manager.project_id
@@ -68,6 +77,29 @@ class ZCockpitProjectCorrelationView:
             if entry.get("causation_id") and entry.get("causation_id") not in message_ids
         )
 
+        memory_state = {
+            "scope": "correlation" if normalized_correlation_id is not None else "project",
+            "elements": [],
+            "element_count": 0,
+            "causation_linked_element_count": 0,
+            "causation_unresolved_element_count": 0,
+            "note": (
+                "Projektwissen wird nur explizit gespeichert. correlation_id und causation_id werden nur dann "
+                "als Verknüpfung angezeigt, wenn sie tatsächlich am Wissenselement vorhanden sind."
+            ),
+        }
+        if self._memory is not None:
+            memory_items = self._memory.elements(correlation_id=normalized_correlation_id)
+            memory_state["elements"] = [item.as_dict() for item in memory_items]
+            memory_state["element_count"] = len(memory_items)
+            memory_state["causation_linked_element_count"] = sum(
+                1 for item in memory_items if item.causation_id in message_ids
+            )
+            memory_state["causation_unresolved_element_count"] = sum(
+                1 for item in memory_items
+                if item.causation_id and item.causation_id not in message_ids
+            )
+
         return {
             "project": context.as_dict(),
             "filter": {"correlation_id": normalized_correlation_id},
@@ -87,6 +119,7 @@ class ZCockpitProjectCorrelationView:
                     "auf die konkret auslösende ProjectOS-Nachricht verweisen. Ältere Einträge bleiben kompatibel."
                 ),
             },
+            "memory": memory_state,
             "recovery": self.manager.recovery_status(),
             "read_only": True,
         }
