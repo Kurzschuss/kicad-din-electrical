@@ -3,7 +3,13 @@ from copy import deepcopy
 from pathlib import Path
 from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
-from .din_editor_project_bundle import load_project_bundle, load_project_recovery, recovery_path_for, save_project_bundle
+from .din_editor_project_bundle import (
+    load_project_bundle,
+    load_project_recovery,
+    recovery_path_for,
+    recovery_status_for,
+    save_project_bundle,
+)
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_actions import DinEditorSyncActions
 from .din_editor_sync_log import DinSyncLog
@@ -74,6 +80,18 @@ class DinEditorProjectManager:
 
     def validate(self) -> list[ValidationIssue]:
         return validate_session(self.session)
+
+    def recovery_status(self, path: str | Path | None = None) -> dict:
+        target = Path(path) if path is not None else self.path
+        if target is None:
+            return {
+                "path": None,
+                "available": False,
+                "valid": None,
+                "can_recover": False,
+                "error": None,
+            }
+        return recovery_status_for(target)
 
     def save(self, path: str | Path | None = None, *, validate: bool = True) -> Path:
         if validate:
@@ -168,6 +186,7 @@ class DinEditorProjectManager:
             "dirty": dirty,
             "has_unsaved_changes": dirty,
             "recovered_from": str(self._recovered_from) if self._recovered_from else None,
+            "recovery": self.recovery_status(),
             "valid": not issues,
             "validation_issues": [issue.__dict__ for issue in issues],
             "history": self.history.state(),
