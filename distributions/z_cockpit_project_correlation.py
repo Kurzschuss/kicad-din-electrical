@@ -81,17 +81,23 @@ class ZCockpitProjectCorrelationView:
             "scope": "correlation" if normalized_correlation_id is not None else "project",
             "elements": [],
             "element_count": 0,
+            "relations": [],
+            "relation_count": 0,
             "causation_linked_element_count": 0,
             "causation_unresolved_element_count": 0,
             "note": (
-                "Projektwissen wird nur explizit gespeichert. correlation_id und causation_id werden nur dann "
-                "als Verknüpfung angezeigt, wenn sie tatsächlich am Wissenselement vorhanden sind."
+                "Projektwissen und typisierte Beziehungen werden nur explizit gespeichert. "
+                "Bei einem Vorgangsfilter werden nur Beziehungen zwischen den tatsächlich sichtbaren "
+                "Wissenselementen angezeigt; fehlende Verknüpfungen werden nicht hergeleitet."
             ),
         }
         if self._memory is not None:
+            raw_memory_state = self._memory.state(correlation_id=normalized_correlation_id)
             memory_items = self._memory.elements(correlation_id=normalized_correlation_id)
-            memory_state["elements"] = [item.as_dict() for item in memory_items]
-            memory_state["element_count"] = len(memory_items)
+            memory_state["elements"] = raw_memory_state["elements"]
+            memory_state["element_count"] = raw_memory_state["element_count"]
+            memory_state["relations"] = raw_memory_state["relations"]
+            memory_state["relation_count"] = raw_memory_state["relation_count"]
             memory_state["causation_linked_element_count"] = sum(
                 1 for item in memory_items if item.causation_id in message_ids
             )
