@@ -264,7 +264,15 @@ Sie können jedoch Konten als Bedingung oder Ziel referenzieren, beispielsweise 
 
 Die fachliche Priorität und Entscheidung gehören in `AUTHORIZATION_MODEL.md` bzw. Sicherheitsrichtlinien.
 
-## 22. Datenschutz
+## 22. Z_Cockpit
+
+Konten und Kontostatus dürfen im `Z_Cockpit` dargestellt und – bei entsprechender Autorisierung – verwaltet werden.
+
+Dabei gelten die Regeln aus `Z_COCKPIT_IDENTITY_INTEGRATION.md`.
+
+Insbesondere dürfen keine Kennwörter, privaten Schlüssel, ungeschützten Tokens oder vergleichbare Geheimnisse in statisch erzeugte Cockpit-Seiten geschrieben werden. Änderungen werden ausschließlich über zuständige Plattformdienste ausgeführt.
+
+## 23. Datenschutz
 
 Konten können personenbezogene oder sicherheitsrelevante Daten enthalten.
 
@@ -278,7 +286,7 @@ Trennung ist erforderlich zwischen:
 
 Lösch-, Anonymisierungs- und Aufbewahrungsregeln werden gesondert festgelegt.
 
-## 23. Audit
+## 24. Audit
 
 Mindestens folgende Ereignisse müssen nachvollziehbar sein, soweit relevant:
 
@@ -294,7 +302,7 @@ Mindestens folgende Ereignisse müssen nachvollziehbar sein, soweit relevant:
 
 Geheimnisse selbst dürfen nicht im Audit protokolliert werden.
 
-## 24. Validierung
+## 25. Validierung
 
 Ein Konto ist mindestens darauf zu prüfen, dass:
 
@@ -308,7 +316,7 @@ Ein Konto ist mindestens darauf zu prüfen, dass:
 8. technische Konten technischen Identitäten zugeordnet sind;
 9. externe Konten ihre Quelle eindeutig referenzieren.
 
-## 25. Invarianten
+## 26. Invarianten
 
 1. Konto-ID und Akteursidentitäts-ID sind getrennt.
 2. Benutzername oder E-Mail-Adresse sind keine stabile Kontoidentität.
@@ -321,7 +329,7 @@ Ein Konto ist mindestens darauf zu prüfen, dass:
 9. Ein zweites Konto derselben Identität erzeugt nicht automatisch zusätzliche Rechte.
 10. Technische Konten werden nicht als menschliche Konten modelliert.
 
-## 26. Abgrenzung
+## 27. Abgrenzung
 
 Dieses Dokument definiert ausdrücklich nicht:
 
@@ -335,7 +343,7 @@ Dieses Dokument definiert ausdrücklich nicht:
 - Schlüsselrotation im Detail;
 - konkrete Datenbanktabellen.
 
-## 27. Abhängigkeiten
+## 28. Abhängigkeiten
 
 Dieses Dokument basiert auf:
 
@@ -345,8 +353,9 @@ Dieses Dokument basiert auf:
 - `PROJECT_MODEL.md`;
 - `OBJECT_MODEL.md`;
 - `RELATION_MODEL.md`;
+- `Z_COCKPIT_IDENTITY_INTEGRATION.md`;
 - `ADR-0002-identitaet-als-plattformkonzept.md`.
 
-## 28. Ergebnis
+## 29. Ergebnis
 
 Das Konto ist als eigenständige Zugangseinheit definiert. Eine Akteursidentität kann unabhängig von Anzahl, Zustand oder Art ihrer Konten fortbestehen. Damit bleiben Identität, Benutzer, Zugang, Authentifizierung, Sitzung und Autorisierung sauber getrennt.
