@@ -44,3 +44,4 @@ def test_sync_actions_accepts_matching_view_model():
 
     assert actions.view_model is view_model
     assert actions.sync_log is manager.sync_log
+    assert actions.project_id == manager.project_id
