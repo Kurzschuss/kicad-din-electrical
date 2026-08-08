@@ -61,11 +61,21 @@ class ZCockpitProjectCorrelationView:
             for current_id, messages in sorted(grouped.items())
         ]
 
-        audit_entries = [
+        project_audit_entries = [
             dict(entry)
             for entry in self.manager.sync_log.entries
             if entry.get("project_id") == context.project_id
         ]
+        audit_entries = project_audit_entries
+        if normalized_correlation_id is not None:
+            audit_entries = [
+                entry
+                for entry in project_audit_entries
+                if entry.get("correlation_id") == normalized_correlation_id
+            ]
+
+        linked_count = sum(1 for entry in project_audit_entries if entry.get("correlation_id"))
+        unlinked_count = len(project_audit_entries) - linked_count
 
         return {
             "project": context.as_dict(),
@@ -73,13 +83,15 @@ class ZCockpitProjectCorrelationView:
             "correlations": correlations,
             "message_count": sum(item["message_count"] for item in correlations),
             "audit": {
-                "scope": "project",
-                "correlation_linked": False,
+                "scope": "correlation" if normalized_correlation_id is not None else "project",
+                "correlation_linked": linked_count > 0,
                 "entries": audit_entries,
                 "entry_count": len(audit_entries),
+                "linked_entry_count": linked_count,
+                "unlinked_entry_count": unlinked_count,
                 "note": (
-                    "Synchronisationsaudit ist derzeit über project_id korreliert; "
-                    "eine correlation_id pro Audit-Eintrag ist noch nicht Teil dieses Vertrags."
+                    "Audit-Einträge mit correlation_id sind beweisbar einem Vorgang zugeordnet; "
+                    "ältere Einträge ohne correlation_id bleiben ausschließlich auf Projektebene sichtbar."
                 ),
             },
             "recovery": self.manager.recovery_status(),
