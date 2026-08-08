@@ -128,10 +128,9 @@ def _validate_sync_entry(entry: object) -> dict:
         raise ValueError("synchronization log source is required")
     if not clean["action"].strip():
         raise ValueError("synchronization log action is required")
-    if "project_id" in entry:
-        clean["project_id"] = str(UUID(str(entry["project_id"])))
-    if "correlation_id" in entry:
-        clean["correlation_id"] = str(UUID(str(entry["correlation_id"])))
+    for field_name in ("project_id", "correlation_id", "causation_id"):
+        if field_name in entry:
+            clean[field_name] = str(UUID(str(entry[field_name])))
     return clean
 
 
