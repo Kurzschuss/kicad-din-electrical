@@ -68,8 +68,10 @@ class ZCockpitNavigationTarget:
     def _validate_view_contract(self) -> None:
         if self.view == "knowledge_element" and len(self.knowledge_ids) != 1:
             raise ValueError("knowledge_element navigation requires exactly one knowledge_id")
-        if self.view in {"knowledge_path", "knowledge_origin"} and not self.knowledge_ids:
-            raise ValueError(f"{self.view} navigation requires knowledge_ids")
+        if self.view == "knowledge_path" and len(self.knowledge_ids) != 2:
+            raise ValueError("knowledge_path navigation requires exactly two knowledge_ids")
+        if self.view == "knowledge_origin" and len(self.knowledge_ids) != 1:
+            raise ValueError("knowledge_origin navigation requires exactly one knowledge_id")
         if self.view == "recovery" and self.recovery_path is not None and not str(self.recovery_path).strip():
             raise ValueError("recovery_path must not be empty")
 
