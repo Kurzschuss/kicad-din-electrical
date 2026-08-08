@@ -65,7 +65,7 @@ def test_mcb_footprints_reference_projectos_wrl_models_portably() -> None:
         assert '${KIPRJMOD}' not in content
         assert 'C:/Users/' not in content
         assert '(offset (xyz 0 0 0))' in content
-        assert '(scale (xyz 1 1 1))' in content
+        assert '(scale (xyz 0.3940 0.3940 0.3940))' in content
         assert '(rotate (xyz 0 0 0))' in content
 
 
