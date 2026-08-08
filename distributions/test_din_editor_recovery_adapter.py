@@ -153,8 +153,9 @@ def test_adapter_executes_explicit_recovery_only_when_allowed(tmp_path: Path):
     assert manager.state()["recovered_from"] == str(recovery_path_for(path))
 
 
-def test_adapter_exposes_recovery_origin_time_and_versions(tmp_path: Path):
+def test_adapter_exposes_recovery_origin_time_versions_and_project_id(tmp_path: Path):
     manager = _manager()
+    project_id = manager.project_id
     path = manager.save(tmp_path / "anlage.json")
     manager.change_service.set_terminal_label(0, "Neue Version")
     manager.save()
@@ -164,8 +165,8 @@ def test_adapter_exposes_recovery_origin_time_and_versions(tmp_path: Path):
 
     assert metadata["source_path"] == str(path)
     assert metadata["recovery_path"] == str(recovery_path_for(path))
-    assert metadata["bundle_version"] == 2
+    assert metadata["bundle_version"] == 3
     assert metadata["session_version"] == 1
-    assert metadata["project_id"] is None
+    assert metadata["project_id"] == project_id
     captured_at = datetime.fromisoformat(metadata["captured_at"])
     assert captured_at.tzinfo is not None
