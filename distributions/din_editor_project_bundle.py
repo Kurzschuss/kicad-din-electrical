@@ -130,6 +130,8 @@ def _validate_sync_entry(entry: object) -> dict:
         raise ValueError("synchronization log action is required")
     if "project_id" in entry:
         clean["project_id"] = str(UUID(str(entry["project_id"])))
+    if "correlation_id" in entry:
+        clean["correlation_id"] = str(UUID(str(entry["correlation_id"])))
     return clean
 
 
