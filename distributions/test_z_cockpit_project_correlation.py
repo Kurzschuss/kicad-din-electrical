@@ -1,5 +1,6 @@
 """Tests für die read-only Projektkorrelationsansicht von Z_Cockpit."""
 from pathlib import Path
+from uuid import uuid4
 
 from .din_editor_project_context import DinEditorProjectContext
 from .din_editor_project_manager import DinEditorProjectManager
@@ -79,7 +80,7 @@ def test_view_can_filter_one_correlation():
     assert state["correlations"][0]["messages"][0]["message_id"] == first.message_id
 
 
-def test_view_exposes_project_scoped_audit_without_claiming_false_correlation():
+def test_view_exposes_project_scoped_legacy_audit_without_claiming_false_correlation():
     manager = _manager()
     manager.sync_log.record(
         "X5",
@@ -102,8 +103,39 @@ def test_view_exposes_project_scoped_audit_without_claiming_false_correlation():
     assert state["audit"]["scope"] == "project"
     assert state["audit"]["correlation_linked"] is False
     assert state["audit"]["entry_count"] == 1
+    assert state["audit"]["linked_entry_count"] == 0
+    assert state["audit"]["unlinked_entry_count"] == 1
     assert state["audit"]["entries"][0]["project_id"] == manager.project_id
     assert "correlation_id" in state["audit"]["note"]
+
+
+def test_view_filters_audit_by_exact_correlation_id():
+    manager = _manager()
+    wanted = str(uuid4())
+    other = str(uuid4())
+    manager.sync_log.record(
+        "X5", "DIN", "+24V SPS", "kept",
+        project_id=manager.project_id,
+        correlation_id=wanted,
+    )
+    manager.sync_log.record(
+        "X6", "KiCad", "0V SPS", "imported",
+        project_id=manager.project_id,
+        correlation_id=other,
+    )
+    manager.sync_log.record(
+        "X7", "DIN", "PE", "kept",
+        project_id=manager.project_id,
+    )
+
+    state = ZCockpitProjectCorrelationView(manager).state(wanted)
+
+    assert state["audit"]["scope"] == "correlation"
+    assert state["audit"]["correlation_linked"] is True
+    assert state["audit"]["entry_count"] == 1
+    assert state["audit"]["entries"][0]["correlation_id"] == wanted
+    assert state["audit"]["linked_entry_count"] == 2
+    assert state["audit"]["unlinked_entry_count"] == 1
 
 
 def test_view_exposes_recovery_state_without_loading_recovery(tmp_path: Path):
