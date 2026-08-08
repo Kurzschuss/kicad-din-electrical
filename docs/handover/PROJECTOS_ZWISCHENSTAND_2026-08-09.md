@@ -41,58 +41,58 @@ Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind a
 
 Jede Zuordnung enthält `role_assignment_id`, `project_id`, `user_id`, `role_type`, `scope`, `valid_from`, `valid_until`, `assigned_by_user_id`, `source_reference` und `metadata`.
 
-Aktive Projektfunktionen werden über einen expliziten `permission_map` in normale rollenbasierte `ProjectOSPermissionAssignment`s übersetzt. Die Herkunft bleibt über `project_role`, `role_assignment_id` und `assigned_by_user_id` nachvollziehbar. Auch aus Projektfunktionen abgeleitete ALLOW-Rechte können ein explizites DENY nicht überstimmen.
+Die reine Zuweisung einer Projektfunktion ist jetzt ausdrücklich von ihrer tatsächlichen Aktivierung getrennt.
 
-## Z_Cockpit-Benutzersicht
+## Explizite Projektfunktionsaktivierung
 
-`ZCockpitUserProjectRoleView` führt zusammen:
+Neu vorhanden sind `ProjectOSProjectRoleActivation` und `ProjectOSProjectRoleActivationRegistry`.
 
-- aktive und abgelaufene Projektfunktionen;
-- deutsche Funktionsbezeichnungen;
-- Zuweisungsherkunft;
-- Scope und Gültigkeit;
-- Benutzergewichtung;
-- daraus abgeleitete Rechtezuweisungen;
-- effektive Rechteentscheidung und Rechteherkunft.
+Eine Aktivierung enthält:
 
-Die Sicht ist read-only. Hypothetische Projektfunktionen können simuliert werden, ohne den Ausgangszustand zu verändern.
+- `activation_id`
+- `project_id`
+- `role_assignment_id`
+- `user_id`
+- `reason`
+- `scope`
+- `valid_from`
+- `valid_until`
+- `triggered_by_user_id`
+- `trigger_reference`
+- `metadata`
 
-## Projektfunktionswechsel-Simulation
+Unterstützte Aktivierungsgründe sind derzeit `manual`, `absence`, `incapacity`, `vacation`, `emergency`, `succession` und `temporary_transfer`.
 
-`ProjectOSProjectRoleTransitionSimulator` unterstützt read-only Rollenwechsel:
+Zentrale Regel: Eine vorhandene Projektfunktion ohne passende, aktuell gültige Aktivierung erzeugt keine Rechtewirkung. Solche Rollen werden explizit unter `assigned_not_activated_roles` ausgewiesen.
 
-- Projektfunktion hinzufügen;
-- Projektfunktion anhand `role_assignment_id` entfernen;
-- Funktionen ersetzen, z. B. Stellvertretung → Nachfolger;
-- Rechteauswirkungen je Permission als Vorher/Nachher vergleichen;
-- `decision_changed`, `became_allowed`, `became_denied` und Anzahl geänderter Permissions ausgeben.
+Nur aktivierte Projektfunktionen werden über den bekannten `permission_map` in normale `ProjectOSPermissionAssignment`s übersetzt. Die Rechteherkunft enthält zusätzlich `activation_id`, `activation_reason`, `triggered_by_user_id` und `trigger_reference`.
 
-Explizites DENY bleibt auch in simulierten Rollenwechseln vorrangig. Benutzergewichtung beeinflusst die Rechteentscheidung weiterhin nicht.
+Abgelaufene Aktivierungen erzeugen keine Rechte. Aktivierungen müssen auf eine existierende Rollenbeziehung verweisen. Projekt-/Scope-/Benutzerbezug bleibt strikt. Ein aus aktivierter Funktion abgeleitetes ALLOW kann ein explizites DENY weiterhin nicht überstimmen. Benutzergewichtung bleibt ohne Entscheidungswirkung.
 
-## Z_Cockpit-Projektleiteransicht für Funktionswechsel
+## Z_Cockpit-Benutzersicht und Funktionswechsel
 
-`ZCockpitProjectRoleTransitionView` bereitet simulierte Funktionswechsel für Projektleiter verständlich auf. Die Sicht zeigt aktuelle und hypothetische Projektfunktionen, deutsche Funktionslabels, hinzugekommene und entfallene effektive Rechte, DENY-Konflikte, Risikoklassen, höchste betroffene Risikoklasse und eine kompakte Gesamtzusammenfassung.
+`ZCockpitUserProjectRoleView` führt aktive und abgelaufene Projektfunktionen, deutsche Funktionsbezeichnungen, Zuweisungsherkunft, Scope, Gültigkeit, Benutzergewichtung, daraus abgeleitete Rechte und effektive Rechteherkunft zusammen.
 
-Wichtig: Eine neu hinzugefügte Projektfunktion gilt nicht automatisch als erfolgreich wirksame Machtübertragung. Wenn ein explizites DENY weiterhin greift, wird dies als DENY-Konflikt ausgewiesen und das Recht bleibt verweigert.
+`ProjectOSProjectRoleTransitionSimulator` unterstützt read-only Funktionswechsel. `ZCockpitProjectRoleTransitionView` bereitet diese für Projektleiter verständlich auf und zeigt Rechtezugewinn/-verlust, DENY-Konflikte, Risikoklassen und höchste betroffene Risikoklasse.
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #145, ist für Commit `c6723ed117ab5ae0996b6965d0b4c045a437e5c9` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #148, ist für Commit `f129804cb3bbbe9a59db5d7dbe8c77431318df42` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die Regeln für **Aktivierung, Vertretungsfall und Nachfolgeauslösung** explizit modellieren:
+Als Nächstes die **Aktivierung selbst simulierbar und in Z_Cockpit sichtbar** machen:
 
-1. Projektfunktion-Zuweisung strikt von tatsächlicher Aktivierung trennen;
-2. Vertretung nur aufgrund eines expliziten Aktivierungsgrunds wirksam werden lassen;
-3. Nachfolger nicht automatisch allein durch vorhandene `successor`-Zuordnung aktivieren;
-4. Aktivierungszeitraum, auslösender Benutzer/Systemgrund und Scope protokollieren;
-5. Simulation der Aktivierung vor echter Zustandsänderung ermöglichen;
-6. DENY-Vorrang und read-only Simulationsprinzip beibehalten;
-7. keine versteckte automatische Machtübertragung über Benutzergewichtung einführen.
+1. aktuelle Zuweisung vs. aktuelle Aktivierung nebeneinander darstellen;
+2. hypothetische Aktivierung vor Wirksamwerden simulieren;
+3. Rechteauswirkungen der Aktivierung pro Permission zeigen;
+4. Aktivierungsgrund, Trigger, Zeitraum und Scope in Z_Cockpit erklären;
+5. Aktivierungsende bzw. Rückgabe der Funktion simulierbar machen;
+6. später explizite Regeln für Vier-Augen-Freigabe, Notfallaktivierung und Nachfolgeauslösung ergänzen;
+7. keine automatische Machtübertragung allein aus Rollenzuweisung oder Benutzergewichtung ableiten.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #145. Fahre danach mit den expliziten Aktivierungsregeln für Projektleiter, Stellvertretung und Nachfolger fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und read-only Simulation nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #148. Fahre danach mit der Z_Cockpit-Sicht und read-only Simulation der expliziten Projektfunktionsaktivierung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die strikte Trennung zwischen Zuweisung und Aktivierung nicht verlieren.
