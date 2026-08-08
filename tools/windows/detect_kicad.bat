@@ -86,18 +86,23 @@ for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionP
     if /i "%%A"=="KICAD_Z_MISMATCH_NAMES" set "KICAD_Z_MISMATCH_NAMES=%%B"
 )
 
-rem Freigegebene Z_-Bibliotheken und 3D-Modelle aus dem Repository in die
-rem produktive KiCad-Laufzeit kopieren und global registrieren.
-for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_libraries.ps1" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" -UserRoot "%KICAD_USER_DIR%" 2^>nul`) do (
-    if /i "%%A"=="KICAD_Z_LIBRARY_REGISTRATION" set "KICAD_Z_LIBRARY_REGISTRATION=%%B"
-    if /i "%%A"=="KICAD_Z_LIBRARY_ADDED" set "KICAD_Z_LIBRARY_ADDED=%%B"
-    if /i "%%A"=="KICAD_Z_LIBRARY_EXISTING" set "KICAD_Z_LIBRARY_EXISTING=%%B"
-    if /i "%%A"=="KICAD_Z_LIBRARY_MISMATCH" set "KICAD_Z_LIBRARY_MISMATCH=%%B"
-    if /i "%%A"=="KICAD_Z_SYMBOL_LIBRARIES" set "KICAD_Z_SYMBOL_LIBRARIES=%%B"
-    if /i "%%A"=="KICAD_Z_FOOTPRINT_LIBRARIES" set "KICAD_Z_FOOTPRINT_LIBRARIES=%%B"
-    if /i "%%A"=="KICAD_Z_DESIGN_BLOCK_LIBRARIES" set "KICAD_Z_DESIGN_BLOCK_LIBRARIES=%%B"
-    if /i "%%A"=="KICAD_Z_3DMODEL_FILES" set "KICAD_Z_3DMODEL_FILES=%%B"
-    if /i "%%A"=="KICAD_Z_REQUIRED_ENTRIES" set "KICAD_Z_REQUIRED_ENTRIES=%%B"
+rem Die eigentliche Dateisynchronisierung wird beim Start von run_tests.bat
+rem bereits sichtbar verglichen und vom Benutzer bestaetigt. Dadurch darf sie
+rem hier nicht ein zweites Mal unbemerkt ausgefuehrt werden.
+if /i "%PROJECTOS_SKIP_LIBRARY_SYNC%"=="1" (
+    set "KICAD_Z_LIBRARY_REGISTRATION=STARTUP_SYNC"
+) else (
+    for /f "usebackq tokens=1,* delims==" %%A in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0register_kicad_z_libraries.ps1" -RepositoryRoot "%PROJECTOS_REPOSITORY_ROOT%" -UserRoot "%KICAD_USER_DIR%" 2^>nul`) do (
+        if /i "%%A"=="KICAD_Z_LIBRARY_REGISTRATION" set "KICAD_Z_LIBRARY_REGISTRATION=%%B"
+        if /i "%%A"=="KICAD_Z_LIBRARY_ADDED" set "KICAD_Z_LIBRARY_ADDED=%%B"
+        if /i "%%A"=="KICAD_Z_LIBRARY_EXISTING" set "KICAD_Z_LIBRARY_EXISTING=%%B"
+        if /i "%%A"=="KICAD_Z_LIBRARY_MISMATCH" set "KICAD_Z_LIBRARY_MISMATCH=%%B"
+        if /i "%%A"=="KICAD_Z_SYMBOL_LIBRARIES" set "KICAD_Z_SYMBOL_LIBRARIES=%%B"
+        if /i "%%A"=="KICAD_Z_FOOTPRINT_LIBRARIES" set "KICAD_Z_FOOTPRINT_LIBRARIES=%%B"
+        if /i "%%A"=="KICAD_Z_DESIGN_BLOCK_LIBRARIES" set "KICAD_Z_DESIGN_BLOCK_LIBRARIES=%%B"
+        if /i "%%A"=="KICAD_Z_3DMODEL_FILES" set "KICAD_Z_3DMODEL_FILES=%%B"
+        if /i "%%A"=="KICAD_Z_REQUIRED_ENTRIES" set "KICAD_Z_REQUIRED_ENTRIES=%%B"
+    )
 )
 
 exit /b 0
