@@ -2,10 +2,13 @@
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
+
 from .din_editor_project_context import DinEditorProjectContext
 from .din_editor_project_manager import DinEditorProjectManager
 from .din_editor_session import DinEditorSession
 from .projectos_message_envelope import ProjectOSMessageEnvelope
+from .projectos_project_memory import ProjectOSKnowledgeElement, ProjectOSProjectMemory
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
 
 
@@ -96,6 +99,49 @@ def test_view_resolves_audit_causation_to_concrete_message():
     assert state["audit"]["causation_linked_entry_count"] == 1
     assert state["audit"]["causation_unresolved_entry_count"] == 1
     assert state["audit"]["entries"][0]["causation_id"] == command.message_id
+
+
+def test_view_shows_memory_for_exact_correlation_and_resolves_message_cause():
+    manager = _manager()
+    context = DinEditorProjectContext.from_manager(manager)
+    command = ProjectOSMessageEnvelope.from_project_context(
+        context,
+        message_type="command",
+        name="sync.keep_din",
+        payload={"reference": "X5"},
+    )
+    memory = ProjectOSProjectMemory(manager.project_id)
+    memory.add(ProjectOSKnowledgeElement.from_message(
+        command,
+        knowledge_type="decision",
+        title="DIN-Wert beibehalten",
+        content="Der lokale Wert wurde für diesen Vorgang bewusst beibehalten.",
+        evidence_status="confirmed",
+    ))
+    memory.add(ProjectOSKnowledgeElement.from_project_context(
+        context,
+        knowledge_type="open_question",
+        title="Projektweite offene Frage",
+        content="Dieses Wissen besitzt absichtlich keine Vorgangskorrelation.",
+    ))
+
+    state = ZCockpitProjectCorrelationView(manager, [command], memory).state(command.correlation_id)
+
+    assert state["memory"]["scope"] == "correlation"
+    assert state["memory"]["element_count"] == 1
+    assert state["memory"]["elements"][0]["correlation_id"] == command.correlation_id
+    assert state["memory"]["elements"][0]["causation_id"] == command.message_id
+    assert state["memory"]["causation_linked_element_count"] == 1
+    assert state["memory"]["causation_unresolved_element_count"] == 0
+
+
+def test_view_rejects_memory_from_another_project():
+    manager = _manager()
+    foreign = _manager("0V SPS")
+    memory = ProjectOSProjectMemory(foreign.project_id)
+
+    with pytest.raises(ValueError, match="another project"):
+        ZCockpitProjectCorrelationView(manager, memory=memory)
 
 
 def test_view_exposes_recovery_state_without_loading_recovery(tmp_path: Path):
