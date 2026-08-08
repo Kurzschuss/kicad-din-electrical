@@ -136,14 +136,46 @@ def load_project_bundle(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]
     return import_project_bundle(data)
 
 
+def _recovery_metadata(target: Path, recovery: Path) -> dict:
+    metadata = {
+        "source_path": str(target),
+        "recovery_path": str(recovery),
+        "captured_at": None,
+        "bundle_version": None,
+        "session_version": None,
+        "project_id": None,
+    }
+    if not recovery.exists():
+        return metadata
+    try:
+        metadata["captured_at"] = datetime.fromtimestamp(
+            recovery.stat().st_mtime,
+            tz=timezone.utc,
+        ).isoformat()
+    except OSError:
+        pass
+    try:
+        raw = _load_json(recovery)
+    except DinProjectBundleError:
+        return metadata
+    if isinstance(raw, dict):
+        metadata["bundle_version"] = raw.get("version")
+        session_data = raw.get("session")
+        if isinstance(session_data, dict):
+            metadata["session_version"] = session_data.get("version")
+    return metadata
+
+
 def recovery_status_for(path: str | Path) -> dict:
-    recovery = recovery_path_for(path)
+    target = Path(path)
+    recovery = recovery_path_for(target)
     status = {
         "path": str(recovery),
         "available": recovery.exists(),
         "valid": None,
         "can_recover": False,
         "error": None,
+        "metadata": _recovery_metadata(target, recovery),
     }
     if not status["available"]:
         return status
