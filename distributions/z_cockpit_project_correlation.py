@@ -75,6 +75,34 @@ class ZCockpitProjectCorrelationView:
         result["read_only"] = True
         return result
 
+    def explain_knowledge_origin(
+        self,
+        target_knowledge_id: str,
+        *,
+        correlation_id: str | None = None,
+    ) -> dict:
+        """Ermittelt die expliziten Herkunftswurzeln eines Wissensknotens."""
+        target_id = _normalize_uuid(target_knowledge_id, "target_knowledge_id")
+        normalized_correlation_id = _normalize_uuid(correlation_id, "correlation_id") if correlation_id else None
+        if self._memory is None:
+            return {
+                "found": False,
+                "project_id": self.manager.project_id,
+                "correlation_id": normalized_correlation_id,
+                "target_knowledge_id": target_id,
+                "target": None,
+                "origin_count": 0,
+                "origins": [],
+                "note": "Kein Projektgedächtnis für diese Ansicht verfügbar.",
+                "read_only": True,
+            }
+        result = ProjectOSKnowledgePathService(self._memory).explain_origins(
+            target_id,
+            correlation_id=normalized_correlation_id,
+        )
+        result["read_only"] = True
+        return result
+
     def state(self, correlation_id: str | None = None) -> dict:
         context = DinEditorProjectContext.from_manager(self.manager)
         all_project_messages = self._project_messages()
@@ -121,6 +149,7 @@ class ZCockpitProjectCorrelationView:
             "causation_linked_element_count": 0,
             "causation_unresolved_element_count": 0,
             "path_explanations_available": self._memory is not None,
+            "origin_explanations_available": self._memory is not None,
             "note": (
                 "Projektwissen und typisierte Beziehungen werden nur explizit gespeichert. "
                 "Bei einem Vorgangsfilter werden nur Beziehungen zwischen den tatsächlich sichtbaren "
