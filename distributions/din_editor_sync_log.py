@@ -5,13 +5,13 @@ from pathlib import Path
 from uuid import UUID
 
 
-def _normalize_optional_project_id(value: str | None) -> str | None:
+def _normalize_optional_uuid(value: str | None, field_name: str) -> str | None:
     if value is None:
         return None
     try:
         return str(UUID(str(value)))
     except (ValueError, AttributeError, TypeError) as exc:
-        raise ValueError("DIN synchronization log project_id must be a UUID") from exc
+        raise ValueError(f"DIN synchronization log {field_name} must be a UUID") from exc
 
 
 class DinSyncLog:
@@ -26,6 +26,7 @@ class DinSyncLog:
         action: str,
         *,
         project_id: str | None = None,
+        correlation_id: str | None = None,
     ) -> dict:
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -34,9 +35,12 @@ class DinSyncLog:
             "value": str(value),
             "action": str(action),
         }
-        normalized_project_id = _normalize_optional_project_id(project_id)
+        normalized_project_id = _normalize_optional_uuid(project_id, "project_id")
         if normalized_project_id is not None:
             entry["project_id"] = normalized_project_id
+        normalized_correlation_id = _normalize_optional_uuid(correlation_id, "correlation_id")
+        if normalized_correlation_id is not None:
+            entry["correlation_id"] = normalized_correlation_id
         self.entries.append(entry)
         return dict(entry)
 
@@ -82,6 +86,8 @@ class DinSyncLog:
             clean = dict(entry)
             clean["timestamp"] = normalized
             if "project_id" in clean:
-                clean["project_id"] = _normalize_optional_project_id(clean["project_id"])
+                clean["project_id"] = _normalize_optional_uuid(clean["project_id"], "project_id")
+            if "correlation_id" in clean:
+                clean["correlation_id"] = _normalize_optional_uuid(clean["correlation_id"], "correlation_id")
             validated.append(clean)
         self.entries = validated
