@@ -2,13 +2,31 @@
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+from uuid import UUID
+
+
+def _normalize_optional_project_id(value: str | None) -> str | None:
+    if value is None:
+        return None
+    try:
+        return str(UUID(str(value)))
+    except (ValueError, AttributeError, TypeError) as exc:
+        raise ValueError("DIN synchronization log project_id must be a UUID") from exc
 
 
 class DinSyncLog:
     def __init__(self):
         self.entries: list[dict] = []
 
-    def record(self, reference: str, source: str, value: str, action: str) -> dict:
+    def record(
+        self,
+        reference: str,
+        source: str,
+        value: str,
+        action: str,
+        *,
+        project_id: str | None = None,
+    ) -> dict:
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "reference": str(reference),
@@ -16,6 +34,9 @@ class DinSyncLog:
             "value": str(value),
             "action": str(action),
         }
+        normalized_project_id = _normalize_optional_project_id(project_id)
+        if normalized_project_id is not None:
+            entry["project_id"] = normalized_project_id
         self.entries.append(entry)
         return dict(entry)
 
@@ -60,5 +81,7 @@ class DinSyncLog:
                 raise ValueError("DIN synchronization log action is required")
             clean = dict(entry)
             clean["timestamp"] = normalized
+            if "project_id" in clean:
+                clean["project_id"] = _normalize_optional_project_id(clean["project_id"])
             validated.append(clean)
         self.entries = validated
