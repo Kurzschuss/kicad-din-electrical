@@ -1,11 +1,14 @@
 """Project manager for combined DIN layout and synchronization history."""
 from copy import deepcopy
 from pathlib import Path
+from uuid import UUID, uuid4
 from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
 from .din_editor_project_bundle import (
     load_project_bundle,
+    load_project_bundle_details,
     load_project_recovery,
+    load_project_recovery_details,
     recovery_path_for,
     recovery_status_for,
     save_project_bundle,
@@ -16,10 +19,26 @@ from .din_editor_sync_log import DinSyncLog
 from .din_editor_validation import validate_session, ValidationIssue
 
 
+def _new_project_id() -> str:
+    return str(uuid4())
+
+
+def _normalize_project_id(value: str) -> str:
+    return str(UUID(value))
+
+
 class DinEditorProjectManager:
-    def __init__(self, session: DinEditorSession | None = None, sync_log: DinSyncLog | None = None):
+    def __init__(
+        self,
+        session: DinEditorSession | None = None,
+        sync_log: DinSyncLog | None = None,
+        *,
+        project_id: str | None = None,
+    ):
         self.session = session or DinEditorSession()
         self.sync_log = sync_log or DinSyncLog()
+        self.project_id = _normalize_project_id(project_id) if project_id is not None else _new_project_id()
+        self.project_identity_migration_pending = False
         self.history = DinEditorHistory(self.session, self.sync_log)
         self.path: Path | None = None
         self._saved_state = self._snapshot()
@@ -49,7 +68,11 @@ class DinEditorProjectManager:
         return history, change_service, saved_state
 
     def _refresh_dirty(self) -> None:
-        self.dirty = self._snapshot() != self._saved_state or self._recovered_from is not None
+        self.dirty = (
+            self._snapshot() != self._saved_state
+            or self._recovered_from is not None
+            or self.project_identity_migration_pending
+        )
 
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
@@ -90,6 +113,14 @@ class DinEditorProjectManager:
                 "valid": None,
                 "can_recover": False,
                 "error": None,
+                "metadata": {
+                    "source_path": None,
+                    "recovery_path": None,
+                    "captured_at": None,
+                    "bundle_version": None,
+                    "session_version": None,
+                    "project_id": None,
+                },
             }
         return recovery_status_for(target)
 
@@ -105,10 +136,16 @@ class DinEditorProjectManager:
             self.session,
             self.sync_log,
         )
-        result = save_project_bundle(self.session, self.sync_log, target)
+        result = save_project_bundle(
+            self.session,
+            self.sync_log,
+            target,
+            project_id=self.project_id,
+        )
         self.path = result
         self._saved_state = saved_state
         self._recovered_from = None
+        self.project_identity_migration_pending = False
         self.dirty = False
         self.history.clear()
         return result
@@ -116,16 +153,18 @@ class DinEditorProjectManager:
     def load(self, path: str | Path, *, discard_changes: bool = False) -> DinEditorSession:
         if self.has_unsaved_changes and not discard_changes:
             raise RuntimeError("project has unsaved changes; save or discard them before loading")
-        session, sync_log = load_project_bundle(path)
+        session, sync_log, project_id, migration_required = load_project_bundle_details(path)
         history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
         self.history = history
         self.change_service = change_service
         self.path = Path(path)
+        self.project_id = project_id or _new_project_id()
+        self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = None
-        self.dirty = False
+        self.dirty = migration_required
         return self.session
 
     def recover(self, path: str | Path | None = None, *, discard_changes: bool = False) -> DinEditorSession:
@@ -134,13 +173,15 @@ class DinEditorProjectManager:
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("project path is not set")
-        session, sync_log = load_project_recovery(target)
+        session, sync_log, project_id, migration_required = load_project_recovery_details(target)
         history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
         self.history = history
         self.change_service = change_service
         self.path = target
+        self.project_id = project_id or _new_project_id()
+        self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = recovery_path_for(target)
         self.dirty = True
@@ -157,6 +198,8 @@ class DinEditorProjectManager:
         self.history = history
         self.change_service = change_service
         self.path = None
+        self.project_id = _new_project_id()
+        self.project_identity_migration_pending = False
         self._saved_state = saved_state
         self._recovered_from = None
         self.dirty = False
@@ -168,20 +211,24 @@ class DinEditorProjectManager:
         if self.path is None:
             self.new_project(discard_changes=True)
             return
-        session, sync_log = load_project_bundle(self.path)
+        session, sync_log, project_id, migration_required = load_project_bundle_details(self.path)
         history, change_service, saved_state = self._prepare_project_state(session, sync_log)
         self.session = session
         self.sync_log = sync_log
         self.history = history
         self.change_service = change_service
+        self.project_id = project_id or _new_project_id()
+        self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = None
-        self.dirty = False
+        self.dirty = migration_required
 
     def state(self) -> dict:
         issues = self.validate()
         dirty = self.has_unsaved_changes
         return {
+            "project_id": self.project_id,
+            "project_identity_migration_pending": self.project_identity_migration_pending,
             "path": str(self.path) if self.path else None,
             "dirty": dirty,
             "has_unsaved_changes": dirty,
