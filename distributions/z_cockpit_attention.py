@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .z_cockpit_navigation import ZCockpitNavigationTarget
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 
 
@@ -15,11 +16,20 @@ class ZCockpitAttentionView:
     def state(self, *, correlation_id: str | None = None) -> dict[str, Any]:
         overview = self.overview.state(correlation_id=correlation_id)
         items: list[dict[str, Any]] = []
+        project_id = overview["project"]["project_id"]
 
         for work_item in overview["diagnostics"].get("work_items", []):
             affected = work_item.get("affected", {})
             correlation_ids = affected.get("correlation_ids", [])
             item_correlation_id = correlation_ids[0] if len(correlation_ids) == 1 else overview["filter"].get("correlation_id")
+            target = ZCockpitNavigationTarget(
+                view="knowledge_diagnostics",
+                project_id=project_id,
+                correlation_id=item_correlation_id,
+                knowledge_ids=tuple(affected.get("knowledge_ids", [])),
+                relation_ids=tuple(affected.get("relation_ids", [])),
+                metadata={"diagnostic_code": work_item["code"]},
+            )
             items.append({
                 "source": "knowledge",
                 "code": work_item["code"],
@@ -29,16 +39,17 @@ class ZCockpitAttentionView:
                 "recommended_action": work_item["recommended_action"],
                 "correlation_id": item_correlation_id,
                 "affected": affected,
-                "detail_target": {
-                    "view": "knowledge_diagnostics",
-                    "correlation_id": item_correlation_id,
-                    "knowledge_ids": affected.get("knowledge_ids", []),
-                    "relation_ids": affected.get("relation_ids", []),
-                },
+                "detail_target": target.as_dict(),
             })
 
         audit = overview["audit"]
         if audit["causation_unresolved_entry_count"] > 0:
+            target = ZCockpitNavigationTarget(
+                view="audit",
+                project_id=project_id,
+                correlation_id=overview["filter"].get("correlation_id"),
+                audit_filter="unresolved_causation",
+            )
             items.append({
                 "source": "audit",
                 "code": "AUDIT_UNRESOLVED_CAUSATION",
@@ -48,13 +59,15 @@ class ZCockpitAttentionView:
                 "recommended_action": "Audit-Einträge und referenzierte ProjectOS-Nachrichten auf Vollständigkeit und korrekte causation_id prüfen.",
                 "correlation_id": overview["filter"].get("correlation_id"),
                 "affected": {},
-                "detail_target": {
-                    "view": "audit",
-                    "correlation_id": overview["filter"].get("correlation_id"),
-                    "filter": "unresolved_causation",
-                },
+                "detail_target": target.as_dict(),
             })
         if audit["unlinked_entry_count"] > 0:
+            target = ZCockpitNavigationTarget(
+                view="audit",
+                project_id=project_id,
+                correlation_id=overview["filter"].get("correlation_id"),
+                audit_filter="unlinked",
+            )
             items.append({
                 "source": "audit",
                 "code": "AUDIT_UNLINKED",
@@ -64,15 +77,17 @@ class ZCockpitAttentionView:
                 "recommended_action": "Prüfen, ob die fehlende correlation_id historisch bedingt oder fachlich nachtragbar dokumentiert werden muss.",
                 "correlation_id": overview["filter"].get("correlation_id"),
                 "affected": {},
-                "detail_target": {
-                    "view": "audit",
-                    "correlation_id": overview["filter"].get("correlation_id"),
-                    "filter": "unlinked",
-                },
+                "detail_target": target.as_dict(),
             })
 
         recovery = overview["recovery"]
         if recovery.get("available") and recovery.get("valid") is False:
+            target = ZCockpitNavigationTarget(
+                view="recovery",
+                project_id=project_id,
+                correlation_id=overview["filter"].get("correlation_id"),
+                recovery_path=recovery.get("path"),
+            )
             items.append({
                 "source": "recovery",
                 "code": "RECOVERY_INVALID",
@@ -82,12 +97,12 @@ class ZCockpitAttentionView:
                 "recommended_action": "Recovery-Metadaten und Validierungsfehler prüfen; keine Wiederherstellung auslösen, solange can_recover=False ist.",
                 "correlation_id": overview["filter"].get("correlation_id"),
                 "affected": {"recovery_path": recovery.get("path")},
-                "detail_target": {"view": "recovery"},
+                "detail_target": target.as_dict(),
             })
 
         items.sort(key=lambda item: (-item["priority"], item["source"], item["code"]))
         return {
-            "project_id": overview["project"]["project_id"],
+            "project_id": project_id,
             "correlation_id": overview["filter"].get("correlation_id"),
             "traffic_light": overview["traffic_light"],
             "attention_required": bool(items),
