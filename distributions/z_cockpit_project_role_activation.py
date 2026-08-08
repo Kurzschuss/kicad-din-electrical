@@ -56,15 +56,31 @@ class ZCockpitProjectRoleActivationView:
             scope=scope,
             at=at,
         )
-        permissions = sorted({item.permission for item in self.base_assignments + derived if item.user_id == self.user.user_id and item.scope == scope})
+        permissions = sorted({
+            item.permission
+            for item in self.base_assignments + derived
+            if item.user_id == self.user.user_id and item.scope == scope
+        })
         auth = ZCockpitAuthorizationView(self.user, self.base_assignments + derived)
         rights = [auth.state(permission, scope=scope, at=at) for permission in permissions]
+        activation_by_role = {
+            item["role_assignment_id"]: item
+            for item in state["active_activations"]
+        }
+        active_roles = []
+        for item in state["activated_roles"]:
+            decorated = self._role(item)
+            activation = activation_by_role.get(item["role_assignment_id"])
+            decorated["activation"] = self._activation(activation) if activation else None
+            active_roles.append(decorated)
         return {
             "project_id": state["project_id"],
             "user": self.user.as_dict(),
             "scope": scope,
-            "active_roles": [self._role(item) for item in state["active_roles"]],
+            "active_roles": active_roles,
             "assigned_not_activated_roles": [self._role(item) for item in state["assigned_not_activated_roles"]],
+            "inactive_assigned_roles": [self._role(item) for item in state["inactive_assigned_roles"]],
+            "active_activations": [self._activation(item) for item in state["active_activations"]],
             "inactive_activations": [self._activation(item) for item in state["inactive_activations"]],
             "rights": rights,
             "read_only": True,
@@ -102,7 +118,10 @@ class ZCockpitProjectRoleActivationView:
                 "decision_changed": (b or {}).get("decision") != (a or {}).get("decision"),
                 "became_allowed": not before_allowed and after_allowed,
                 "became_denied": before_allowed and not after_allowed,
-                "deny_conflict": bool(a and a["decision"] == "deny" and any(src["effect"] == "allow" for src in a["sources"])),
+                "deny_conflict": bool(
+                    a and a["decision"] == "deny"
+                    and any(src["effect"] == "allow" for src in a["sources"])
+                ),
             })
         return {
             "project_id": self.project_id,
@@ -121,8 +140,6 @@ class ZCockpitProjectRoleActivationView:
     def _role(item: dict[str, Any]) -> dict[str, Any]:
         result = dict(item)
         result["role_label"] = _ROLE_LABELS[item["role_type"]]
-        if "activation" in result and result["activation"]:
-            result["activation"] = ZCockpitProjectRoleActivationView._activation(result["activation"])
         return result
 
     @staticmethod
