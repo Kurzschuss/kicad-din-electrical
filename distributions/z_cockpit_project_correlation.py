@@ -20,11 +20,7 @@ def _normalize_uuid(value: str, field_name: str) -> str:
 class ZCockpitProjectCorrelationView:
     """Führt Projektkontext, Busnachrichten, Audit und Recovery rein lesend zusammen."""
 
-    def __init__(
-        self,
-        manager: DinEditorProjectManager,
-        messages: Iterable[ProjectOSMessageEnvelope] | None = None,
-    ) -> None:
+    def __init__(self, manager: DinEditorProjectManager, messages: Iterable[ProjectOSMessageEnvelope] | None = None) -> None:
         self.manager = manager
         self._messages = tuple(messages or ())
 
@@ -37,45 +33,40 @@ class ZCockpitProjectCorrelationView:
 
     def state(self, correlation_id: str | None = None) -> dict:
         context = DinEditorProjectContext.from_manager(self.manager)
-        project_messages = self._project_messages()
+        all_project_messages = self._project_messages()
+        project_messages = all_project_messages
 
         normalized_correlation_id = None
         if correlation_id is not None:
             normalized_correlation_id = _normalize_uuid(correlation_id, "correlation_id")
-            project_messages = [
-                message
-                for message in project_messages
-                if message.correlation_id == normalized_correlation_id
-            ]
+            project_messages = [m for m in project_messages if m.correlation_id == normalized_correlation_id]
 
         grouped: dict[str, list[dict]] = defaultdict(list)
         for message in project_messages:
             grouped[message.correlation_id].append(message.as_dict())
-
         correlations = [
-            {
-                "correlation_id": current_id,
-                "messages": messages,
-                "message_count": len(messages),
-            }
+            {"correlation_id": current_id, "messages": messages, "message_count": len(messages)}
             for current_id, messages in sorted(grouped.items())
         ]
 
         project_audit_entries = [
-            dict(entry)
-            for entry in self.manager.sync_log.entries
+            dict(entry) for entry in self.manager.sync_log.entries
             if entry.get("project_id") == context.project_id
         ]
         audit_entries = project_audit_entries
         if normalized_correlation_id is not None:
-            audit_entries = [
-                entry
-                for entry in project_audit_entries
-                if entry.get("correlation_id") == normalized_correlation_id
-            ]
+            audit_entries = [e for e in project_audit_entries if e.get("correlation_id") == normalized_correlation_id]
 
-        linked_count = sum(1 for entry in project_audit_entries if entry.get("correlation_id"))
-        unlinked_count = len(project_audit_entries) - linked_count
+        message_ids = {message.message_id for message in all_project_messages}
+        correlation_linked = sum(1 for entry in project_audit_entries if entry.get("correlation_id"))
+        causation_linked = sum(
+            1 for entry in project_audit_entries
+            if entry.get("causation_id") in message_ids
+        )
+        causation_unresolved = sum(
+            1 for entry in project_audit_entries
+            if entry.get("causation_id") and entry.get("causation_id") not in message_ids
+        )
 
         return {
             "project": context.as_dict(),
@@ -84,14 +75,16 @@ class ZCockpitProjectCorrelationView:
             "message_count": sum(item["message_count"] for item in correlations),
             "audit": {
                 "scope": "correlation" if normalized_correlation_id is not None else "project",
-                "correlation_linked": linked_count > 0,
+                "correlation_linked": correlation_linked > 0,
                 "entries": audit_entries,
                 "entry_count": len(audit_entries),
-                "linked_entry_count": linked_count,
-                "unlinked_entry_count": unlinked_count,
+                "linked_entry_count": correlation_linked,
+                "unlinked_entry_count": len(project_audit_entries) - correlation_linked,
+                "causation_linked_entry_count": causation_linked,
+                "causation_unresolved_entry_count": causation_unresolved,
                 "note": (
-                    "Audit-Einträge mit correlation_id sind beweisbar einem Vorgang zugeordnet; "
-                    "ältere Einträge ohne correlation_id bleiben ausschließlich auf Projektebene sichtbar."
+                    "correlation_id ordnet Audit-Einträge dem Vorgang zu; causation_id kann zusätzlich "
+                    "auf die konkret auslösende ProjectOS-Nachricht verweisen. Ältere Einträge bleiben kompatibel."
                 ),
             },
             "recovery": self.manager.recovery_status(),
