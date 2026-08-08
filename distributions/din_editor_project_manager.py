@@ -91,6 +91,7 @@ class DinEditorProjectManager:
                 self.change_service is bound_change_service
                 and self.sync_log is bound_sync_log
             ),
+            project_id=self.project_id,
         )
 
     @property
