@@ -55,6 +55,17 @@ def test_project_id_survives_save_load_and_recovery(tmp_path: Path):
     assert recovered.has_unsaved_changes is True
 
 
+def test_save_as_preserves_project_identity(tmp_path: Path):
+    manager = _manager()
+    project_id = manager.project_id
+    first_path = manager.save(tmp_path / "anlage.json")
+    second_path = manager.save(tmp_path / "anlage-kopie.json")
+
+    assert first_path != second_path
+    assert manager.project_id == project_id
+    assert json.loads(second_path.read_text(encoding="utf-8"))["project_id"] == project_id
+
+
 def test_legacy_v2_load_generates_identity_without_rewriting_file(tmp_path: Path):
     path = tmp_path / "legacy.json"
     legacy = {
