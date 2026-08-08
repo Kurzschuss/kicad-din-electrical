@@ -41,7 +41,18 @@ if errorlevel 1 (
 call :ensure_dev_environment startup
 if errorlevel 1 exit /b 1
 
+cls
+powershell -NoProfile -ExecutionPolicy Bypass -File "tools\windows\sync_kicad_runtime.ps1" -RepositoryRoot "%CD%" -Mode Interactive
+if errorlevel 1 (
+    echo.
+    echo FEHLER: Der KiCad-Laufzeitabgleich ist fehlgeschlagen.
+    echo Es wurden keine weiteren automatischen Kopiervorgaenge gestartet.
+    pause
+    exit /b 1
+)
+set "PROJECTOS_SKIP_LIBRARY_SYNC=1"
 call "tools\windows\detect_kicad.bat"
+set "PROJECTOS_SKIP_LIBRARY_SYNC="
 call :refresh_repository_status
 set "QUALITY_CMD=python -m tools.quality.run_quality --profile release --json-output build\Z_QUALITY_RESULTS.json --footprint footprints\Z_DIN_Module_18mm.pretty\Z_DIN_Module_18mm.kicad_mod symbols\Z_MCB.kicad_sym"
 set "HEALTH_TEST=tests\test_projectos_repository_consistency.py"
