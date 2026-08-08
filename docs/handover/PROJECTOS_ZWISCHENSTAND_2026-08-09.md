@@ -69,23 +69,30 @@ Die Sicht ist read-only. Hypothetische Projektfunktionen können simuliert werde
 
 Explizites DENY bleibt auch in simulierten Rollenwechseln vorrangig. Benutzergewichtung beeinflusst die Rechteentscheidung weiterhin nicht.
 
+## Z_Cockpit-Projektleiteransicht für Funktionswechsel
+
+`ZCockpitProjectRoleTransitionView` bereitet simulierte Funktionswechsel für Projektleiter verständlich auf. Die Sicht zeigt aktuelle und hypothetische Projektfunktionen, deutsche Funktionslabels, hinzugekommene und entfallene effektive Rechte, DENY-Konflikte, Risikoklassen, höchste betroffene Risikoklasse und eine kompakte Gesamtzusammenfassung.
+
+Wichtig: Eine neu hinzugefügte Projektfunktion gilt nicht automatisch als erfolgreich wirksame Machtübertragung. Wenn ein explizites DENY weiterhin greift, wird dies als DENY-Konflikt ausgewiesen und das Recht bleibt verweigert.
+
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #140, ist für Commit `300c966386880db7ba17882ec921a14d98028e62` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #145, ist für Commit `c6723ed117ab5ae0996b6965d0b4c045a437e5c9` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die Projektfunktionswechsel-Simulation in Z_Cockpit als verständliche Benutzer-/Projektleiteransicht aufbereiten:
+Als Nächstes die Regeln für **Aktivierung, Vertretungsfall und Nachfolgeauslösung** explizit modellieren:
 
-1. aktuelle und hypothetische Funktionen nebeneinander;
-2. hinzugefügte/entfernte Rollenbeziehungen sichtbar machen;
-3. betroffene Permissions priorisiert zeigen;
-4. DENY-Konflikte und Risikoklassen hervorheben;
-5. Simulation strikt read-only halten;
-6. danach Regeln für Aktivierung, Vertretungsfall und Nachfolgeauslösung explizit spezifizieren, ohne versteckte automatische Machtübertragung.
+1. Projektfunktion-Zuweisung strikt von tatsächlicher Aktivierung trennen;
+2. Vertretung nur aufgrund eines expliziten Aktivierungsgrunds wirksam werden lassen;
+3. Nachfolger nicht automatisch allein durch vorhandene `successor`-Zuordnung aktivieren;
+4. Aktivierungszeitraum, auslösender Benutzer/Systemgrund und Scope protokollieren;
+5. Simulation der Aktivierung vor echter Zustandsänderung ermöglichen;
+6. DENY-Vorrang und read-only Simulationsprinzip beibehalten;
+7. keine versteckte automatische Machtübertragung über Benutzergewichtung einführen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #140. Fahre danach mit der Z_Cockpit-Aufbereitung der Projektfunktionswechsel-Simulation fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und read-only Simulation nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #145. Fahre danach mit den expliziten Aktivierungsregeln für Projektleiter, Stellvertretung und Nachfolger fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und read-only Simulation nicht verlieren.
