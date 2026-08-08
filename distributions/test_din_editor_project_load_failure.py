@@ -256,3 +256,77 @@ def test_semantically_invalid_main_file_does_not_replace_valid_recovery(tmp_path
     restored = DinEditorProjectManager()
     restored.recover(path)
     assert restored.session.components[0]["label"] == "+24V SPS"
+
+
+def test_recovery_status_reports_missing_recovery_without_side_effects(tmp_path: Path):
+    manager, before = _dirty_manager_with_snapshot(tmp_path)
+
+    status = manager.recovery_status()
+
+    assert status == {
+        "path": str(recovery_path_for(before["path"])),
+        "available": False,
+        "valid": None,
+        "can_recover": False,
+        "error": None,
+    }
+    _assert_manager_unchanged(manager, **before)
+
+
+def test_recovery_status_reports_valid_recovery_without_loading_it(tmp_path: Path):
+    manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    manager.save()
+    manager.change_service.set_terminal_label(0, "Aktiver Entwurf")
+    before = {
+        "path": path,
+        "state": manager._snapshot(),
+        "saved_state": manager._saved_state.copy(),
+        "history": manager.history.state(),
+        "session": manager.session,
+        "sync_log": manager.sync_log,
+        "change_service": manager.change_service,
+    }
+
+    status = manager.recovery_status()
+
+    assert status["path"] == str(recovery_path_for(path))
+    assert status["available"] is True
+    assert status["valid"] is True
+    assert status["can_recover"] is True
+    assert status["error"] is None
+    assert manager.session.components[0]["label"] == "Aktiver Entwurf"
+    _assert_manager_unchanged(manager, **before)
+
+
+def test_recovery_status_reports_invalid_recovery_without_loading_it(tmp_path: Path):
+    manager, before = _dirty_manager_with_snapshot(tmp_path)
+    recovery = recovery_path_for(before["path"])
+    recovery.write_text('{"version": 2, "session":', encoding="utf-8")
+
+    status = manager.recovery_status()
+
+    assert status["path"] == str(recovery)
+    assert status["available"] is True
+    assert status["valid"] is False
+    assert status["can_recover"] is False
+    assert "invalid JSON" in status["error"]
+    _assert_manager_unchanged(manager, **before)
+
+
+def test_project_state_exposes_recovery_status(tmp_path: Path):
+    manager = _manager()
+    path = manager.save(tmp_path / "anlage.json")
+    manager.change_service.set_terminal_label(0, "Neue Version")
+    manager.save()
+
+    state = manager.state()
+
+    assert state["recovery"] == {
+        "path": str(recovery_path_for(path)),
+        "available": True,
+        "valid": True,
+        "can_recover": True,
+        "error": None,
+    }
