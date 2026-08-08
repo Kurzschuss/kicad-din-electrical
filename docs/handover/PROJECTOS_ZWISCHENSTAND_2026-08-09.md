@@ -30,69 +30,75 @@ Runtime-Grundlagen sind vorhanden:
 - Rechtezuweisungen führen Wirkung (`allow`/`deny`), Scope, Risikoklasse, Gültigkeitszeitraum, Herkunftsreferenz und optional Delegationsgeber;
 - `ProjectOSAuthorizationEvaluator` liefert effektive Rechte samt Herkunft read-only;
 - explizites `DENY` hat Vorrang vor `ALLOW`;
-- Benutzergewichtung ist sichtbar, beeinflusst die Rechteentscheidung derzeit bewusst nicht;
+- Benutzergewichtung ist sichtbar, beeinflusst die Rechteentscheidung bewusst nicht;
 - Rechte-Simulation vergleicht Baseline und hypothetischen Zustand ohne Persistenzänderung.
 
-`ZCockpitAuthorizationView` zeigt effektive Rechte, aktive/inaktive Herkunft, deutsche Herkunfts- und Risiko-Labels, Scope, Ablauf, Delegationsgeber und Benutzergewichtung. Simulationen liefern Vorher/Nachher und Impact.
+`ZCockpitAuthorizationView` zeigt effektive Rechte, aktive/inaktive Herkunft, deutsche Herkunfts- und Risiko-Labels, Scope, Ablauf, Delegationsgeber und Benutzergewichtung.
 
 ## Projektbezogene Benutzerfunktionen
 
-Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind als eigene projektbezogene Beziehungen vorhanden.
+Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind als eigene projektbezogene Beziehungen vorhanden. Jede Zuordnung enthält `role_assignment_id`, `project_id`, `user_id`, `role_type`, `scope`, `valid_from`, `valid_until`, `assigned_by_user_id`, `source_reference` und `metadata`.
 
-Jede Zuordnung enthält `role_assignment_id`, `project_id`, `user_id`, `role_type`, `scope`, `valid_from`, `valid_until`, `assigned_by_user_id`, `source_reference` und `metadata`.
-
-Die reine Zuweisung einer Projektfunktion ist jetzt ausdrücklich von ihrer tatsächlichen Aktivierung getrennt.
+Die reine Zuweisung einer Projektfunktion ist ausdrücklich von ihrer tatsächlichen Aktivierung getrennt.
 
 ## Explizite Projektfunktionsaktivierung
 
-Neu vorhanden sind `ProjectOSProjectRoleActivation` und `ProjectOSProjectRoleActivationRegistry`.
+Vorhanden sind `ProjectOSProjectRoleActivation` und `ProjectOSProjectRoleActivationRegistry`.
 
-Eine Aktivierung enthält:
+Eine Aktivierung enthält `activation_id`, `project_id`, `role_assignment_id`, `user_id`, `reason`, `scope`, `valid_from`, `valid_until`, `triggered_by_user_id`, `trigger_reference` und `metadata`.
 
-- `activation_id`
-- `project_id`
-- `role_assignment_id`
-- `user_id`
-- `reason`
-- `scope`
-- `valid_from`
-- `valid_until`
-- `triggered_by_user_id`
-- `trigger_reference`
-- `metadata`
+Unterstützte Aktivierungsgründe: `manual`, `absence`, `incapacity`, `vacation`, `emergency`, `succession`, `temporary_transfer`.
 
-Unterstützte Aktivierungsgründe sind derzeit `manual`, `absence`, `incapacity`, `vacation`, `emergency`, `succession` und `temporary_transfer`.
+Zentrale Regel: Eine vorhandene Projektfunktion ohne passende, aktuell gültige Aktivierung erzeugt keine Rechtewirkung. Solche Rollen erscheinen unter `assigned_not_activated_roles`. Nur aktivierte Projektfunktionen werden über den expliziten `permission_map` in normale `ProjectOSPermissionAssignment`s übersetzt. Herkunft enthält zusätzlich `activation_id`, `activation_reason`, `triggered_by_user_id` und `trigger_reference`.
 
-Zentrale Regel: Eine vorhandene Projektfunktion ohne passende, aktuell gültige Aktivierung erzeugt keine Rechtewirkung. Solche Rollen werden explizit unter `assigned_not_activated_roles` ausgewiesen.
-
-Nur aktivierte Projektfunktionen werden über den bekannten `permission_map` in normale `ProjectOSPermissionAssignment`s übersetzt. Die Rechteherkunft enthält zusätzlich `activation_id`, `activation_reason`, `triggered_by_user_id` und `trigger_reference`.
-
-Abgelaufene Aktivierungen erzeugen keine Rechte. Aktivierungen müssen auf eine existierende Rollenbeziehung verweisen. Projekt-/Scope-/Benutzerbezug bleibt strikt. Ein aus aktivierter Funktion abgeleitetes ALLOW kann ein explizites DENY weiterhin nicht überstimmen. Benutzergewichtung bleibt ohne Entscheidungswirkung.
+Abgelaufene Aktivierungen erzeugen keine Rechte. Projekt-/Scope-/Benutzerbezug bleibt strikt. Ein aus aktivierter Funktion abgeleitetes ALLOW kann ein explizites DENY weiterhin nicht überstimmen. Benutzergewichtung bleibt ohne Entscheidungswirkung.
 
 ## Z_Cockpit-Benutzersicht und Funktionswechsel
 
-`ZCockpitUserProjectRoleView` führt aktive und abgelaufene Projektfunktionen, deutsche Funktionsbezeichnungen, Zuweisungsherkunft, Scope, Gültigkeit, Benutzergewichtung, daraus abgeleitete Rechte und effektive Rechteherkunft zusammen.
+`ZCockpitUserProjectRoleView` führt Projektfunktionen, Zuweisungsherkunft, Scope, Gültigkeit, Benutzergewichtung, daraus abgeleitete Rechte und effektive Rechteherkunft zusammen.
 
-`ProjectOSProjectRoleTransitionSimulator` unterstützt read-only Funktionswechsel. `ZCockpitProjectRoleTransitionView` bereitet diese für Projektleiter verständlich auf und zeigt Rechtezugewinn/-verlust, DENY-Konflikte, Risikoklassen und höchste betroffene Risikoklasse.
+`ProjectOSProjectRoleTransitionSimulator` unterstützt read-only Funktionswechsel. `ZCockpitProjectRoleTransitionView` zeigt aktuelle/hypothetische Funktionen, Rechtezugewinn/-verlust, DENY-Konflikte, Risikoklassen und höchste betroffene Risikoklasse.
+
+## Z_Cockpit-Aktivierungssicht – zuletzt umgesetzt
+
+Neu vorhanden ist `ZCockpitProjectRoleActivationView`.
+
+Die Sicht zeigt:
+
+- aktuell aktivierte Projektfunktionen mit deutscher Funktionsbezeichnung;
+- zugewiesene, aber nicht aktivierte Projektfunktionen;
+- inaktive/abgelaufene Rollen und Aktivierungen;
+- Aktivierungsgrund mit deutschem Label;
+- Trigger, Zeitraum und Scope über die vorhandenen Aktivierungsdaten;
+- Rechte, die aus aktuell aktivierten Funktionen entstehen;
+- Rechteherkunft inklusive Aktivierungs-ID und Aktivierungsgrund.
+
+`simulate_activation()` simuliert eine hypothetische Aktivierung vollständig read-only. Die Ausgabe enthält Baseline und simulierten Zustand, Permission-Auswirkungen, `decision_changed`, `became_allowed`, `became_denied` und `deny_conflict`. Ein vorhandenes DENY bleibt auch bei simuliert aktivierter Projektfunktion wirksam. Der Baseline-Zustand wird nicht verändert.
+
+Commits des letzten Blocks:
+
+- `e0e48878` feat(z-cockpit): Projektfunktionsaktivierung und Simulation anzeigen
+- `41aa6073` fix(z-cockpit): Aktivierungssicht an Registry-Vertrag anbinden
+- `c666f01e` test(z-cockpit): Aktivierungssicht und Simulation absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #148, ist für Commit `f129804cb3bbbe9a59db5d7dbe8c77431318df42` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #152, ist für Commit `c666f01e9f5e0a4fd643d31c0177f0230b3f72ee` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die **Aktivierung selbst simulierbar und in Z_Cockpit sichtbar** machen:
+Als Nächstes das **Aktivierungsende / die Rückgabe einer Projektfunktion** explizit modellieren und simulieren:
 
-1. aktuelle Zuweisung vs. aktuelle Aktivierung nebeneinander darstellen;
-2. hypothetische Aktivierung vor Wirksamwerden simulieren;
-3. Rechteauswirkungen der Aktivierung pro Permission zeigen;
-4. Aktivierungsgrund, Trigger, Zeitraum und Scope in Z_Cockpit erklären;
-5. Aktivierungsende bzw. Rückgabe der Funktion simulierbar machen;
-6. später explizite Regeln für Vier-Augen-Freigabe, Notfallaktivierung und Nachfolgeauslösung ergänzen;
-7. keine automatische Machtübertragung allein aus Rollenzuweisung oder Benutzergewichtung ableiten.
+1. aktive Aktivierung gezielt beenden bzw. Rückgabe abbilden;
+2. Beendigungsgrund, Zeitpunkt, Scope und auslösenden Benutzer/Systemgrund führen;
+3. Rechteverlust vor tatsächlicher Beendigung read-only simulieren;
+4. Rückgabe der Stellvertretung an den Projektleiter nachvollziehbar darstellen;
+5. Nachfolgeaktivierung und spätere Rücknahme strikt trennen;
+6. Z_Cockpit soll Vorher/Nachher, entfallende Rechte, weiterhin bestehende direkte Rechte und DENY-Zustände zeigen;
+7. danach Vier-Augen-/Freigaberegeln für kritische Aktivierungen definieren.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #148. Fahre danach mit der Z_Cockpit-Sicht und read-only Simulation der expliziten Projektfunktionsaktivierung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die strikte Trennung zwischen Zuweisung und Aktivierung nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #152. Fahre danach mit Aktivierungsende/Rückgabe einer Projektfunktion und deren read-only Rechte-Simulation fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die strikte Trennung zwischen Zuweisung, Aktivierung und Beendigung nicht verlieren.
