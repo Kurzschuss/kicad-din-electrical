@@ -8,6 +8,7 @@ from .projectos_message_envelope import ProjectOSMessageEnvelope
 from .projectos_project_memory import ProjectOSProjectMemory
 from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
 from .z_cockpit_navigation import ZCockpitNavigationTarget
+from .z_cockpit_navigation_context import ZCockpitNavigationContext
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 
@@ -29,6 +30,14 @@ class ZCockpitNavigationResolver:
             messages=self.messages,
             memory=memory,
         )
+
+    def resolve_context(self, context: ZCockpitNavigationContext) -> dict[str, Any]:
+        """Löst das aktuelle Ziel auf und erhält Herkunft sowie Rücksprungkontext."""
+        resolved = self.resolve(context.current)
+        return {
+            **resolved,
+            "navigation": context.as_dict(),
+        }
 
     def resolve(self, target: ZCockpitNavigationTarget) -> dict[str, Any]:
         if target.project_id != self.manager.project_id:
