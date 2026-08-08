@@ -1,4 +1,4 @@
-"""Tests for project bundle session and synchronization log boundaries."""
+"""Tests for project bundle session, identity and synchronization log boundaries."""
 import pytest
 
 from .din_editor_project_bundle import DinProjectBundleError, import_project_bundle
@@ -22,3 +22,15 @@ def test_bundle_does_not_partially_construct_on_invalid_log():
     }
     with pytest.raises(DinProjectBundleError, match="invalid DIN editor project data"):
         import_project_bundle(data)
+
+
+def test_bundle_v3_requires_valid_project_id():
+    with pytest.raises(DinProjectBundleError, match="invalid DIN editor project id"):
+        import_project_bundle(
+            {
+                "version": 3,
+                "project_id": "keine-uuid",
+                "session": {"version": 1, "components": []},
+                "sync_log": [],
+            }
+        )
