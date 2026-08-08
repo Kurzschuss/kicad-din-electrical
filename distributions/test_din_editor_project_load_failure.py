@@ -330,3 +330,16 @@ def test_project_state_exposes_recovery_status(tmp_path: Path):
         "can_recover": True,
         "error": None,
     }
+
+
+def test_new_project_state_reports_no_recovery_target():
+    manager = _manager()
+
+    assert manager.recovery_status() == {
+        "path": None,
+        "available": False,
+        "valid": None,
+        "can_recover": False,
+        "error": None,
+    }
+    assert manager.state()["recovery"] == manager.recovery_status()
