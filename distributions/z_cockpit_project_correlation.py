@@ -7,6 +7,7 @@ from uuid import UUID
 
 from .din_editor_project_context import DinEditorProjectContext
 from .din_editor_project_manager import DinEditorProjectManager
+from .projectos_knowledge_diagnostics import ProjectOSKnowledgeDiagnosticsService
 from .projectos_knowledge_path import ProjectOSKnowledgePathService
 from .projectos_message_envelope import ProjectOSMessageEnvelope
 from .projectos_project_memory import ProjectOSProjectMemory
@@ -130,6 +131,7 @@ class ZCockpitProjectCorrelationView:
             audit_entries = [e for e in project_audit_entries if e.get("correlation_id") == normalized_correlation_id]
 
         message_ids = {message.message_id for message in all_project_messages}
+        correlation_ids = {message.correlation_id for message in all_project_messages}
         correlation_linked = sum(1 for entry in project_audit_entries if entry.get("correlation_id"))
         causation_linked = sum(
             1 for entry in project_audit_entries
@@ -150,6 +152,12 @@ class ZCockpitProjectCorrelationView:
             "causation_unresolved_element_count": 0,
             "path_explanations_available": self._memory is not None,
             "origin_explanations_available": self._memory is not None,
+            "diagnostics": {
+                "available": self._memory is not None,
+                "is_consistent": None,
+                "issue_count": 0,
+                "issues": [],
+            },
             "note": (
                 "Projektwissen und typisierte Beziehungen werden nur explizit gespeichert. "
                 "Bei einem Vorgangsfilter werden nur Beziehungen zwischen den tatsächlich sichtbaren "
@@ -170,6 +178,18 @@ class ZCockpitProjectCorrelationView:
                 1 for item in memory_items
                 if item.causation_id and item.causation_id not in message_ids
             )
+            diagnostics = ProjectOSKnowledgeDiagnosticsService(
+                self._memory,
+                known_message_ids=message_ids,
+                known_correlation_ids=correlation_ids,
+            ).analyze(correlation_id=normalized_correlation_id)
+            memory_state["diagnostics"] = {
+                "available": True,
+                "is_consistent": diagnostics["is_consistent"],
+                "issue_count": diagnostics["issue_count"],
+                "issues": diagnostics["issues"],
+                "note": diagnostics["note"],
+            }
 
         return {
             "project": context.as_dict(),
