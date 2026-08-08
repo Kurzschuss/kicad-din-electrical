@@ -41,79 +41,62 @@ Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind a
 
 Zuweisung, Aktivierung und Beendigung sind strikt getrennte Zustände.
 
-## Explizite Projektfunktionsaktivierung
+## Aktivierung und Rückgabe
 
-Vorhanden sind `ProjectOSProjectRoleActivation` und `ProjectOSProjectRoleActivationRegistry`.
+Vorhanden sind `ProjectOSProjectRoleActivation`, `ProjectOSProjectRoleActivationRegistry`, `ProjectOSProjectRoleDeactivation`, `ProjectOSProjectRoleLifecycleEvaluator`, `ZCockpitProjectRoleActivationView` und `ZCockpitProjectRoleDeactivationView`.
 
-Eine Aktivierung enthält `activation_id`, `project_id`, `role_assignment_id`, `user_id`, `reason`, `scope`, `valid_from`, `valid_until`, `triggered_by_user_id`, `trigger_reference` und `metadata`.
+Eine zugewiesene Projektfunktion erzeugt erst bei einer passenden, aktuell gültigen Aktivierung Rechtewirkung. Eine Beendigung referenziert eine konkrete Aktivierung und beendet deren Rollenrechte erst ab `ended_at`. Direkte Rechte, Delegationen, Ausnahmen, Whitelist/Blacklist und DENY-Zuweisungen bleiben erhalten. Aktivierung und Rückgabe sind jeweils read-only simulierbar.
 
-Unterstützte Aktivierungsgründe: `manual`, `absence`, `incapacity`, `vacation`, `emergency`, `succession`, `temporary_transfer`.
-
-Eine vorhandene Projektfunktion ohne passende, aktuell gültige Aktivierung erzeugt keine Rechtewirkung. Nur aktivierte Projektfunktionen werden über den expliziten `permission_map` in normale `ProjectOSPermissionAssignment`s übersetzt. Abgelaufene Aktivierungen erzeugen keine Rechte. Ein ALLOW aus aktivierter Projektfunktion kann ein explizites DENY nicht überstimmen. Benutzergewichtung bleibt ohne Entscheidungswirkung.
-
-`ZCockpitProjectRoleActivationView` zeigt aktive, nicht aktivierte und abgelaufene Zustände und simuliert Aktivierungen read-only mit Vorher/Nachher-Rechteauswirkung und DENY-Konflikten.
-
-## Aktivierungsende / Rückgabe – zuletzt umgesetzt
+## Vier-Augen-/Freigaberegeln – zuletzt umgesetzt
 
 Neu vorhanden sind:
 
-- `ProjectOSProjectRoleDeactivation`
-- `ProjectOSProjectRoleLifecycleEvaluator`
-- `ZCockpitProjectRoleDeactivationView`
+- `ProjectOSRoleActionApprovalRequest`
+- `ProjectOSRoleActionApproval`
+- `ProjectOSRoleActionApprovalEvaluator`
+- `ZCockpitRoleActionApprovalView`
 
-Eine Beendigung referenziert immer eine konkrete `activation_id` und enthält:
+Der Freigabevertrag gilt einheitlich für `activation` und `deactivation`.
 
-- `deactivation_id`
-- `activation_id`
-- `project_id`
-- `user_id`
-- `reason`
-- `ended_at`
-- `scope`
-- `triggered_by_user_id`
-- `trigger_reference`
-- `metadata`
+Regeln:
 
-Unterstützte Beendigungsgründe sind derzeit `manual_return`, `principal_returned`, `period_ended`, `revoked`, `handover_completed`, `emergency_ended` und `succession_completed`.
+- `low` und `medium` benötigen derzeit keine zweite Freigabe;
+- `high` und `critical` benötigen eine zweite, vom Auslöser verschiedene Person;
+- Selbstfreigabe wird erkannt, aber nicht als Vier-Augen-Freigabe gewertet;
+- eine externe Ablehnung blockiert die Aktion;
+- Notfallaktionen können als `emergency_pending_review` vorläufig wirksam sein, bleiben aber ausdrücklich nachprüfungspflichtig;
+- Benutzergewichtung ersetzt keine Freigabe;
+- dieser Vertrag verändert keine Aktivierung, Beendigung oder Freigabe und ist vollständig read-only auswertbar.
 
-Zentrale Regel: Eine Beendigung entzieht die aus der betreffenden Aktivierung abgeleiteten Rollenrechte erst ab `ended_at`. Direkte Rechte, Delegationen, Ausnahmen, Whitelist/Blacklist und DENY-Zuweisungen bleiben davon unberührt.
+Eine Freigabe führt `approval_id`, `action_id`, `approver_user_id`, `decision`, `decided_at` und optional Kommentar. Ein Freigabeauftrag führt unter anderem `action_id`, `project_id`, `action_type`, Zielreferenz, `requested_by_user_id`, Risikoklasse, Zeitpunkt, Scope, Emergency-Flag und Grund.
 
-`ProjectOSProjectRoleLifecycleEvaluator` führt Aktivierung und Beendigung zusammen und liefert `effective_roles`, `effective_activations`, `ended_activations` und `assigned_not_effective_roles` read-only.
-
-`ZCockpitProjectRoleDeactivationView.simulate_deactivation()` simuliert die Rückgabe vor tatsächlicher Zustandsänderung. Es zeigt:
-
-- Vorher-/Nachher-Rechte;
-- verlorene rollenbasierte Rechte;
-- weiterhin erlaubte direkte Rechte;
-- weiterhin geltende DENYs;
-- Beendigungsgrund mit deutschem Label;
-- Anzahl geänderter und verlorener Rechte.
+Z_Cockpit zeigt die Zustände `pending_approval`, `approved`, `approved_not_required`, `rejected` und `emergency_pending_review` mit deutschen Labels und `attention_required`.
 
 Commits des letzten Blocks:
 
-- `186d3a75` feat(project): Aktivierungsende und Rückgabe von Projektfunktionen modellieren
-- `8871b6c4` test(project): Aktivierungsende und Rückgabe absichern
-- `84612343` feat(z-cockpit): Rückgabe aktivierter Projektfunktionen simulieren
-- `e2c18f6b` test(z-cockpit): Rückgabe-Simulation und verbleibende Rechte absichern
+- `edf211d5` feat(project): Vier-Augen-Freigaben für kritische Rollenaktionen einführen
+- `07db516f` test(project): Vier-Augen- und Notfallfreigaben absichern
+- `716c4ccb` feat(z-cockpit): Vier-Augen- und Notfallfreigaben anzeigen
+- `b14a3efa` test(z-cockpit): Freigabestatus und Notfallnachprüfung absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #157, ist für Commit `e2c18f6b0153a406944b8acc0e0745c6f30d934f` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #162, ist für Commit `b14a3efa48025544598ae77e081c6912ac3ab3c3` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes **Freigabe-/Vier-Augen-Regeln für kritische Aktivierungen und Beendigungen** modellieren:
+Als Nächstes den Freigabestatus **wirklich in die Rechtewirksamkeit von Aktivierung und Beendigung integrieren**:
 
-1. Risikoklasse der betroffenen Rechte berücksichtigen;
-2. für `high`/`critical` Aktivierungen optional oder verpflichtend eine zweite Freigabe verlangen;
-3. Freigabe mit approver, Zeitpunkt, Scope, Grund und Referenz protokollieren;
-4. Notfallaktivierung ausdrücklich kennzeichnen und nachträgliche Prüfung ermöglichen;
-5. Aktivierung/Beendigung ohne erforderliche Freigabe darf keine Rechtewirkung erzeugen;
-6. Freigabe-Simulation read-only in Z_Cockpit darstellen;
-7. Benutzergewichtung darf auch hier keine fehlende Freigabe ersetzen und DENY bleibt vorrangig.
+1. Aktivierungs-/Lifecycle-Evaluator bekommt optional einen Freigabestatus;
+2. `high`/`critical` ohne Freigabe darf keine Rollenrechte erzeugen;
+3. `emergency_pending_review` darf vorläufig wirken, muss aber im Z_Cockpit dauerhaft als offene Nachprüfung erscheinen;
+4. Beendigung/Rückgabe mit kritischer Auswirkung ebenfalls Freigabestatus berücksichtigen;
+5. DENY-Vorrang bleibt unverändert;
+6. read-only Vorher/Nachher-Simulation muss Freigabe und fehlende Freigabe vergleichen können;
+7. danach Audit/Korrelation für Freigabeentscheidungen ergänzen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #157. Fahre danach mit Freigabe-/Vier-Augen-Regeln für kritische Aktivierungen und Beendigungen fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die strikte Trennung zwischen Zuweisung, Aktivierung und Beendigung nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #162. Fahre danach mit der Integration des Vier-Augen-Freigabestatus in die tatsächliche Rechtewirksamkeit von Aktivierung und Beendigung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die Trennung zwischen Zuweisung, Aktivierung, Freigabe und Beendigung nicht verlieren.
