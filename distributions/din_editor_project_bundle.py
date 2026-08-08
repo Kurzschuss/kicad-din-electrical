@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 from .din_editor_serialization import export_session, import_session
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_log import DinSyncLog
+from .din_editor_validation import validate_session
 
 
 class DinProjectBundleError(ValueError):
@@ -140,8 +141,10 @@ def _preserve_last_valid_project(path: str | Path) -> Path | None:
     if not target.exists():
         return None
     try:
-        load_project_bundle(target)
+        session, _ = load_project_bundle(target)
     except DinProjectBundleError:
+        return None
+    if validate_session(session):
         return None
     recovery = recovery_path_for(target)
     return _save_bytes_atomic(target.read_bytes(), recovery)
@@ -156,6 +159,13 @@ def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, 
 def load_project_recovery(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]:
     recovery = recovery_path_for(path)
     try:
-        return load_project_bundle(recovery)
+        session, sync_log = load_project_bundle(recovery)
     except DinProjectBundleError as exc:
         raise DinProjectBundleError(f"DIN project recovery cannot be loaded: {recovery}") from exc
+    issues = validate_session(session)
+    if issues:
+        raise DinProjectBundleError(
+            f"DIN project recovery validation failed: {recovery}: "
+            + "; ".join(issue.message for issue in issues)
+        )
+    return session, sync_log
