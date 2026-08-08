@@ -13,6 +13,11 @@ class DinProjectBundleError(ValueError):
     """Raised when a DIN editor project file cannot be loaded or saved safely."""
 
 
+def recovery_path_for(path: str | Path) -> Path:
+    target = Path(path)
+    return target.with_name(f".{target.name}.recovery")
+
+
 def _save_json_atomic(payload: object, path: str | Path) -> Path:
     target = Path(path)
     temporary: Path | None = None
@@ -32,6 +37,27 @@ def _save_json_atomic(payload: object, path: str | Path) -> Path:
             except OSError:
                 pass
         raise DinProjectBundleError(f"DIN project file cannot be saved: {target}") from exc
+    return target
+
+
+def _save_bytes_atomic(payload: bytes, path: str | Path) -> Path:
+    target = Path(path)
+    temporary: Path | None = None
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with NamedTemporaryFile("wb", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(target)
+    except OSError as exc:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise DinProjectBundleError(f"DIN recovery file cannot be saved: {target}") from exc
     return target
 
 
@@ -104,10 +130,32 @@ def import_project_bundle(data: dict) -> tuple[DinEditorSession, DinSyncLog]:
     return session, log
 
 
-def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, path: str | Path) -> Path:
-    return _save_json_atomic(export_project_bundle(session, sync_log), path)
-
-
 def load_project_bundle(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]:
     data = _load_json(path)
     return import_project_bundle(data)
+
+
+def _preserve_last_valid_project(path: str | Path) -> Path | None:
+    target = Path(path)
+    if not target.exists():
+        return None
+    try:
+        load_project_bundle(target)
+    except DinProjectBundleError:
+        return None
+    recovery = recovery_path_for(target)
+    return _save_bytes_atomic(target.read_bytes(), recovery)
+
+
+def save_project_bundle(session: DinEditorSession, sync_log: DinSyncLog | None, path: str | Path) -> Path:
+    target = Path(path)
+    _preserve_last_valid_project(target)
+    return _save_json_atomic(export_project_bundle(session, sync_log), target)
+
+
+def load_project_recovery(path: str | Path) -> tuple[DinEditorSession, DinSyncLog]:
+    recovery = recovery_path_for(path)
+    try:
+        return load_project_bundle(recovery)
+    except DinProjectBundleError as exc:
+        raise DinProjectBundleError(f"DIN project recovery cannot be loaded: {recovery}") from exc
