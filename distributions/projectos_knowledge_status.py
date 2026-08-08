@@ -1,6 +1,7 @@
 """Read-only Statusanalyse für Widerspruchs- und Ablöseketten im ProjectOS-Wissensgraphen."""
 from __future__ import annotations
 
+from collections import deque
 from typing import Any
 
 from .projectos_project_memory import ProjectOSProjectMemory, _normalize_optional_uuid, _normalize_uuid
@@ -45,8 +46,46 @@ class ProjectOSKnowledgeStatusService:
             and (relation.source_knowledge_id == target_id or relation.target_knowledge_id == target_id)
         ]
 
+        replacement_outgoing: dict[str, list] = {}
+        for relation in relations:
+            if relation.relation_type == "supersedes":
+                replacement_outgoing.setdefault(relation.target_knowledge_id, []).append(relation)
+        for items in replacement_outgoing.values():
+            items.sort(key=lambda relation: (relation.created_at, relation.relation_id))
+
+        chains: list[dict[str, Any]] = []
+        queue = deque([(target_id, [target_id], [])])
+        cycle_detected = False
+        while queue:
+            current, node_ids, relation_path = queue.popleft()
+            next_relations = replacement_outgoing.get(current, [])
+            if not next_relations:
+                chains.append({"node_ids": node_ids, "relations": relation_path})
+                continue
+            for relation in next_relations:
+                successor = relation.source_knowledge_id
+                if successor in node_ids:
+                    cycle_detected = True
+                    chains.append({
+                        "node_ids": node_ids + [successor],
+                        "relations": relation_path + [relation],
+                        "cycle": True,
+                    })
+                    continue
+                queue.append((successor, node_ids + [successor], relation_path + [relation]))
+
+        terminal_ids = sorted({
+            chain["node_ids"][-1]
+            for chain in chains
+            if not chain.get("cycle") and chain["node_ids"][-1] in element_by_id
+        })
+        ambiguous_successor = len(terminal_ids) > 1
+        current_successor = element_by_id[terminal_ids[0]].as_dict() if len(terminal_ids) == 1 else None
+
         declared_status = element_by_id[target_id].status
-        if superseded_by:
+        if cycle_detected or ambiguous_successor:
+            graph_status = "supersession_conflict"
+        elif superseded_by:
             graph_status = "superseded"
         elif conflicts:
             graph_status = "conflicted"
@@ -64,6 +103,15 @@ class ProjectOSKnowledgeStatusService:
                 "other": element_by_id[other_id].as_dict(),
             }
 
+        chain_payload = []
+        for chain in chains:
+            chain_payload.append({
+                "nodes": [element_by_id[node_id].as_dict() for node_id in chain["node_ids"] if node_id in element_by_id],
+                "relations": [relation.as_dict() for relation in chain["relations"]],
+                "cycle": bool(chain.get("cycle")),
+                "hop_count": len(chain["relations"]),
+            })
+
         return {
             "project_id": self.memory.project_id,
             "correlation_id": normalized_correlation_id,
@@ -76,8 +124,16 @@ class ProjectOSKnowledgeStatusService:
             "superseded_by": [describe_relation(item) for item in superseded_by],
             "supersedes": [describe_relation(item) for item in supersedes],
             "conflicts": [describe_relation(item) for item in conflicts],
+            "supersession_chains": chain_payload,
+            "terminal_successor_count": len(terminal_ids),
+            "terminal_successors": [element_by_id[item].as_dict() for item in terminal_ids],
+            "current_successor": current_successor,
+            "supersession_cycle_detected": cycle_detected,
+            "supersession_ambiguous": ambiguous_successor,
             "note": (
                 "graph_status wird ausschließlich aus expliziten supersedes-, contradicts- und refutes-Beziehungen "
-                "im sichtbaren Wissensgraphen abgeleitet. Der deklarierte Status des Wissenselements wird nicht verändert."
+                "im sichtbaren Wissensgraphen abgeleitet. Mehrstufige Ablöseketten werden bis zu expliziten "
+                "Endknoten verfolgt; Zyklen oder mehrere Endnachfolger werden als Konflikt markiert. "
+                "Der deklarierte Status des Wissenselements wird nicht verändert."
             ),
         }
