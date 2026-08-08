@@ -9,7 +9,7 @@ MANIFEST = Path("projects/Z_MCB_reference/Z_PROJECT_MANIFEST.json")
 
 def _mcb_1p_symbol_text() -> str:
     content = MCB.read_text(encoding="utf-8")
-    return content.split('\n  (symbol "MCB_3P"', 1)[0]
+    return content.split('\n  (symbol "MCB_2P"', 1)[0]
 
 
 def test_mcb_1p_pin_contract_is_exactly_two_passive_pins() -> None:
