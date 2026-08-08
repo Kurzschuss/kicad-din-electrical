@@ -58,19 +58,49 @@ function Ensure-LibraryTable {
     return [pscustomobject]@{ Added = $added; Existing = $existing; Mismatch = $mismatch }
 }
 
-function Mirror-Directory {
+function Files-AreEqual {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+    if (-not (Test-Path -LiteralPath $Target -PathType Leaf)) { return $false }
+    $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
+    $targetHash = (Get-FileHash -LiteralPath $Target -Algorithm SHA256).Hash
+    return $sourceHash -eq $targetHash
+}
+
+function Copy-IfDifferent {
+    param(
+        [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Target
+    )
+    if (Files-AreEqual -Source $Source -Target $Target) { return $false }
+    New-Item -ItemType Directory -Path (Split-Path -Parent $Target) -Force | Out-Null
+    Copy-Item -LiteralPath $Source -Destination $Target -Force
+    return $true
+}
+
+function Sync-Directory {
     param(
         [Parameter(Mandatory = $true)][string]$Source,
         [Parameter(Mandatory = $true)][string]$Target
     )
 
-    # Copy-Item -Recurse in ein bereits vorhandenes gleichnamiges Verzeichnis
-    # erzeugt sonst z. B. Z_MCB.pretty\Z_MCB.pretty. Daher wird jede
-    # produktive Bibliothek atomar als Verzeichnisbestand neu gespiegelt.
-    if (Test-Path -LiteralPath $Target) {
-        Remove-Item -LiteralPath $Target -Recurse -Force
+    New-Item -ItemType Directory -Path $Target -Force | Out-Null
+    $sourceFiles = Get-ChildItem -LiteralPath $Source -File -Recurse
+    foreach ($file in $sourceFiles) {
+        $relative = $file.FullName.Substring($Source.Length).TrimStart('\', '/')
+        $targetFile = Join-Path $Target $relative
+        Copy-IfDifferent -Source $file.FullName -Target $targetFile | Out-Null
     }
-    Copy-Item -LiteralPath $Source -Destination $Target -Recurse -Force
+
+    Get-ChildItem -LiteralPath $Target -File -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+        $relative = $_.FullName.Substring($Target.Length).TrimStart('\', '/')
+        $sourcePeer = Join-Path $Source $relative
+        if (-not (Test-Path -LiteralPath $sourcePeer -PathType Leaf)) {
+            Remove-Item -LiteralPath $_.FullName -Force
+        }
+    }
 }
 
 $symbolSource = Join-Path $RepositoryRoot 'symbols'
@@ -91,7 +121,7 @@ $symbolLibraries = @()
 if (Test-Path -LiteralPath $symbolSource) {
     Get-ChildItem -LiteralPath $symbolSource -File -Filter 'Z_*.kicad_sym' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $symbolTarget $_.Name
-        Copy-Item -LiteralPath $_.FullName -Destination $target -Force
+        Copy-IfDifferent -Source $_.FullName -Target $target | Out-Null
         $symbolLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_SYMBOL_DIR}/' + $_.Name }
     }
 }
@@ -100,7 +130,7 @@ $footprintLibraries = @()
 if (Test-Path -LiteralPath $footprintSource) {
     Get-ChildItem -LiteralPath $footprintSource -Directory -Filter 'Z_*.pretty' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $footprintTarget $_.Name
-        Mirror-Directory -Source $_.FullName -Target $target
+        Sync-Directory -Source $_.FullName -Target $target
         $footprintLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_FOOTPRINT_DIR}/' + $_.Name }
     }
 }
@@ -109,7 +139,7 @@ $designBlockLibraries = @()
 if (Test-Path -LiteralPath $designBlockSource) {
     Get-ChildItem -LiteralPath $designBlockSource -Directory -Filter 'Z_*.kicad_blocks' | Sort-Object Name | ForEach-Object {
         $target = Join-Path $designBlockTarget $_.Name
-        Mirror-Directory -Source $_.FullName -Target $target
+        Sync-Directory -Source $_.FullName -Target $target
         $designBlockLibraries += [pscustomobject]@{ Name = $_.BaseName; Uri = '${KICAD_Z_DESIGN_BLOCK_DIR}/' + $_.Name }
     }
 }
@@ -123,8 +153,7 @@ if (Test-Path -LiteralPath $modelSource) {
     foreach ($model in $modelFiles) {
         $relative = $model.FullName.Substring($modelSource.Length).TrimStart('\', '/')
         $target = Join-Path $modelTarget $relative
-        New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
-        Copy-Item -LiteralPath $model.FullName -Destination $target -Force
+        Copy-IfDifferent -Source $model.FullName -Target $target | Out-Null
     }
 }
 
