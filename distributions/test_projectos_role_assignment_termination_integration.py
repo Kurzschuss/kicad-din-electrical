@@ -4,8 +4,6 @@ import pytest
 
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_authorization import ProjectOSUserProfile
-from .projectos_role_activation import ProjectOSProjectRoleActivation
-from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_management_change_service import ProjectOSUserManagementChangeService
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
@@ -13,6 +11,7 @@ from .projectos_user_management_command_policy import ProjectOSUserManagementCom
 from .projectos_user_management_persistence import ProjectOSUserManagementState
 from .projectos_user_management_runtime import build_projectos_user_management_runtime
 from .projectos_user_project_roles import ProjectOSUserProjectRole
+from .z_cockpit_user_management_command_diagnostics import ZCockpitUserManagementCommandDiagnosticsView
 from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersistenceView
 
 
@@ -98,6 +97,7 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
     before = runtime.authorization.evaluate("user_weight_changed", _context(deputy.user_id))
     assert before["allowed"] is True
     assert before["role_derived_assignment_count"] == 1
+    assert before["terminated_granting_role_count"] == 0
 
     runtime.changes.command_terminate_project_role_assignment(
         role_assignment_id=role.role_assignment_id,
@@ -114,6 +114,7 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
     assert after["allowed"] is False
     assert after["decision"] == "not_granted"
     assert after["role_derived_assignment_count"] == 0
+    assert after["terminated_granting_role_count"] == 1
 
     with pytest.raises(PermissionError, match="not_granted"):
         runtime.changes.change_user_weight(
@@ -125,3 +126,9 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
     assert len(runtime.emitter.traces) == trace_count
     assert len(manager.sync_log.entries) == audit_count
     assert len(runtime.emitter.command_history.all()) == history_count
+
+    diagnostics = ZCockpitUserManagementCommandDiagnosticsView(runtime).state()
+    assert diagnostics["last_decision"] == "not_granted"
+    assert diagnostics["terminated_granting_role_count"] == 1
+    assert diagnostics["role_termination_blocked"] is True
+    assert diagnostics["revocation_blocked"] is False
