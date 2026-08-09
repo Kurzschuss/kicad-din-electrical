@@ -7,6 +7,7 @@ from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_message_envelope import ProjectOSMessageEnvelope
 from .projectos_project_memory import ProjectOSProjectMemory
 from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
+from .z_cockpit_knowledge_origin_evidence import ZCockpitKnowledgeOriginEvidenceView
 from .z_cockpit_navigation import ZCockpitNavigationTarget
 from .z_cockpit_navigation_context import ZCockpitNavigationContext
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
@@ -150,7 +151,7 @@ class ZCockpitNavigationResolver:
 
     def _knowledge_origin(self, target: ZCockpitNavigationTarget) -> dict[str, Any]:
         self._require_memory()
-        return self._correlation_view.explain_knowledge_origin(
+        return ZCockpitKnowledgeOriginEvidenceView(self._correlation_view).state(
             target.knowledge_ids[0],
             correlation_id=target.correlation_id,
         )
