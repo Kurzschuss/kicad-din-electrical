@@ -39,11 +39,13 @@ Die passive Pinklassifikation hält das generische Schutzschaltersymbol in unter
 
 Die bestehende Symbol-ID wird aus Kompatibilitätsgründen beibehalten. Anschluss `1` liegt oben, Anschluss `2` unten. Die Funktionsgrafik zeigt den geöffneten Schaltkontakt mit Auslösemechanik; die bisherige horizontale Rechteckdarstellung wird nicht weiter verwendet.
 
+Die Auslösemechanik folgt der Referenzdarstellung: Links endet die thermische/V-förmige Funktionslinie mit einem senkrechten Abschlussstrich. Der Auslösepfeil verläuft vom Schaltkontakt diagonal nach links unten und darf nicht waagerecht dargestellt werden.
+
 Zielbreite gemäß `Z_SYMBOL_DIMENSIONS.md`: **400 mil**.
 
 ## 3P – `Z_MCB:MCB_3P`
 
-Die drei Pole werden in einem gemeinsamen Symbol dargestellt. Jeder Pol besitzt dieselbe Schutzschalter-Funktionsgrafik; die mechanische Kopplung der Pole ist grafisch kenntlich gemacht.
+Die drei Pole werden in einem gemeinsamen Symbol dargestellt. Jeder Pol besitzt dieselbe Schutzschalter-Funktionsgrafik; die mechanische Kopplung der Pole ist grafisch kenntlich gemacht. Die Auslösepfeile übernehmen dieselbe diagonale Richtung wie beim 1P-Referenzsymbol; der linke senkrechte Abschlussstrich gehört zum links dargestellten Auslösepfad.
 
 | Pol | oben | unten |
 |---|---:|---:|

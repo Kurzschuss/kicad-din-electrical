@@ -52,6 +52,7 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
     assert ((5.08, 5.08), (5.08, 3.81)) in points
     assert ((1.27, 3.81), (5.08, -3.81)) in points
     assert ((5.08, -3.81), (5.08, -5.08)) in points
+    assert ((-5.08, 0.0), (-5.08, -2.54)) in points
     assert (
         (-5.08, -1.27),
         (-3.81, -1.27),
@@ -59,8 +60,17 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
         (-1.27, -1.27),
         (3.81, -1.27),
     ) in points
-    assert ((-1.27, 1.27), (0.0, 2.54), (0.0, 0.0), (-1.27, 1.27)) in points
-    assert ((0.0, 1.27), (2.54, 1.27)) in points
+    assert ((-1.27, 0.0), (0.0, 1.27), (0.0, -1.27), (-1.27, 0.0)) in points
+    assert ((0.0, 0.0), (2.54, 1.27)) in points
+
+
+def test_mcb_1p_trip_arrow_is_diagonal_down_left_and_left_end_is_vertical():
+    block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
+    points = {polyline.points for polyline in parse_polylines(block)}
+
+    assert ((-5.08, 0.0), (-5.08, -2.54)) in points
+    assert ((0.0, 0.0), (2.54, 1.27)) in points
+    assert ((0.0, 1.27), (2.54, 1.27)) not in points
 
 
 def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
@@ -88,6 +98,10 @@ def test_mcb_3p_reuses_same_reference_contact_shape_on_all_three_poles():
         assert ((upper_x, 5.08), (upper_x, 3.81)) in points
         assert ((slant_x, 3.81), (lower_x, -3.81)) in points
         assert ((lower_x, -3.81), (lower_x, -5.08)) in points
+
+    assert ((-10.16, 0.0), (-10.16, -2.54)) in points
+    for arrow_start_x, contact_x in ((-8.89, -7.62), (-1.27, 0.0), (6.35, 7.62)):
+        assert ((arrow_start_x, 0.0), (contact_x, 1.27)) in points
 
 
 def test_mcb_reference_widths_match_documented_400_and_800_mil_targets():
