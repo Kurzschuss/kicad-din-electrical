@@ -1,9 +1,9 @@
 """Vier-Augen-Freigabevertrag für kritische Projektfunktionsaktionen.
 
-Der Vertrag bewertet Aktivierung und Beendigung rein lesend. Hohe und kritische
-Risikoklassen benötigen eine zweite, vom Auslöser verschiedene Freigabe.
-Notfallaktionen dürfen separat als vorläufig wirksam markiert werden, bleiben aber
-bis zur nachträglichen Freigabe ausdrücklich review-pflichtig.
+Der Vertrag bewertet Aktivierung, Aktivierungs-Beendigung und administrative
+Rollenzuweisungs-Beendigung rein lesend. Hohe und kritische Risikoklassen benötigen
+eine zweite, vom Auslöser verschiedene Freigabe. Notfallaktionen dürfen separat als
+vorläufig wirksam markiert werden, bleiben aber bis zur nachträglichen Prüfung review-pflichtig.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterable
 from uuid import UUID, uuid4
 
-_ALLOWED_ACTIONS = {"activation", "deactivation"}
+_ALLOWED_ACTIONS = {"activation", "deactivation", "role_assignment_termination"}
 _ALLOWED_RISKS = {"low", "medium", "high", "critical"}
 _ALLOWED_DECISIONS = {"approve", "reject"}
 
