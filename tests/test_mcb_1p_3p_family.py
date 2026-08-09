@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from tools.generate_device_variants import expand_series
 from tools.generate_symbol_previews import (
     _logical_points,
@@ -52,7 +54,7 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
     assert ((5.08, 5.08), (5.08, 3.81)) in points
     assert ((1.27, 3.81), (5.08, -3.81)) in points
     assert ((5.08, -3.81), (5.08, -5.08)) in points
-    assert ((-5.08, 0.0), (-5.08, -2.54)) in points
+    assert ((-5.08, 1.27), (-5.08, -2.54)) in points
     assert (
         (-5.08, -1.27),
         (-3.81, -1.27),
@@ -60,20 +62,20 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
         (-1.27, -1.27),
         (3.81, -1.27),
     ) in points
-    assert ((-1.27, 0.0), (0.0, 1.27), (1.27, 0.0), (-1.27, 0.0)) in points
-    assert ((0.0, 0.0), (2.54, 1.27)) in points
+    assert ((-2.54, 0.0), (-1.27, 1.27), (-1.27, 0.0), (-2.54, 0.0)) in points
+    assert ((-1.27, 0.0), (2.54, 1.27)) in points
 
 
-def test_mcb_1p_trip_arrowhead_is_rotated_and_has_50mil_clearance():
+def test_mcb_1p_trip_arrowhead_is_smaller_and_shaft_is_longer():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
     points = {polyline.points for polyline in parse_polylines(block)}
-    arrowhead = ((-1.27, 0.0), (0.0, 1.27), (1.27, 0.0), (-1.27, 0.0))
+    arrowhead = ((-2.54, 0.0), (-1.27, 1.27), (-1.27, 0.0), (-2.54, 0.0))
 
     assert arrowhead in points
-    assert ((0.0, 0.0), (2.54, 1.27)) in points
-    assert min(y for _, y in arrowhead) == 0.0
-    assert min(y for _, y in arrowhead) - (-1.27) == 1.27
-    assert ((-1.27, 0.0), (0.0, 1.27), (0.0, -1.27), (-1.27, 0.0)) not in points
+    assert ((-1.27, 0.0), (2.54, 1.27)) in points
+    assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
+    assert max(y for _, y in arrowhead) - min(y for _, y in arrowhead) == pytest.approx(1.27)
+    assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
 
 
 def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
@@ -102,12 +104,12 @@ def test_mcb_3p_reuses_same_reference_contact_shape_on_all_three_poles():
         assert ((slant_x, 3.81), (lower_x, -3.81)) in points
         assert ((lower_x, -3.81), (lower_x, -5.08)) in points
 
-    assert ((-10.16, 0.0), (-10.16, -2.54)) in points
+    assert ((-10.16, 1.27), (-10.16, -2.54)) in points
     for arrow_start_x, contact_x in ((-8.89, -7.62), (-1.27, 0.0), (6.35, 7.62)):
         assert ((arrow_start_x, 0.0), (contact_x, 1.27)) in points
 
 
-def test_mcb_3p_arrowheads_are_rotated_with_clearance():
+def test_mcb_3p_arrowheads_are_smaller_with_clearance():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     points = {polyline.points for polyline in parse_polylines(block)}
 
@@ -115,11 +117,20 @@ def test_mcb_3p_arrowheads_are_rotated_with_clearance():
         arrowhead = (
             (tip_x, 0.0),
             (tip_x + 1.27, 1.27),
-            (tip_x + 2.54, 0.0),
+            (tip_x + 1.27, 0.0),
             (tip_x, 0.0),
         )
         assert arrowhead in points
-        assert min(y for _, y in arrowhead) - (-1.27) == 1.27
+        assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
+        assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
+
+
+def test_mcb_3p_coupling_marks_are_single_solid_short_lines():
+    block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
+
+    assert '(polyline (pts (xy -3.81 -1.27) (xy -1.27 -1.27)) (stroke (width 0.254) (type default))' in block
+    assert '(polyline (pts (xy 3.81 -1.27) (xy 6.35 -1.27)) (stroke (width 0.254) (type default))' in block
+    assert "(type dash)" not in block
 
 
 def test_mcb_reference_widths_match_documented_400_and_800_mil_targets():
