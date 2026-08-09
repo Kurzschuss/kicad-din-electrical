@@ -1,8 +1,7 @@
 """Freigabegesteuerte Wirksamkeit von Projektfunktions-Beendigungen.
 
-Kritische Beendigungen wirken fail-closed: Ohne passenden Freigabeauftrag und
-wirksame Vier-Augen-Entscheidung bleibt die zugrunde liegende Aktivierung wirksam.
-Notfall-Beendigungen dürfen vorläufig wirken, bleiben aber nachprüfungspflichtig.
+Kritische Aktivierungs-Beendigungen wirken fail-closed. Eine separat beendete
+Rollenzuweisung bleibt davon unabhängig und beendet ihre Rechtewirkung zeitabhängig.
 """
 from __future__ import annotations
 
@@ -11,15 +10,9 @@ from typing import Any, Iterable
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
-from .projectos_role_approval import (
-    ProjectOSRoleActionApproval,
-    ProjectOSRoleActionApprovalEvaluator,
-    ProjectOSRoleActionApprovalRequest,
-)
-from .projectos_role_deactivation import (
-    ProjectOSProjectRoleDeactivation,
-    ProjectOSProjectRoleLifecycleEvaluator,
-)
+from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalEvaluator, ProjectOSRoleActionApprovalRequest
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
+from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation, ProjectOSProjectRoleLifecycleEvaluator
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
 
@@ -32,15 +25,16 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
         deactivations: Iterable[ProjectOSProjectRoleDeactivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         approval_requests: Iterable[ProjectOSRoleActionApprovalRequest] | None = None,
         approvals: Iterable[ProjectOSRoleActionApproval] | None = None,
     ) -> None:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
         self.deactivations = tuple(deactivations or ())
+        self.role_terminations = tuple(role_terminations or ())
         self.approval_requests = tuple(approval_requests or ())
         self.approvals = tuple(approvals or ())
-
         deactivation_ids = {item.deactivation_id for item in self.deactivations}
         seen_targets: set[str] = set()
         for request in self.approval_requests:
@@ -68,20 +62,8 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         ]
         if not matching:
             if risk_class in {"high", "critical"}:
-                return {
-                    "status": "approval_missing",
-                    "effective": False,
-                    "post_review_required": False,
-                    "request": None,
-                    "read_only": True,
-                }
-            return {
-                "status": "approved_not_required",
-                "effective": True,
-                "post_review_required": False,
-                "request": None,
-                "read_only": True,
-            }
+                return {"status": "approval_missing", "effective": False, "post_review_required": False, "request": None, "read_only": True}
+            return {"status": "approved_not_required", "effective": True, "post_review_required": False, "request": None, "read_only": True}
         request = matching[0]
         if request.risk_class != risk_class:
             raise ValueError("deactivation risk_class does not match approval request")
@@ -99,7 +81,6 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         current = at or datetime.now(timezone.utc)
         if current.tzinfo is None:
             raise ValueError("deactivation approval evaluation time must include timezone")
-
         effective_deactivations = []
         blocked_deactivations = []
         pending_post_reviews = []
@@ -115,11 +96,11 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
                     pending_post_reviews.append(item.deactivation_id)
             else:
                 blocked_deactivations.append({"deactivation": item.as_dict(), "approval": approval})
-
         lifecycle = ProjectOSProjectRoleLifecycleEvaluator(
             roles=self.roles,
             activations=self.activations,
             deactivations=effective_deactivations,
+            role_terminations=self.role_terminations,
         )
         state = lifecycle.state(project_id=project_id, user=user, scope=scope, at=current)
         state.update({
@@ -145,16 +126,14 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         state = self.state(project_id=project_id, user=user, scope=scope, at=current, risk_class=risk_class)
         effective_deactivation_ids = {
             item["deactivation"]["deactivation_id"]
-            for item in state["approval_states"]
-            if item["approval"]["effective"]
+            for item in state["approval_states"] if item["approval"]["effective"]
         }
-        effective_deactivations = [
-            item for item in self.deactivations if item.deactivation_id in effective_deactivation_ids
-        ]
+        effective_deactivations = [item for item in self.deactivations if item.deactivation_id in effective_deactivation_ids]
         return ProjectOSProjectRoleLifecycleEvaluator(
             roles=self.roles,
             activations=self.activations,
             deactivations=effective_deactivations,
+            role_terminations=self.role_terminations,
         ).permission_assignments(
             project_id=project_id,
             user=user,
