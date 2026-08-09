@@ -9,6 +9,7 @@ from .projectos_authorization import ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
+from .projectos_role_assignment_termination_approval import ProjectOSApprovedRoleAssignmentTerminationEvaluator
 from .projectos_user_management_change_service import ProjectOSUserManagementChangeService
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 from .projectos_user_management_persistence import ProjectOSUserManagementState
@@ -48,7 +49,7 @@ def test_role_assignment_termination_is_effective_from_ended_at_and_keeps_role_h
     assert after["terminated_roles"][0]["termination"]["termination_id"] == termination.termination_id
 
 
-def test_approved_high_risk_activation_loses_permission_after_assignment_termination():
+def test_approved_high_risk_activation_loses_permission_only_after_termination_approval():
     project_id = str(uuid4())
     principal = ProjectOSUserProfile("Projektleitung")
     user = ProjectOSUserProfile("Stellvertretung")
@@ -60,7 +61,7 @@ def test_approved_high_risk_activation_loses_permission_after_assignment_termina
         user_id=user.user_id,
         reason="absence",
     )
-    request = ProjectOSRoleActionApprovalRequest(
+    activation_request = ProjectOSRoleActionApprovalRequest(
         project_id=project_id,
         action_type="activation",
         target_reference=activation.activation_id,
@@ -68,8 +69,8 @@ def test_approved_high_risk_activation_loses_permission_after_assignment_termina
         risk_class="high",
         requested_at="2026-08-09T10:00:00+00:00",
     )
-    approval = ProjectOSRoleActionApproval(
-        action_id=request.action_id,
+    activation_approval = ProjectOSRoleActionApproval(
+        action_id=activation_request.action_id,
         approver_user_id=approver.user_id,
         decision="approve",
         decided_at="2026-08-09T10:01:00+00:00",
@@ -83,34 +84,87 @@ def test_approved_high_risk_activation_loses_permission_after_assignment_termina
         ended_by_user_id=principal.user_id,
         reason="Stellvertretungsauftrag beendet",
     )
-    evaluator = ProjectOSApprovedRoleActivationEvaluator(
+
+    pending_evaluator = ProjectOSApprovedRoleActivationEvaluator(
         roles=[role],
         activations=[activation],
         role_terminations=[termination],
-        approval_requests=[request],
-        approvals=[approval],
+        approval_requests=[activation_request],
+        approvals=[activation_approval],
         risk_class_map={"deputy": "high"},
     )
-
-    before = evaluator.permission_assignments(
+    before = pending_evaluator.permission_assignments(
         project_id=project_id,
         user=user,
         permission_map={"deputy": ["project.release"]},
         at=datetime(2026, 8, 9, 11, 59, tzinfo=timezone.utc),
     )
-    after = evaluator.permission_assignments(
+    pending_after = pending_evaluator.permission_assignments(
         project_id=project_id,
         user=user,
         permission_map={"deputy": ["project.release"]},
         at=datetime(2026, 8, 9, 12, 0, tzinfo=timezone.utc),
     )
-    after_state = evaluator.state(
+    pending_state = pending_evaluator.state(
         project_id=project_id,
         user=user,
         at=datetime(2026, 8, 9, 12, 0, tzinfo=timezone.utc),
     )
 
     assert len(before) == 1
+    assert len(pending_after) == 1
+    assert pending_state["terminated_assigned_roles"] == []
+    assert pending_state["role_assignment_termination_approvals"]["blocked_terminations"][0]["approval"]["status"] == "approval_missing"
+
+    termination_request = ProjectOSRoleActionApprovalRequest(
+        project_id=project_id,
+        action_type="role_assignment_termination",
+        target_reference=ProjectOSApprovedRoleAssignmentTerminationEvaluator.target_reference(termination.termination_id),
+        requested_by_user_id=principal.user_id,
+        risk_class="high",
+        requested_at="2026-08-09T11:58:00+00:00",
+    )
+    still_pending = ProjectOSApprovedRoleActivationEvaluator(
+        roles=[role],
+        activations=[activation],
+        role_terminations=[termination],
+        approval_requests=[activation_request, termination_request],
+        approvals=[activation_approval],
+        risk_class_map={"deputy": "high"},
+    ).permission_assignments(
+        project_id=project_id,
+        user=user,
+        permission_map={"deputy": ["project.release"]},
+        at=datetime(2026, 8, 9, 12, 0, tzinfo=timezone.utc),
+    )
+    assert len(still_pending) == 1
+
+    termination_approval = ProjectOSRoleActionApproval(
+        action_id=termination_request.action_id,
+        approver_user_id=approver.user_id,
+        decision="approve",
+        decided_at="2026-08-09T11:59:00+00:00",
+    )
+    approved_evaluator = ProjectOSApprovedRoleActivationEvaluator(
+        roles=[role],
+        activations=[activation],
+        role_terminations=[termination],
+        approval_requests=[activation_request, termination_request],
+        approvals=[activation_approval, termination_approval],
+        risk_class_map={"deputy": "high"},
+    )
+    after = approved_evaluator.permission_assignments(
+        project_id=project_id,
+        user=user,
+        permission_map={"deputy": ["project.release"]},
+        at=datetime(2026, 8, 9, 12, 0, tzinfo=timezone.utc),
+    )
+    after_state = approved_evaluator.state(
+        project_id=project_id,
+        user=user,
+        at=datetime(2026, 8, 9, 12, 0, tzinfo=timezone.utc),
+    )
+
     assert after == ()
     assert len(after_state["terminated_assigned_roles"]) == 1
 
