@@ -17,6 +17,7 @@ _ALLOWED_VIEWS = {
     "recovery",
     "approval_trace",
     "user_management_persistence",
+    "user_management_consistency",
 }
 
 
