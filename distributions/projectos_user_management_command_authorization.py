@@ -3,7 +3,8 @@
 Der Autorisierer verändert keinen Fachzustand. Er bewertet den expliziten Command-Akteur
 gegen persistierte Rechtezuweisungen und optional gegen Rechte aus wirksam aktivierten,
 freigegebenen Projektfunktionen. Vier-Augen-Wirksamkeit wird dabei nicht nachgebaut,
-sondern über die bestehenden Approval-Evaluatoren übernommen.
+sondern über die bestehenden Approval-Evaluatoren übernommen. Explizite Rechtewiderrufe
+beenden die Wirksamkeit persistierter Zuweisungen zeitabhängig.
 """
 from __future__ import annotations
 
@@ -233,10 +234,12 @@ class ProjectOSUserManagementCommandAuthorization:
                 "read_only": True,
             }
 
-        direct_assignments = tuple(self.manager.user_management.permission_assignments)
+        state = self.manager.user_management
+        direct_assignments = tuple(state.permission_assignments)
         role_assignments = self._role_assignments(actor, at=at)
         authorization = ProjectOSAuthorizationEvaluator(
-            direct_assignments + role_assignments
+            direct_assignments + role_assignments,
+            state.permission_revocations,
         ).evaluate(
             actor,
             required_permission,
@@ -255,6 +258,7 @@ class ProjectOSUserManagementCommandAuthorization:
             "allowed": authorization["allowed"],
             "effective_sources": authorization["effective_sources"],
             "active_assignment_count": len(authorization["active_assignments"]),
+            "revoked_assignment_count": authorization["revocation_count"],
             "role_derived_assignment_count": len(role_assignments),
             "deny_precedence": authorization["deny_precedence"],
             "weight_used_for_decision": authorization["weight_used_for_decision"],
