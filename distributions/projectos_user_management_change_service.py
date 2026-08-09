@@ -11,6 +11,7 @@ from typing import Any, Callable
 from uuid import uuid4
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
+from .projectos_permission_revocation import ProjectOSPermissionRevocation
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
@@ -65,6 +66,7 @@ class ProjectOSUserManagementChangeService:
             "project_id": current.project_id,
             "users": current.users,
             "permission_assignments": current.permission_assignments,
+            "permission_revocations": current.permission_revocations,
             "project_roles": current.project_roles,
             "activations": current.activations,
             "deactivations": current.deactivations,
@@ -93,6 +95,12 @@ class ProjectOSUserManagementChangeService:
         matches = [item for item in self.state.users if item.user_id == user_id]
         if len(matches) != 1:
             raise ValueError("unknown user_id")
+        return matches[0]
+
+    def _permission(self, assignment_id: str) -> ProjectOSPermissionAssignment:
+        matches = [item for item in self.state.permission_assignments if item.assignment_id == assignment_id]
+        if len(matches) != 1:
+            raise ValueError("unknown assignment_id")
         return matches[0]
 
     def _role(self, role_assignment_id: str) -> ProjectOSUserProjectRole:
@@ -192,6 +200,53 @@ class ProjectOSUserManagementChangeService:
             kwargs["assignment_id"] = assignment_id
         return self.assign_permission(
             ProjectOSPermissionAssignment(**kwargs),
+            command_context=command_context,
+        )
+
+    def revoke_permission(
+        self,
+        revocation: ProjectOSPermissionRevocation,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSPermissionRevocation:
+        self._commit(
+            "permission_revoked",
+            command_context=command_context,
+            permission_revocations=self.state.permission_revocations + (revocation,),
+        )
+        return revocation
+
+    def command_revoke_permission(
+        self,
+        *,
+        assignment_id: str,
+        revoked_at: str,
+        revoked_by_user_id: str,
+        reason: str,
+        source_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        revocation_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSPermissionRevocation:
+        assignment = self._permission(assignment_id)
+        self._user(revoked_by_user_id)
+        if any(item.assignment_id == assignment.assignment_id for item in self.state.permission_revocations):
+            raise ValueError("permission assignment already revoked")
+        kwargs: dict[str, Any] = {
+            "assignment_id": assignment.assignment_id,
+            "project_id": self.state.project_id,
+            "user_id": assignment.user_id,
+            "scope": assignment.scope,
+            "revoked_at": revoked_at,
+            "revoked_by_user_id": revoked_by_user_id,
+            "reason": reason,
+            "source_reference": source_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if revocation_id is not None:
+            kwargs["revocation_id"] = revocation_id
+        return self.revoke_permission(
+            ProjectOSPermissionRevocation(**kwargs),
             command_context=command_context,
         )
 
