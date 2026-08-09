@@ -37,6 +37,9 @@ jobs:
       - name: Run complete test suite
         run: python -m pytest -q
 
+      - name: Run Python syntax check
+        run: python -W error::SyntaxWarning -m compileall -q distributions tests tools
+
       - name: Run Z_ quality release profile
         run: |
           python -m tools.quality.run_quality \
