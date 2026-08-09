@@ -30,6 +30,7 @@ class ZCockpitUserManagementCommandDiagnosticsView:
         blocked = bool(authorization is not None and not authorization.get("allowed", False))
         decision = authorization.get("decision") if authorization is not None else None
         deny_blocked = decision == "deny"
+        revoked_assignment_count = authorization.get("revoked_assignment_count", 0) if authorization is not None else 0
         traffic_light = "yellow" if blocked else "green"
 
         return {
@@ -45,6 +46,8 @@ class ZCockpitUserManagementCommandDiagnosticsView:
             "scope": authorization.get("scope") if authorization is not None else self.runtime.policy.scope,
             "effective_sources": list(authorization.get("effective_sources", ())) if authorization is not None else [],
             "role_derived_assignment_count": authorization.get("role_derived_assignment_count", 0) if authorization is not None else 0,
+            "revoked_assignment_count": revoked_assignment_count,
+            "revocation_blocked": bool(blocked and revoked_assignment_count > 0),
             "deny_precedence": True,
             "deny_blocked": deny_blocked,
             "weight_used_for_decision": False,
@@ -59,7 +62,7 @@ class ZCockpitUserManagementCommandDiagnosticsView:
             "read_only": True,
             "persisted": False,
             "note": (
-                "Die Diagnose zeigt ausschließlich Runtime-Nachweise. Sie ändert weder Rechte, "
-                "Command-Historie noch Audit-/Bus-Daten."
+                "Die Diagnose zeigt ausschließlich Runtime-Nachweise einschließlich wirksamer Rechtewiderrufe. "
+                "Sie ändert weder Rechte, Command-Historie noch Audit-/Bus-Daten."
             ),
         }
