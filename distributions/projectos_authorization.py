@@ -1,8 +1,9 @@
 """Konservativer read-only Autorisierungsvertrag für ProjectOS.
 
-Die Benutzergewichtung ist sichtbar und validiert, beeinflusst aber noch keine
+Die Benutzergewichtung ist sichtbar und validiert, beeinflusst aber keine
 Rechteentscheidung. Explizite DENY-Regeln haben Vorrang vor ALLOW-Regeln.
-Rechtewiderrufe beenden die Wirksamkeit einer Zuweisung, ohne sie historisch zu löschen.
+Rechtewiderrufe und Benutzer-Deaktivierungen beenden Rechtewirkung, ohne historische
+Zuweisungen oder Benutzeridentitäten zu löschen.
 """
 from __future__ import annotations
 
@@ -12,15 +13,10 @@ from typing import Any, Iterable
 from uuid import UUID, uuid4
 
 from .projectos_permission_revocation import ProjectOSPermissionRevocation
+from .projectos_user_deactivation import ProjectOSUserDeactivation
 
 _ALLOWED_SOURCES = {
-    "role",
-    "direct",
-    "delegation",
-    "deny",
-    "exception",
-    "whitelist",
-    "blacklist",
+    "role", "direct", "delegation", "deny", "exception", "whitelist", "blacklist",
 }
 _ALLOWED_EFFECTS = {"allow", "deny"}
 _ALLOWED_RISK_CLASSES = {"low", "medium", "high", "critical"}
@@ -47,8 +43,6 @@ def _timestamp(value: str | None, field_name: str) -> str | None:
 
 @dataclass(frozen=True)
 class ProjectOSUserProfile:
-    """Benutzeridentität mit sichtbarer, noch nicht entscheidender Gewichtung."""
-
     display_name: str
     weight: int = 100
     user_id: str = field(default_factory=lambda: str(uuid4()))
@@ -69,18 +63,13 @@ class ProjectOSUserProfile:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "user_id": self.user_id,
-            "display_name": self.display_name,
-            "weight": self.weight,
-            "roles": list(self.roles),
-            "weight_affects_authorization": False,
+            "user_id": self.user_id, "display_name": self.display_name, "weight": self.weight,
+            "roles": list(self.roles), "weight_affects_authorization": False,
         }
 
 
 @dataclass(frozen=True)
 class ProjectOSPermissionAssignment:
-    """Explizite Herkunft einer Berechtigung oder Sperre."""
-
     user_id: str
     permission: str
     source_type: str
@@ -141,18 +130,11 @@ class ProjectOSPermissionAssignment:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "assignment_id": self.assignment_id,
-            "user_id": self.user_id,
-            "permission": self.permission,
-            "source_type": self.source_type,
-            "effect": self.effect,
-            "scope": self.scope,
-            "risk_class": self.risk_class,
-            "valid_from": self.valid_from,
-            "valid_until": self.valid_until,
-            "source_reference": self.source_reference,
-            "delegated_by_user_id": self.delegated_by_user_id,
-            "metadata": dict(self.metadata),
+            "assignment_id": self.assignment_id, "user_id": self.user_id,
+            "permission": self.permission, "source_type": self.source_type, "effect": self.effect,
+            "scope": self.scope, "risk_class": self.risk_class, "valid_from": self.valid_from,
+            "valid_until": self.valid_until, "source_reference": self.source_reference,
+            "delegated_by_user_id": self.delegated_by_user_id, "metadata": dict(self.metadata),
         }
 
 
@@ -163,9 +145,11 @@ class ProjectOSAuthorizationEvaluator:
         self,
         assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
         revocations: Iterable[ProjectOSPermissionRevocation] | None = None,
+        user_deactivations: Iterable[ProjectOSUserDeactivation] | None = None,
     ) -> None:
         self._assignments = tuple(assignments or ())
         self._revocations = tuple(revocations or ())
+        self._user_deactivations = tuple(user_deactivations or ())
 
     def evaluate(
         self,
@@ -176,52 +160,57 @@ class ProjectOSAuthorizationEvaluator:
         at: datetime | None = None,
     ) -> dict[str, Any]:
         current = at or datetime.now(timezone.utc)
-        if current.tzinfo is None:
+        if current.tzinfo is None or current.utcoffset() is None:
             raise ValueError("authorization evaluation time must include timezone")
+        current = current.astimezone(timezone.utc)
         candidates = [
             item for item in self._assignments
-            if item.user_id == user.user_id
-            and item.permission == permission
-            and item.scope == scope
+            if item.user_id == user.user_id and item.permission == permission and item.scope == scope
         ]
+        relevant_deactivations = [
+            item for item in self._user_deactivations
+            if item.user_id == user.user_id and item.is_effective(current)
+        ]
+        if len(relevant_deactivations) > 1:
+            raise ValueError("multiple effective user deactivations are ambiguous")
+        user_deactivation = relevant_deactivations[0] if relevant_deactivations else None
         revocation_by_assignment = {
             item.assignment_id: item
             for item in self._revocations
-            if item.user_id == user.user_id
-            and item.scope == scope
-            and item.is_effective(current)
+            if item.user_id == user.user_id and item.scope == scope and item.is_effective(current)
         }
         revoked = [item for item in candidates if item.assignment_id in revocation_by_assignment]
-        active = [
-            item for item in candidates
-            if item.is_active(current) and item.assignment_id not in revocation_by_assignment
-        ]
+        if user_deactivation is not None:
+            active: list[ProjectOSPermissionAssignment] = []
+        else:
+            active = [
+                item for item in candidates
+                if item.is_active(current) and item.assignment_id not in revocation_by_assignment
+            ]
         inactive = [item for item in candidates if item not in active]
         denies = [item for item in active if item.effect == "deny"]
         allows = [item for item in active if item.effect == "allow"]
-        allowed = bool(allows) and not denies
-        decision = "deny" if denies else "allow" if allows else "not_granted"
+        if user_deactivation is not None:
+            allowed = False
+            decision = "user_deactivated"
+        else:
+            allowed = bool(allows) and not denies
+            decision = "deny" if denies else "allow" if allows else "not_granted"
         return {
-            "user": user.as_dict(),
-            "permission": permission,
-            "scope": scope,
-            "evaluated_at": current.astimezone(timezone.utc).isoformat(),
-            "decision": decision,
-            "allowed": allowed,
-            "effective_sources": [item.as_dict() for item in (denies or allows)],
+            "user": user.as_dict(), "permission": permission, "scope": scope,
+            "evaluated_at": current.isoformat(), "decision": decision, "allowed": allowed,
+            "effective_sources": [item.as_dict() for item in (denies or allows)] if user_deactivation is None else [],
             "active_assignments": [item.as_dict() for item in active],
             "inactive_assignments": [item.as_dict() for item in inactive],
             "revoked_assignments": [
-                {
-                    "assignment": item.as_dict(),
-                    "revocation": revocation_by_assignment[item.assignment_id].as_dict(),
-                }
+                {"assignment": item.as_dict(), "revocation": revocation_by_assignment[item.assignment_id].as_dict()}
                 for item in revoked
             ],
             "revocation_count": len(revoked),
-            "deny_precedence": True,
-            "weight_used_for_decision": False,
-            "read_only": True,
+            "user_deactivated": user_deactivation is not None,
+            "user_deactivation": user_deactivation.as_dict() if user_deactivation is not None else None,
+            "user_deactivation_count": 1 if user_deactivation is not None else 0,
+            "deny_precedence": True, "weight_used_for_decision": False, "read_only": True,
         }
 
     def simulate(
@@ -237,11 +226,11 @@ class ProjectOSAuthorizationEvaluator:
         simulated = ProjectOSAuthorizationEvaluator(
             self._assignments + tuple(hypothetical_assignments or ()),
             self._revocations,
+            self._user_deactivations,
         ).evaluate(user, permission, scope=scope, at=at)
         return {
-            "baseline": baseline,
-            "simulated": simulated,
+            "baseline": baseline, "simulated": simulated,
             "decision_changed": baseline["decision"] != simulated["decision"],
             "read_only": True,
-            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen oder Widerrufe.",
+            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen, Widerrufe oder Benutzer-Deaktivierungen.",
         }
