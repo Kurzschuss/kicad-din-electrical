@@ -11,6 +11,7 @@ from .z_cockpit_navigation import ZCockpitNavigationTarget
 from .z_cockpit_navigation_context import ZCockpitNavigationContext
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
+from .z_cockpit_role_approval_trace import ZCockpitRoleApprovalTraceView
 
 
 class ZCockpitNavigationResolver:
@@ -52,6 +53,7 @@ class ZCockpitNavigationResolver:
             "knowledge_path": self._knowledge_path,
             "knowledge_origin": self._knowledge_origin,
             "recovery": self._recovery,
+            "approval_trace": self._approval_trace,
         }
         payload = handlers[target.view](target)
         return {
@@ -158,3 +160,16 @@ class ZCockpitNavigationResolver:
         if target.recovery_path is not None and state.get("path") != target.recovery_path:
             raise ValueError("recovery navigation path does not match current recovery")
         return state
+
+    def _approval_trace(self, target: ZCockpitNavigationTarget) -> dict[str, Any]:
+        if target.correlation_id is None:
+            raise ValueError("approval_trace navigation requires correlation_id")
+        action_id = target.metadata.get("action_id")
+        return ZCockpitRoleApprovalTraceView(
+            messages=self.messages,
+            audit_entries=self.manager.sync_log.export(),
+        ).state(
+            project_id=self.manager.project_id,
+            correlation_id=target.correlation_id,
+            action_id=action_id,
+        )
