@@ -83,7 +83,10 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Gesamtfortschritt" in html
     assert "Bibliotheken" in html
     assert 'id="page-bibliotheken"' in html
-    assert 'class="cards library-summary"' in html
+    assert 'class="cards library-summary"' not in html
+    assert 'class="library-page-title"' in html
+    assert 'id="library-filter-name"' in html
+    assert 'id="library-filter-preview"' in html
     assert 'class="library-card"' in html
     assert 'class="library-table"' in html
     assert "Gerätezuordnungen" in html
@@ -126,9 +129,9 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Hersteller" in html
     assert "Charakteristik" in html
     assert "generic.mcb-1p-b16-template" in html
-    assert '"symbol_preview_url": "symbol-previews/Z_MCB/MCB.svg"' in html
-    assert '"symbol_preview_available": true' in html
-    assert '"footprint_preview_status"' in html
+    assert '\"symbol_preview_url\": \"symbol-previews/Z_MCB/MCB.svg\"' in html
+    assert '\"symbol_preview_available\": true' in html
+    assert '\"footprint_preview_status\"' in html
     assert 'id="symbol-preview"' in html
     assert 'id="footprint-preview"' in html
     assert 'alt="Symbolvorschau ${item.symbol}"' in html
