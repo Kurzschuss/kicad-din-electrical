@@ -41,6 +41,7 @@ class ZCockpitUserManagementPersistenceView:
         counts = {
             "users": len(user_management.users),
             "permission_assignments": len(user_management.permission_assignments),
+            "permission_revocations": len(user_management.permission_revocations),
             "project_roles": len(user_management.project_roles),
             "activations": len(user_management.activations),
             "deactivations": len(user_management.deactivations),
@@ -63,9 +64,9 @@ class ZCockpitUserManagementPersistenceView:
             "derived_not_persisted": list(DERIVED_NOT_PERSISTED),
             "derived_not_persisted_count": len(DERIVED_NOT_PERSISTED),
             "note": (
-                "Persistiert werden ausschließlich fachliche Benutzer-, Rechte-, Rollen-, Aktivierungs-, "
-                "Rückgabe-, Freigabe- und Nachprüfungsdaten. Evaluator-Ergebnisse, Simulationen und "
-                "Z_Cockpit-Ableitungen werden reproduzierbar neu gebildet und nicht gespeichert."
+                "Persistiert werden ausschließlich fachliche Benutzer-, Rechte-, Rechtewiderrufs-, Rollen-, "
+                "Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten. Evaluator-Ergebnisse, Simulationen "
+                "und Z_Cockpit-Ableitungen werden reproduzierbar neu gebildet und nicht gespeichert."
             ),
             "read_only": True,
         }
