@@ -47,9 +47,10 @@ Die Symbolbibliotheken liegen direkt unter `symbols/`.
 - `Z_MAIN_SWITCH.kicad_sym` — 1 Symbol(e)
   - Footprintbibliothek: `Z_MAIN_SWITCH.pretty` mit 0 Footprint(s)
   - Symbol: `MAIN_SWITCH`
-- `Z_MCB.kicad_sym` — 1 Symbol(e)
+- `Z_MCB.kicad_sym` — 2 Symbol(e)
   - Footprintbibliothek: `Z_MCB.pretty` mit 0 Footprint(s)
   - Symbol: `MCB`
+  - Symbol: `MCB_3P`
 - `Z_MCB_single_pole.kicad_sym` — vorbereitet, noch leer
   - Footprintbibliothek: `Z_MCB_single_pole.pretty` mit 0 Footprint(s)
 - `Z_MOTOR_PROTECT.kicad_sym` — vorbereitet, noch leer

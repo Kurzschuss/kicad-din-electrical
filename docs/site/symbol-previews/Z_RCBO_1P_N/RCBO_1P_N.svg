@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
   <title>Z_RCBO_1P_N: RCBO_1P_N</title>
   <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
-  <rect x="89.52" y="59.52" width="60.96" height="60.96" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="74.76" x2="89.52" y2="74.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="105.24" x2="89.52" y2="105.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="74.76" x2="150.48" y2="74.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="105.24" x2="150.48" y2="105.24" stroke="currentColor" stroke-width="2"/>
+  <rect x="89.52" y="47.52" width="60.96" height="60.96" fill="none" stroke="currentColor" stroke-width="2"/>
+  <line x1="59.04" y1="62.76" x2="89.52" y2="62.76" stroke="currentColor" stroke-width="2"/>
+  <line x1="59.04" y1="93.24" x2="89.52" y2="93.24" stroke="currentColor" stroke-width="2"/>
+  <line x1="180.96" y1="62.76" x2="150.48" y2="62.76" stroke="currentColor" stroke-width="2"/>
+  <line x1="180.96" y1="93.24" x2="150.48" y2="93.24" stroke="currentColor" stroke-width="2"/>
   <text x="120" y="164" text-anchor="middle" font-size="12">RCBO_1P_N</text>
 </svg>

@@ -1,9 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
   <title>Z_RCD_Distribution_Bus_4P: RCD_Distribution_Bus_4P</title>
   <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
-  <line x1="-1.92" y1="44.28" x2="28.56" y2="44.28" stroke="currentColor" stroke-width="2"/>
-  <line x1="-1.92" y1="74.76" x2="28.56" y2="74.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="-1.92" y1="105.24" x2="28.56" y2="105.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="-1.92" y1="135.72" x2="28.56" y2="135.72" stroke="currentColor" stroke-width="2"/>
+  <polyline points="49.29,35.57 219.00,35.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="49.29,63.86 219.00,63.86" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="49.29,92.14 219.00,92.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="49.29,120.43 219.00,120.43" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="21.00" y1="35.57" x2="49.29" y2="35.57" stroke="currentColor" stroke-width="2"/>
+  <line x1="21.00" y1="63.86" x2="49.29" y2="63.86" stroke="currentColor" stroke-width="2"/>
+  <line x1="21.00" y1="92.14" x2="49.29" y2="92.14" stroke="currentColor" stroke-width="2"/>
+  <line x1="21.00" y1="120.43" x2="49.29" y2="120.43" stroke="currentColor" stroke-width="2"/>
   <text x="120" y="164" text-anchor="middle" font-size="12">RCD_Distribution_Bus_4P</text>
 </svg>
