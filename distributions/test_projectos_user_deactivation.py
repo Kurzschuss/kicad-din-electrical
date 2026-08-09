@@ -45,6 +45,7 @@ def test_user_deactivation_is_time_effective_and_preserves_direct_permission_his
         manager.user_management.permission_assignments,
         manager.user_management.permission_revocations,
         manager.user_management.user_deactivations,
+        manager.user_management.user_reactivations,
     )
 
     before = evaluator.evaluate(user, "project.release", at=BEFORE)
@@ -63,6 +64,7 @@ def test_user_deactivation_is_time_effective_and_preserves_direct_permission_his
         manager.user_management.permission_assignments,
         manager.user_management.permission_revocations,
         manager.user_management.user_deactivations,
+        manager.user_management.user_reactivations,
     ).state("project.release", at=AFTER)
     assert cockpit["decision"] == "user_deactivated"
     assert cockpit["user_deactivated"] is True
@@ -192,7 +194,7 @@ def test_secured_deactivation_actor_must_match_command_actor():
     assert manager.sync_log.entries == []
 
 
-def test_user_deactivation_persistence_v3_and_legacy_v2_compatibility(tmp_path):
+def test_user_deactivation_persistence_v4_and_legacy_v2_compatibility(tmp_path):
     manager = DinEditorProjectManager()
     bootstrap = ProjectOSUserManagementChangeService(manager)
     admin = bootstrap.create_user("Admin")
@@ -204,13 +206,16 @@ def test_user_deactivation_persistence_v3_and_legacy_v2_compatibility(tmp_path):
         reason="Offboarding",
     )
     path = manager.save(tmp_path / "user-deactivation.json")
-    loaded = DinEditorProjectManager(); loaded.load(path)
+    loaded = DinEditorProjectManager()
+    loaded.load(path)
 
-    assert loaded.user_management.as_dict()["version"] == 3
+    assert loaded.user_management.as_dict()["version"] == 4
     assert loaded.user_management.users[1].user_id == user.user_id
     assert loaded.user_management.user_deactivations[0].deactivation_id == deactivation.deactivation_id
+    assert loaded.user_management.user_reactivations == ()
     persistence = ZCockpitUserManagementPersistenceView(loaded).state()
     assert persistence["persisted_counts"]["user_deactivations"] == 1
+    assert persistence["persisted_counts"]["user_reactivations"] == 0
     lifecycle = ZCockpitUserLifecycleView(loaded).state(at=AFTER)
     assert lifecycle["deactivated_user_count"] == 1
     assert lifecycle["deactivated_users"][0]["user"]["user_id"] == user.user_id
@@ -218,12 +223,14 @@ def test_user_deactivation_persistence_v3_and_legacy_v2_compatibility(tmp_path):
     legacy = manager.user_management.as_dict()
     legacy["version"] = 2
     legacy.pop("user_deactivations", None)
+    legacy.pop("user_reactivations", None)
     migrated = ProjectOSUserManagementState.from_dict(legacy)
     assert migrated.user_deactivations == ()
-    assert migrated.as_dict()["version"] == 3
+    assert migrated.user_reactivations == ()
+    assert migrated.as_dict()["version"] == 4
 
 
-def test_duplicate_user_deactivation_is_rejected_without_deleting_identity():
+def test_second_deactivation_without_reactivation_is_rejected_without_deleting_identity():
     manager = DinEditorProjectManager()
     bootstrap = ProjectOSUserManagementChangeService(manager)
     admin = bootstrap.create_user("Admin")
@@ -234,7 +241,7 @@ def test_duplicate_user_deactivation_is_rejected_without_deleting_identity():
         deactivated_by_user_id=admin.user_id,
         reason="Erste Deaktivierung",
     )
-    with pytest.raises(ValueError, match="user already deactivated"):
+    with pytest.raises(ValueError, match="cannot deactivate an already deactivated user"):
         bootstrap.command_deactivate_user(
             user_id=user.user_id,
             deactivated_at="2026-08-09T13:00:00+00:00",
