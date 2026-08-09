@@ -57,6 +57,30 @@ class ProjectOSUserManagementChangeService:
             self.on_change(dict(event))
         return candidate
 
+    def _user(self, user_id: str) -> ProjectOSUserProfile:
+        matches = [item for item in self.state.users if item.user_id == user_id]
+        if len(matches) != 1:
+            raise ValueError("unknown user_id")
+        return matches[0]
+
+    def _role(self, role_assignment_id: str) -> ProjectOSUserProjectRole:
+        matches = [item for item in self.state.project_roles if item.role_assignment_id == role_assignment_id]
+        if len(matches) != 1:
+            raise ValueError("unknown role_assignment_id")
+        return matches[0]
+
+    def _activation(self, activation_id: str) -> ProjectOSProjectRoleActivation:
+        matches = [item for item in self.state.activations if item.activation_id == activation_id]
+        if len(matches) != 1:
+            raise ValueError("unknown activation_id")
+        return matches[0]
+
+    def _request(self, action_id: str) -> ProjectOSRoleActionApprovalRequest:
+        matches = [item for item in self.state.approval_requests if item.action_id == action_id]
+        if len(matches) != 1:
+            raise ValueError("unknown action_id")
+        return matches[0]
+
     def create_user(
         self,
         display_name: str,
@@ -88,26 +112,230 @@ class ProjectOSUserManagementChangeService:
         )
         return assignment
 
+    def command_assign_permission(
+        self,
+        *,
+        user_id: str,
+        permission: str,
+        source_type: str,
+        effect: str,
+        scope: str = "project",
+        risk_class: str = "low",
+        valid_from: str | None = None,
+        valid_until: str | None = None,
+        source_reference: str | None = None,
+        delegated_by_user_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        assignment_id: str | None = None,
+    ) -> ProjectOSPermissionAssignment:
+        self._user(user_id)
+        kwargs: dict[str, Any] = {
+            "user_id": user_id,
+            "permission": permission,
+            "source_type": source_type,
+            "effect": effect,
+            "scope": scope,
+            "risk_class": risk_class,
+            "valid_from": valid_from,
+            "valid_until": valid_until,
+            "source_reference": source_reference,
+            "delegated_by_user_id": delegated_by_user_id,
+            "metadata": dict(metadata or {}),
+        }
+        if assignment_id is not None:
+            kwargs["assignment_id"] = assignment_id
+        return self.assign_permission(ProjectOSPermissionAssignment(**kwargs))
+
     def assign_project_role(self, role: ProjectOSUserProjectRole) -> ProjectOSUserProjectRole:
         self._commit("project_role_assigned", project_roles=self.state.project_roles + (role,))
         return role
+
+    def command_assign_project_role(
+        self,
+        *,
+        user_id: str,
+        role_type: str,
+        scope: str = "project",
+        valid_from: str | None = None,
+        valid_until: str | None = None,
+        assigned_by_user_id: str | None = None,
+        source_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        role_assignment_id: str | None = None,
+    ) -> ProjectOSUserProjectRole:
+        self._user(user_id)
+        if assigned_by_user_id is not None:
+            self._user(assigned_by_user_id)
+        kwargs: dict[str, Any] = {
+            "project_id": self.state.project_id,
+            "user_id": user_id,
+            "role_type": role_type,
+            "scope": scope,
+            "valid_from": valid_from,
+            "valid_until": valid_until,
+            "assigned_by_user_id": assigned_by_user_id,
+            "source_reference": source_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if role_assignment_id is not None:
+            kwargs["role_assignment_id"] = role_assignment_id
+        return self.assign_project_role(ProjectOSUserProjectRole(**kwargs))
 
     def activate_project_role(self, activation: ProjectOSProjectRoleActivation) -> ProjectOSProjectRoleActivation:
         self._commit("project_role_activated", activations=self.state.activations + (activation,))
         return activation
 
+    def command_activate_project_role(
+        self,
+        *,
+        role_assignment_id: str,
+        reason: str,
+        valid_from: str | None = None,
+        valid_until: str | None = None,
+        triggered_by_user_id: str | None = None,
+        trigger_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        activation_id: str | None = None,
+    ) -> ProjectOSProjectRoleActivation:
+        role = self._role(role_assignment_id)
+        if triggered_by_user_id is not None:
+            self._user(triggered_by_user_id)
+        kwargs: dict[str, Any] = {
+            "project_id": self.state.project_id,
+            "role_assignment_id": role.role_assignment_id,
+            "user_id": role.user_id,
+            "reason": reason,
+            "scope": role.scope,
+            "valid_from": valid_from,
+            "valid_until": valid_until,
+            "triggered_by_user_id": triggered_by_user_id,
+            "trigger_reference": trigger_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if activation_id is not None:
+            kwargs["activation_id"] = activation_id
+        return self.activate_project_role(ProjectOSProjectRoleActivation(**kwargs))
+
     def deactivate_project_role(self, deactivation: ProjectOSProjectRoleDeactivation) -> ProjectOSProjectRoleDeactivation:
         self._commit("project_role_deactivated", deactivations=self.state.deactivations + (deactivation,))
         return deactivation
+
+    def command_deactivate_project_role(
+        self,
+        *,
+        activation_id: str,
+        reason: str,
+        ended_at: str,
+        triggered_by_user_id: str | None = None,
+        trigger_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        deactivation_id: str | None = None,
+    ) -> ProjectOSProjectRoleDeactivation:
+        activation = self._activation(activation_id)
+        if triggered_by_user_id is not None:
+            self._user(triggered_by_user_id)
+        kwargs: dict[str, Any] = {
+            "activation_id": activation.activation_id,
+            "project_id": self.state.project_id,
+            "user_id": activation.user_id,
+            "reason": reason,
+            "ended_at": ended_at,
+            "scope": activation.scope,
+            "triggered_by_user_id": triggered_by_user_id,
+            "trigger_reference": trigger_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if deactivation_id is not None:
+            kwargs["deactivation_id"] = deactivation_id
+        return self.deactivate_project_role(ProjectOSProjectRoleDeactivation(**kwargs))
 
     def request_approval(self, request: ProjectOSRoleActionApprovalRequest) -> ProjectOSRoleActionApprovalRequest:
         self._commit("approval_requested", approval_requests=self.state.approval_requests + (request,))
         return request
 
+    def command_request_approval(
+        self,
+        *,
+        action_type: str,
+        target_reference: str,
+        requested_by_user_id: str,
+        risk_class: str,
+        requested_at: str,
+        scope: str = "project",
+        emergency: bool = False,
+        reason: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        action_id: str | None = None,
+    ) -> ProjectOSRoleActionApprovalRequest:
+        self._user(requested_by_user_id)
+        kwargs: dict[str, Any] = {
+            "project_id": self.state.project_id,
+            "action_type": action_type,
+            "target_reference": target_reference,
+            "requested_by_user_id": requested_by_user_id,
+            "risk_class": risk_class,
+            "requested_at": requested_at,
+            "scope": scope,
+            "emergency": emergency,
+            "reason": reason,
+            "metadata": dict(metadata or {}),
+        }
+        if action_id is not None:
+            kwargs["action_id"] = action_id
+        return self.request_approval(ProjectOSRoleActionApprovalRequest(**kwargs))
+
     def record_approval(self, approval: ProjectOSRoleActionApproval) -> ProjectOSRoleActionApproval:
         self._commit("approval_recorded", approvals=self.state.approvals + (approval,))
         return approval
 
+    def command_record_approval(
+        self,
+        *,
+        action_id: str,
+        approver_user_id: str,
+        decision: str,
+        decided_at: str,
+        comment: str | None = None,
+        approval_id: str | None = None,
+    ) -> ProjectOSRoleActionApproval:
+        self._request(action_id)
+        self._user(approver_user_id)
+        kwargs: dict[str, Any] = {
+            "action_id": action_id,
+            "approver_user_id": approver_user_id,
+            "decision": decision,
+            "decided_at": decided_at,
+            "comment": comment,
+        }
+        if approval_id is not None:
+            kwargs["approval_id"] = approval_id
+        return self.record_approval(ProjectOSRoleActionApproval(**kwargs))
+
     def complete_post_review(self, review: ProjectOSRoleEmergencyPostReview) -> ProjectOSRoleEmergencyPostReview:
         self._commit("post_review_completed", post_reviews=self.state.post_reviews + (review,))
         return review
+
+    def command_complete_post_review(
+        self,
+        *,
+        action_id: str,
+        reviewer_user_id: str,
+        result: str,
+        reviewed_at: str,
+        comment: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        review_id: str | None = None,
+    ) -> ProjectOSRoleEmergencyPostReview:
+        self._request(action_id)
+        self._user(reviewer_user_id)
+        kwargs: dict[str, Any] = {
+            "action_id": action_id,
+            "reviewer_user_id": reviewer_user_id,
+            "result": result,
+            "reviewed_at": reviewed_at,
+            "comment": comment,
+            "metadata": dict(metadata or {}),
+        }
+        if review_id is not None:
+            kwargs["review_id"] = review_id
+        return self.complete_post_review(ProjectOSRoleEmergencyPostReview(**kwargs))
