@@ -5,6 +5,7 @@ import pytest
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_authorization import ProjectOSUserProfile
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
+from .projectos_role_assignment_termination_approval import ProjectOSApprovedRoleAssignmentTerminationEvaluator
 from .projectos_user_management_change_service import ProjectOSUserManagementChangeService
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 from .projectos_user_management_command_policy import ProjectOSUserManagementCommandPolicy
@@ -52,16 +53,26 @@ def test_bundle_roundtrip_preserves_role_assignment_and_termination(tmp_path):
     assert persistence["persisted_counts"]["role_assignment_terminations"] == 1
 
 
-def test_terminated_high_risk_role_no_longer_grants_command_permission():
+def test_high_risk_termination_keeps_command_permission_until_external_approval():
     manager = DinEditorProjectManager()
     bootstrap = ProjectOSUserManagementChangeService(manager)
     security = bootstrap.create_user("Security")
     deputy = bootstrap.create_user("Stellvertretung")
     approver = bootstrap.create_user("Freigabe")
     target = bootstrap.create_user("Ziel", weight=100)
+    for permission in (
+        "project.user_management.role.terminate",
+        "project.user_management.approval.request",
+    ):
+        bootstrap.command_assign_permission(
+            user_id=security.user_id,
+            permission=permission,
+            source_type="direct",
+            effect="allow",
+        )
     bootstrap.command_assign_permission(
-        user_id=security.user_id,
-        permission="project.user_management.role.terminate",
+        user_id=approver.user_id,
+        permission="project.user_management.approval.record",
         source_type="direct",
         effect="allow",
     )
@@ -75,7 +86,7 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
         reason="absence",
         triggered_by_user_id=security.user_id,
     )
-    request = bootstrap.command_request_approval(
+    activation_request = bootstrap.command_request_approval(
         action_type="activation",
         target_reference=activation.activation_id,
         requested_by_user_id=security.user_id,
@@ -83,7 +94,7 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
         requested_at="2026-08-09T09:00:00+00:00",
     )
     bootstrap.command_record_approval(
-        action_id=request.action_id,
+        action_id=activation_request.action_id,
         approver_user_id=approver.user_id,
         decision="approve",
         decided_at="2026-08-09T09:01:00+00:00",
@@ -99,23 +110,49 @@ def test_terminated_high_risk_role_no_longer_grants_command_permission():
     assert before["role_derived_assignment_count"] == 1
     assert before["terminated_granting_role_count"] == 0
 
-    runtime.changes.command_terminate_project_role_assignment(
+    termination = runtime.changes.command_terminate_project_role_assignment(
         role_assignment_id=role.role_assignment_id,
         ended_at="2026-08-09T00:00:00+00:00",
         ended_by_user_id=security.user_id,
         reason="Administrative Rollenzuweisung beendet",
         command_context=_context(security.user_id),
     )
-    trace_count = len(runtime.emitter.traces)
-    audit_count = len(manager.sync_log.entries)
-    history_count = len(runtime.emitter.command_history.all())
 
+    without_approval = runtime.authorization.evaluate("user_weight_changed", _context(deputy.user_id))
+    assert without_approval["allowed"] is True
+    assert without_approval["role_derived_assignment_count"] == 1
+    assert without_approval["terminated_granting_role_count"] == 0
+    assert without_approval["blocked_granting_role_termination_count"] == 1
+
+    termination_request = runtime.changes.command_request_approval(
+        action_type="role_assignment_termination",
+        target_reference=ProjectOSApprovedRoleAssignmentTerminationEvaluator.target_reference(termination.termination_id),
+        requested_by_user_id=security.user_id,
+        risk_class="high",
+        requested_at="2026-08-09T09:02:00+00:00",
+        command_context=_context(security.user_id),
+    )
+    pending = runtime.authorization.evaluate("user_weight_changed", _context(deputy.user_id))
+    assert pending["allowed"] is True
+    assert pending["blocked_granting_role_termination_count"] == 1
+
+    runtime.changes.command_record_approval(
+        action_id=termination_request.action_id,
+        approver_user_id=approver.user_id,
+        decision="approve",
+        decided_at="2026-08-09T09:03:00+00:00",
+        command_context=_context(approver.user_id),
+    )
     after = runtime.authorization.evaluate("user_weight_changed", _context(deputy.user_id))
     assert after["allowed"] is False
     assert after["decision"] == "not_granted"
     assert after["role_derived_assignment_count"] == 0
     assert after["terminated_granting_role_count"] == 1
+    assert after["blocked_granting_role_termination_count"] == 0
 
+    trace_count = len(runtime.emitter.traces)
+    audit_count = len(manager.sync_log.entries)
+    history_count = len(runtime.emitter.command_history.all())
     with pytest.raises(PermissionError, match="not_granted"):
         runtime.changes.change_user_weight(
             target.user_id,
