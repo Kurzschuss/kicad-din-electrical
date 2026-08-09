@@ -4,10 +4,10 @@
   <polyline points="160.67,37.33 160.67,47.50" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="130.17,47.50 160.67,108.50" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="160.67,108.50 160.67,118.67" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-  <polyline points="79.33,78.00 79.33,98.33" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="79.33,67.83 79.33,98.33" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="79.33,88.17 89.50,88.17 99.67,98.33 109.83,88.17 150.50,88.17" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-  <polygon points="109.83,78.00 120.00,67.83 130.17,78.00 109.83,78.00" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-  <polyline points="120.00,78.00 140.33,67.83" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="99.67,78.00 109.83,67.83 109.83,78.00 99.67,78.00" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="109.83,78.00 140.33,67.83" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <line x1="160.67" y1="17.00" x2="160.67" y2="37.33" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
   <text x="149.67" y="22.00" text-anchor="middle" font-size="16" font-weight="600">1</text>
   <line x1="160.67" y1="139.00" x2="160.67" y2="118.67" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
