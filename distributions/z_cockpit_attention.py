@@ -1,8 +1,9 @@
 """Read-only Aufmerksamkeitsblock für die Z_Cockpit-Projektleiteransicht."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterable
 
+from .projectos_role_approval_trace import ProjectOSRoleApprovalTrace
 from .z_cockpit_navigation import ZCockpitNavigationTarget
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 
@@ -10,8 +11,13 @@ from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 class ZCockpitAttentionView:
     """Priorisiert bereits vorhandene Projektleiter-Nachweise ohne neue Wahrheit zu erzeugen."""
 
-    def __init__(self, overview: ZCockpitProjectLeadOverview) -> None:
+    def __init__(
+        self,
+        overview: ZCockpitProjectLeadOverview,
+        approval_traces: Iterable[ProjectOSRoleApprovalTrace] | None = None,
+    ) -> None:
         self.overview = overview
+        self.approval_traces = tuple(approval_traces or ())
 
     def state(self, *, correlation_id: str | None = None) -> dict[str, Any]:
         overview = self.overview.state(correlation_id=correlation_id)
@@ -39,6 +45,58 @@ class ZCockpitAttentionView:
                 "recommended_action": work_item["recommended_action"],
                 "correlation_id": item_correlation_id,
                 "affected": affected,
+                "detail_target": target.as_dict(),
+            })
+
+        for trace in self.approval_traces:
+            request = trace.approval_state.get("request", {})
+            if request.get("project_id") != project_id:
+                continue
+            if correlation_id is not None and trace.correlation_id != correlation_id:
+                continue
+            status = trace.approval_state.get("status")
+            if status not in {"pending_approval", "rejected", "emergency_pending_review"}:
+                continue
+            risk = request.get("risk_class", "low")
+            if status == "emergency_pending_review":
+                code = "APPROVAL_EMERGENCY_POST_REVIEW"
+                traffic_light = "red"
+                priority = 30
+                summary = "Eine Notfall-Rollenaktion ist vorläufig wirksam und benötigt Nachprüfung."
+                action = "Freigabevorgang öffnen, Notfallgrund und Rechtewirkung prüfen und die ausstehende Nachprüfung dokumentieren."
+            elif status == "rejected":
+                code = "APPROVAL_REJECTED"
+                traffic_light = "yellow"
+                priority = 25
+                summary = "Eine angeforderte Rollenaktion wurde abgelehnt und bleibt unwirksam."
+                action = "Freigabevorgang und Ablehnungsgrund prüfen; bei weiterem Bedarf einen neuen fachlich begründeten Vorgang starten."
+            else:
+                code = "APPROVAL_PENDING"
+                traffic_light = "yellow"
+                priority = 25 if risk in {"high", "critical"} else 20
+                summary = "Eine Rollenaktion wartet auf die erforderliche Freigabe."
+                action = "Freigabevorgang öffnen und prüfen, welche zweite Freigabe noch fehlt."
+            target = ZCockpitNavigationTarget(
+                view="approval_trace",
+                project_id=project_id,
+                correlation_id=trace.correlation_id,
+                message_ids=tuple(item.message_id for item in trace.messages),
+                metadata={"action_id": request.get("action_id"), "approval_status": status},
+            )
+            items.append({
+                "source": "approval",
+                "code": code,
+                "traffic_light": traffic_light,
+                "priority": priority,
+                "summary": summary,
+                "recommended_action": action,
+                "correlation_id": trace.correlation_id,
+                "affected": {
+                    "action_id": request.get("action_id"),
+                    "action_type": request.get("action_type"),
+                    "risk_class": risk,
+                    "target_reference": request.get("target_reference"),
+                },
                 "detail_target": target.as_dict(),
             })
 
@@ -104,7 +162,7 @@ class ZCockpitAttentionView:
         return {
             "project_id": project_id,
             "correlation_id": overview["filter"].get("correlation_id"),
-            "traffic_light": overview["traffic_light"],
+            "traffic_light": "red" if any(item["traffic_light"] == "red" for item in items) else overview["traffic_light"],
             "attention_required": bool(items),
             "attention_count": len(items),
             "top_priority": items[0]["priority"] if items else 0,
@@ -112,7 +170,7 @@ class ZCockpitAttentionView:
             "items": items,
             "read_only": True,
             "note": (
-                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Audit- und Recovery-Nachweise. "
-                "Er führt keine Reparatur, Recovery oder fachliche Entscheidung aus."
+                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Freigabe-, Audit- und Recovery-Nachweise. "
+                "Er führt keine Freigabe, Reparatur, Recovery oder fachliche Entscheidung aus."
             ),
         }
