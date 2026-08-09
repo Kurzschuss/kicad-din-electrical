@@ -8,7 +8,7 @@ und Rollenzuweisungs-Beendigungen beenden ihre Rechtewirkung zeitabhängig.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping
 
 from .projectos_approved_role_activation import ProjectOSApprovedRoleActivationEvaluator
@@ -93,10 +93,7 @@ class ProjectOSUserManagementCommandAuthorization:
             raise ValueError("multiple deactivations for one activation are ambiguous")
         deactivation = matching_deactivations[0]
         target = self._deactivation_target(deactivation.deactivation_id)
-        requests = tuple(
-            item for item in state.approval_requests
-            if item.action_type == "deactivation" and item.target_reference == target
-        )
+        requests = tuple(item for item in state.approval_requests if item.action_type == "deactivation" and item.target_reference == target)
         action_ids = {item.action_id for item in requests}
         approvals = tuple(item for item in state.approvals if item.action_id in action_ids)
         roles = tuple(item for item in state.project_roles if item.role_assignment_id == role_assignment_id)
@@ -105,24 +102,14 @@ class ProjectOSUserManagementCommandAuthorization:
             roles=roles,
             activations=activations,
             deactivations=[deactivation],
+            role_terminations=state.role_assignment_terminations,
             approval_requests=requests,
             approvals=approvals,
         )
-        lifecycle = evaluator.state(
-            project_id=state.project_id,
-            user=user,
-            scope=self.scope,
-            at=at,
-            risk_class=risk_class,
-        )
+        lifecycle = evaluator.state(project_id=state.project_id, user=user, scope=self.scope, at=at, risk_class=risk_class)
         return any(item["role_assignment_id"] == role_assignment_id for item in lifecycle["effective_roles"])
 
-    def _role_assignments(
-        self,
-        user: ProjectOSUserProfile,
-        *,
-        at: datetime | None,
-    ) -> tuple[ProjectOSPermissionAssignment, ...]:
+    def _role_assignments(self, user: ProjectOSUserProfile, *, at: datetime | None) -> tuple[ProjectOSPermissionAssignment, ...]:
         if not self.role_permission_map:
             return ()
         state = self.manager.user_management
@@ -135,11 +122,7 @@ class ProjectOSUserManagementCommandAuthorization:
             risk_class_map=self.role_risk_class_map,
         )
         candidates = activation_evaluator.permission_assignments(
-            project_id=state.project_id,
-            user=user,
-            permission_map=self.role_permission_map,
-            scope=self.scope,
-            at=at,
+            project_id=state.project_id, user=user, permission_map=self.role_permission_map, scope=self.scope, at=at
         )
         effective = []
         for assignment in candidates:
@@ -156,6 +139,37 @@ class ProjectOSUserManagementCommandAuthorization:
             ):
                 effective.append(assignment)
         return tuple(effective)
+
+    def _terminated_granting_role_count(
+        self,
+        user: ProjectOSUserProfile,
+        required_permission: str,
+        *,
+        at: datetime | None,
+    ) -> int:
+        granting_role_types = {
+            role_type for role_type, permissions in self.role_permission_map.items()
+            if required_permission in permissions
+        }
+        if not granting_role_types:
+            return 0
+        current = at or datetime.now(timezone.utc)
+        if current.tzinfo is None:
+            raise ValueError("authorization evaluation time must include timezone")
+        state = self.manager.user_management
+        roles = {
+            item.role_assignment_id: item
+            for item in state.project_roles
+            if item.user_id == user.user_id and item.scope == self.scope and item.role_type in granting_role_types
+        }
+        return sum(
+            1 for item in state.role_assignment_terminations
+            if item.role_assignment_id in roles
+            and item.project_id == state.project_id
+            and item.user_id == user.user_id
+            and item.scope == self.scope
+            and item.is_effective(current)
+        )
 
     def evaluate(
         self,
@@ -193,6 +207,7 @@ class ProjectOSUserManagementCommandAuthorization:
             direct_assignments + role_assignments,
             state.permission_revocations,
         ).evaluate(actor, required_permission, scope=self.scope, at=at)
+        terminated_granting_role_count = self._terminated_granting_role_count(actor, required_permission, at=at)
         return {
             "operation": str(operation).strip(),
             "history_action": command_context.history_action,
@@ -207,6 +222,7 @@ class ProjectOSUserManagementCommandAuthorization:
             "active_assignment_count": len(authorization["active_assignments"]),
             "revoked_assignment_count": authorization["revocation_count"],
             "role_derived_assignment_count": len(role_assignments),
+            "terminated_granting_role_count": terminated_granting_role_count,
             "deny_precedence": authorization["deny_precedence"],
             "weight_used_for_decision": authorization["weight_used_for_decision"],
             "read_only": True,
@@ -227,9 +243,5 @@ class ProjectOSUserManagementCommandAuthorization:
             )
         return result
 
-    def __call__(
-        self,
-        operation: str,
-        command_context: ProjectOSUserManagementCommandContext | None,
-    ) -> dict[str, Any]:
+    def __call__(self, operation: str, command_context: ProjectOSUserManagementCommandContext | None) -> dict[str, Any]:
         return self.require(operation, command_context)
