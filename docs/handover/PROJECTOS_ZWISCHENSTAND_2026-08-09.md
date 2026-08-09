@@ -55,48 +55,63 @@ Regeln:
 - Notfall → vorläufig wirksam, `pending_post_reviews` bleibt offen;
 - Rechteherkunft führt `approval_status` und `post_review_required` mit.
 
-## Freigabe in kritische Rückgabe/Beendigung integriert – zuletzt umgesetzt
+## Freigabe in kritische Rückgabe/Beendigung integriert
 
-Neu vorhanden sind:
+`ProjectOSApprovedRoleDeactivationEvaluator` arbeitet ebenfalls fail-closed:
 
-- `ProjectOSApprovedRoleDeactivationEvaluator`
-- `ZCockpitRoleDeactivationApprovalView`
-
-Die Rückgabe ist ebenfalls fail-closed:
-
-- `high`/`critical`-Beendigung ohne Freigabeauftrag wird unter `approval_missing` blockiert; die zugrunde liegende Aktivierung bleibt wirksam;
+- `high`/`critical`-Beendigung ohne Freigabeauftrag bleibt blockiert; die zugrunde liegende Aktivierung bleibt wirksam;
 - eine ausstehende oder abgelehnte Freigabe beendet die Aktivierung nicht;
 - erst eine wirksame externe Freigabe macht die Beendigung wirksam und entzieht die daraus abgeleiteten Rollenrechte;
 - eine Notfall-Beendigung darf vorläufig wirken, wird aber unter `pending_post_reviews` als offene Nachprüfung geführt;
-- Freigabeauftrag und Beendigung werden eindeutig über `deactivation:<deactivation_id>` verknüpft;
-- doppelte Freigabeaufträge für dieselbe Beendigung sowie unbekannte Beendigungsreferenzen werden abgewiesen;
-- Risikoklasse von Rückgabe und Freigabeauftrag muss übereinstimmen;
 - Z_Cockpit zeigt blockierte, freigegebene und Notfall-Rückgaben getrennt und read-only an.
+
+## Audit-/Bus-/Korrelationsnachweis für Freigaben – zuletzt umgesetzt
+
+Neu vorhanden sind:
+
+- `ProjectOSRoleApprovalTrace`
+- `ProjectOSRoleApprovalTraceEmitter`
+
+Der Trace-Dienst erzeugt **keine eigene Freigabeentscheidung**. Er verwendet den bestehenden `ProjectOSRoleActionApprovalEvaluator` als fachliche Wahrheit und bildet dessen Ergebnis nachvollziehbar auf Bus und Audit ab.
+
+Pro Freigabevorgang entsteht eine gemeinsame `correlation_id`. Die Buskette lautet:
+
+1. `projectos.role_action.approval_requested`
+2. optional eine oder mehrere `projectos.role_action.approval_decided`
+3. `projectos.role_action.approval_effectiveness_evaluated`
+
+Die Nachrichten verwenden denselben `project_id`/`correlation_id`-Kontext. Folgeereignisse referenzieren über `causation_id` die auslösende Vorgängernachricht. Fremde Freigaben mit anderer `action_id` werden nicht in den Vorgang aufgenommen.
+
+Parallel erzeugt der Dienst Audit-Einträge für:
+
+- `approval_requested`
+- `approval_decided`
+- `approval_effectiveness_evaluated`
+
+Diese Audit-Einträge tragen ebenfalls `project_id`, `correlation_id` und `causation_id`. Ausstehende Freigaben erzeugen ausdrücklich **kein erfundenes Entscheidungsereignis**. Notfallzustände behalten `emergency_pending_review` und `post_review_required` im Wirksamkeitsnachweis.
 
 Commits dieses Blocks:
 
-- `69c58b71` feat(project): Freigabe in kritische Rollenrückgabe integrieren
-- `ce6717e8` test(project): freigabegesteuerte Rollenrückgabe absichern
-- `73f12841` feat(z-cockpit): freigabegesteuerte Rollenrückgabe anzeigen
-- `ce3655a5` test(z-cockpit): freigabegesteuerte Rollenrückgabe absichern
+- `167357f3` feat(project): Freigaben an Audit und Bus korrelieren
+- `08e53f89` test(project): korrelierte Freigabespuren absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #172, ist für Commit `ce3655a58415e85cafebc0a33c4fe90679e8c922` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #175, ist für Commit `08e53f895d35adba8eacf21d68c448b211a4aa1e` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes Freigabeentscheidungen an Audit/Bus/Korrelation anbinden:
+Als Nächstes die korrelierten Freigabevorgänge in Z_Cockpit nutzbar machen:
 
-1. Freigabeauftrag, Freigabe, Ablehnung und Notfall-Nachprüfung mit `project_id`, `correlation_id` und `causation_id` versehen;
-2. Audit-Einträge für Anforderung und Entscheidung erzeugen;
-3. Z_Cockpit soll vom Aufmerksamkeitspunkt direkt zum Freigabevorgang navigieren können;
-4. Aktivierung/Rückgabe und deren Freigabe im selben Korrelationsvorgang erklären;
-5. read-only Nachweis „wer hat wann was ausgelöst/freigegeben/abgelehnt?“ bereitstellen;
-6. offene Notfall-Nachprüfungen in die Projektleiter-Gesamtübersicht integrieren.
+1. Freigabevorgang als eigene read-only Detailansicht aus Bus/Audit aufbereiten;
+2. „wer hat wann angefordert/freigegeben/abgelehnt?“ samt Kausalkette anzeigen;
+3. Navigation vom Aufmerksamkeitspunkt direkt zum Freigabevorgang ergänzen;
+4. Aktivierung/Rückgabe und Freigabe im selben Vorgang verknüpfen;
+5. offene Notfall-Nachprüfungen in die Projektleiter-Gesamtübersicht und den Aufmerksamkeitsblock integrieren;
+6. danach Korrelations-/Audit-Vertrag für tatsächliche Nachprüfung und Abschluss einer Notfallfreigabe erweitern.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #172. Die Vier-Augen-Freigabe ist fail-closed in Aktivierungen und kritische Beendigungen/Rückgaben integriert. Fahre danach mit Audit/Bus/Korrelation für Freigabeentscheidungen und offenen Notfall-Nachprüfungen fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und offene Notfallnachprüfungen nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #175. Vier-Augen-Freigaben sind fail-closed in Aktivierungen und kritische Rückgaben integriert; Freigabeanforderung, Entscheidung und Wirksamkeit werden inzwischen mit `project_id`, `correlation_id` und `causation_id` auf Bus und Audit nachgewiesen. Fahre danach mit der Z_Cockpit-Freigabevorgangsansicht und offenen Notfall-Nachprüfungen fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und offene Notfallnachprüfungen nicht verlieren.
