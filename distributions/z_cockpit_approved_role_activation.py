@@ -13,6 +13,7 @@ from .projectos_user_project_roles import ProjectOSUserProjectRole
 from .z_cockpit_authorization import ZCockpitAuthorizationView
 
 _STATUS_LABELS = {
+    "risk_not_configured": "Risikoklasse nicht konfiguriert",
     "approval_missing": "Freigabeauftrag fehlt",
     "pending_approval": "Freigabe ausstehend",
     "approved": "Freigegeben",
@@ -50,6 +51,14 @@ class ZCockpitApprovedRoleActivationView:
             risk_class_map=risk_class_map,
         )
 
+    @staticmethod
+    def _decorate_approval(item: dict[str, Any]) -> dict[str, Any]:
+        result = dict(item)
+        result["approval"] = dict(result["approval"])
+        status = result["approval"].get("status")
+        result["approval"]["status_label"] = _STATUS_LABELS.get(status, str(status))
+        return result
+
     def state(self, *, scope: str = "project", at: datetime | None = None) -> dict[str, Any]:
         approval_state = self.evaluator.state(project_id=self.project_id, user=self.user, scope=scope, at=at)
         derived = self.evaluator.permission_assignments(
@@ -62,22 +71,36 @@ class ZCockpitApprovedRoleActivationView:
         auth = ZCockpitAuthorizationView(self.user, self.base_assignments + derived)
         permissions = sorted({item.permission for item in self.base_assignments + derived if item.user_id == self.user.user_id and item.scope == scope})
         rights = [auth.state(permission, scope=scope, at=at) for permission in permissions]
+        termination_state = approval_state["role_assignment_termination_approvals"]
+        termination_approvals = {
+            "termination_states": [self._decorate_approval(item) for item in termination_state["termination_states"]],
+            "effective_terminations": list(termination_state["effective_terminations"]),
+            "blocked_terminations": [self._decorate_approval(item) for item in termination_state["blocked_terminations"]],
+            "scheduled_terminations": [self._decorate_approval(item) for item in termination_state["scheduled_terminations"]],
+            "pending_post_reviews": [self._decorate_approval(item) for item in termination_state["pending_post_reviews"]],
+            "configuration_required": bool(termination_state.get("configuration_required")),
+            "read_only": True,
+        }
 
-        def decorate(item: dict[str, Any]) -> dict[str, Any]:
-            result = dict(item)
-            result["approval"] = dict(result["approval"])
-            result["approval"]["status_label"] = _STATUS_LABELS.get(result["approval"]["status"], result["approval"]["status"])
-            return result
-
+        blocked_activations = [self._decorate_approval(item) for item in approval_state["blocked_activations"]]
+        pending_reviews = [self._decorate_approval(item) for item in approval_state["pending_post_reviews"]]
         return {
             "project_id": approval_state["project_id"],
             "user": self.user.as_dict(),
             "scope": scope,
-            "effective_activations": [decorate(item) for item in approval_state["effective_activations"]],
-            "blocked_activations": [decorate(item) for item in approval_state["blocked_activations"]],
-            "pending_post_reviews": [decorate(item) for item in approval_state["pending_post_reviews"]],
+            "effective_activations": [self._decorate_approval(item) for item in approval_state["effective_activations"]],
+            "blocked_activations": blocked_activations,
+            "pending_post_reviews": pending_reviews,
             "terminated_assigned_roles": list(approval_state["terminated_assigned_roles"]),
+            "role_assignment_termination_approvals": termination_approvals,
             "rights": rights,
-            "post_review_required": bool(approval_state["pending_post_reviews"]),
+            "post_review_required": bool(pending_reviews or termination_approvals["pending_post_reviews"]),
+            "attention_required": bool(
+                blocked_activations
+                or pending_reviews
+                or termination_approvals["blocked_terminations"]
+                or termination_approvals["pending_post_reviews"]
+                or termination_approvals["configuration_required"]
+            ),
             "read_only": True,
         }
