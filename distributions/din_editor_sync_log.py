@@ -2,13 +2,34 @@
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+from uuid import UUID
+
+
+def _normalize_optional_uuid(value: str | None, field_name: str) -> str | None:
+    if value is None:
+        return None
+    try:
+        return str(UUID(str(value)))
+    except (ValueError, AttributeError, TypeError) as exc:
+        raise ValueError(f"DIN synchronization log {field_name} must be a UUID") from exc
 
 
 class DinSyncLog:
     def __init__(self):
         self.entries: list[dict] = []
 
-    def record(self, reference: str, source: str, value: str, action: str) -> dict:
+    def record(
+        self,
+        reference: str,
+        source: str,
+        value: str,
+        action: str,
+        *,
+        project_id: str | None = None,
+        command_id: str | None = None,
+        correlation_id: str | None = None,
+        causation_id: str | None = None,
+    ) -> dict:
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "reference": str(reference),
@@ -16,6 +37,15 @@ class DinSyncLog:
             "value": str(value),
             "action": str(action),
         }
+        for field_name, field_value in (
+            ("project_id", project_id),
+            ("command_id", command_id),
+            ("correlation_id", correlation_id),
+            ("causation_id", causation_id),
+        ):
+            normalized = _normalize_optional_uuid(field_value, field_name)
+            if normalized is not None:
+                entry[field_name] = normalized
         self.entries.append(entry)
         return dict(entry)
 
@@ -60,5 +90,8 @@ class DinSyncLog:
                 raise ValueError("DIN synchronization log action is required")
             clean = dict(entry)
             clean["timestamp"] = normalized
+            for field_name in ("project_id", "command_id", "correlation_id", "causation_id"):
+                if field_name in clean:
+                    clean[field_name] = _normalize_optional_uuid(clean[field_name], field_name)
             validated.append(clean)
         self.entries = validated
