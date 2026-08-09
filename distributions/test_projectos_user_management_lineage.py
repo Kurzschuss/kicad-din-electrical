@@ -245,7 +245,7 @@ def test_role_reassignment_fails_closed_without_risk_configuration_or_permission
         manager,
         policy=ProjectOSUserManagementCommandPolicy.configured(role_risk_class_map={"deputy": "low"}),
     )
-    with pytest.raises(PermissionError, match="project_role_reassigned \(not_granted\)"):
+    with pytest.raises(PermissionError, match=r"project_role_reassigned \(not_granted\)"):
         configured.changes.command_reassign_project_role(
             predecessor_role_assignment_id=original.role_assignment_id,
             reassigned_at="2026-08-09T10:01:00+00:00",

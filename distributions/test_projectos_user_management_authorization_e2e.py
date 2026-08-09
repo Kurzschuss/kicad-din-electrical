@@ -115,7 +115,7 @@ def test_role_approval_command_undo_redo_audit_and_z_cockpit_end_to_end():
     audit_count = len(manager.sync_log.entries)
     evidence_count = len(runtime.changes.authorization_evidence)
 
-    with pytest.raises(PermissionError, match="\(deny\)"):
+    with pytest.raises(PermissionError, match=r"\(deny\)"):
         runtime.changes.change_user_weight(
             target.user_id,
             650,
