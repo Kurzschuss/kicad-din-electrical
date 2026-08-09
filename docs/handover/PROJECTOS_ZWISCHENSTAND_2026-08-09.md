@@ -49,54 +49,63 @@ Der Aufmerksamkeitsblock priorisiert:
 - `APPROVAL_REJECTED` → gelb;
 - `APPROVAL_EMERGENCY_POST_REVIEW` → rot, Priorität 30.
 
-## Expliziter Abschluss von Notfall-Nachprüfungen – zuletzt umgesetzt
+## Expliziter Abschluss von Notfall-Nachprüfungen
 
-Neu vorhanden sind:
-
-- `ProjectOSRoleEmergencyPostReview`
-- `ProjectOSRoleEmergencyPostReviewEvaluator`
-- `ZCockpitRoleEmergencyPostReviewView`
+Vorhanden sind `ProjectOSRoleEmergencyPostReview`, `ProjectOSRoleEmergencyPostReviewEvaluator` und `ZCockpitRoleEmergencyPostReviewView`.
 
 Eine Nachprüfung referenziert die ursprüngliche `action_id` und führt `review_id`, `reviewer_user_id`, Ergebnis (`confirmed` oder `negative`), `reviewed_at`, optional Kommentar und Metadaten.
 
 Regeln:
 
-- eine offene `emergency_pending_review`-Aktion ohne Nachprüfung bleibt `pending`;
-- die anfordernde Person darf die eigene Notfallaktion nicht selbst nachprüfen;
-- bestätigte Nachprüfung → `completed_confirmed`, Nachprüfung geschlossen;
-- negative Nachprüfung → `completed_negative`, `escalation_required=true`;
-- eine negative Nachprüfung schreibt die ursprüngliche Notfallwirkung nicht rückwirkend um;
-- historische Notfallwirkung bleibt ausdrücklich mit `historical_emergency_effect_preserved=true` erhalten;
-- mehrere Nachprüfungen derselben `action_id` werden derzeit als mehrdeutig abgewiesen;
-- Nachprüfungen sind nur zulässig, solange der Freigabestatus tatsächlich `emergency_pending_review` ist.
+- offene Notfallaktion ohne Nachprüfung → `pending`;
+- anfordernde Person darf nicht selbst nachprüfen;
+- bestätigt → `completed_confirmed`;
+- negativ → `completed_negative`, `escalation_required=true`;
+- negative Nachprüfung schreibt die ursprüngliche Notfallwirkung nicht rückwirkend um;
+- `historical_emergency_effect_preserved=true` bleibt erhalten;
+- mehrere Nachprüfungen derselben `action_id` gelten derzeit als mehrdeutig.
 
-Z_Cockpit zeigt offene und negative Nachprüfungen rot. Eine bestätigte Nachprüfung wird grün und benötigt keine weitere Aufmerksamkeit.
+## Korrelierter Nachprüfungsabschluss – zuletzt umgesetzt
+
+Neu vorhanden sind:
+
+- `ProjectOSRolePostReviewTrace`
+- `ProjectOSRolePostReviewTraceEmitter`
+
+Der Trace-Erweiterer verwendet den bestehenden `ProjectOSRoleEmergencyPostReviewEvaluator` als fachliche Wahrheit und hängt nur den Nachprüfungsnachweis an den bereits vorhandenen Freigabevorgang an.
+
+Regeln:
+
+- bestätigte Nachprüfung erzeugt `projectos.role_action.post_review_completed`;
+- negative Nachprüfung erzeugt `projectos.role_action.post_review_escalated`;
+- beide Ereignisse verwenden dieselbe `project_id` und `correlation_id` wie der ursprüngliche Freigabevorgang;
+- `causation_id` zeigt auf den letzten bisherigen Nachweis, typischerweise `approval_effectiveness_evaluated`;
+- Audit verwendet entsprechend `post_review_completed` bzw. `post_review_escalated`;
+- ohne vorhandene Nachprüfung wird kein künstliches Abschlussereignis erzeugt;
+- bei Eskalation bleibt `historical_emergency_effect_preserved=true` sichtbar.
 
 Commits dieses Blocks:
 
-- `b5d477db` feat(project): Notfall-Nachprüfung als eigenen Lifecycle-Schritt modellieren
-- `3679407b` test(project): Notfall-Nachprüfung und Eskalation absichern
-- `20a46c6b` feat(z-cockpit): Notfall-Nachprüfung und Eskalation anzeigen
-- `cf6b185c` test(z-cockpit): Notfall-Nachprüfung und Eskalationssicht absichern
+- `cb1d71e7` feat(project): Notfall-Nachprüfung an Freigabekorrelation anbinden
+- `6bf8680b` test(project): korrelierte Notfall-Nachprüfung absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #188, ist für Commit `cf6b185cf10474411e533135ea037b473f20d57e` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #191, ist für Commit `6bf8680bb3e1dae4f6c419e68307cb9b1723bfe1` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die Nachprüfung selbst in die bestehende Korrelations-/Auditkette integrieren:
+Als Nächstes Z_Cockpit und Projektleiterübersicht auf die abgeschlossene Nachprüfung umstellen:
 
-1. `post_review_completed` bzw. `post_review_escalated` als Bus-/Audit-Ereignis erzeugen;
-2. dieselbe `project_id`/`correlation_id` wie der ursprüngliche Freigabevorgang verwenden;
-3. `causation_id` auf den bisherigen Wirksamkeits-/Notfallnachweis beziehen;
-4. `ZCockpitRoleApprovalTraceView` um Nachprüfungsabschluss erweitern;
-5. `ZCockpitAttentionView` soll bestätigte Nachprüfungen nicht mehr als offen führen, negative Nachprüfungen aber als Eskalation rot beibehalten;
-6. Projektleiter-Gesamtübersicht um offene, bestätigte und eskalierte Notfall-Nachprüfungen erweitern;
-7. danach Freigabe-/Nachprüfungsdaten in Projektgedächtnis und Wissensherkunft einbinden.
+1. `ZCockpitRoleApprovalTraceView` um `post_review_completed` und `post_review_escalated` erweitern;
+2. bestätigte Nachprüfungen nicht mehr als offene Notfall-Nachprüfung anzeigen;
+3. negative Nachprüfungen als eigene rote Eskalation beibehalten;
+4. Projektleiter-Gesamtübersicht um offene, bestätigte und eskalierte Nachprüfungen ergänzen;
+5. Navigation vom Aufmerksamkeitspunkt direkt auf den erweiterten Freigabe-/Nachprüfungsvorgang;
+6. danach Freigabe- und Nachprüfungsdaten in Projektgedächtnis/Wissensherkunft einbinden.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #188. Der explizite Abschluss von Notfall-Nachprüfungen ist bereits modelliert; bestätigte Nachprüfungen schließen die Aufmerksamkeit, negative erzeugen eine Eskalation und schreiben die historische Notfallwirkung nicht rückwirkend um. Fahre danach mit der Korrelations-/Auditintegration von `post_review_completed`/`post_review_escalated` fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #191. Notfall-Nachprüfungen werden jetzt im selben `project_id`/`correlation_id`-Vorgang mit sauberer `causation_id` als `post_review_completed` oder `post_review_escalated` auf Bus und Audit nachgewiesen. Fahre danach mit der Z_Cockpit-Auswertung und Projektleiterübersicht für abgeschlossene bzw. eskalierte Nachprüfungen fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
