@@ -26,60 +26,77 @@ Die Kette wird durch `project_id`, `correlation_id` und `causation_id` durchgän
 
 Negative Nachprüfung schreibt die historische Notfallwirkung nicht rückwirkend um; `historical_emergency_effect_preserved=true` bleibt erhalten.
 
-## Z_Cockpit
+## Z_Cockpit und Wissensherkunft
 
 Vorhanden sind Projektkorrelationssicht, Projektleiter-Gesamtübersicht, Aufmerksamkeitsblock, Diagnose-Arbeitsansichten, UI-neutraler Navigationsvertrag, Resolver, Breadcrumb-/Rücksprungkontext und `approval_trace`-Detailansicht.
 
-Bestätigte Notfall-Nachprüfungen schließen Aufmerksamkeit. Negative Nachprüfungen bleiben als rote Eskalation sichtbar. Die Projektleiterübersicht zählt offene, bestätigte und eskalierte Nachprüfungen getrennt.
+`ProjectOSRoleKnowledgeBridge` materialisiert vorhandene Freigabe-/Nachprüfungs-Traces als referenzierte Wissensnachweise, ohne eine zweite fachliche Wahrheit zu erzeugen. `ZCockpitKnowledgeOriginEvidenceView` erklärt `truth_source`, `action_id`, `review_id`, `message_id`, `correlation_id` und kann bei belegbarer Herkunft direkt zum `approval_trace` navigieren.
 
-## Projektgedächtnis und Wissensherkunft
+## Benutzerverwaltungs-Persistenzreife – zuletzt umgesetzt
 
-`ProjectOSRoleKnowledgeBridge` materialisiert vorhandene Freigabe-/Nachprüfungs-Traces als referenzierte Wissensnachweise, ohne eine zweite fachliche Wahrheit zu erzeugen. Die fachliche Wahrheit bleibt bei `ProjectOSRoleActionApprovalEvaluator` bzw. `ProjectOSRoleEmergencyPostReviewEvaluator`.
+Neu vorhanden sind:
 
-Abgebildet werden Freigabeanforderung und Freigabewirksamkeit als `approval`, Nachprüfung als `review_result`, dazu `derived_from`-Beziehungen und Originalreferenzen wie `action_id`, `review_id`, `message_id`, `correlation_id`, `truth_source`, `escalation_required` und `historical_emergency_effect_preserved`.
+- `ProjectOSUserManagementState`
+- `USER_MANAGEMENT_PERSISTENCE_VERSION = 1`
+- explizite Liste `DERIVED_NOT_PERSISTED`
 
-## Z_Cockpit-Wissensherkunft – zuletzt umgesetzt
+Persistenzpflichtige fachliche Daten sind jetzt klar abgegrenzt:
 
-Neu vorhanden ist `ZCockpitKnowledgeOriginEvidenceView`.
+- Benutzerprofile einschließlich Benutzergewichtung;
+- explizite Rechtezuweisungen einschließlich `DENY`, Delegation, Scope, Risiko und Gültigkeit;
+- Projektfunktions-Zuweisungen;
+- Aktivierungen;
+- Beendigungen/Rückgaben;
+- Freigabeanforderungen;
+- Freigabe-/Ablehnungsentscheidungen;
+- Notfall-Nachprüfungen.
 
-Die bestehende `knowledge_origin`-Erklärung bleibt die Quelle für gespeicherte Wissenspfade. Darüber legt die neue read-only Evidenzsicht ausschließlich die bereits gespeicherten Referenzmetadaten offen.
+Ausdrücklich **nicht** persistiert werden reproduzierbare Ableitungen:
 
-Sie zeigt für Freigabe-/Nachprüfungswissen unter anderem:
+- Autorisierungs-/Evaluator-Ergebnisse;
+- Simulationen;
+- Z_Cockpit-Sichten;
+- Attention-Items;
+- Breadcrumb-/Navigationskontexte;
+- materialisierte Freigabe-/Nachprüfungs-Wissensnachweise;
+- Approval-/Post-Review-Traces.
 
-- `truth_source`;
-- `action_id`;
-- `review_id`;
-- `message_id`;
-- `correlation_id`;
-- `reference_id`;
-- Quelltyp und Evidenzstatus des Wissensknotens.
+Der Persistenzvertrag validiert referenzielle Konsistenz vor einer späteren Bundle-Integration:
 
-Wenn `action_id` und `correlation_id` vorhanden sind, wird ein validiertes `approval_trace`-Navigationsziel erzeugt. Der `ZCockpitNavigationResolver` verwendet diese evidenzbewusste Herkunftssicht jetzt direkt für `knowledge_origin`.
+- Projektrolle referenziert einen bekannten Benutzer und dasselbe Projekt;
+- Rechtezuweisung referenziert einen bekannten Benutzer;
+- Aktivierung referenziert bekannte Rolle und Benutzer;
+- Beendigung referenziert bekannte Aktivierung und Benutzer;
+- Freigabeanforderung gehört zum Projekt und referenziert bekannten Anforderer;
+- Freigabe referenziert bekannte `action_id` und bekannten Prüfer;
+- Nachprüfung referenziert bekannte `action_id` und bekannten Nachprüfer;
+- IDs innerhalb jeder Objektklasse müssen eindeutig sein.
 
-Normale Wissensknoten ohne Freigabe-/Nachprüfungsmetadaten erhalten ausdrücklich keine künstliche Freigabeherkunft.
+`as_dict()` / `from_dict()` bilden einen versionierten Roundtrip. Unbekannte Persistenzversionen, fremde Projektrollen und gebrochene Referenzen werden fail-closed abgewiesen.
 
 Commits dieses Blocks:
 
-- `e4d6c7f1` feat(z-cockpit): Freigabenachweise in Wissensherkunft erklären
-- `e7fee07e` feat(z-cockpit): Wissensherkunft mit Freigabenachweisen auflösen
-- `97abe866` test(z-cockpit): Freigabenachweise in Wissensherkunft absichern
+- `270c99cb` feat(projectos): Benutzerverwaltungs-Persistenzvertrag einführen
+- `42779fa1` test(projectos): Benutzerverwaltungs-Persistenzvertrag absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #203, ist für Commit `97abe866e635784be74564bd395a8ec35228e9fe` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #206, ist für Commit `42779fa1ae659011f15ea8f4b9273cc4384e0bc9` erfolgreich.
 
-PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
+PR #159 ist offen und bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den Benutzerverwaltungsblock als Ganzes auf Konsistenz und Persistenzreife prüfen:
+Als Nächstes den neuen Benutzerverwaltungs-Persistenzvertrag in das Projektbundle integrieren:
 
-1. welche Benutzer-/Rollen-/Freigabe-/Aktivierungsdaten müssen dauerhaft im Projektbundle gespeichert werden;
-2. welche Daten sind ausschließlich abgeleitete read-only Sichten und dürfen nicht persistiert werden;
-3. Projektgrenzen, ID-Stabilität und Migration für bestehende Bundle-Versionen festlegen;
-4. Validierungsregeln für unvollständige oder widersprüchliche Benutzer-/Freigabedaten definieren;
-5. danach Persistenzschema versionieren und Roundtrip-/Migrations-Tests ergänzen.
+1. Bundle-Version gezielt von v3 auf v4 anheben;
+2. optionalen `user_management`-Block in v4 speichern und laden;
+3. v2/v3 ohne Benutzerverwaltungsdaten weiterhin rückwärtskompatibel laden;
+4. v3→v4-Migration darf keinen Hintergrundschreibzugriff auslösen;
+5. Manager-Snapshot/Dirty-State um persistierte Benutzerverwaltungsdaten erweitern;
+6. Roundtrip-, Save-As-, Recovery- und fehlerhafte-Referenz-Tests für v4 ergänzen;
+7. abgeleitete Z_Cockpit-/Simulations-/Wissensdaten weiterhin **nicht** in das Bundle aufnehmen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #203. Freigabe-/Nachprüfungswissen ist ohne zweite Wahrheit im Projektgedächtnis referenziert; `knowledge_origin` erklärt jetzt `truth_source`, `action_id`, `review_id`, `message_id` und `correlation_id` und kann direkt zum `approval_trace` navigieren. Fahre mit der Konsistenz- und Persistenzreifeprüfung des gesamten Benutzerverwaltungsblocks fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #206. Der Benutzerverwaltungsblock besitzt jetzt einen versionierten Persistenzvertrag `ProjectOSUserManagementState`: fachliche Benutzer-, Rechte-, Rollen-, Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten werden persistiert; Evaluator-Ergebnisse, Simulationen, Z_Cockpit, Navigation, Traces und materialisierte Wissensnachweise ausdrücklich nicht. Fahre mit Bundle v4 und der Integration des optionalen `user_management`-Blocks fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
