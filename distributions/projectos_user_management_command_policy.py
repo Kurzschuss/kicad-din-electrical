@@ -14,6 +14,7 @@ from typing import Iterable, Mapping
 DEFAULT_COMMAND_PERMISSION_MAP = MappingProxyType({
     "user_created": "project.user_management.user.create",
     "user_weight_changed": "project.user_management.weight.change",
+    "user_deactivated": "project.user_management.user.deactivate",
     "permission_assigned": "project.user_management.permission.assign",
     "permission_revoked": "project.user_management.permission.revoke",
     "permission_regranted": "project.user_management.permission.regrant",
@@ -37,8 +38,6 @@ DEFAULT_ROLE_RISK_CLASS_MAP = MappingProxyType({})
 
 @dataclass(frozen=True)
 class ProjectOSUserManagementCommandPolicy:
-    """Validierte read-only Policy für die gesicherte Command-Ausführungsgrenze."""
-
     command_permission_map: Mapping[str, str]
     role_permission_map: Mapping[str, tuple[str, ...]]
     role_risk_class_map: Mapping[str, str]
@@ -57,9 +56,7 @@ class ProjectOSUserManagementCommandPolicy:
             raise ValueError("command_permission_map must not be empty")
         role_map = {
             str(role).strip(): tuple(dict.fromkeys(
-                str(permission).strip()
-                for permission in permissions
-                if str(permission).strip()
+                str(permission).strip() for permission in permissions if str(permission).strip()
             ))
             for role, permissions in self.role_permission_map.items()
             if str(role).strip()
