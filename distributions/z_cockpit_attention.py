@@ -131,6 +131,36 @@ class ZCockpitAttentionView:
                 "detail_target": target.as_dict(),
             })
 
+        persistence = overview.get("persistence", {})
+        if persistence.get("migration_pending"):
+            target = ZCockpitNavigationTarget(
+                view="user_management_persistence",
+                project_id=project_id,
+                metadata={
+                    "persisted_bundle_version": persistence.get("persisted_bundle_version"),
+                    "migration_target_version": persistence.get("migration_target_version"),
+                },
+            )
+            items.append({
+                "source": "persistence",
+                "code": "USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING",
+                "traffic_light": "yellow",
+                "priority": 20,
+                "summary": (
+                    f"Das Projektbundle benötigt Migration auf Version {persistence.get('migration_target_version')}."
+                ),
+                "recommended_action": (
+                    "Persistenzstatus öffnen und Migration prüfen. Die Migration erfolgt erst beim expliziten Speichern des Projekts."
+                ),
+                "correlation_id": None,
+                "affected": {
+                    "persisted_bundle_version": persistence.get("persisted_bundle_version"),
+                    "migration_target_version": persistence.get("migration_target_version"),
+                    "persisted_object_count": persistence.get("persisted_object_count", 0),
+                },
+                "detail_target": target.as_dict(),
+            })
+
         audit = overview["audit"]
         if audit["causation_unresolved_entry_count"] > 0:
             target = ZCockpitNavigationTarget(
@@ -201,7 +231,7 @@ class ZCockpitAttentionView:
             "items": items,
             "read_only": True,
             "note": (
-                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Freigabe-, Nachprüfungs-, Audit- und Recovery-Nachweise. "
-                "Er führt keine Freigabe, Nachprüfung, Reparatur, Recovery oder fachliche Entscheidung aus."
+                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Freigabe-, Nachprüfungs-, Persistenz-, Audit- und Recovery-Nachweise. "
+                "Er führt keine Migration, Freigabe, Nachprüfung, Reparatur, Recovery oder fachliche Entscheidung aus."
             ),
         }
