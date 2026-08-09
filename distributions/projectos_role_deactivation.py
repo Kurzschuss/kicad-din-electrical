@@ -8,16 +8,12 @@ from uuid import UUID, uuid4
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation, ProjectOSProjectRoleActivationRegistry
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
 _ALLOWED_END_REASONS = {
-    "manual_return",
-    "principal_returned",
-    "period_ended",
-    "revoked",
-    "handover_completed",
-    "emergency_ended",
-    "succession_completed",
+    "manual_return", "principal_returned", "period_ended", "revoked",
+    "handover_completed", "emergency_ended", "succession_completed",
 }
 
 
@@ -87,7 +83,7 @@ class ProjectOSProjectRoleDeactivation:
 
 
 class ProjectOSProjectRoleLifecycleEvaluator:
-    """Bewertet Aktivierungen unter Berücksichtigung expliziter Beendigungen."""
+    """Bewertet Aktivierungen unter Berücksichtigung beider Beendigungsarten."""
 
     def __init__(
         self,
@@ -95,10 +91,12 @@ class ProjectOSProjectRoleLifecycleEvaluator:
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
         deactivations: Iterable[ProjectOSProjectRoleDeactivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
     ) -> None:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
         self.deactivations = tuple(deactivations or ())
+        self.role_terminations = tuple(role_terminations or ())
         activation_ids = {item.activation_id for item in self.activations}
         seen: set[str] = set()
         for item in self.deactivations:
@@ -112,9 +110,11 @@ class ProjectOSProjectRoleLifecycleEvaluator:
         current = at or datetime.now(timezone.utc)
         if current.tzinfo is None:
             raise ValueError("lifecycle evaluation time must include timezone")
-        base = ProjectOSProjectRoleActivationRegistry(self.roles, self.activations).state(
-            project_id=project_id, user=user, scope=scope, at=current
-        )
+        base = ProjectOSProjectRoleActivationRegistry(
+            self.roles,
+            self.activations,
+            self.role_terminations,
+        ).state(project_id=project_id, user=user, scope=scope, at=current)
         ended_by_activation = {
             item.activation_id: item
             for item in self.deactivations
@@ -128,18 +128,12 @@ class ProjectOSProjectRoleLifecycleEvaluator:
             if item["activation_id"] not in ended_by_activation
         ]
         ended_activations = [
-            {
-                "activation": item,
-                "deactivation": ended_by_activation[item["activation_id"]].as_dict(),
-            }
+            {"activation": item, "deactivation": ended_by_activation[item["activation_id"]].as_dict()}
             for item in base["active_activations"]
             if item["activation_id"] in ended_by_activation
         ]
         effective_role_ids = {item["role_assignment_id"] for item in effective_activations}
-        effective_roles = [
-            role for role in base["activated_roles"]
-            if role["role_assignment_id"] in effective_role_ids
-        ]
+        effective_roles = [role for role in base["activated_roles"] if role["role_assignment_id"] in effective_role_ids]
         assigned_not_effective = list(base["assigned_not_activated_roles"])
         assigned_not_effective.extend(
             role for role in base["activated_roles"] if role["role_assignment_id"] not in effective_role_ids
@@ -151,6 +145,7 @@ class ProjectOSProjectRoleLifecycleEvaluator:
             "evaluated_at": current.astimezone(timezone.utc).isoformat(),
             "effective_roles": effective_roles,
             "assigned_not_effective_roles": assigned_not_effective,
+            "terminated_assigned_roles": base["terminated_assigned_roles"],
             "effective_activations": effective_activations,
             "ended_activations": ended_activations,
             "inactive_activations": base["inactive_activations"],
