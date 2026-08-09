@@ -5,25 +5,13 @@ from datetime import datetime
 from typing import Any, Iterable
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
-from .projectos_user_project_roles import ProjectOSUserProjectRole
 from .projectos_role_activation import ProjectOSProjectRoleActivation, ProjectOSProjectRoleActivationRegistry
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
+from .projectos_user_project_roles import ProjectOSUserProjectRole
 from .z_cockpit_authorization import ZCockpitAuthorizationView
 
-_ROLE_LABELS = {
-    "project_lead": "Projektleiter",
-    "deputy": "Stellvertretung",
-    "trusted_person": "Vertrauensperson",
-    "successor": "Nachfolger",
-}
-_REASON_LABELS = {
-    "manual": "Manuell",
-    "absence": "Abwesenheit",
-    "incapacity": "Handlungsunfähigkeit",
-    "vacation": "Urlaub",
-    "emergency": "Notfall",
-    "succession": "Nachfolge",
-    "temporary_transfer": "Temporäre Übertragung",
-}
+_ROLE_LABELS = {"project_lead": "Projektleiter", "deputy": "Stellvertretung", "trusted_person": "Vertrauensperson", "successor": "Nachfolger"}
+_REASON_LABELS = {"manual": "Manuell", "absence": "Abwesenheit", "incapacity": "Handlungsunfähigkeit", "vacation": "Urlaub", "emergency": "Notfall", "succession": "Nachfolge", "temporary_transfer": "Temporäre Übertragung"}
 
 
 class ZCockpitProjectRoleActivationView:
@@ -36,6 +24,7 @@ class ZCockpitProjectRoleActivationView:
         user: ProjectOSUserProfile,
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         base_assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
         permission_map: dict[str, Iterable[str]] | None = None,
     ) -> None:
@@ -43,30 +32,18 @@ class ZCockpitProjectRoleActivationView:
         self.user = user
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
+        self.role_terminations = tuple(role_terminations or ())
         self.base_assignments = tuple(base_assignments or ())
         self.permission_map = {key: tuple(values) for key, values in (permission_map or {}).items()}
 
     def state(self, *, scope: str = "project", at: datetime | None = None) -> dict[str, Any]:
-        registry = ProjectOSProjectRoleActivationRegistry(self.roles, self.activations)
+        registry = ProjectOSProjectRoleActivationRegistry(self.roles, self.activations, self.role_terminations)
         state = registry.state(project_id=self.project_id, user=self.user, scope=scope, at=at)
-        derived = registry.permission_assignments(
-            project_id=self.project_id,
-            user=self.user,
-            permission_map=self.permission_map,
-            scope=scope,
-            at=at,
-        )
-        permissions = sorted({
-            item.permission
-            for item in self.base_assignments + derived
-            if item.user_id == self.user.user_id and item.scope == scope
-        })
+        derived = registry.permission_assignments(project_id=self.project_id, user=self.user, permission_map=self.permission_map, scope=scope, at=at)
+        permissions = sorted({item.permission for item in self.base_assignments + derived if item.user_id == self.user.user_id and item.scope == scope})
         auth = ZCockpitAuthorizationView(self.user, self.base_assignments + derived)
         rights = [auth.state(permission, scope=scope, at=at) for permission in permissions]
-        activation_by_role = {
-            item["role_assignment_id"]: item
-            for item in state["active_activations"]
-        }
+        activation_by_role = {item["role_assignment_id"]: item for item in state["active_activations"]}
         active_roles = []
         for item in state["activated_roles"]:
             decorated = self._role(item)
@@ -80,25 +57,21 @@ class ZCockpitProjectRoleActivationView:
             "active_roles": active_roles,
             "assigned_not_activated_roles": [self._role(item) for item in state["assigned_not_activated_roles"]],
             "inactive_assigned_roles": [self._role(item) for item in state["inactive_assigned_roles"]],
+            "terminated_assigned_roles": list(state["terminated_assigned_roles"]),
             "active_activations": [self._activation(item) for item in state["active_activations"]],
             "inactive_activations": [self._activation(item) for item in state["inactive_activations"]],
             "rights": rights,
             "read_only": True,
         }
 
-    def simulate_activation(
-        self,
-        activation: ProjectOSProjectRoleActivation,
-        *,
-        scope: str = "project",
-        at: datetime | None = None,
-    ) -> dict[str, Any]:
+    def simulate_activation(self, activation: ProjectOSProjectRoleActivation, *, scope: str = "project", at: datetime | None = None) -> dict[str, Any]:
         before = self.state(scope=scope, at=at)
         simulated_view = ZCockpitProjectRoleActivationView(
             project_id=self.project_id,
             user=self.user,
             roles=self.roles,
             activations=self.activations + (activation,),
+            role_terminations=self.role_terminations,
             base_assignments=self.base_assignments,
             permission_map=self.permission_map,
         )
@@ -118,10 +91,7 @@ class ZCockpitProjectRoleActivationView:
                 "decision_changed": (b or {}).get("decision") != (a or {}).get("decision"),
                 "became_allowed": not before_allowed and after_allowed,
                 "became_denied": before_allowed and not after_allowed,
-                "deny_conflict": bool(
-                    a and a["decision"] == "deny"
-                    and any(src["effect"] == "allow" for src in a["sources"])
-                ),
+                "deny_conflict": bool(a and a["decision"] == "deny" and any(src["effect"] == "allow" for src in a["sources"])),
             })
         return {
             "project_id": self.project_id,
@@ -133,7 +103,7 @@ class ZCockpitProjectRoleActivationView:
             "permission_impacts": impacts,
             "changed_permission_count": sum(1 for item in impacts if item["decision_changed"]),
             "read_only": True,
-            "note": "Die Aktivierungssimulation verändert keine gespeicherten Funktionen, Aktivierungen oder Rechtezuweisungen.",
+            "note": "Die Aktivierungssimulation verändert keine gespeicherten Funktionen, Beendigungen, Aktivierungen oder Rechtezuweisungen.",
         }
 
     @staticmethod
