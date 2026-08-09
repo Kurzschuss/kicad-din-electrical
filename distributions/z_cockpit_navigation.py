@@ -15,6 +15,7 @@ _ALLOWED_VIEWS = {
     "knowledge_path",
     "knowledge_origin",
     "recovery",
+    "approval_trace",
 }
 
 
@@ -74,6 +75,13 @@ class ZCockpitNavigationTarget:
             raise ValueError("knowledge_origin navigation requires exactly one knowledge_id")
         if self.view == "recovery" and self.recovery_path is not None and not str(self.recovery_path).strip():
             raise ValueError("recovery_path must not be empty")
+        if self.view == "approval_trace":
+            if self.correlation_id is None:
+                raise ValueError("approval_trace navigation requires correlation_id")
+            action_id = self.metadata.get("action_id")
+            if action_id is None:
+                raise ValueError("approval_trace navigation requires action_id metadata")
+            self.metadata["action_id"] = _normalize_optional_uuid(str(action_id), "action_id")
 
     def as_dict(self) -> dict[str, Any]:
         return {
