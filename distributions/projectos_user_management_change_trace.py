@@ -65,9 +65,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.correlation_id = _uuid(correlation_id or str(uuid4()), "correlation_id")
         self.causation_id = _uuid(causation_id, "causation_id") if causation_id is not None else None
         self.command_history = command_history or ProjectOSUserManagementCommandHistory()
-        self.command_history.bind_runtime_generation(
-            lambda: self.manager.user_management_runtime_generation
-        )
+        self.command_history.bind_runtime_generation(lambda: self.manager.user_management_runtime_generation)
         self.messages: list[ProjectOSMessageEnvelope] = []
         self.traces: list[ProjectOSUserManagementChangeTrace] = []
         self._previous_state = manager.user_management.as_dict()
@@ -127,9 +125,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
             "correlation_id": _uuid(raw.get("correlation_id"), "correlation_id"),
             "causation_id": _uuid(causation_id, "causation_id") if causation_id is not None else None,
             "history_action": history_action,
-            "related_command_id": (
-                _uuid(related_command_id, "related_command_id") if related_command_id is not None else None
-            ),
+            "related_command_id": _uuid(related_command_id, "related_command_id") if related_command_id is not None else None,
         }
 
     def _change_context(
@@ -138,13 +134,13 @@ class ProjectOSUserManagementChangeTraceEmitter:
     ) -> tuple[str, str | None, dict[str, Any] | None, dict[str, Any]]:
         current = self.manager.user_management.as_dict()
         previous = self._previous_state
-
         mapping = {
             "user_created": ("users", "user_id"),
             "user_weight_changed": ("users", "user_id"),
             "permission_assigned": ("permission_assignments", "assignment_id"),
             "permission_revoked": ("permission_revocations", "revocation_id"),
             "project_role_assigned": ("project_roles", "role_assignment_id"),
+            "project_role_assignment_terminated": ("role_assignment_terminations", "termination_id"),
             "project_role_activated": ("activations", "activation_id"),
             "project_role_deactivated": ("deactivations", "deactivation_id"),
             "approval_requested": ("approval_requests", "action_id"),
@@ -153,13 +149,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
         }
         if operation not in mapping:
             raise ValueError(f"unsupported user management operation: {operation}")
-
         collection, id_field = mapping[operation]
-        previous_row, row = self._changed_rows(
-            previous.get(collection, []),
-            current.get(collection, []),
-            id_field,
-        )
+        previous_row, row = self._changed_rows(previous.get(collection, []), current.get(collection, []), id_field)
         reference = str(row[id_field])
 
         if operation in {"user_created", "user_weight_changed"}:
@@ -170,6 +161,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
             actor = row["revoked_by_user_id"]
         elif operation == "project_role_assigned":
             actor = row.get("assigned_by_user_id") or row["user_id"]
+        elif operation == "project_role_assignment_terminated":
+            actor = row["ended_by_user_id"]
         elif operation in {"project_role_activated", "project_role_deactivated"}:
             actor = row.get("triggered_by_user_id") or row["user_id"]
         elif operation == "approval_requested":
@@ -178,7 +171,6 @@ class ProjectOSUserManagementChangeTraceEmitter:
             actor = row["approver_user_id"]
         else:
             actor = row["reviewer_user_id"]
-
         return reference, actor, previous_row, row
 
     @staticmethod
@@ -197,7 +189,6 @@ class ProjectOSUserManagementChangeTraceEmitter:
         project_id = _uuid(str(event.get("project_id")), "project_id")
         if project_id != self.manager.project_id:
             raise ValueError("change event belongs to another project")
-
         reference, derived_actor_user_id, previous_domain_payload, domain_payload = self._change_context(operation)
         command_context = self._command_context(event)
         if command_context is None:
@@ -246,11 +237,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
             correlation_id=correlation_id,
             causation_id=causation_id or message.message_id,
         )
-        reversible, before_values, after_values = self._history_values(
-            operation,
-            previous_domain_payload,
-            domain_payload,
-        )
+        reversible, before_values, after_values = self._history_values(operation, previous_domain_payload, domain_payload)
         self.command_history.append(
             ProjectOSUserManagementCommandRecord(
                 command_id=command_id,
