@@ -62,82 +62,109 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
         (-1.27, -1.27),
         (3.81, -1.27),
     ) in points
-    assert ((-2.54, 0.0), (-1.27, 1.27), (-1.27, 0.0), (-2.54, 0.0)) in points
-    assert ((-1.27, 0.0), (2.54, 1.27)) in points
 
 
-def test_mcb_1p_trip_arrowhead_is_smaller_and_shaft_is_longer():
+def test_mcb_1p_trip_arrow_is_rotated_and_keeps_clearance():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
-    points = {polyline.points for polyline in parse_polylines(block)}
-    arrowhead = ((-2.54, 0.0), (-1.27, 1.27), (-1.27, 0.0), (-2.54, 0.0))
+    polylines = parse_polylines(block)
+    points = {polyline.points for polyline in polylines}
+    arrowhead = (
+        (-2.788, -0.506),
+        (-1.507, 0.712),
+        (-1.033, -0.712),
+        (-2.788, -0.506),
+    )
 
     assert arrowhead in points
     assert ((-1.27, 0.0), (2.54, 1.27)) in points
-    assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
-    assert max(y for _, y in arrowhead) - min(y for _, y in arrowhead) == pytest.approx(1.27)
-    assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
+    # Die hintere Kante darf nicht senkrecht stehen; der komplette Kopf ist gedreht.
+    assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
+    # Unterkante der Pfeilspitze bleibt sichtbar oberhalb der Betätigungslinie y=-1.27.
+    assert min(y for _, y in arrowhead) - (-1.27) > 0.5
 
 
-def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
+def test_mcb_3p_uses_terminal_pairs_with_300_mil_pole_pitch():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     pins = parse_pins(block)
 
-    assert [(pin.y, pin.angle) for pin in pins] == [
-        (7.62, 270.0), (-7.62, 90.0),
-        (7.62, 270.0), (-7.62, 90.0),
-        (7.62, 270.0), (-7.62, 90.0),
+    assert [(pin.x, pin.y, pin.angle, pin.length) for pin in pins] == [
+        (5.08, 7.62, 270.0, 2.54),
+        (5.08, -7.62, 90.0, 2.54),
+        (12.7, 7.62, 270.0, 2.54),
+        (12.7, -7.62, 90.0, 2.54),
+        (20.32, 7.62, 270.0, 2.54),
+        (20.32, -7.62, 90.0, 2.54),
     ]
+    assert pins[2].x - pins[0].x == pytest.approx(7.62)
+    assert pins[4].x - pins[2].x == pytest.approx(7.62)
     for number in ("1", "2", "3", "4", "5", "6"):
         assert f'(number "{number}"' in block
 
 
-def test_mcb_3p_reuses_same_reference_contact_shape_on_all_three_poles():
+def test_mcb_3p_reuses_full_1p_reference_shape_on_first_pole():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     points = {polyline.points for polyline in parse_polylines(block)}
 
-    for upper_x, slant_x, lower_x in (
-        (-5.08, -8.89, -5.08),
-        (2.54, -1.27, 2.54),
-        (10.16, 6.35, 10.16),
-    ):
-        assert ((upper_x, 5.08), (upper_x, 3.81)) in points
-        assert ((slant_x, 3.81), (lower_x, -3.81)) in points
-        assert ((lower_x, -3.81), (lower_x, -5.08)) in points
+    assert ((-5.08, 1.27), (-5.08, -2.54)) in points
+    assert (
+        (-5.08, -1.27),
+        (-3.81, -1.27),
+        (-2.54, -2.54),
+        (-1.27, -1.27),
+        (3.81, -1.27),
+    ) in points
 
-    assert ((-10.16, 1.27), (-10.16, -2.54)) in points
-    for arrow_start_x, contact_x in ((-8.89, -7.62), (-1.27, 0.0), (6.35, 7.62)):
-        assert ((arrow_start_x, 0.0), (contact_x, 1.27)) in points
+    for terminal_x, slant_x in ((5.08, 1.27), (12.7, 8.89), (20.32, 16.51)):
+        assert ((terminal_x, 5.08), (terminal_x, 3.81)) in points
+        assert ((slant_x, 3.81), (terminal_x, -3.81)) in points
+        assert ((terminal_x, -3.81), (terminal_x, -5.08)) in points
 
 
-def test_mcb_3p_arrowheads_are_smaller_with_clearance():
+def test_mcb_3p_trip_arrows_are_rotated_long_and_clear():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
-    points = {polyline.points for polyline in parse_polylines(block)}
+    polylines = parse_polylines(block)
+    points = {polyline.points for polyline in polylines}
 
-    for tip_x in (-10.16, -2.54, 5.08):
-        arrowhead = (
-            (tip_x, 0.0),
-            (tip_x + 1.27, 1.27),
-            (tip_x + 1.27, 0.0),
-            (tip_x, 0.0),
-        )
+    arrowheads = (
+        ((-2.788, -0.506), (-1.507, 0.712), (-1.033, -0.712), (-2.788, -0.506)),
+        ((4.832, -0.506), (6.113, 0.712), (6.587, -0.712), (4.832, -0.506)),
+        ((12.452, -0.506), (13.733, 0.712), (14.207, -0.712), (12.452, -0.506)),
+    )
+    shafts = (
+        ((-1.27, 0.0), (2.54, 1.27)),
+        ((6.35, 0.0), (10.16, 1.27)),
+        ((13.97, 0.0), (17.78, 1.27)),
+    )
+
+    for arrowhead, shaft in zip(arrowheads, shafts):
         assert arrowhead in points
-        assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
-        assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
+        assert shaft in points
+        assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
+        assert min(y for _, y in arrowhead) - (-1.27) > 0.5
+        assert shaft[1][0] - shaft[0][0] == pytest.approx(3.81)
 
 
-def test_mcb_3p_coupling_marks_are_single_solid_short_lines():
+def test_mcb_3p_coupling_marks_are_one_short_solid_line_per_gap():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
+    points = {polyline.points for polyline in parse_polylines(block)}
 
-    assert '(polyline (pts (xy -3.81 -1.27) (xy -1.27 -1.27)) (stroke (width 0.254) (type default))' in block
-    assert '(polyline (pts (xy 3.81 -1.27) (xy 6.35 -1.27)) (stroke (width 0.254) (type default))' in block
+    assert ((6.985, -1.27), (8.255, -1.27)) in points
+    assert ((14.605, -1.27), (15.875, -1.27)) in points
+    coupling_marks = [
+        polyline for polyline in parse_polylines(block)
+        if len(polyline.points) == 2
+        and all(y == pytest.approx(-1.27) for _, y in polyline.points)
+        and abs(polyline.points[1][0] - polyline.points[0][0]) == pytest.approx(1.27)
+    ]
+    assert len(coupling_marks) == 2
     assert "(type dash)" not in block
 
 
-def test_mcb_reference_widths_match_documented_400_and_800_mil_targets():
+def test_mcb_reference_widths_include_documented_3p_geometry_exception():
     blocks = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))
 
-    assert round(_symbol_width_mm(blocks["MCB"]), 2) == 10.16
-    assert round(_symbol_width_mm(blocks["MCB_3P"]), 2) == 20.32
+    assert round(_symbol_width_mm(blocks["MCB"]), 2) == 10.16  # 400 mil
+    assert round(_symbol_width_mm(blocks["MCB_3P"]), 2) == 25.40  # 1000 mil, dokumentierte Ausnahme
 
 
 def test_mcb_library_remains_z_geometry_conform():

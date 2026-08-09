@@ -16,6 +16,8 @@ Die Ausgabe wird hier abgelegt:
 docs/site/z-cockpit.html
 ```
 
+`docs/site/z-cockpit.html` ist ein **lokal erzeugtes Arbeitsartefakt**. Die Datei wird über `.gitignore` ausgeschlossen und nicht committed. Dadurch kann das Cockpit jederzeit neu erzeugt und geöffnet werden, ohne anschließend einen lokalen Git-Change zu hinterlassen.
+
 Der Modulaufruf ist verbindlich, weil der Generator gemeinsame Funktionen aus dem Python-Paket `tools` verwendet.
 
 ## Unter Windows öffnen

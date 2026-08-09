@@ -6,3 +6,6 @@ __pycache__/
 
 # Generated local build/test artifacts
 build/
+
+# Generated local Z_Cockpit output
+docs/site/z-cockpit.html
