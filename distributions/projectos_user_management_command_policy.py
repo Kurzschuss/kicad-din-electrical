@@ -1,9 +1,4 @@
-"""Zentrale, unveränderliche Policy für ProjectOS-Benutzerverwaltungs-Commands.
-
-Die Policy ist die einzige Default-Konfigurationsquelle für Command→Recht-Zuordnungen
-sowie optionale rollenabgeleitete Rechte und Risikoklassen. Rollenrechte bleiben im
-Default bewusst leer: Sie werden erst wirksam, wenn ein Projekt sie explizit konfiguriert.
-"""
+"""Zentrale, unveränderliche Policy für ProjectOS-Benutzerverwaltungs-Commands."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,6 +10,7 @@ DEFAULT_COMMAND_PERMISSION_MAP = MappingProxyType({
     "user_created": "project.user_management.user.create",
     "user_weight_changed": "project.user_management.weight.change",
     "user_deactivated": "project.user_management.user.deactivate",
+    "user_reactivated": "project.user_management.user.reactivate",
     "permission_assigned": "project.user_management.permission.assign",
     "permission_revoked": "project.user_management.permission.revoke",
     "permission_regranted": "project.user_management.permission.regrant",
