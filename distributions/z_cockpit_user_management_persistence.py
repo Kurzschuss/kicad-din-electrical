@@ -7,7 +7,10 @@ from typing import Any
 
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_project_bundle_v4 import CURRENT_PROJECTOS_BUNDLE_VERSION
-from .projectos_user_management_persistence import DERIVED_NOT_PERSISTED
+from .projectos_user_management_persistence import (
+    DERIVED_NOT_PERSISTED,
+    USER_MANAGEMENT_PERSISTENCE_VERSION,
+)
 
 
 class ZCockpitUserManagementPersistenceView:
@@ -16,28 +19,41 @@ class ZCockpitUserManagementPersistenceView:
     def __init__(self, manager: DinEditorProjectManager) -> None:
         self.manager = manager
 
-    def _persisted_bundle_version(self) -> int | None:
+    def _persisted_versions(self) -> tuple[int | None, int | None]:
         path = self.manager.path
         if path is None:
-            return None
+            return None, None
         source = Path(path)
         if not source.exists():
-            return None
+            return None, None
         try:
             raw = json.loads(source.read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            return None
+            return None, None
         if not isinstance(raw, dict):
-            return None
+            return None, None
         try:
-            return int(raw.get("version"))
+            bundle_version = int(raw.get("version"))
         except (TypeError, ValueError):
-            return None
+            bundle_version = None
+        user_management_version = None
+        user_management = raw.get("user_management")
+        if isinstance(user_management, dict):
+            try:
+                user_management_version = int(user_management.get("version"))
+            except (TypeError, ValueError):
+                user_management_version = None
+        return bundle_version, user_management_version
 
     def state(self) -> dict[str, Any]:
         user_management = self.manager.user_management
-        persisted_version = self._persisted_bundle_version()
-        migration_pending = bool(self.manager.project_identity_migration_pending)
+        persisted_version, persisted_user_management_version = self._persisted_versions()
+        bundle_migration_pending = bool(self.manager.project_identity_migration_pending)
+        user_management_migration_pending = bool(
+            persisted_user_management_version is not None
+            and persisted_user_management_version != USER_MANAGEMENT_PERSISTENCE_VERSION
+        )
+        migration_pending = bundle_migration_pending or user_management_migration_pending
         counts = {
             "users": len(user_management.users),
             "permission_assignments": len(user_management.permission_assignments),
@@ -55,18 +71,26 @@ class ZCockpitUserManagementPersistenceView:
             "current_bundle_version": CURRENT_PROJECTOS_BUNDLE_VERSION,
             "persisted_bundle_version": persisted_version,
             "bundle_v4_persisted": persisted_version == CURRENT_PROJECTOS_BUNDLE_VERSION,
+            "bundle_migration_pending": bundle_migration_pending,
             "migration_pending": migration_pending,
-            "migration_target_version": CURRENT_PROJECTOS_BUNDLE_VERSION if migration_pending else None,
-            "has_unsaved_changes": self.manager.has_unsaved_changes,
+            "migration_target_version": CURRENT_PROJECTOS_BUNDLE_VERSION if bundle_migration_pending else None,
+            "current_user_management_persistence_version": USER_MANAGEMENT_PERSISTENCE_VERSION,
+            "persisted_user_management_version": persisted_user_management_version,
             "user_management_persistence_version": user_management.as_dict()["version"],
+            "user_management_migration_pending": user_management_migration_pending,
+            "user_management_migration_target_version": (
+                USER_MANAGEMENT_PERSISTENCE_VERSION if user_management_migration_pending else None
+            ),
+            "has_unsaved_changes": self.manager.has_unsaved_changes,
             "persisted_counts": counts,
             "persisted_object_count": sum(counts.values()),
             "derived_not_persisted": list(DERIVED_NOT_PERSISTED),
             "derived_not_persisted_count": len(DERIVED_NOT_PERSISTED),
             "note": (
                 "Persistiert werden ausschließlich fachliche Benutzer-, Rechte-, Rechtewiderrufs-, Rollen-, "
-                "Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten. Evaluator-Ergebnisse, Simulationen "
-                "und Z_Cockpit-Ableitungen werden reproduzierbar neu gebildet und nicht gespeichert."
+                "Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten. Eine ältere Benutzerverwaltungs-"
+                "Persistenzversion bleibt lesbar und wird erst beim expliziten Speichern aktualisiert. "
+                "Evaluator-Ergebnisse, Simulationen und Z_Cockpit-Ableitungen werden reproduzierbar neu gebildet."
             ),
             "read_only": True,
         }
