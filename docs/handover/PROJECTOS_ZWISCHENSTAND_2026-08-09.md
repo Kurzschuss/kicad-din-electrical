@@ -37,66 +37,80 @@ Runtime-Grundlagen:
 
 ## Projektbezogene Benutzerfunktionen
 
-Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind als eigene projektbezogene Beziehungen vorhanden. Jede Zuordnung enthält `role_assignment_id`, `project_id`, `user_id`, `role_type`, `scope`, `valid_from`, `valid_until`, `assigned_by_user_id`, `source_reference` und `metadata`.
-
-Zuweisung, Aktivierung und Beendigung sind strikt getrennte Zustände.
+Die Funktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind als eigene projektbezogene Beziehungen vorhanden. Zuweisung, Aktivierung, Freigabe und Beendigung sind getrennte Zustände.
 
 ## Aktivierung und Rückgabe
 
 Vorhanden sind `ProjectOSProjectRoleActivation`, `ProjectOSProjectRoleActivationRegistry`, `ProjectOSProjectRoleDeactivation`, `ProjectOSProjectRoleLifecycleEvaluator`, `ZCockpitProjectRoleActivationView` und `ZCockpitProjectRoleDeactivationView`.
 
-Eine zugewiesene Projektfunktion erzeugt erst bei einer passenden, aktuell gültigen Aktivierung Rechtewirkung. Eine Beendigung referenziert eine konkrete Aktivierung und beendet deren Rollenrechte erst ab `ended_at`. Direkte Rechte, Delegationen, Ausnahmen, Whitelist/Blacklist und DENY-Zuweisungen bleiben erhalten. Aktivierung und Rückgabe sind jeweils read-only simulierbar.
+Eine zugewiesene Projektfunktion erzeugt erst bei einer passenden, aktuell gültigen Aktivierung Rechtewirkung. Eine Beendigung referenziert eine konkrete Aktivierung und beendet deren Rollenrechte erst ab `ended_at`. Direkte Rechte, Delegationen, Ausnahmen, Whitelist/Blacklist und DENY-Zuweisungen bleiben erhalten. Aktivierung und Rückgabe sind read-only simulierbar.
 
-## Vier-Augen-/Freigaberegeln – zuletzt umgesetzt
+## Vier-Augen-/Freigabevertrag
 
-Neu vorhanden sind:
-
-- `ProjectOSRoleActionApprovalRequest`
-- `ProjectOSRoleActionApproval`
-- `ProjectOSRoleActionApprovalEvaluator`
-- `ZCockpitRoleActionApprovalView`
-
-Der Freigabevertrag gilt einheitlich für `activation` und `deactivation`.
+Vorhanden sind `ProjectOSRoleActionApprovalRequest`, `ProjectOSRoleActionApproval`, `ProjectOSRoleActionApprovalEvaluator` und `ZCockpitRoleActionApprovalView`.
 
 Regeln:
 
 - `low` und `medium` benötigen derzeit keine zweite Freigabe;
 - `high` und `critical` benötigen eine zweite, vom Auslöser verschiedene Person;
-- Selbstfreigabe wird erkannt, aber nicht als Vier-Augen-Freigabe gewertet;
-- eine externe Ablehnung blockiert die Aktion;
-- Notfallaktionen können als `emergency_pending_review` vorläufig wirksam sein, bleiben aber ausdrücklich nachprüfungspflichtig;
+- Selbstfreigabe zählt nicht;
+- externe Ablehnung blockiert die Aktion;
+- Notfallaktionen können als `emergency_pending_review` vorläufig wirksam sein und bleiben nachprüfungspflichtig;
 - Benutzergewichtung ersetzt keine Freigabe;
-- dieser Vertrag verändert keine Aktivierung, Beendigung oder Freigabe und ist vollständig read-only auswertbar.
+- DENY bleibt vorrangig.
 
-Eine Freigabe führt `approval_id`, `action_id`, `approver_user_id`, `decision`, `decided_at` und optional Kommentar. Ein Freigabeauftrag führt unter anderem `action_id`, `project_id`, `action_type`, Zielreferenz, `requested_by_user_id`, Risikoklasse, Zeitpunkt, Scope, Emergency-Flag und Grund.
+## Freigabe in tatsächliche Aktivierungs-Rechtewirkung integriert – zuletzt umgesetzt
 
-Z_Cockpit zeigt die Zustände `pending_approval`, `approved`, `approved_not_required`, `rejected` und `emergency_pending_review` mit deutschen Labels und `attention_required`.
+Neu vorhanden sind:
 
-Commits des letzten Blocks:
+- `ProjectOSApprovedRoleActivationEvaluator`
+- `ZCockpitApprovedRoleActivationView`
 
-- `edf211d5` feat(project): Vier-Augen-Freigaben für kritische Rollenaktionen einführen
-- `07db516f` test(project): Vier-Augen- und Notfallfreigaben absichern
-- `716c4ccb` feat(z-cockpit): Vier-Augen- und Notfallfreigaben anzeigen
-- `b14a3efa` test(z-cockpit): Freigabestatus und Notfallnachprüfung absichern
+Die Integration ist fail-closed:
+
+- eine aktive `high`/`critical`-Projektfunktion ohne passenden Freigabeauftrag erhält `approval_missing` und erzeugt keine Rollenrechte;
+- ein vorhandener Freigabeauftrag ohne zweite Freigabe erhält `pending_approval` und erzeugt ebenfalls keine Rollenrechte;
+- erst eine wirksame externe Freigabe erzeugt die aus der Aktivierung abgeleiteten Rollenrechte;
+- `emergency_pending_review` darf vorläufig Rollenrechte erzeugen, wird aber unter `pending_post_reviews` dauerhaft als offene Nachprüfung sichtbar;
+- Freigaberisikoklasse und Rollenrisikoklasse müssen übereinstimmen;
+- mehrere Freigabeaufträge für dieselbe Aktivierung werden als mehrdeutig abgewiesen;
+- Freigabeaufträge müssen auf eine tatsächlich vorhandene `activation_id` zeigen;
+- Rechteherkunft führt `approval_status` und `post_review_required` mit;
+- ein freigegebenes rollenbasiertes ALLOW kann ein explizites DENY weiterhin nicht überstimmen;
+- Benutzergewichtung bleibt ohne Entscheidungswirkung.
+
+Z_Cockpit unterscheidet dadurch ausdrücklich:
+
+- `Freigabeauftrag fehlt`;
+- `Freigabe ausstehend`;
+- `Freigegeben`;
+- `Keine zweite Freigabe erforderlich`;
+- `Abgelehnt`;
+- `Notfall vorläufig wirksam – Nachprüfung erforderlich`.
+
+Commits dieses Blocks:
+
+- `d68be131` feat(project): Freigabe in Aktivierungsrechte integrieren
+- `6890780a` test(project): freigabegesteuerte Aktivierungsrechte absichern
+- `f353055c` feat(z-cockpit): freigabegesteuerte Aktivierungswirkung anzeigen
+- `ae757b88` test(z-cockpit): freigabegesteuerte Aktivierungswirkung absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #162, ist für Commit `b14a3efa48025544598ae77e081c6912ac3ab3c3` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #167, ist für Commit `ae757b88d33c4d51e9a4d74f3e82b2d843187c7e` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den Freigabestatus **wirklich in die Rechtewirksamkeit von Aktivierung und Beendigung integrieren**:
+Als Nächstes die Freigabe analog in **kritische Beendigungen/Rückgaben** integrieren:
 
-1. Aktivierungs-/Lifecycle-Evaluator bekommt optional einen Freigabestatus;
-2. `high`/`critical` ohne Freigabe darf keine Rollenrechte erzeugen;
-3. `emergency_pending_review` darf vorläufig wirken, muss aber im Z_Cockpit dauerhaft als offene Nachprüfung erscheinen;
-4. Beendigung/Rückgabe mit kritischer Auswirkung ebenfalls Freigabestatus berücksichtigen;
-5. DENY-Vorrang bleibt unverändert;
-6. read-only Vorher/Nachher-Simulation muss Freigabe und fehlende Freigabe vergleichen können;
-7. danach Audit/Korrelation für Freigabeentscheidungen ergänzen.
+1. `high`/`critical`-Beendigung ohne wirksame Freigabe darf die bestehende Aktivierungswirkung noch nicht beenden;
+2. Notfall-Beendigung darf vorläufig wirken, bleibt aber nachprüfungspflichtig;
+3. Z_Cockpit muss blockierte, freigegebene und notfallbedingte Rückgaben getrennt anzeigen;
+4. read-only Simulation muss Vorher/Nachher unter fehlender bzw. vorhandener Freigabe vergleichen;
+5. danach Freigabeentscheidungen über `project_id`, `correlation_id` und `causation_id` an Audit/Bus anbinden.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #162. Fahre danach mit der Integration des Vier-Augen-Freigabestatus in die tatsächliche Rechtewirksamkeit von Aktivierung und Beendigung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft sowie die Trennung zwischen Zuweisung, Aktivierung, Freigabe und Beendigung nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #167. Die Vier-Augen-Freigabe ist bereits fail-closed in die tatsächliche Rechtewirksamkeit von Aktivierungen integriert. Fahre danach mit derselben Integration für kritische Beendigungen/Rückgaben fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und offene Notfallnachprüfungen nicht verlieren.
