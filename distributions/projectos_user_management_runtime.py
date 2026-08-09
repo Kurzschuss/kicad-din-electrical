@@ -32,10 +32,15 @@ class ProjectOSUserManagementRuntime:
 
     def state(self) -> dict[str, Any]:
         latest = self.emitter.command_history.latest()
+        latest_evidence = self.changes.latest_authorization_evidence
         return {
             "project_id": self.manager.project_id,
             "policy": self.policy.as_dict(),
             "last_authorization": self.changes.last_authorization,
+            "authorization_evidence_count": len(self.changes.authorization_evidence),
+            "latest_authorization_evidence": (
+                latest_evidence.as_dict() if latest_evidence is not None else None
+            ),
             "command_history": self.emitter.command_history.state(),
             "latest_command": latest.as_dict() if latest is not None else None,
             "trace_count": len(self.emitter.traces),
