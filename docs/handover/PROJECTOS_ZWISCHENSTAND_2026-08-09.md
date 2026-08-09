@@ -7,303 +7,197 @@ Pull Request: #159 – `Test: fehlgeschlagenes Projektladen hält Managerzustand
 
 ## Architekturgrundlagen
 
-Architecture Freeze 1.0 bleibt maßgeblich. ProjectOS bleibt Grundlage des Projekts. Weiterhin gelten:
+Architecture Freeze 1.0 bleibt maßgeblich. Weiterhin gelten Single Source of Truth, Domain Ownership, Object First, Offline First, Simulation First, Documentation First und Configuration before Code.
 
-- Single Source of Truth;
-- Domain Ownership;
-- Object First;
-- Offline First;
-- Simulation First;
-- Documentation First;
-- Configuration before Code;
-- die Perspektiven Entwickler, Engineering und Projektleiter.
-
-Benutzergewichtung bleibt sichtbar, besitzt aber keine implizite Autorisierungswirkung. `DENY` hat Vorrang vor `ALLOW`. Audit-/Bus-Nachweise bleiben append-only.
+Benutzergewichtung bleibt sichtbar, beeinflusst Autorisierung aber nicht. `DENY` hat Vorrang vor `ALLOW`. Audit-/Bus-Nachweise bleiben append-only. Historische Lifecycle-Tatsachen werden für Undo/Redo niemals aus dem Zustand gelöscht.
 
 ## Persistenz und Projektidentität
 
-Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und den fachlichen `user_management`-Block. v2/v3 bleiben lesbar und werden erst beim expliziten erfolgreichen Speichern auf v4 migriert.
+Bundle v4 bleibt unverändert der äußere Projektvertrag mit `session`, `sync_log`, stabiler `project_id` und fachlichem `user_management`-Block.
 
-`ProjectOSUserManagementState` persistiert ausschließlich fachliche Benutzer-, Rechte-, Rollen-, Aktivierungs-, Beendigungs-, Freigabe- und Nachprüfungsobjekte. Reproduzierbare Evaluator-, Simulations-, Trace-, Runtime-History-, Autorisierungsdiagnose-, Navigation- und Z_Cockpit-Daten werden nicht als zweite Wahrheit persistiert.
+Der Benutzerverwaltungs-Persistenzvertrag steht jetzt auf **Version 2**. Version 1 bleibt lesbar. Version-1-Daten werden beim Laden nur im Speicher normalisiert; die Datei bleibt unverändert, bis ausdrücklich gespeichert wird. Beim expliziten Save wird der Benutzerverwaltungsblock auf Version 2 geschrieben.
 
-Save, Save-As, Load, Recovery und Discard bleiben transaktionssicher. Fehlgeschlagene Vorgänge hinterlassen keinen Teilzustand.
+Version 2 ergänzt zwei fachliche Lifecycle-Listen:
 
-## Benutzerverwaltung und Vier-Augen-Wirksamkeit
+- `permission_revocations`;
+- `role_assignment_terminations`.
 
-Vorhanden sind Benutzerprofile, Rechteherkünfte, Scope, Risikoklasse, Gültigkeit, Delegation sowie die Projektfunktionen `project_lead`, `deputy`, `trusted_person` und `successor`.
+Bundle-v4-Migration und Benutzerverwaltungs-v1→v2-Migration sind im Z_Cockpit getrennte Zustände und erzeugen getrennte, navigierbare Attention-Hinweise.
 
-Zuweisung, Aktivierung, Freigabe und Beendigung sind getrennte fachliche Vorgänge. High-/Critical-Aktivierungen erhalten ohne wirksame Vier-Augen-Freigabe keine Rollenrechte. High-/Critical-Deaktivierungen beenden die Rechtewirkung ohne wirksame Freigabe nicht vorzeitig. Notfälle dürfen nach den vorhandenen Regeln vorläufig wirken, bleiben aber nachprüfungspflichtig.
+## Rechtewiderruf – umgesetzt
 
-Die vorhandenen Evaluatoren bleiben die einzige Quelle dieser Freigabewirksamkeit:
+`ProjectOSPermissionRevocation` beendet die Wirksamkeit einer vorhandenen `ProjectOSPermissionAssignment`, ohne die historische Zuweisung zu löschen.
 
-- `ProjectOSApprovedRoleActivationEvaluator`;
-- `ProjectOSApprovedRoleDeactivationEvaluator`;
-- `ProjectOSRoleActionApprovalEvaluator`.
+Der Widerruf führt:
 
-Es wurde keine zweite Approval-State-Machine eingeführt.
-
-## Atomarer Benutzerverwaltungs-Change-Service
-
-`ProjectOSUserManagementChangeService` bleibt der niedrige atomare Domain-Primitive. Er baut zuerst einen vollständig validierten Kandidatenzustand auf und übernimmt ihn erst danach in den Manager.
-
-Der reguläre Command-Pfad verwendet den öffentlichen `set_user_management()`-Setter nicht mehr. Der Manager besitzt `_commit_user_management_change()` als internen Commit-Pfad. Ein Guard-Test verhindert direkte Produktionsaufrufe von `.set_user_management(`.
-
-Der rohe Change-Service bleibt bewusst nur für kontrollierten Bootstrap, Migration und Tests verfügbar. Produktive Command-Ausführung erfolgt über die gesicherte Runtime.
-
-## Expliziter Command-Kontext und Command-ID
-
-`ProjectOSUserManagementCommandContext` beschreibt genau einen Command und wird nicht im Domainzustand persistiert.
-
-Er führt:
-
-- `command_id` als stabile UUID pro Command;
-- `actor_user_id`;
-- `correlation_id`;
-- optional `causation_id`;
-- `history_action` mit `command`, `undo` oder `redo`;
-- bei Undo/Redo `related_command_id`.
-
-Ein Context darf nicht für einen zweiten Command wiederverwendet werden. Eine bereits verwendete `command_id` wird vor einer zweiten Mutation abgewiesen.
-
-Der explizite Akteur hat Vorrang vor einer bloßen Ableitung aus dem geänderten Domainobjekt. Korrelations-/Kausalketten werden getrennt pro `correlation_id` geführt.
-
-## Audit, Bus und Command-Historie
-
-`ProjectOSUserManagementChangeTraceEmitter` bildet ausschließlich erfolgreich übernommene Änderungen als Bus-/Audit-Nachweise ab.
-
-Jede erfolgreiche verfolgte Änderung erhält:
-
-- `command_id`;
-- Operation;
-- Akteur;
-- fachliche Referenz;
+- eigene `revocation_id`;
+- `assignment_id`;
 - `project_id`;
-- `correlation_id`;
-- `causation_id`;
-- Busnachricht;
-- Audit-Eintrag.
-
-Die `command_id` wird inzwischen zusätzlich direkt im `DinSyncLog`-Audit-Eintrag geführt. Der Projektbundle-Loader validiert und erhält diese optionale UUID beim Roundtrip. Damit ist die Command↔Audit-Verknüpfung auch nach Save/Load explizit erhalten.
-
-Fehlgeschlagene oder nicht autorisierte Commands erzeugen weder Fachmutation noch Bus-/Audit-Nachweis.
-
-`ProjectOSUserManagementCommandHistory` ist eine read-only Laufzeit-Historie und keine zweite fachliche Wahrheit. Sie wird nicht in Bundle v4 persistiert.
-
-## Undo/Redo – kompensierende Fachänderungen
-
-Die Entwurfsentscheidung `docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` ist umgesetzt.
-
-Undo/Redo ist kein Snapshot-Rollback. `ProjectOSUserManagementUndoRedoService` führt Undo und Redo als neue fachliche Commands aus.
-
-Aktuell vollständig reversibler Referenzfall: `user_weight_changed`.
+- Benutzer und Scope;
+- `revoked_at`;
+- `revoked_by_user_id`;
+- Grund;
+- optionale Quellreferenz und Metadaten.
 
 Regeln:
 
-- ursprünglicher Command und ursprünglicher Audit-Nachweis bleiben unverändert;
-- Undo erhält neue `command_id` und neue `correlation_id`;
-- Redo erhält wiederum neue `command_id` und neue `correlation_id`;
-- Undo/Redo erzeugt neue Bus-/Audit-Nachweise;
-- aktueller Domainzustand muss exakt zum erwarteten History-Wert passen, sonst fail-closed;
-- nicht reversible Commands werden beim Undo nicht übersprungen;
-- ein neuer normaler Command nach Undo schließt den Redo-Zweig;
-- Freigabeentscheidungen und Nachprüfungen bleiben historische Tatsachen und sind nicht reversibel.
+- höchstens ein Widerruf pro Rechtezuweisung;
+- Projekt, Benutzer und Scope müssen zur Zuweisung passen;
+- der handelnde Benutzer muss existieren;
+- vor `revoked_at` kann die Zuweisung noch wirken;
+- ab `revoked_at` wird sie als widerrufen/inaktiv ausgewiesen;
+- `DENY`-Vorrang bleibt für alle weiterhin aktiven Quellen unverändert.
 
-## Zentrale Reversibilitätsmatrix – umgesetzt
+Der atomare Command heißt `permission_revoked` und benötigt in der Default-Policy `project.user_management.permission.revoke`.
 
-`ProjectOSUserManagementReversibilityPolicy` ist die zentrale fail-closed Matrix für Kompensierbarkeit.
+Er läuft über dieselbe gesicherte Runtime, erzeugt Bus-/Audit-/Command-History-Nachweis und bleibt selbst nicht reversibel.
 
-Aktuell ist ausschließlich `user_weight_changed` reversibel, mit der Gegenoperation `restore_previous_weight`.
+Ein widerrufenes Command-Recht kann keinen späteren Benutzerverwaltungs-Command mehr autorisieren. Eine abgewiesene Folgeaktion erzeugt keine Domain-, Audit-, Bus- oder History-Mutation.
 
-Bewusst nicht reversibel sind derzeit:
+Z_Cockpit unterscheidet eine Widerrufsblockade ausdrücklich von „Recht nie erteilt“ und zeigt die widerrufene Quelle read-only an.
 
-- `user_created` – keine fachliche Benutzer-Deaktivierungs-/Löschoperation vorhanden;
-- `permission_assigned` – noch kein expliziter Rechtewiderruf modelliert;
-- `project_role_assigned` – noch keine explizite Aufhebung der Rollenzuweisung modelliert;
-- `project_role_activated` – eine Deaktivierung beendet historisch, sie löscht die Aktivierung nicht;
-- `project_role_deactivated` – eine Reaktivierung wäre ein neuer Lifecycle-Vorgang;
-- `approval_requested` – historische Anforderung;
-- `approval_recorded` – historische Entscheidung;
-- `post_review_completed` – historische Nachprüfung.
+## Rollenzuweisungs-Beendigung – umgesetzt
 
-`ProjectOSUserManagementUndoRedoService` prüft diese Matrix zusätzlich zur Command-Historie. Unbekannte Operationen sind ebenfalls fail-closed.
+`ProjectOSProjectRoleAssignmentTermination` beendet die zugrunde liegende `ProjectOSUserProjectRole`, ohne die historische Rollenzuweisung oder ihre früheren Aktivierungs-/Freigabenachweise zu löschen.
 
-## Runtime-Lifecycle – umgesetzt
+Die Beendigung führt:
 
-Load, Recover, Discard, New Project und explizite vollständige Benutzerverwaltungs-Zustandssetzung erhöhen eine nicht persistierte `user_management_runtime_generation`.
-
-Change-Service, Trace-Emitter, Command-Historie und Autorisierungsnachweise richten sich daran aus. Dadurch werden alte Runtime-History-, Trace-, Delta-, Kausal- und Autorisierungsdaten nach einem vollständigen Projektzustandswechsel nicht in den neuen Zustand verschleppt.
-
-## Zentrale Command-Policy – umgesetzt
-
-`ProjectOSUserManagementCommandPolicy` ist die zentrale unveränderliche Runtime-Konfigurationsquelle.
-
-Die Default-Policy definiert Command→Recht-Zuordnungen für alle vorhandenen Benutzerverwaltungsoperationen, darunter:
-
-- `project.user_management.user.create`;
-- `project.user_management.weight.change`;
-- `project.user_management.permission.assign`;
-- `project.user_management.role.assign`;
-- `project.user_management.role.activate`;
-- `project.user_management.role.deactivate`;
-- `project.user_management.approval.request`;
-- `project.user_management.approval.record`;
-- `project.user_management.post_review.complete`;
-- getrennte Rechte für Gewichts-Undo und -Redo.
-
-Rollenabgeleitete Rechte bleiben in der Default-Policy bewusst leer. Es gibt keine implizite Regel „Projektleiter darf automatisch alles“. `role_permission_map` und `role_risk_class_map` müssen projektspezifisch explizit konfiguriert werden.
-
-## Produktive Benutzerverwaltungs-Runtime – umgesetzt
-
-`build_projectos_user_management_runtime()` ist der zentrale produktive Einstieg. Er bindet gemeinsam:
-
-- `ProjectOSUserManagementCommandPolicy`;
-- `ProjectOSUserManagementChangeTraceEmitter`;
-- `ProjectOSUserManagementCommandAuthorization`;
-- `ProjectOSAuthorizedUserManagementChangeService`;
-- `ProjectOSUserManagementUndoRedoService`.
-
-Ein Guard-Test verhindert, dass Produktionsmodule den rohen `ProjectOSUserManagementChangeService` direkt instanziieren. Bootstrap-/Migrations-/Testpfade bleiben davon ausdrücklich ausgenommen.
-
-## Command-Autorisierung – umgesetzt
-
-`ProjectOSUserManagementCommandAuthorization` ist rein lesend und fail-closed.
-
-Der Autorisierer prüft:
-
-- expliziten Command-Kontext;
-- vorhandenen Akteur;
-- zentrale Command→Recht-Zuordnung;
-- persistierte Rechtezuweisungen;
-- optional rollenabgeleitete Rechte;
-- Scope und Gültigkeit;
-- `DENY`-Vorrang über `ProjectOSAuthorizationEvaluator`.
-
-Benutzergewichtung wird nicht für die Entscheidung verwendet.
-
-### Rollenabgeleitete Command-Rechte
-
-Rollenrechte werden nur aus wirksamen Aktivierungen abgeleitet. High-/Critical-Rollen verwenden die vorhandenen Vier-Augen-Evaluatoren.
-
-Damit gilt weiterhin:
-
-- nicht freigegebene High-/Critical-Aktivierung gewährt keine Rollenrechte;
-- nicht freigegebene High-/Critical-Deaktivierung entzieht Rollenrechte nicht vorzeitig;
-- erst eine wirksame Deaktivierung entfernt Rollenrechte;
-- explizites `DENY` blockiert auch rollenabgeleitetes `ALLOW`.
-
-## Erfolgreicher Autorisierungsnachweis – umgesetzt
-
-`ProjectOSUserManagementAuthorizationEvidence` ist ein read-only Runtime-Nachweis einer erfolgreichen Autorisierung.
-
-Er verknüpft:
-
-- `command_id`;
+- eigene `termination_id`;
+- `role_assignment_id`;
 - `project_id`;
-- Operation;
-- Akteur;
-- `correlation_id`;
-- Policy-Key;
-- erforderliches Recht;
-- Entscheidung;
-- effektive Rechteherkünfte;
-- `message_id` des Bus-Nachweises;
-- Audit-Referenz.
+- Benutzer und Scope;
+- `ended_at`;
+- `ended_by_user_id`;
+- Grund;
+- optionale Quellreferenz und Metadaten.
 
-Der Nachweis wird nicht in Bundle v4 persistiert. Eine abgewiesene Entscheidung bleibt als letzte Diagnose sichtbar, erzeugt aber keinen erfolgreichen Autorisierungsnachweis und weiterhin keine Domain-/Bus-/Audit-/History-Mutation.
+Regeln:
 
-## Z_Cockpit Command-/Autorisierungsdiagnostik – umgesetzt
+- höchstens eine Beendigung pro Rollenzuweisung;
+- Projekt, Benutzer und Scope müssen zur Rollenzuweisung passen;
+- der handelnde Benutzer muss existieren;
+- vor `ended_at` kann die Rollenzuweisung noch wirken;
+- ab `ended_at` liefert sie keine Rollenrechte mehr;
+- beendete Rollen werden im Z_Cockpit als eigene Lifecycle-Gruppe gezeigt und nicht zusätzlich als bloß „inaktiv“ dupliziert;
+- vorhandene Aktivierungen und Freigaben bleiben historisch erhalten;
+- eine bereits zur Beendigung festgelegte Rollenzuweisung erhält keine neuen Aktivierungen mehr.
 
-`ZCockpitUserManagementCommandDiagnosticsView` zeigt read-only:
+Der atomare Command heißt `project_role_assignment_terminated` und benötigt in der Default-Policy `project.user_management.role.terminate`.
 
-- letzten Autorisierungsentscheid;
-- deutsche Entscheidungsbezeichnung;
-- erforderliches Recht und Policy-Key;
-- Akteur und Scope;
-- effektive Rechteherkünfte;
-- rollenabgeleitete Quellenanzahl;
-- `DENY`-Blockade;
-- letzten erfolgreichen Autorisierungsnachweis;
-- Command-History-Zustand;
-- Undo-/Redo-Verfügbarkeit;
-- Trace-/Message-Anzahl.
+### Wichtige Trennung zur Aktivierungs-Deaktivierung
 
-Eine abgewiesene letzte Entscheidung wird gelb dargestellt. Sie ist ein Aufmerksamkeitsgrund, aber kein roter fachlicher Konsistenzfehler.
+`ProjectOSProjectRoleAssignmentTermination` beendet die **Rollenzuweisung selbst**.
 
-`ZCockpitProjectLeadOverview` kann die produktive Benutzerverwaltungs-Runtime optional einbinden und führt diese Diagnose in Übersicht und Summary mit.
+`ProjectOSProjectRoleDeactivation` beendet dagegen nur eine konkrete **Aktivierung**. Die bestehende Vier-Augen-Logik für High-/Critical-Aktivierungs-Deaktivierungen bleibt unverändert und ist weiterhin die einzige Quelle der dortigen Freigabewirksamkeit.
 
-## End-to-End-Sicherheitsweg – abgesichert
+Die neue Rollenzuweisungs-Beendigung ist derzeit ein separat autorisierter administrativer Lifecycle-Command. Sie darf nicht still als dieselbe fachliche Operation wie eine Aktivierungsrückgabe behandelt werden.
 
-Der neue End-to-End-Test deckt folgende Kette ab:
+## Rollenrechte und Vier-Augen-Wirkung
 
-1. Projektfunktion `deputy`;
-2. High-Risk-Aktivierung;
-3. wirksame Vier-Augen-Freigabe;
-4. explizit konfigurierte rollenabgeleitete Benutzerverwaltungsrechte;
-5. autorisierte Gewichtsänderung;
-6. autorisiertes Undo;
-7. autorisiertes Redo;
-8. drei getrennte Bus-/Audit-/Autorisierungsnachweise;
-9. Z_Cockpit-Diagnose;
-10. anschließendes explizites `DENY`, das das rollenabgeleitete `ALLOW` ohne neue Fach-/Audit-/History-Mutation blockiert.
+Die Rollen-, Aktivierungs-, Approved-Activation-, Deaktivierungs- und Approved-Deactivation-Auswertungen berücksichtigen jetzt wirksame Rollenzuweisungs-Beendigungen.
 
-## Relevante neue Dateien dieses Blocks
+Dadurch gilt:
 
-- `distributions/projectos_user_management_command_policy.py`
-- `distributions/projectos_user_management_runtime.py`
-- `distributions/projectos_user_management_authorization_evidence.py`
-- `distributions/projectos_user_management_reversibility.py`
-- `distributions/z_cockpit_user_management_command_diagnostics.py`
-- `distributions/test_projectos_user_management_runtime.py`
-- `distributions/test_projectos_user_management_authorization_evidence.py`
-- `distributions/test_z_cockpit_user_management_command_diagnostics.py`
-- `distributions/test_projectos_user_management_authorization_e2e.py`
-- `distributions/test_projectos_user_management_reversibility.py`
-- `distributions/test_projectos_user_management_audit_command_id.py`
+- eine genehmigte High-/Critical-Aktivierung erzeugt vor der Zuweisungsbeendigung weiterhin ihre konfigurierten Rechte;
+- ab wirksamer Zuweisungsbeendigung entstehen daraus keine Rollenrechte mehr;
+- die historische Aktivierung und Freigabe bleiben unverändert nachweisbar;
+- ein rollenabgeleitetes Benutzerverwaltungsrecht verschwindet ebenfalls aus der gesicherten Command-Autorisierung.
 
-## Relevante aktuelle Commits
+`ProjectOSUserManagementCommandAuthorization` weist zusätzlich aus, wenn genau eine für das aktuell benötigte Recht relevante Rollenzuweisung beendet wurde (`terminated_granting_role_count`).
 
-- `4961a8fa` feat(projectos): zentrale Benutzerverwaltungs-Command-Policy einführen
-- `f88a68b2` feat(projectos): gesicherte Benutzerverwaltungs-Runtime verdrahten
-- `2133e8eb` test(projectos): zentrale Policy und gesicherte Runtime absichern
-- `4ded27a0` feat(projectos): Autorisierungsnachweis ergänzen
-- `56e628dd` feat(projectos): erfolgreiche Autorisierung mit Trace verknüpfen
-- `ef4a19c8` feat(projectos): Z-Cockpit-Command-Autorisierungsdiagnose ergänzen
-- `be345317` feat(projectos): Command-Diagnose in Z-Cockpit-Gesamtübersicht integrieren
-- `7393ff4b` test(projectos): Command-Autorisierung End-to-End absichern
-- `0f0d49c4` feat(projectos): zentrale Reversibilitätsmatrix einführen
-- `799630e9` refactor(projectos): Undo-Redo an Reversibilitätsmatrix binden
-- `8d3fecd1` feat(projectos): Command-ID im Audit-Bundle erhalten
-- `af45a636` feat(projectos): Command-ID direkt mit Audit-Nachweis verknüpfen
-- `2de84c8f` test(projectos): Command-ID im Audit-Bundle-Roundtrip absichern
+`ZCockpitUserManagementCommandDiagnosticsView` zeigt daraus `role_termination_blocked` getrennt von `revocation_blocked` und `deny_blocked`.
+
+## Command-, Audit- und Runtime-Infrastruktur
+
+Weiterhin umgesetzt und unverändert gültig:
+
+- `ProjectOSUserManagementCommandContext` mit `command_id`, Akteur, Korrelation, optionaler Kausalität und Undo-/Redo-Bezug;
+- atomare Fachänderung über `ProjectOSUserManagementChangeService`;
+- produktiver Einstieg über `build_projectos_user_management_runtime()`;
+- fail-closed `ProjectOSUserManagementCommandAuthorization`;
+- zentrale `ProjectOSUserManagementCommandPolicy`;
+- `ProjectOSUserManagementChangeTraceEmitter` für Bus/Audit;
+- `command_id` direkt im persistierten `DinSyncLog`;
+- read-only `ProjectOSUserManagementAuthorizationEvidence`;
+- read-only `ProjectOSUserManagementCommandHistory`;
+- Runtime-Reset bei Load, Recover, Discard und New Project.
+
+Fehlgeschlagene oder nicht autorisierte Commands verändern weder Domainzustand noch Audit, Bus oder Command-Historie.
+
+## Undo/Redo und Reversibilitätsmatrix
+
+Undo/Redo bleibt eine neue kompensierende Fachänderung und niemals Snapshot-Rollback.
+
+Aktuell ist ausschließlich `user_weight_changed` vollständig reversibel.
+
+Explizit nicht reversibel bleiben jetzt auch:
+
+- `permission_assigned`: Widerruf existiert, aber für vollständiges Undo/Redo fehlt ein Regrant-Vertrag mit neuer Zuweisungsidentität;
+- `permission_revoked`: historische Tatsache;
+- `project_role_assigned`: Zuweisungsbeendigung existiert, aber für vollständiges Undo/Redo fehlt ein Neu-Zuweisungs-/Redo-Vertrag mit neuer Rollenidentität;
+- `project_role_assignment_terminated`: historische Tatsache;
+- Aktivierungs-/Deaktivierungs-, Freigabe- und Nachprüfungsvorgänge gemäß Entwurfsentscheidung.
+
+Maßgeblich ist `docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md`.
+
+## Z_Cockpit
+
+Read-only integriert sind jetzt insbesondere:
+
+- Rechteherkunft samt wirksamen Widerrufen;
+- Rollenzuweisungen samt Beendigungen;
+- Aktivierungs-/Deaktivierungs- und Vier-Augen-Sichten mit beendeten Zuweisungen;
+- Command-/Autorisierungsdiagnostik mit DENY-, Widerrufs- und Rollenbeendigungsursache;
+- Konsistenzketten `user→permission→revocation` und `user→role→termination→activation→deactivation`;
+- Persistenzzähler für beide neuen Lifecycle-Arten;
+- getrennte Migration von Bundle-Version und Benutzerverwaltungs-Persistenzversion.
+
+Simulationen bleiben read-only und berücksichtigen die vorhandenen Beendigungen, statt sie für hypothetische Zustände zu vergessen.
+
+## Relevante neue Dateien dieses Lifecycle-Blocks
+
+- `distributions/projectos_permission_revocation.py`
+- `distributions/projectos_role_assignment_termination.py`
+- `distributions/test_projectos_permission_revocation.py`
+- `distributions/test_projectos_permission_revocation_integration.py`
+- `distributions/test_projectos_role_assignment_termination.py`
+- `distributions/test_projectos_role_assignment_termination_integration.py`
 
 ## Tests / letzter bestätigter Stand
 
-Bestätigte vollständige grüne Läufe dieses Entwicklungsblocks:
+Bestätigte vollständige grüne Läufe dieses Fortsetzungsblocks:
 
-- Run #285 – zentrale Policy, produktive Runtime, Autorisierungsnachweis, Z_Cockpit und End-to-End-Sicherheitsweg;
-- Run #288 – zentrale fail-closed Reversibilitätsmatrix;
-- **Run #291 – Commit `2de84c8f3f05dbec3f68d8264044f08a9b92bdf0`: Audit-`command_id` und Bundle-Roundtrip vollständig erfolgreich.**
+- Run #303 – Rechtewiderrufs-Kern;
+- Run #307 – Bundle-/Command-Widerrufsintegration;
+- Run #309 – Benutzerverwaltungs-v1→v2-Migrationsdiagnose;
+- Run #313 – getrennte Attention-Migration;
+- Run #331 – Rollenzuweisungs-Beendigungs-Kern;
+- Run #332 – Bundle- und rollenabgeleitete Command-Rechteintegration;
+- Run #336 – Z_Cockpit-/Simulationsadapter;
+- **Run #342 – kombinierter aktueller Lifecycle-/Diagnose-/Entwurfsstand vollständig erfolgreich.**
 
-Die vollständigen Läufe umfassen Repository-Health-Check, komplette Pytest-Suite, Z_-Qualitätsprofil, KiCad-Bibliotheksprüfungen und Z_Cockpit-Generierung.
+Die vollständigen Läufe umfassen Repository-Health-Check, komplette Pytest-Suite, Z_-Qualitätsprofil, KiCad-Bibliotheksprüfungen, generierte Referenzen/Reports/Previews und Z_Cockpit-Generierung.
 
 PR #159 bleibt bewusst Draft und der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Der Sicherheits-/Command-Infrastrukturblock ist jetzt geschlossen. Neue Undo-Fälle dürfen erst eingeführt werden, wenn eine explizite fachliche Gegenoperation existiert.
+Der nächste Architekturblock ist die **Risikound Vier-Augen-Regel für administrative Rollenzuweisungs-Beendigungen**.
 
-Als nächstes den **Rechte-Lifecycle mit explizitem Widerruf** modellieren:
+Aktuell ist `project_role_assignment_terminated` durch das explizite Command-Recht `project.user_management.role.terminate` geschützt. Für High-/Critical-Rollen ist aber noch nicht beschlossen, ob zusätzlich eine zweite Person erforderlich sein muss.
 
-1. fachliches Modell für Rechtewiderruf/-beendigung definieren, statt `ProjectOSPermissionAssignment` historisch zu löschen;
-2. Scope, Zeitpunkt, Akteur, Grund und Referenz des Widerrufs festlegen;
-3. `ProjectOSAuthorizationEvaluator` um die Wirksamkeit solcher Widerrufe erweitern, weiterhin `DENY`-priorisiert;
-4. Persistenz/Bundle v4 rückwärtskompatibel erweitern;
-5. Change-Service, Command-Policy, Audit/Bus und Z_Cockpit anbinden;
-6. erst danach entscheiden, ob `permission_assigned` über eine neue Widerrufsoperation kompensierbar werden darf;
-7. anschließend analog prüfen, ob für Rollenzuweisungen eine explizite Beendigungsoperation benötigt wird.
+Nächste Schritte:
 
-Wichtig: Rechtezuweisungen, Freigaben oder andere historische Tatsachen niemals für Undo rückwirkend aus dem Zustand löschen.
+1. Configuration-before-Code: Risikoklasse der zu beendenden Rollenzuweisung eindeutig bestimmen;
+2. entscheiden, ob High-/Critical-Zuweisungsbeendigungen über den vorhandenen `ProjectOSRoleActionApproval`-Vertrag erweitert werden können oder einen eigenen Approval-Action-Typ benötigen;
+3. keine zweite Approval-State-Machine einführen;
+4. bei erforderlicher Freigabe die Rechtewirkung fail-closed erst nach wirksamer zweiter Entscheidung beenden;
+5. Notfallverhalten und nachträgliche Prüfung ausdrücklich entscheiden;
+6. Z_Cockpit vor Ausführung die Rechteauswirkung read-only simulieren lassen;
+7. End-to-End-Test für High-Risk-Zuweisungsbeendigung → Freigabe → Rechteentzug → Audit/Bus → Z_Cockpit ergänzen.
+
+Wichtig: Die vorhandene Vier-Augen-Regel einer **Aktivierungs-Deaktivierung** darf nicht still auf die **Rollenzuweisungs-Beendigung** umgedeutet werden. Der Vertrag muss explizit beschlossen und nachvollziehbar bleiben.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Code-Stand ist ProjectOS complete test suite Run #291 für Commit `2de84c8f3f05dbec3f68d8264044f08a9b92bdf0`. Zentrale Command-Policy, produktive gesicherte Benutzerverwaltungs-Runtime, Autorisierungsnachweis, Z_Cockpit-Command-Diagnostik, End-to-End-Vier-Augen-/DENY-Pfad, fail-closed Reversibilitätsmatrix und persistierte Audit-`command_id` sind umgesetzt. Fahre mit einem expliziten Rechtewiderrufs-Lifecycle fort; historische Rechtezuweisungen dürfen nicht gelöscht werden. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, Configuration before Code, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung und append-only Audit-/Bus-Historie nicht verletzen.
+> Wir setzen `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne dokumentierte Code-Stand ist ProjectOS complete test suite Run #342. Rechtewiderruf und Rollenzuweisungs-Beendigung sind als getrennte persistierte Lifecycle-Tatsachen in Benutzerverwaltungs-Persistenzversion 2 umgesetzt; Version 1 bleibt lesbar, Bundle v4 bleibt unverändert. Historische Zuweisungen werden nicht gelöscht. Command-Autorisierung, Audit/Bus, Z_Cockpit und Simulationen berücksichtigen beide Lifecycle-Arten. Fahre mit der expliziten Risikound Vier-Augen-Regel für administrative High-/Critical-Rollenzuweisungs-Beendigungen fort. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, Configuration before Code, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung und append-only Audit-/Bus-Historie nicht verletzen.
