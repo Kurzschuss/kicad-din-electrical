@@ -66,8 +66,13 @@ jobs:
       - name: Check generated quality report
         run: python tools/generate_quality_report.py --check
 
-      - name: Check generated symbol previews
-        run: python tools/generate_symbol_previews.py --check
+      - name: Diagnose generated symbol previews
+        run: |
+          python tools/generate_symbol_previews.py
+          echo "Geänderte Symbolvorschauen:"
+          git status --short docs/site/symbol-previews
+          git diff -- docs/site/symbol-previews
+          git diff --exit-code -- docs/site/symbol-previews
 
       - name: Check generated HTML reference
         run: |
