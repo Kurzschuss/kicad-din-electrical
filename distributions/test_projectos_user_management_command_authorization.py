@@ -115,7 +115,7 @@ def test_deny_overrides_allow_and_user_weight_never_grants_permission():
     assert decision["deny_precedence"] is True
     assert decision["weight_used_for_decision"] is False
 
-    with pytest.raises(PermissionError, match="\(deny\)"):
+    with pytest.raises(PermissionError, match=r"\(deny\)"):
         service.change_user_weight(target.user_id, 900, command_context=context)
 
     assert _weight(manager, target.user_id) == 100
@@ -183,7 +183,7 @@ def test_missing_undo_permission_denies_without_domain_audit_or_history_change()
     audit_count = len(manager.sync_log.entries)
     history_count = len(emitter.command_history.all())
 
-    with pytest.raises(PermissionError, match="undo:user_weight_changed \(not_granted\)"):
+    with pytest.raises(PermissionError, match=r"undo:user_weight_changed \(not_granted\)"):
         ProjectOSUserManagementUndoRedoService(service).undo_latest(
             actor_user_id=administrator.user_id
         )
