@@ -16,6 +16,7 @@ class ZCockpitUserManagementConsistencyView:
         state = self.manager.user_management
         issues: list[dict[str, Any]] = []
         users = {item.user_id: item for item in state.users}
+        assignments = {item.assignment_id: item for item in state.permission_assignments}
         roles = {item.role_assignment_id: item for item in state.project_roles}
         activations = {item.activation_id: item for item in state.activations}
         requests = {item.action_id: item for item in state.approval_requests}
@@ -35,6 +36,48 @@ class ZCockpitUserManagementConsistencyView:
                 add("UM_PERMISSION_UNKNOWN_USER", "red", "Eine Rechtezuweisung verweist auf einen unbekannten Benutzer.", {
                     "assignment_id": assignment.assignment_id,
                     "user_id": assignment.user_id,
+                })
+
+        revocation_count_by_assignment: dict[str, int] = {}
+        for revocation in state.permission_revocations:
+            assignment = assignments.get(revocation.assignment_id)
+            revocation_count_by_assignment[revocation.assignment_id] = revocation_count_by_assignment.get(revocation.assignment_id, 0) + 1
+            if assignment is None:
+                add("UM_PERMISSION_REVOCATION_UNKNOWN_ASSIGNMENT", "red", "Ein Rechtewiderruf verweist auf eine unbekannte Rechtezuweisung.", {
+                    "revocation_id": revocation.revocation_id,
+                    "assignment_id": revocation.assignment_id,
+                })
+                continue
+            if revocation.project_id != state.project_id:
+                add("UM_PERMISSION_REVOCATION_FOREIGN_PROJECT", "red", "Ein Rechtewiderruf gehört zu einer anderen Projekt-ID.", {
+                    "revocation_id": revocation.revocation_id,
+                    "project_id": revocation.project_id,
+                })
+            if revocation.user_id != assignment.user_id:
+                add("UM_PERMISSION_REVOCATION_USER_MISMATCH", "red", "Rechtewiderruf und Rechtezuweisung gehören zu unterschiedlichen Benutzern.", {
+                    "revocation_id": revocation.revocation_id,
+                    "assignment_id": assignment.assignment_id,
+                    "revocation_user_id": revocation.user_id,
+                    "assignment_user_id": assignment.user_id,
+                })
+            if revocation.scope != assignment.scope:
+                add("UM_PERMISSION_REVOCATION_SCOPE_MISMATCH", "yellow", "Rechtewiderruf und Rechtezuweisung verwenden unterschiedliche Gültigkeitsbereiche.", {
+                    "revocation_id": revocation.revocation_id,
+                    "assignment_id": assignment.assignment_id,
+                    "revocation_scope": revocation.scope,
+                    "assignment_scope": assignment.scope,
+                })
+            if revocation.revoked_by_user_id not in users:
+                add("UM_PERMISSION_REVOCATION_UNKNOWN_ACTOR", "red", "Ein Rechtewiderruf verweist auf einen unbekannten handelnden Benutzer.", {
+                    "revocation_id": revocation.revocation_id,
+                    "revoked_by_user_id": revocation.revoked_by_user_id,
+                })
+
+        for assignment_id, count in revocation_count_by_assignment.items():
+            if count > 1:
+                add("UM_PERMISSION_REVOCATION_AMBIGUOUS", "red", "Mehrere Widerrufe derselben Rechtezuweisung sind mehrdeutig.", {
+                    "assignment_id": assignment_id,
+                    "revocation_count": count,
                 })
 
         for role in state.project_roles:
@@ -144,10 +187,10 @@ class ZCockpitUserManagementConsistencyView:
             "yellow_count": yellow_count,
             "issues": issues,
             "checked_chains": [
-                "user->permission",
+                "user->permission->revocation",
                 "user->role->activation->deactivation",
                 "request->approval->post_review",
             ],
             "read_only": True,
-            "note": "Die Diagnose verändert keine Benutzer-, Rollen-, Freigabe- oder Persistenzdaten.",
+            "note": "Die Diagnose verändert keine Benutzer-, Rechtewiderrufs-, Rollen-, Freigabe- oder Persistenzdaten.",
         }
