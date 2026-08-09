@@ -81,3 +81,25 @@ jobs:
         run: |
           python -m tools.generate_z_cockpit
           test -s docs/site/z-cockpit.html
+
+      - name: Generate review artifacts after MCB changes
+        if: always()
+        run: |
+          python tools/generate_device_variants.py
+          python tools/generate_library_reference.py
+          python tools/generate_quality_report.py
+          python tools/generate_symbol_previews.py
+          python -m tools.generate_html_reference
+          python -m tools.generate_device_catalog_html
+          python -m tools.generate_z_cockpit
+
+      - name: Upload review artifacts after MCB changes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcb-generated-artifacts
+          if-no-files-found: error
+          path: |
+            data/devices/generated/
+            docs/04_Reference/
+            docs/site/
