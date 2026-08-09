@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Iterable
 
 from .projectos_role_approval_trace import ProjectOSRoleApprovalTrace
+from .projectos_role_post_review_trace import ProjectOSRolePostReviewTrace
 from .z_cockpit_navigation import ZCockpitNavigationTarget
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 
@@ -15,9 +16,11 @@ class ZCockpitAttentionView:
         self,
         overview: ZCockpitProjectLeadOverview,
         approval_traces: Iterable[ProjectOSRoleApprovalTrace] | None = None,
+        post_review_traces: Iterable[ProjectOSRolePostReviewTrace] | None = None,
     ) -> None:
         self.overview = overview
         self.approval_traces = tuple(approval_traces or ())
+        self.post_review_traces = tuple(post_review_traces or ())
 
     def state(self, *, correlation_id: str | None = None) -> dict[str, Any]:
         overview = self.overview.state(correlation_id=correlation_id)
@@ -48,6 +51,13 @@ class ZCockpitAttentionView:
                 "detail_target": target.as_dict(),
             })
 
+        review_by_action = {
+            trace.post_review_state.get("request", {}).get("action_id"): trace
+            for trace in self.post_review_traces
+            if trace.post_review_state.get("request", {}).get("project_id") == project_id
+            and (correlation_id is None or trace.correlation_id == correlation_id)
+        }
+
         for trace in self.approval_traces:
             request = trace.approval_state.get("request", {})
             if request.get("project_id") != project_id:
@@ -55,10 +65,19 @@ class ZCockpitAttentionView:
             if correlation_id is not None and trace.correlation_id != correlation_id:
                 continue
             status = trace.approval_state.get("status")
-            if status not in {"pending_approval", "rejected", "emergency_pending_review"}:
+            post_review_trace = review_by_action.get(request.get("action_id"))
+            post_review_status = (
+                post_review_trace.post_review_state.get("status") if post_review_trace is not None else None
+            )
+            if status == "emergency_pending_review" and post_review_status == "completed_confirmed":
                 continue
-            risk = request.get("risk_class", "low")
-            if status == "emergency_pending_review":
+            if status == "emergency_pending_review" and post_review_status == "completed_negative":
+                code = "APPROVAL_POST_REVIEW_ESCALATED"
+                traffic_light = "red"
+                priority = 30
+                summary = "Eine Notfall-Nachprüfung wurde negativ abgeschlossen und erfordert Eskalation."
+                action = "Freigabevorgang öffnen, negatives Nachprüfungsergebnis und historische Rechtewirkung prüfen und die erforderliche Eskalation bearbeiten."
+            elif status == "emergency_pending_review":
                 code = "APPROVAL_EMERGENCY_POST_REVIEW"
                 traffic_light = "red"
                 priority = 30
@@ -70,18 +89,29 @@ class ZCockpitAttentionView:
                 priority = 25
                 summary = "Eine angeforderte Rollenaktion wurde abgelehnt und bleibt unwirksam."
                 action = "Freigabevorgang und Ablehnungsgrund prüfen; bei weiterem Bedarf einen neuen fachlich begründeten Vorgang starten."
-            else:
+            elif status == "pending_approval":
+                risk = request.get("risk_class", "low")
                 code = "APPROVAL_PENDING"
                 traffic_light = "yellow"
                 priority = 25 if risk in {"high", "critical"} else 20
                 summary = "Eine Rollenaktion wartet auf die erforderliche Freigabe."
                 action = "Freigabevorgang öffnen und prüfen, welche zweite Freigabe noch fehlt."
+            else:
+                continue
+            risk = request.get("risk_class", "low")
+            target_messages = (
+                post_review_trace.messages if post_review_trace is not None else trace.messages
+            )
             target = ZCockpitNavigationTarget(
                 view="approval_trace",
                 project_id=project_id,
                 correlation_id=trace.correlation_id,
-                message_ids=tuple(item.message_id for item in trace.messages),
-                metadata={"action_id": request.get("action_id"), "approval_status": status},
+                message_ids=tuple(item.message_id for item in target_messages),
+                metadata={
+                    "action_id": request.get("action_id"),
+                    "approval_status": status,
+                    "post_review_status": post_review_status,
+                },
             )
             items.append({
                 "source": "approval",
@@ -96,6 +126,7 @@ class ZCockpitAttentionView:
                     "action_type": request.get("action_type"),
                     "risk_class": risk,
                     "target_reference": request.get("target_reference"),
+                    "post_review_status": post_review_status,
                 },
                 "detail_target": target.as_dict(),
             })
@@ -170,7 +201,7 @@ class ZCockpitAttentionView:
             "items": items,
             "read_only": True,
             "note": (
-                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Freigabe-, Audit- und Recovery-Nachweise. "
-                "Er führt keine Freigabe, Reparatur, Recovery oder fachliche Entscheidung aus."
+                "Der Aufmerksamkeitsblock priorisiert ausschließlich bereits vorhandene Diagnosen, Freigabe-, Nachprüfungs-, Audit- und Recovery-Nachweise. "
+                "Er führt keine Freigabe, Nachprüfung, Reparatur, Recovery oder fachliche Entscheidung aus."
             ),
         }
