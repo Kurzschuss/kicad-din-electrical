@@ -17,6 +17,7 @@ DEFAULT_COMMAND_PERMISSION_MAP = MappingProxyType({
     "permission_assigned": "project.user_management.permission.assign",
     "permission_revoked": "project.user_management.permission.revoke",
     "project_role_assigned": "project.user_management.role.assign",
+    "project_role_assignment_terminated": "project.user_management.role.terminate",
     "project_role_activated": "project.user_management.role.activate",
     "project_role_deactivated": "project.user_management.role.deactivate",
     "approval_requested": "project.user_management.approval.request",
@@ -43,7 +44,6 @@ class ProjectOSUserManagementCommandPolicy:
         scope = str(self.scope).strip()
         if not scope:
             raise ValueError("command policy scope must not be empty")
-
         command_map = {
             str(key).strip(): str(value).strip()
             for key, value in self.command_permission_map.items()
@@ -51,7 +51,6 @@ class ProjectOSUserManagementCommandPolicy:
         }
         if not command_map:
             raise ValueError("command_permission_map must not be empty")
-
         role_map = {
             str(role).strip(): tuple(dict.fromkeys(
                 str(permission).strip()
@@ -69,7 +68,6 @@ class ProjectOSUserManagementCommandPolicy:
         invalid_risks = {risk for risk in risk_map.values() if risk not in {"low", "medium", "high", "critical"}}
         if invalid_risks:
             raise ValueError(f"unsupported role risk_class: {sorted(invalid_risks)[0]}")
-
         object.__setattr__(self, "scope", scope)
         object.__setattr__(self, "command_permission_map", MappingProxyType(command_map))
         object.__setattr__(self, "role_permission_map", MappingProxyType(role_map))
@@ -94,10 +92,7 @@ class ProjectOSUserManagementCommandPolicy:
     ) -> "ProjectOSUserManagementCommandPolicy":
         return cls(
             command_permission_map=command_permission_map or DEFAULT_COMMAND_PERMISSION_MAP,
-            role_permission_map={
-                role: tuple(permissions)
-                for role, permissions in (role_permission_map or {}).items()
-            },
+            role_permission_map={role: tuple(permissions) for role, permissions in (role_permission_map or {}).items()},
             role_risk_class_map=role_risk_class_map or {},
             scope=scope,
         )
@@ -105,10 +100,7 @@ class ProjectOSUserManagementCommandPolicy:
     def as_dict(self) -> dict:
         return {
             "command_permission_map": dict(self.command_permission_map),
-            "role_permission_map": {
-                role: list(permissions)
-                for role, permissions in self.role_permission_map.items()
-            },
+            "role_permission_map": {role: list(permissions) for role, permissions in self.role_permission_map.items()},
             "role_risk_class_map": dict(self.role_risk_class_map),
             "scope": self.scope,
             "read_only": True,
