@@ -18,6 +18,8 @@ _EVENT_LABELS = {
     "projectos.role_action.approval_requested": "Freigabe angefordert",
     "projectos.role_action.approval_decided": "Freigabe entschieden",
     "projectos.role_action.approval_effectiveness_evaluated": "Wirksamkeit bewertet",
+    "projectos.role_action.post_review_completed": "Notfall-Nachpruefung abgeschlossen",
+    "projectos.role_action.post_review_escalated": "Notfall-Nachpruefung eskaliert",
 }
 
 _STATUS_LABELS = {
@@ -27,6 +29,8 @@ _STATUS_LABELS = {
     "approved_not_required": "Keine zweite Freigabe erforderlich",
     "rejected": "Abgelehnt",
     "emergency_pending_review": "Notfall vorlaeufig wirksam – Nachpruefung erforderlich",
+    "completed_confirmed": "Notfall-Nachpruefung abgeschlossen – bestaetigt",
+    "completed_negative": "Notfall-Nachpruefung abgeschlossen – Eskalation erforderlich",
 }
 
 
@@ -61,14 +65,21 @@ class ZCockpitRoleApprovalTraceView:
             and item.get("correlation_id") == correlation
             and (
                 item.get("reference") == action
-                or item.get("action") == "approval_decided"
+                or item.get("action") in {"approval_decided", "post_review_completed", "post_review_escalated"}
             )
-            and item.get("source") == "projectos_role_approval"
+            and item.get("source") in {"projectos_role_approval", "projectos_role_post_review"}
         ]
 
         request = next((item for item in messages if item.name.endswith("approval_requested")), None)
         outcome = next((item for item in reversed(messages) if item.name.endswith("approval_effectiveness_evaluated")), None)
         decisions = [item for item in messages if item.name.endswith("approval_decided")]
+        post_review = next(
+            (
+                item for item in reversed(messages)
+                if item.name.endswith("post_review_completed") or item.name.endswith("post_review_escalated")
+            ),
+            None,
+        )
 
         timeline = [
             {
@@ -82,8 +93,18 @@ class ZCockpitRoleApprovalTraceView:
             for item in messages
         ]
 
-        status = outcome.payload.get("status") if outcome is not None else "pending_approval"
-        post_review_required = bool(outcome and outcome.payload.get("post_review_required"))
+        approval_status = outcome.payload.get("status") if outcome is not None else "pending_approval"
+        if post_review is not None:
+            status = post_review.payload.get("status", approval_status)
+            post_review_required = False
+            escalation_required = bool(post_review.payload.get("escalation_required"))
+            post_review_completed = True
+        else:
+            status = approval_status
+            post_review_required = bool(outcome and outcome.payload.get("post_review_required"))
+            escalation_required = False
+            post_review_completed = False
+
         return {
             "project_id": project,
             "correlation_id": correlation,
@@ -92,14 +113,20 @@ class ZCockpitRoleApprovalTraceView:
             "request": dict(request.payload) if request is not None else None,
             "decisions": [dict(item.payload) for item in decisions],
             "outcome": dict(outcome.payload) if outcome is not None else None,
+            "post_review": dict(post_review.payload) if post_review is not None else None,
+            "approval_status": approval_status,
             "status": status,
             "status_label": _STATUS_LABELS.get(status, status),
             "post_review_required": post_review_required,
-            "attention_required": status in {"approval_missing", "pending_approval", "rejected", "emergency_pending_review"},
+            "post_review_completed": post_review_completed,
+            "escalation_required": escalation_required,
+            "attention_required": (
+                status in {"approval_missing", "pending_approval", "rejected", "emergency_pending_review", "completed_negative"}
+            ),
             "timeline": timeline,
             "audit_entries": audits,
             "message_count": len(messages),
             "audit_entry_count": len(audits),
             "read_only": True,
-            "note": "Die Ansicht bildet ausschliesslich vorhandene korrelierte Bus- und Audit-Nachweise ab und erzeugt keine Freigabeentscheidung.",
+            "note": "Die Ansicht bildet ausschliesslich vorhandene korrelierte Bus- und Audit-Nachweise ab und erzeugt keine Freigabe- oder Nachpruefungsentscheidung.",
         }
