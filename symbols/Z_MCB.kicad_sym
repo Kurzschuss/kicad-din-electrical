@@ -13,15 +13,15 @@
     (property "Description" "Herstellerneutraler Leitungsschutzschalter, 1-polig, DIN/IEC-Darstellung" (at 0 -13.97 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (property "Z_Footprint_Policy" "optional" (at 0 -15.24 0) (effects (font (size 1.0 1.0)) (hide yes)))
     (symbol "MCB_0_1"
-      (polyline (pts (xy 0 5.08) (xy 0 2.54)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -2.54 2.54) (xy 0 -5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -5.08 -1.27) (xy -3.81 -1.27) (xy -2.54 -2.54) (xy -1.27 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -3.81 1.27) (xy -2.54 2.54) (xy -2.54 0) (xy -3.81 1.27)) (stroke (width 0.254) (type default)) (fill (type outline)))
-      (polyline (pts (xy -2.54 1.27) (xy -1.27 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy 5.08 5.08) (xy 5.08 2.54)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy 2.54 2.54) (xy 5.08 -5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy -5.08 -1.27) (xy -3.81 -1.27) (xy -2.54 -2.54) (xy -1.27 -1.27) (xy 3.81 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy -1.27 1.27) (xy 0 2.54) (xy 0 0) (xy -1.27 1.27)) (stroke (width 0.254) (type default)) (fill (type outline)))
+      (polyline (pts (xy 0 1.27) (xy 3.81 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
     )
     (symbol "MCB_1_1"
-      (pin passive line (at 0 7.62 270) (length 2.54) (name "~" (effects (font (size 1.0 1.0)))) (number "1" (effects (font (size 1.0 1.0)))))
-      (pin passive line (at 0 -7.62 90) (length 2.54) (name "~" (effects (font (size 1.0 1.0)))) (number "2" (effects (font (size 1.0 1.0)))))
+      (pin passive line (at 5.08 7.62 270) (length 2.54) (name "~" (effects (font (size 1.0 1.0)))) (number "1" (effects (font (size 1.0 1.0)))))
+      (pin passive line (at 5.08 -7.62 90) (length 2.54) (name "~" (effects (font (size 1.0 1.0)))) (number "2" (effects (font (size 1.0 1.0)))))
     )
   )
   (symbol "MCB_3P"
