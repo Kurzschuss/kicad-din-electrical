@@ -9,10 +9,11 @@ from .projectos_project_memory import ProjectOSProjectMemory
 from .projectos_role_post_review_trace import ProjectOSRolePostReviewTrace
 from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
+from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersistenceView
 
 
 class ZCockpitProjectLeadOverview:
-    """Bündelt Projektzustand, Recovery, Audit/Korrelation und Wissensdiagnose rein lesend."""
+    """Bündelt Projektzustand, Recovery, Persistenz, Audit/Korrelation und Wissensdiagnose rein lesend."""
 
     def __init__(
         self,
@@ -35,6 +36,7 @@ class ZCockpitProjectLeadOverview:
         correlation = self._correlation_view.state(correlation_id=correlation_id)
         recovery = correlation["recovery"]
         audit = correlation["audit"]
+        persistence = ZCockpitUserManagementPersistenceView(self.manager).state()
 
         diagnostics = {
             "available": self._memory is not None,
@@ -86,11 +88,12 @@ class ZCockpitProjectLeadOverview:
             or audit["unlinked_entry_count"] > 0
         )
         recovery_attention = bool(recovery.get("available") and recovery.get("valid") is False)
+        migration_attention = bool(persistence["migration_pending"])
         post_review_red = post_reviews["open_count"] > 0 or post_reviews["escalated_count"] > 0
 
         if diagnostics["traffic_light"] == "red" or post_review_red:
             traffic_light = "red"
-        elif diagnostics["traffic_light"] == "yellow" or audit_attention or recovery_attention:
+        elif diagnostics["traffic_light"] == "yellow" or audit_attention or recovery_attention or migration_attention:
             traffic_light = "yellow"
         else:
             traffic_light = "green"
@@ -110,6 +113,10 @@ class ZCockpitProjectLeadOverview:
             attention_reasons.append("Mindestens ein Audit-Eintrag ist noch nicht vorgangskorreliert.")
         if recovery_attention:
             attention_reasons.append("Vorhandene Recovery ist nicht verwendbar.")
+        if migration_attention:
+            attention_reasons.append(
+                f"Projektbundle benötigt Migration auf Version {persistence['migration_target_version']}."
+            )
 
         return {
             "project": correlation["project"],
@@ -129,15 +136,19 @@ class ZCockpitProjectLeadOverview:
                 "recovery_available": recovery.get("available", False),
                 "recovery_valid": recovery.get("valid"),
                 "can_recover": recovery.get("can_recover", False),
+                "bundle_version": persistence["persisted_bundle_version"],
+                "bundle_migration_pending": persistence["migration_pending"],
+                "user_management_persisted_object_count": persistence["persisted_object_count"],
             },
             "diagnostics": diagnostics,
             "post_reviews": post_reviews,
+            "persistence": persistence,
             "audit": audit,
             "recovery": recovery,
             "correlations": correlation["correlations"],
             "read_only": True,
             "note": (
                 "Die Gesamtübersicht aggregiert ausschließlich bereits vorhandene read-only Nachweise. "
-                "Sie führt keine Reparatur, Recovery, Freigabe oder Nachprüfungsentscheidung aus."
+                "Sie führt keine Reparatur, Migration, Recovery, Freigabe oder Nachprüfungsentscheidung aus."
             ),
         }
