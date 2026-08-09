@@ -11,6 +11,7 @@ from .projectos_user_management_command_context import ProjectOSUserManagementCo
 from .projectos_user_management_persistence import ProjectOSUserManagementState
 from .projectos_user_management_runtime import build_projectos_user_management_runtime
 from .z_cockpit_user_management_command_diagnostics import ZCockpitUserManagementCommandDiagnosticsView
+from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersistenceView
 
 
 def _context(actor_user_id: str) -> ProjectOSUserManagementCommandContext:
@@ -75,12 +76,22 @@ def test_bundle_v4_with_user_management_v1_loads_and_explicit_save_upgrades_to_v
 
     assert loaded.user_management.permission_revocations == ()
     assert json.loads(path.read_text(encoding="utf-8"))["user_management"]["version"] == 1
+    migration = ZCockpitUserManagementPersistenceView(loaded).state()
+    assert migration["persisted_bundle_version"] == 4
+    assert migration["persisted_user_management_version"] == 1
+    assert migration["user_management_migration_pending"] is True
+    assert migration["user_management_migration_target_version"] == 2
+    assert migration["migration_pending"] is True
+    assert loaded.has_unsaved_changes is False
 
     loaded.save()
     upgraded = json.loads(path.read_text(encoding="utf-8"))
     assert upgraded["version"] == 4
     assert upgraded["user_management"]["version"] == 2
     assert upgraded["user_management"]["permission_revocations"] == []
+    after = ZCockpitUserManagementPersistenceView(loaded).state()
+    assert after["user_management_migration_pending"] is False
+    assert after["migration_pending"] is False
 
 
 def test_revoked_command_permission_blocks_later_command_without_side_effects():
