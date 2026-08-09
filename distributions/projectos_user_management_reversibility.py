@@ -30,66 +30,28 @@ class ProjectOSUserManagementReversibilityRule:
         object.__setattr__(self, "reason", reason)
 
     def as_dict(self) -> dict[str, Any]:
-        return {
-            "operation": self.operation,
-            "reversible": self.reversible,
-            "compensation": self.compensation,
-            "reason": self.reason,
-            "read_only": True,
-        }
+        return {"operation": self.operation, "reversible": self.reversible, "compensation": self.compensation, "reason": self.reason, "read_only": True}
 
 
 _DEFAULT_RULES = (
-    ProjectOSUserManagementReversibilityRule(
-        "user_created", False, None,
-        "Es existiert noch keine fachliche Benutzer-Deaktivierungs-/Löschoperation.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "user_weight_changed", True, "restore_previous_weight",
-        "Der vorherige Gewichtungswert kann über denselben validierten Fachcommand wiederhergestellt werden.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "permission_assigned", False, None,
-        "Ein Widerruf beendet die Zuweisung historisch; ob er als Kompensation einer Zuweisung dienen darf, ist noch nicht freigegeben.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "permission_revoked", False, None,
-        "Ein Widerruf bleibt historische Tatsache; eine Wiedererteilung wäre ein neuer fachlicher Vorgang.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "project_role_assigned", False, None,
-        "Eine explizite Aufhebung der Rollenzuweisung ist noch nicht modelliert.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "project_role_activated", False, None,
-        "Eine Deaktivierung beendet eine Aktivierung historisch und ist kein automatisches Undo derselben Tatsache.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "project_role_deactivated", False, None,
-        "Eine neue Aktivierung wäre ein neuer Lifecycle-Vorgang und kein Rückschreiben der historischen Beendigung.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "approval_requested", False, None,
-        "Freigabeanforderungen sind historische Vorgänge; eine Rücknahmeoperation ist noch nicht modelliert.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "approval_recorded", False, None,
-        "Freigabeentscheidungen bleiben historische Tatsachen und werden nicht rückwirkend entfernt.",
-    ),
-    ProjectOSUserManagementReversibilityRule(
-        "post_review_completed", False, None,
-        "Nachprüfungen bleiben historische Tatsachen und werden nicht rückwirkend entfernt.",
-    ),
+    ProjectOSUserManagementReversibilityRule("user_created", False, None, "Es existiert noch keine fachliche Benutzer-Deaktivierungs-/Löschoperation."),
+    ProjectOSUserManagementReversibilityRule("user_weight_changed", True, "restore_previous_weight", "Der vorherige Gewichtungswert kann über denselben validierten Fachcommand wiederhergestellt werden."),
+    ProjectOSUserManagementReversibilityRule("permission_assigned", False, None, "Ein Widerruf beendet die Zuweisung historisch; für vollständiges Undo/Redo fehlt ein expliziter Regrant-Vertrag."),
+    ProjectOSUserManagementReversibilityRule("permission_revoked", False, None, "Ein Widerruf bleibt historische Tatsache; eine Wiedererteilung wäre ein neuer fachlicher Vorgang."),
+    ProjectOSUserManagementReversibilityRule("project_role_assigned", False, None, "Eine Beendigung der Rollenzuweisung ist modelliert; für vollständiges Undo/Redo fehlt aber ein expliziter Neu-Zuweisungs-/Redo-Vertrag."),
+    ProjectOSUserManagementReversibilityRule("project_role_assignment_terminated", False, None, "Die Beendigung bleibt historische Tatsache; eine spätere erneute Rollenzuweisung ist ein neuer fachlicher Vorgang."),
+    ProjectOSUserManagementReversibilityRule("project_role_activated", False, None, "Eine Deaktivierung beendet eine Aktivierung historisch und ist kein automatisches Undo derselben Tatsache."),
+    ProjectOSUserManagementReversibilityRule("project_role_deactivated", False, None, "Eine neue Aktivierung wäre ein neuer Lifecycle-Vorgang und kein Rückschreiben der historischen Beendigung."),
+    ProjectOSUserManagementReversibilityRule("approval_requested", False, None, "Freigabeanforderungen sind historische Vorgänge; eine Rücknahmeoperation ist noch nicht modelliert."),
+    ProjectOSUserManagementReversibilityRule("approval_recorded", False, None, "Freigabeentscheidungen bleiben historische Tatsachen und werden nicht rückwirkend entfernt."),
+    ProjectOSUserManagementReversibilityRule("post_review_completed", False, None, "Nachprüfungen bleiben historische Tatsachen und werden nicht rückwirkend entfernt."),
 )
 
 
 class ProjectOSUserManagementReversibilityPolicy:
     """Zentrale read-only Entscheidung, welche Operationen kompensierbar sind."""
 
-    def __init__(
-        self,
-        rules: tuple[ProjectOSUserManagementReversibilityRule, ...] = _DEFAULT_RULES,
-    ) -> None:
+    def __init__(self, rules: tuple[ProjectOSUserManagementReversibilityRule, ...] = _DEFAULT_RULES) -> None:
         by_operation = {rule.operation: rule for rule in rules}
         if len(by_operation) != len(rules):
             raise ValueError("reversibility operation already configured")
@@ -115,9 +77,7 @@ class ProjectOSUserManagementReversibilityPolicy:
     def state(self) -> dict[str, Any]:
         return {
             "rules": [rule.as_dict() for rule in self._rules.values()],
-            "reversible_operations": [
-                rule.operation for rule in self._rules.values() if rule.reversible
-            ],
+            "reversible_operations": [rule.operation for rule in self._rules.values() if rule.reversible],
             "read_only": True,
             "persisted": False,
             "fail_closed": True,
