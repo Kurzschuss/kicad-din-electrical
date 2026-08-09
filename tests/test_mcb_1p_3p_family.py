@@ -2,7 +2,12 @@ import json
 from pathlib import Path
 
 from tools.generate_device_variants import expand_series
-from tools.generate_symbol_previews import parse_pins, parse_polylines, symbol_blocks
+from tools.generate_symbol_previews import (
+    _logical_points,
+    parse_pins,
+    parse_polylines,
+    symbol_blocks,
+)
 from tools.quality.kicad_symbol_adapter import extract_symbol_facts
 
 
@@ -10,6 +15,12 @@ MCB_PATH = Path("symbols/Z_MCB.kicad_sym")
 SERIES_PATH = Path("data/device_series/generic/mcb-3p-template-series.yaml")
 CURRENTS = (2, 4, 6, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 125)
 CURVES = ("B", "C", "D")
+
+
+def _symbol_width_mm(block: str) -> float:
+    points = _logical_points([], parse_pins(block), parse_polylines(block))
+    xs = [point[0] for point in points]
+    return max(xs) - min(xs)
 
 
 def test_mcb_library_keeps_1p_id_and_adds_separate_3p_symbol():
@@ -27,8 +38,8 @@ def test_mcb_1p_uses_vertical_terminal_flow_1_to_2():
     pins = parse_pins(block)
 
     assert [(pin.x, pin.y, pin.angle, pin.length) for pin in pins] == [
-        (0.0, 7.62, 270.0, 2.54),
-        (0.0, -7.62, 90.0, 2.54),
+        (5.08, 7.62, 270.0, 2.54),
+        (5.08, -7.62, 90.0, 2.54),
     ]
     assert '(number "1"' in block
     assert '(number "2"' in block
@@ -45,6 +56,13 @@ def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
     ]
     for number in ("1", "2", "3", "4", "5", "6"):
         assert f'(number "{number}"' in block
+
+
+def test_mcb_reference_widths_match_documented_400_and_800_mil_targets():
+    blocks = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))
+
+    assert round(_symbol_width_mm(blocks["MCB"]), 2) == 10.16
+    assert round(_symbol_width_mm(blocks["MCB_3P"]), 2) == 20.32
 
 
 def test_mcb_library_remains_z_geometry_conform():
