@@ -47,45 +47,49 @@ Regeln:
 - Recovery stellt Benutzerverwaltung vollständig wieder her;
 - beschädigte v4-Benutzerdaten verändern bei fehlgeschlagenem Load/Recover keinen bestehenden Managerzustand.
 
-## Z_Cockpit-Persistenz-/Migrationsstatus – zuletzt umgesetzt
+## Z_Cockpit-Persistenz-/Migrationsstatus
 
-Neu vorhanden ist `ZCockpitUserManagementPersistenceView`.
+`ZCockpitUserManagementPersistenceView` trennt Runtime-Fähigkeit und tatsächlich gespeicherten Dateistand. Angezeigt werden `current_bundle_version`, `persisted_bundle_version`, `bundle_v4_persisted`, `migration_pending`, `migration_target_version`, `user_management_persistence_version`, persistierte Objektzähler und `derived_not_persisted`.
 
-Die Sicht trennt ausdrücklich zwischen Runtime-Fähigkeit und tatsächlich gespeichertem Dateistand:
+## Z_Cockpit-Integration des Persistenzstatus – zuletzt umgesetzt
 
-- `current_bundle_version` zeigt die aktuell unterstützte Bundle-Version 4;
-- `persisted_bundle_version` liest den tatsächlich gespeicherten Dateistand, sofern ein Projektpfad vorhanden ist;
-- `bundle_v4_persisted` ist nur dann wahr, wenn die Datei tatsächlich als v4 gespeichert ist;
-- ein neues, noch nie gespeichertes Projekt wird nicht fälschlich als bereits persistiertes v4-Projekt ausgewiesen;
-- geladenes v2/v3 zeigt `migration_pending=true` und `migration_target_version=4`;
-- `user_management_persistence_version` zeigt die Version des Benutzerverwaltungs-Persistenzvertrags;
-- `persisted_counts` zählt Benutzer, Rechtezuweisungen, Projektrollen, Aktivierungen, Beendigungen, Freigabeanforderungen, Freigaben und Nachprüfungen;
-- `persisted_object_count` liefert die Gesamtsumme dieser fachlichen Persistenzobjekte;
-- `derived_not_persisted` zeigt transparent alle bewusst nicht gespeicherten reproduzierbaren Ableitungen.
+Der Persistenz-/Migrationsstatus ist jetzt in Projektleiter-Gesamtübersicht, Aufmerksamkeitsblock und Navigation eingebunden.
 
-Die Sicht ist vollständig read-only und verändert weder Manager-, Datei- noch Benutzerzustand.
+Regeln:
+
+- `ZCockpitProjectLeadOverview` führt den vollständigen Persistenzstatus unter `persistence`;
+- die Summary zeigt gespeicherte Bundle-Version, Migrationsbedarf und Anzahl persistierter Benutzerverwaltungsobjekte;
+- ausstehende Migration setzt die Projektleiterampel mindestens auf Gelb und erzeugt einen expliziten Aufmerksamkeitshinweis;
+- `ZCockpitAttentionView` erzeugt `USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING` mit Priorität 20;
+- der Attention-Item führt direkt zum neuen Navigationsziel `user_management_persistence`;
+- `ZCockpitNavigationResolver` löst dieses Ziel read-only über `ZCockpitUserManagementPersistenceView` auf;
+- ein bereits gespeichertes v4-Projekt erzeugt keinen Migrations-Attention-Item;
+- die Sicht führt selbst keine Migration aus; v2/v3 werden weiterhin ausschließlich beim expliziten Speichern auf v4 migriert.
 
 Commits dieses Blocks:
 
-- `cb9fde71` feat(z-cockpit): Benutzerverwaltungs-Persistenzstatus anzeigen
-- `c2d855bf` test(z-cockpit): Persistenz- und Migrationsstatus absichern
+- `42f0ca00` feat(z-cockpit): Persistenzstatus in Projektleiterübersicht integrieren
+- `25d367d7` feat(z-cockpit): Persistenzstatus als Navigationsziel ergänzen
+- `5708cb53` feat(z-cockpit): Persistenzstatus über Navigation auflösen
+- `149ec0bc` feat(z-cockpit): Bundle-Migration im Aufmerksamkeitsblock anzeigen
+- `5556ebf8` test(z-cockpit): Persistenzstatus in Übersicht Aufmerksamkeit und Navigation absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #215, ist für Commit `c2d855bf6c3136a87400b4db5dad72411eb6b424` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #221, ist für Commit `5556ebf87d5290b19afc28b563b1dfdb8994dae2` erfolgreich.
 
 PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den Persistenzstatus in die Projektleiter-Gesamtübersicht und den Aufmerksamkeitsblock einbinden:
+Als Nächstes read-only Konsistenzdiagnosen für die Benutzerverwaltung ergänzen:
 
-1. ausstehende v2/v3→v4-Migration als gelben Hinweis anzeigen;
-2. Recovery mit vorhandenem Benutzerverwaltungsblock sichtbar machen;
-3. inkonsistente oder nicht lesbare Persistenzinformationen als Diagnosezustand behandeln, ohne Dateiänderung;
-4. Persistenz-/Migrationsstatus als eigenes Navigationsziel ergänzen;
-5. danach read-only Konsistenzdiagnosen für Benutzerverwaltungsreferenzen und Lifecycle-Ketten ergänzen.
+1. Referenzketten Benutzer→Recht/Rolle→Aktivierung→Beendigung sowie Anforderung→Freigabe→Nachprüfung diagnostisch erklären;
+2. zwischen Fehler, Warnung und konsistentem Zustand unterscheiden;
+3. beschädigte Persistenzdaten weiterhin beim Laden fail-closed abweisen, aber Runtime-/Bestandsprobleme ohne Dateiänderung sichtbar machen;
+4. Diagnose als eigenes Z_Cockpit-Navigationsziel und Aufmerksamkeitsquelle integrieren;
+5. danach Benutzerverwaltungsblock auf noch fehlende Änderungs-/Command-Services statt direkter State-Ersetzung prüfen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #215. Bundle v4 ist inklusive Benutzerverwaltung für Roundtrip, Dirty-State, Save-As, Recovery und transaktionssichere Fehlerfälle abgesichert. `ZCockpitUserManagementPersistenceView` zeigt jetzt tatsächliche gespeicherte Bundle-Version, Migrationsbedarf, Benutzerverwaltungs-Persistenzversion, Objektzähler und bewusst nicht persistierte Ableitungen. Fahre mit der Einbindung dieses Persistenzstatus in Projektleiterübersicht, Aufmerksamkeit und Navigation fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #221. Bundle v4 und `ProjectOSUserManagementState` sind persistenzseitig gehärtet. Der Benutzerverwaltungs-Persistenzstatus ist jetzt in Projektleiterübersicht, Aufmerksamkeitsblock und Navigation integriert; v2/v3→v4-Migration erscheint gelb und führt direkt zum read-only Detailstatus. Fahre mit read-only Konsistenzdiagnosen für Benutzer-/Rollen-/Aktivierungs-/Freigabereferenzen fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
