@@ -6,6 +6,7 @@ from typing import Any, Iterable
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_message_envelope import ProjectOSMessageEnvelope
 from .projectos_project_memory import ProjectOSProjectMemory
+from .projectos_role_post_review_trace import ProjectOSRolePostReviewTrace
 from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
 
@@ -18,10 +19,12 @@ class ZCockpitProjectLeadOverview:
         manager: DinEditorProjectManager,
         messages: Iterable[ProjectOSMessageEnvelope] | None = None,
         memory: ProjectOSProjectMemory | None = None,
+        post_review_traces: Iterable[ProjectOSRolePostReviewTrace] | None = None,
     ) -> None:
         self.manager = manager
         self._messages = tuple(messages or ())
         self._memory = memory
+        self._post_review_traces = tuple(post_review_traces or ())
         self._correlation_view = ZCockpitProjectCorrelationView(
             manager,
             messages=self._messages,
@@ -64,13 +67,28 @@ class ZCockpitProjectLeadOverview:
                 "note": worklist["note"],
             }
 
+        review_states = [
+            trace.post_review_state
+            for trace in self._post_review_traces
+            if trace.post_review_state.get("request", {}).get("project_id") == self.manager.project_id
+            and (correlation_id is None or trace.correlation_id == correlation_id)
+        ]
+        post_reviews = {
+            "open_count": sum(1 for item in review_states if item.get("status") == "pending"),
+            "confirmed_count": sum(1 for item in review_states if item.get("status") == "completed_confirmed"),
+            "escalated_count": sum(1 for item in review_states if item.get("status") == "completed_negative"),
+            "total_count": len(review_states),
+            "read_only": True,
+        }
+
         audit_attention = (
             audit["causation_unresolved_entry_count"] > 0
             or audit["unlinked_entry_count"] > 0
         )
         recovery_attention = bool(recovery.get("available") and recovery.get("valid") is False)
+        post_review_red = post_reviews["open_count"] > 0 or post_reviews["escalated_count"] > 0
 
-        if diagnostics["traffic_light"] == "red":
+        if diagnostics["traffic_light"] == "red" or post_review_red:
             traffic_light = "red"
         elif diagnostics["traffic_light"] == "yellow" or audit_attention or recovery_attention:
             traffic_light = "yellow"
@@ -82,6 +100,10 @@ class ZCockpitProjectLeadOverview:
             attention_reasons.append("Wissensgraph enthält mindestens eine Fehlerdiagnose.")
         elif diagnostics["traffic_light"] == "yellow":
             attention_reasons.append("Wissensgraph enthält Hinweise/Warnungen oder ist nicht vollständig bewertbar.")
+        if post_reviews["open_count"] > 0:
+            attention_reasons.append("Mindestens eine Notfall-Nachprüfung ist noch offen.")
+        if post_reviews["escalated_count"] > 0:
+            attention_reasons.append("Mindestens eine Notfall-Nachprüfung wurde negativ abgeschlossen und erfordert Eskalation.")
         if audit["causation_unresolved_entry_count"] > 0:
             attention_reasons.append("Mindestens eine Audit-Ursachenreferenz ist nicht auflösbar.")
         if audit["unlinked_entry_count"] > 0:
@@ -101,17 +123,21 @@ class ZCockpitProjectLeadOverview:
                 "audit_unlinked_count": audit["unlinked_entry_count"],
                 "audit_unresolved_causation_count": audit["causation_unresolved_entry_count"],
                 "knowledge_issue_count": diagnostics["issue_count"],
+                "post_review_open_count": post_reviews["open_count"],
+                "post_review_confirmed_count": post_reviews["confirmed_count"],
+                "post_review_escalated_count": post_reviews["escalated_count"],
                 "recovery_available": recovery.get("available", False),
                 "recovery_valid": recovery.get("valid"),
                 "can_recover": recovery.get("can_recover", False),
             },
             "diagnostics": diagnostics,
+            "post_reviews": post_reviews,
             "audit": audit,
             "recovery": recovery,
             "correlations": correlation["correlations"],
             "read_only": True,
             "note": (
                 "Die Gesamtübersicht aggregiert ausschließlich bereits vorhandene read-only Nachweise. "
-                "Sie führt keine Reparatur, Recovery oder fachliche Entscheidung aus."
+                "Sie führt keine Reparatur, Recovery, Freigabe oder Nachprüfungsentscheidung aus."
             ),
         }
