@@ -1,135 +1,227 @@
 # ProjectOS – Zwischenstand / Chat-Übergabe
 
 Stand: 2026-08-09
-Repository: Kurzschuss/kicad-din-electrical
+Repository: `Kurzschuss/kicad-din-electrical`
 Arbeitsbranch: `test/load-failure-preserves-state`
 Pull Request: #159 – `Test: fehlgeschlagenes Projektladen hält Managerzustand stabil`
 
 ## Architekturgrundlagen
 
-Architecture Freeze 1.0 bleibt maßgeblich. ProjectOS ist die Grundlage des Projekts. Weiterhin gelten Single Source of Truth, Domain Ownership, Object First, Offline First, Simulation First, Documentation First und Configuration before Code. Die drei Perspektiven Entwickler, Engineering und Projektleiter bleiben erhalten.
+Architecture Freeze 1.0 bleibt maßgeblich. ProjectOS ist die Grundlage des Projekts. Es gelten weiterhin:
 
-## Benutzerverwaltung und Autorisierung
+- Single Source of Truth;
+- Domain Ownership;
+- Object First;
+- Offline First;
+- Simulation First;
+- Documentation First;
+- Configuration before Code;
+- die Perspektiven Entwickler, Engineering und Projektleiter.
 
-Vorhanden sind Benutzerprofile mit Benutzergewichtung 0–1000, typisierte Rechteherkünfte, Scope, Risikoklasse, Gültigkeit, Delegation und read-only Rechte-Simulation. `DENY` hat Vorrang vor `ALLOW`. Benutzergewichtung ist sichtbar, ersetzt aber keine Freigabe und überstimmt kein `DENY`.
+Benutzergewichtung bleibt sichtbar, besitzt aber keine implizite Autorisierungswirkung. `DENY` hat Vorrang vor `ALLOW`. Historische Audit-/Bus-Nachweise bleiben append-only.
 
-Die Projektfunktionen `project_lead`, `deputy`, `trusted_person` und `successor` sind eigene projektbezogene Beziehungen. Zuweisung, Aktivierung, Freigabe und Beendigung sind strikt getrennt. Kritische Aktivierungen und Rückgaben arbeiten fail-closed über Vier-Augen-Freigaben. Notfälle dürfen vorläufig wirken, bleiben nachprüfungspflichtig und werden korreliert auf Bus/Audit nachgewiesen.
+## Persistenz und Projektidentität
 
-## Freigabe-/Nachprüfungskette und Wissensherkunft
+Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und den fachlichen `user_management`-Block. v2/v3 bleiben lesbar und werden erst beim expliziten erfolgreichen Speichern auf v4 migriert.
 
-Die Kette wird durch `project_id`, `correlation_id` und `causation_id` durchgängig geführt: `approval_requested` → optional `approval_decided` → `approval_effectiveness_evaluated` → bei Nachprüfung `post_review_completed` oder `post_review_escalated`.
+`ProjectOSUserManagementState` persistiert ausschließlich fachliche Benutzer-, Rechte-, Rollen-, Aktivierungs-, Beendigungs-, Freigabe- und Nachprüfungsobjekte. Reproduzierbare Evaluator-, Simulations-, Trace-, History-, Navigation- und Z_Cockpit-Daten werden nicht als zweite Wahrheit in den Benutzerverwaltungsblock geschrieben.
 
-Negative Nachprüfung schreibt die historische Notfallwirkung nicht rückwirkend um; `historical_emergency_effect_preserved=true` bleibt erhalten. Freigabe-/Nachprüfungs-Traces werden ohne zweite Wahrheit als referenzierte Wissensnachweise materialisiert. `knowledge_origin` erklärt `truth_source`, `action_id`, `review_id`, `message_id`, `correlation_id` und kann direkt zum `approval_trace` navigieren.
+Save, Save-As, Load, Recovery und Discard bleiben transaktionssicher. Fehlgeschlagene Vorgänge hinterlassen keinen Teilzustand.
 
-## Persistenz und Bundle v4
+## Benutzerverwaltung und Vier-Augen-Wirksamkeit
 
-`ProjectOSUserManagementState` mit `USER_MANAGEMENT_PERSISTENCE_VERSION = 1` persistiert ausschließlich fachliche Benutzer-, Rechte-, Rollen-, Aktivierungs-, Beendigungs-, Freigabe- und Nachprüfungsdaten. Reproduzierbare Evaluator-, Simulations-, Z_Cockpit-, Navigation-, Trace- und materialisierte Wissensdaten werden nicht persistiert.
+Vorhanden sind Benutzerprofile, Rechteherkünfte, Scope, Risikoklasse, Gültigkeit, Delegation sowie die Projektfunktionen `project_lead`, `deputy`, `trusted_person` und `successor`.
 
-Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und `user_management`. v2/v3 bleiben lesbar und werden erst beim expliziten Speichern auf v4 migriert. Save-As, Recovery, Dirty-State und transaktionssichere Fehlerfälle sind inklusive Benutzerverwaltung abgesichert.
+Zuweisung, Aktivierung, Freigabe und Beendigung sind getrennte fachliche Vorgänge. High-/Critical-Aktivierungen erhalten ohne wirksame Vier-Augen-Freigabe keine Rollenrechte. High-/Critical-Deaktivierungen beenden die Rechtewirkung ohne wirksame Freigabe nicht vorzeitig. Notfälle dürfen nach den vorhandenen Regeln vorläufig wirken, bleiben aber nachprüfungspflichtig.
 
-## Z_Cockpit Persistenz/Migration und Konsistenz
+Die vorhandenen Evaluatoren bleiben die einzige Quelle für diese Freigabewirksamkeit:
 
-`ZCockpitUserManagementPersistenceView` zeigt tatsächliche gespeicherte Bundle-Version, Migrationsbedarf, Persistenzversion des Benutzerblocks, Objektzähler und bewusst nicht persistierte Ableitungen. Der Status ist in Projektleiterübersicht, Attention und Navigation integriert. `USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING` erscheint gelb und führt zum read-only Ziel `user_management_persistence`.
+- `ProjectOSApprovedRoleActivationEvaluator`;
+- `ProjectOSApprovedRoleDeactivationEvaluator`;
+- `ProjectOSRoleActionApprovalEvaluator`.
 
-`ZCockpitUserManagementConsistencyView` prüft read-only die semantischen Lifecycle-Ketten Benutzer→Recht/Rolle→Aktivierung→Beendigung sowie Freigabeanforderung→Freigabe→Nachprüfung. Rote Fehler und gelbe Hinweise sind in Projektleiterübersicht, Aufmerksamkeit und Navigation eingebunden.
+Es wurde keine zweite Approval-State-Machine eingeführt.
 
-## Benutzerverwaltungs-Command-/Change-Service
+## Atomarer Benutzerverwaltungs-Change-Service
 
-`ProjectOSUserManagementChangeService` übernimmt Änderungen atomar: Für jede Operation wird zuerst ein vollständig validierter neuer `ProjectOSUserManagementState` aufgebaut und erst danach in den Manager übernommen. Erfolgreiche Änderungen markieren den Dirty-State; fehlgeschlagene Änderungen lassen State, Dirty-State und Hook unverändert.
+`ProjectOSUserManagementChangeService` bleibt der niedrige atomare Domain-Primitive. Er baut zuerst einen vollständig validierten Kandidatenzustand auf und übernimmt ihn erst danach in den Manager.
 
-Enge fachliche Commands existieren für Rechte, Projektrollen, Aktivierung, Rückgabe, Freigabeanforderung, Freigabeentscheidung und Nachprüfung. Projekt, Benutzer und Scope werden aus dem bestehenden Zustand abgeleitet; unbekannte Referenzen werden vor Commit abgewiesen.
+Der reguläre Command-Pfad verwendet den öffentlichen `set_user_management()`-Setter nicht mehr. Der Manager besitzt `_commit_user_management_change()` als internen Commit-Pfad. Ein Guard-Test verhindert neue direkte Produktionsaufrufe von `.set_user_management(`.
 
-## Audit-/Bus-/Korrelationsanbindung
+Der rohe Change-Service bleibt bewusst für kontrollierten Bootstrap, Migration und Tests verfügbar. Produktive Autorisierung wird über eine eigene gesicherte Ausführungsgrenze gelegt, damit Bootstrap nicht durch ein zirkuläres „erst Recht anlegen, bevor ein Recht angelegt werden darf“ blockiert wird.
 
-`ProjectOSUserManagementChangeTrace` und `ProjectOSUserManagementChangeTraceEmitter` bilden ausschließlich bereits erfolgreich übernommene Änderungen als ProjectOS-Busnachricht und Audit-Eintrag ab. Sie erzeugen keine Fachmutation und keine zweite Wahrheit.
+## Expliziter Command-Kontext und Command-ID
+
+`ProjectOSUserManagementCommandContext` beschreibt genau einen Command und wird nicht im Domainzustand persistiert.
+
+Er führt aktuell:
+
+- `command_id` als stabile UUID pro Command;
+- `actor_user_id`;
+- `correlation_id`;
+- optional `causation_id`;
+- `history_action` mit `command`, `undo` oder `redo`;
+- bei Undo/Redo `related_command_id`.
+
+Ein Context darf nicht für einen zweiten Command wiederverwendet werden. Ein bereits verwendetes `command_id` wird vor einer zweiten Mutation abgewiesen.
+
+Der explizite Akteur hat Vorrang vor einer bloßen Ableitung aus dem geänderten Domainobjekt. Korrelations-/Kausalketten werden getrennt pro `correlation_id` geführt.
+
+## Audit, Bus und Command-Historie
+
+`ProjectOSUserManagementChangeTraceEmitter` bildet ausschließlich erfolgreich übernommene Änderungen als Bus-/Audit-Nachweise ab.
+
+Jede erfolgreiche verfolgte Änderung erhält:
+
+- `command_id`;
+- Operation;
+- Akteur;
+- fachliche Referenz;
+- `project_id`;
+- `correlation_id`;
+- `causation_id`;
+- Busnachricht;
+- Audit-Eintrag.
+
+Fehlgeschlagene oder nicht autorisierte Commands erzeugen weder Fachmutation noch Bus-/Audit-Nachweis.
+
+`ProjectOSUserManagementCommandHistory` ist eine read-only Laufzeit-Historie und keine zweite fachliche Wahrheit. Ein Record referenziert den erfolgreichen Command, Bus-/Audit-Nachweis und – ausschließlich bei reversiblen Operationen – die minimal notwendigen Kompensationsdaten.
+
+Die Historie wird nicht in Bundle v4 persistiert.
+
+## Undo/Redo – umgesetzt
+
+Die Entwurfsentscheidung `docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` ist umgesetzt.
+
+Undo/Redo ist kein Snapshot-Rollback. `ProjectOSUserManagementUndoRedoService` führt Undo und Redo als neue fachliche Commands aus.
+
+Erster vollständig reversibler Referenzfall: `user_weight_changed`.
 
 Regeln:
 
-- jede erfolgreiche Benutzerverwaltungsänderung erzeugt genau einen Bus-Nachweis und genau einen Audit-Eintrag;
-- fehlgeschlagene Commands rufen den Hook nicht auf und erzeugen keinen Nachweis;
-- der Nachweis führt `operation`, `actor_user_id`, fachliche `reference`, Dirty-State und das bereits übernommene Domainobjekt;
-- fachlich im Domainobjekt vorhandene Akteure werden weiterhin genutzt;
-- der Emitter hält einen read-only vorherigen Snapshot, um die tatsächlich geänderte Fachreferenz aus dem Delta zu bestimmen.
+- ursprünglicher Command und ursprünglicher Audit-Nachweis bleiben unverändert;
+- Undo erhält neue `command_id` und neue `correlation_id`;
+- Redo erhält wiederum neue `command_id` und neue `correlation_id`;
+- Undo/Redo erzeugt neue Bus-/Audit-Nachweise;
+- aktueller Domainzustand muss exakt zum erwarteten History-Wert passen, sonst fail-closed;
+- nicht reversible Commands werden beim Undo nicht übersprungen;
+- ein neuer normaler Command nach Undo schließt den Redo-Zweig;
+- Freigabeentscheidungen und Nachprüfungen bleiben historische Tatsachen und sind nicht reversibel.
 
-## Expliziter Benutzerverwaltungs-Command-Kontext – umgesetzt
+## Runtime-Lifecycle der Command-Historie – umgesetzt
 
-Neu ist `ProjectOSUserManagementCommandContext` als nicht persistierter Ausführungskontext mit:
+Load, Recover, Discard, New Project und explizite vollständige Benutzerverwaltungs-Zustandssetzung erhöhen eine nicht persistierte `user_management_runtime_generation`.
 
-- `actor_user_id`;
-- `correlation_id`;
-- optionaler `causation_id`.
+Change-Service, Trace-Emitter und Command-Historie richten sich daran aus. Dadurch werden alte Laufzeit-History-, Trace-, Delta- und Kausaldaten nach einem vollständigen Projektzustandswechsel nicht in den neuen Zustand verschleppt.
 
-Alle relevanten Operationen des `ProjectOSUserManagementChangeService` akzeptieren optional diesen Kontext und reichen ihn bis zum Audit-/Bus-Hook durch.
+Insbesondere:
 
-Der explizite Kontext hat Vorrang vor einer Akteursableitung aus dem geänderten Domainobjekt. Dadurch wird zum Beispiel bei einer Gewichtsänderung durch einen Administrator nicht mehr fälschlich der geänderte Benutzer als Akteur ausgewiesen. Gleiches gilt für direkte Rechtezuweisungen ohne Delegationsakteur.
+- Laufzeit-Historie wird zurückgesetzt;
+- alte Trace-/Message-Listen werden zurückgesetzt;
+- der Delta-Ausgangspunkt wird neu gesetzt;
+- bei managergebundenem Audit-Log wird nach Load/Recover wieder das aktuelle `manager.sync_log` verwendet;
+- alte `command_id`-Runtime-Sperren werden generationstreu zurückgesetzt.
 
-Korrelationsketten werden im Emitter getrennt pro `correlation_id` geführt. Unterschiedliche fachliche Vorgänge werden dadurch nicht versehentlich über eine globale Kausalkette miteinander verknüpft. Innerhalb derselben Korrelation wird die `causation_id` weiterhin über die vorherige `message_id` fortgesetzt.
+Tests decken Load, Recover, Discard und New Project ab.
 
-Commits:
+## Command-Autorisierung – umgesetzt
 
-- `8396f871` feat(projectos): expliziten Benutzerverwaltungs-Command-Kontext einführen
-- `d2ed7c66` feat(projectos): Command-Kontext bis zum Änderungsereignis durchreichen
-- `d5a74317` feat(projectos): expliziten Akteur und Korrelation im Trace verwenden
-- `32e0bd6b` test(projectos): expliziten Command-Kontext und Korrelationsketten absichern
+Neu ist `ProjectOSUserManagementCommandAuthorization` als rein lesender, fail-closed Autorisierer.
 
-## Direkte Zustandssetzung weiter zurückgedrängt – umgesetzt
+Die erforderlichen Rechte werden **nicht im Service hart codiert**, sondern über `command_permission_map` konfiguriert. Für Undo und Redo können getrennte Rechte über Schlüssel wie `undo:user_weight_changed` und `redo:user_weight_changed` verlangt werden.
 
-Der reguläre Benutzerverwaltungs-Command-Pfad verwendet den öffentlichen `DinEditorProjectManager.set_user_management()`-Setter nicht mehr.
+Der Autorisierer prüft:
 
-Der Manager besitzt jetzt `_commit_user_management_change()` als internen Commit-Pfad für bereits vollständig validierte Kandidaten. Der öffentliche Setter bleibt vorerst als Kompatibilitäts-/expliziter Zustandssetzungspfad erhalten, darf aber von Produktionsmodulen nicht für normale Fachänderungen verwendet werden.
+- expliziten Command-Kontext;
+- vorhandenen Akteur;
+- konfigurierte Command→Recht-Zuordnung;
+- persistierte Rechtezuweisungen;
+- optional rollenabgeleitete Rechte;
+- Scope und Gültigkeit;
+- `DENY`-Vorrang über `ProjectOSAuthorizationEvaluator`.
 
-Ein Guard-Test durchsucht die Produktionsmodule in `distributions` und schlägt fehl, sobald dort erneut ein direkter Aufruf von `.set_user_management(` eingeführt wird.
+Benutzergewichtung wird für die Entscheidung weiterhin nicht verwendet.
 
-Commits:
+### Rollenabgeleitete Command-Rechte
 
-- `d450c452` refactor(projectos): Benutzerverwaltungs-Commit im Manager kapseln
-- `13f2a6db` refactor(projectos): öffentlichen User-Management-Setter im Command-Pfad vermeiden
-- `2d88800d` test(projectos): öffentliche User-Management-Setter im Produktionspfad sperren
+Optional erhält der Autorisierer:
 
-## Command-Historie und Undo/Redo – Strategie beschlossen
+- `role_permission_map`;
+- `role_risk_class_map`.
 
-Die Entwurfsentscheidung `docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` legt den Vertrag fest.
+Rollenrechte werden nur aus wirksamen Aktivierungen abgeleitet. Für High-/Critical-Rollen wird die bereits vorhandene Vier-Augen-Auswertung verwendet.
 
-Grundregeln:
+Bei einer Deaktivierung gilt ebenfalls die vorhandene Freigabelogik:
 
-- Audit und Bus bleiben append-only und werden durch Undo/Redo niemals gelöscht oder rückwirkend verändert;
-- eine Benutzerverwaltungs-Command-Historie ist read-only Laufzeitmetadaten und keine zweite fachliche Wahrheit;
-- Undo/Redo darf keinen historischen `ProjectOSUserManagementState` blind zurückkopieren;
-- Undo und Redo sind neue fachliche Commands mit neuer `command_id`, neuer `correlation_id`, normaler Validierung und neuer Audit-/Bus-Spur;
-- der ursprüngliche Command bleibt unverändert nachweisbar und wird explizit referenziert;
-- Reversibilität ist fail-closed und muss je Operation fachlich begründet sein;
-- `user_weight_changed` ist der erste vollständig reversible Referenzfall;
-- Freigabeentscheidungen und Nachprüfungen sind historische Tatsachen und nicht reversibel;
-- die erste Undo-/Redo-Historie bleibt bewusst laufzeitbezogen und wird nicht in Bundle v4 persistiert.
+- eine noch nicht wirksame High-/Critical-Deaktivierung entzieht die Rollenrechte nicht vorzeitig;
+- erst eine wirksame Deaktivierung entfernt die Rollenrechte;
+- ein explizites `DENY` kann ein rollenabgeleitetes `ALLOW` weiterhin blockieren.
 
-Commit:
+Damit bleibt die Trennung erhalten: Command-Autorisierung entscheidet, ob der Akteur den Verwaltungs-Command ausführen darf; Approval-Evaluatoren entscheiden, ob eine risikobehaftete Rollenaktivierung/-deaktivierung Rechtewirkung entfaltet.
 
-- `cb1126ce` docs(projectos): Command-Historie und Undo-Redo-Vertrag festlegen
+## Gesicherte Ausführungsgrenze – umgesetzt
+
+`ProjectOSAuthorizedUserManagementChangeService` erbt vom atomaren Basisservice und prüft unmittelbar vor jedem `_commit()` über `ProjectOSUserManagementCommandAuthorization`.
+
+Dadurch gilt dieselbe Grenze automatisch auch für `ProjectOSUserManagementUndoRedoService`, wenn dieser mit dem gesicherten Change-Service betrieben wird.
+
+Nicht autorisierte Commands:
+
+- verändern den Domainzustand nicht;
+- erzeugen keinen Audit-Eintrag;
+- erzeugen keine Busnachricht;
+- erzeugen keinen Command-History-Eintrag.
+
+Die letzte Autorisierungsentscheidung bleibt am gesicherten Service read-only diagnostizierbar – auch bei einer Abweisung.
+
+## Relevante neue Dateien
+
+- `distributions/projectos_user_management_command_context.py`
+- `distributions/projectos_user_management_command_history.py`
+- `distributions/projectos_user_management_undo_redo.py`
+- `distributions/projectos_user_management_command_authorization.py`
+- `distributions/projectos_authorized_user_management_change_service.py`
+- `distributions/test_projectos_user_management_command_history.py`
+- `distributions/test_projectos_user_management_undo_redo.py`
+- `distributions/test_projectos_user_management_runtime_history_lifecycle.py`
+- `distributions/test_projectos_user_management_command_authorization.py`
+
+## Relevante aktuelle Commits
+
+- `b0f3c1e3` test(projectos): kompensierendes Gewichts-Undo-Redo absichern
+- `5278836f` test(projectos): Runtime-Historie bei Load-Recover-Discard-New zurücksetzen
+- `07ad0d5f` feat(projectos): konfigurierbare Command-Autorisierung einführen
+- `d77d4f33` feat(projectos): Benutzerverwaltungs-Commands vor Commit autorisieren
+- `5c71fbb0` test(projectos): Command-Rechte und Vier-Augen-Wirkung absichern
+- `31c4934b` fix(projectos): abgewiesene Autorisierungsentscheidung read-only sichtbar halten
 
 ## Tests / letzter bestätigter Stand
 
-Bestätigte vollständige Läufe:
+Bestätigte vollständige grüne Läufe dieses Entwicklungsblocks:
 
-- Run #244 für Commit `32e0bd6b73cd689d8e2e49945f24001a19fdac34`: erfolgreich;
-- Run #247 für Commit `2d88800dcfda7eb9ae50eb947a1291c3e010e527`: erfolgreich;
-- Run #248 für Commit `cb1126cef76c7fc3ccdc0dd3e047981da66da4fa`: erfolgreich.
+- Run #254 – `command_id` und erste read-only Command-Historie;
+- Run #262 – kompensierendes Gewichts-Undo/-Redo;
+- Run #268 – Runtime-Historie bei Load/Recover/Discard/New Project;
+- Run #271 – Command-Autorisierung und Vier-Augen-Rechtewirkung;
+- Run #272 – Diagnosehärtung der Autorisierungsgrenze.
 
-Die Läufe umfassen Repository-Health-Check, vollständige Pytest-Suite, Z_-Qualitätsprofil, KiCad-Bibliotheksprüfungen und Z_Cockpit-Generierung.
+Run #272 gehört zu Commit `31c4934b2078c41db3d0884bb1251c0ee2a677e2` und ist vollständig erfolgreich.
+
+Die vollständigen Läufe umfassen Repository-Health-Check, komplette Pytest-Suite, Z_-Qualitätsprofil, KiCad-Bibliotheksprüfungen und Z_Cockpit-Generierung.
 
 PR #159 bleibt bewusst Draft und der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Die ersten drei Punkte des vorherigen Handover-Blocks sind erledigt. Als Nächstes wird die beschlossene Undo-/Redo-Architektur implementiert:
+Der nächste Block ist die **produktive Verdrahtung und Nachweisbarkeit der Command-Autorisierung**:
 
-1. pro Benutzerverwaltungs-Command eine stabile `command_id` ergänzen;
-2. read-only `ProjectOSUserManagementCommandHistory` für erfolgreiche Commands einführen;
-3. `user_weight_changed` als ersten reversiblen Referenzfall mit Vorher-/Nachherwert erfassen;
-4. Undo der Gewichtsänderung als neue fachliche Änderung mit eigener `command_id`, eigener `correlation_id` und neuer Audit-/Bus-Spur umsetzen;
-5. Redo analog als neue fachliche Änderung umsetzen;
-6. Reversibilität anschließend nur für Operationen erweitern, für die eine explizite fachliche Gegenoperation vorhanden ist;
-7. danach normale Commands sowie Undo/Redo über den vorhandenen Autorisierungs-/Vier-Augen-Vertrag absichern.
+1. zentrale Konfigurationsquelle für `command_permission_map`, `role_permission_map` und `role_risk_class_map` definieren, statt die Maps nur beim Erzeugen des Autorisierers zu übergeben;
+2. produktive Benutzerverwaltungs-Einstiegspunkte auf `ProjectOSAuthorizedUserManagementChangeService` verdrahten und einen Guard gegen versehentliche rohe Command-Ausführung außerhalb expliziter Bootstrap-/Testpfade einführen;
+3. die erfolgreiche Autorisierungsentscheidung als read-only Nachweis mit dem bestehenden `command_id`/Bus-/Audit-Trace verknüpfen, ohne sie als zweite Domainwahrheit zu persistieren;
+4. Z_Cockpit um read-only Command-/Autorisierungsdiagnostik erweitern: letzter Entscheid, erforderliches Recht, Entscheidungsquelle, `DENY`-Blockade, Undo-/Redo-Verfügbarkeit;
+5. anschließend die Reversibilitätsmatrix nur dort erweitern, wo eine explizite fachliche Gegenoperation existiert;
+6. danach End-to-End-Tests vom konfigurierten Recht über Command-Ausführung, Vier-Augen-Wirksamkeit, Undo/Redo, Audit und Z_Cockpit ergänzen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne dokumentierte Stand ist ProjectOS complete test suite Run #248. Expliziter Benutzerverwaltungs-Command-Kontext mit Akteur/Korrelation/Kausalität ist umgesetzt, der normale Command-Pfad umgeht den öffentlichen `set_user_management()`-Setter nicht mehr, und `EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` beschließt Undo/Redo als neue kompensierende Fachänderungen statt Snapshot-Rollback. Fahre mit `command_id`, read-only Command-Historie und `user_weight_changed` als erstem reversiblen Referenzfall fort. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung, Rechteherkunft und append-only Audit-/Bus-Historie nicht verletzen.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne dokumentierte Code-Stand ist ProjectOS complete test suite Run #272 für Commit `31c4934b2078c41db3d0884bb1251c0ee2a677e2`. `command_id`, read-only Command-Historie, kompensierendes Undo/Redo für `user_weight_changed`, Runtime-History-Reset sowie die fail-closed Command-Autorisierung mit `DENY`-Vorrang und vorhandener Vier-Augen-Rollenwirkung sind umgesetzt. Fahre mit der zentralen Policy-Konfiguration, der produktiven Verdrahtung des `ProjectOSAuthorizedUserManagementChangeService`, dem Autorisierungsnachweis im Trace und der Z_Cockpit-Diagnostik fort. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, Configuration before Code, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung und append-only Audit-/Bus-Historie nicht verletzen.
