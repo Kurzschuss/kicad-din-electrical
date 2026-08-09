@@ -30,10 +30,21 @@ class ProjectOSUserManagementChangeService:
         self.on_change = on_change
         self.command_history = getattr(on_change, "command_history", None)
         self._completed_command_ids: set[str] = set()
+        self._runtime_generation = manager.user_management_runtime_generation
 
     @property
     def state(self) -> ProjectOSUserManagementState:
         return self.manager.user_management
+
+    def _prepare_for_change(self) -> None:
+        current_generation = self.manager.user_management_runtime_generation
+        if current_generation != self._runtime_generation:
+            self._completed_command_ids.clear()
+            self._runtime_generation = current_generation
+        prepare_hook = getattr(self.on_change, "prepare_for_change", None)
+        if callable(prepare_hook):
+            prepare_hook()
+        self.command_history = getattr(self.on_change, "command_history", None)
 
     def _commit(
         self,
@@ -42,6 +53,7 @@ class ProjectOSUserManagementChangeService:
         command_context: ProjectOSUserManagementCommandContext | None = None,
         **changes: Any,
     ) -> ProjectOSUserManagementState:
+        self._prepare_for_change()
         command_id = command_context.command_id if command_context is not None else str(uuid4())
         if command_id in self._completed_command_ids:
             raise ValueError("command_id already used")
