@@ -143,8 +143,16 @@ class ZCockpitProjectLeadOverview:
             attention_reasons.append("Mindestens ein Audit-Eintrag ist noch nicht vorgangskorreliert.")
         if recovery_attention:
             attention_reasons.append("Vorhandene Recovery ist nicht verwendbar.")
-        if migration_attention:
-            attention_reasons.append(f"Projektbundle benötigt Migration auf Version {persistence['migration_target_version']}.")
+        if persistence["bundle_migration_pending"]:
+            attention_reasons.append(
+                f"Projektbundle benötigt Migration auf Version {persistence['migration_target_version']}."
+            )
+        if persistence["user_management_migration_pending"]:
+            attention_reasons.append(
+                "Benutzerverwaltungsdaten benötigen Migration von Persistenzversion "
+                f"{persistence['persisted_user_management_version']} auf "
+                f"{persistence['user_management_migration_target_version']}."
+            )
         if command_attention:
             attention_reasons.append(
                 "Der letzte Benutzerverwaltungs-Command wurde durch die Autorisierung abgewiesen."
@@ -176,7 +184,9 @@ class ZCockpitProjectLeadOverview:
                 "recovery_valid": recovery.get("valid"),
                 "can_recover": recovery.get("can_recover", False),
                 "bundle_version": persistence["persisted_bundle_version"],
-                "bundle_migration_pending": persistence["migration_pending"],
+                "bundle_migration_pending": persistence["bundle_migration_pending"],
+                "user_management_persistence_version": persistence["persisted_user_management_version"],
+                "user_management_migration_pending": persistence["user_management_migration_pending"],
                 "user_management_persisted_object_count": persistence["persisted_object_count"],
             },
             "diagnostics": diagnostics,
