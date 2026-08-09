@@ -27,6 +27,8 @@ DEFAULT_COMMAND_PERMISSION_MAP = MappingProxyType({
     "post_review_completed": "project.user_management.post_review.complete",
     "undo:user_weight_changed": "project.user_management.weight.undo",
     "redo:user_weight_changed": "project.user_management.weight.redo",
+    "undo:permission_revoked": "project.user_management.permission.undo_assign",
+    "redo:permission_regranted": "project.user_management.permission.redo_assign",
 })
 
 DEFAULT_ROLE_PERMISSION_MAP = MappingProxyType({})
