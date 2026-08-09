@@ -75,7 +75,6 @@ class ProjectOSUserManagementChangeTraceEmitter:
             self._last_message_by_correlation[self.correlation_id] = self.causation_id
 
     def prepare_for_change(self) -> None:
-        """Richtet rein laufzeitbezogene Nachweise nach Load/Recover/Discard/New neu aus."""
         current_generation = self.manager.user_management_runtime_generation
         if current_generation == self._runtime_generation:
             return
@@ -91,11 +90,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self._runtime_generation = current_generation
 
     @staticmethod
-    def _changed_rows(
-        previous: list[dict[str, Any]],
-        current: list[dict[str, Any]],
-        id_field: str,
-    ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    def _changed_rows(previous: list[dict[str, Any]], current: list[dict[str, Any]], id_field: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
         before = {item[id_field]: item for item in previous}
         changed = [item for item in current if before.get(item[id_field]) != item]
         if len(changed) != 1:
@@ -128,10 +123,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
             "related_command_id": _uuid(related_command_id, "related_command_id") if related_command_id is not None else None,
         }
 
-    def _change_context(
-        self,
-        operation: str,
-    ) -> tuple[str, str | None, dict[str, Any] | None, dict[str, Any]]:
+    def _change_context(self, operation: str) -> tuple[str, str | None, dict[str, Any] | None, dict[str, Any]]:
         current = self.manager.user_management.as_dict()
         previous = self._previous_state
         mapping = {
@@ -154,7 +146,6 @@ class ProjectOSUserManagementChangeTraceEmitter:
         collection, id_field = mapping[operation]
         previous_row, row = self._changed_rows(previous.get(collection, []), current.get(collection, []), id_field)
         reference = str(row[id_field])
-
         if operation in {"user_created", "user_weight_changed"}:
             actor = row["user_id"]
         elif operation == "permission_assigned":
@@ -180,11 +171,16 @@ class ProjectOSUserManagementChangeTraceEmitter:
     @staticmethod
     def _history_values(
         operation: str,
+        history_action: str,
         previous_row: dict[str, Any] | None,
         row: dict[str, Any],
     ) -> tuple[bool, dict[str, Any], dict[str, Any]]:
         if operation == "user_weight_changed" and previous_row is not None:
             return True, {"weight": previous_row["weight"]}, {"weight": row["weight"]}
+        if operation in {"permission_assigned", "permission_regranted"}:
+            return True, {}, {"assignment_id": row["assignment_id"]}
+        if operation == "permission_revoked" and history_action == "undo":
+            return True, {"assignment_id": row["assignment_id"]}, {"revocation_id": row["revocation_id"]}
         return False, {}, {}
 
     def __call__(self, event: dict[str, Any]) -> None:
@@ -211,7 +207,6 @@ class ProjectOSUserManagementChangeTraceEmitter:
             actor_source = "command_context"
             history_action = str(command_context["history_action"])
             related_command_id = command_context["related_command_id"]
-
         payload = {
             "command_id": command_id,
             "operation": operation,
@@ -224,50 +219,27 @@ class ProjectOSUserManagementChangeTraceEmitter:
             "domain": domain_payload,
         }
         message = ProjectOSMessageEnvelope(
-            message_type="event",
-            name=f"projectos.user_management.{operation}",
-            project_id=project_id,
-            correlation_id=correlation_id,
-            causation_id=causation_id,
-            payload=payload,
+            message_type="event", name=f"projectos.user_management.{operation}", project_id=project_id,
+            correlation_id=correlation_id, causation_id=causation_id, payload=payload,
         )
         audit_entry = self.audit_log.record(
-            reference=reference,
-            source="projectos_user_management",
-            value=actor_user_id or "system",
-            action=operation,
-            project_id=project_id,
-            command_id=command_id,
-            correlation_id=correlation_id,
-            causation_id=causation_id or message.message_id,
+            reference=reference, source="projectos_user_management", value=actor_user_id or "system",
+            action=operation, project_id=project_id, command_id=command_id,
+            correlation_id=correlation_id, causation_id=causation_id or message.message_id,
         )
-        reversible, before_values, after_values = self._history_values(operation, previous_domain_payload, domain_payload)
-        self.command_history.append(
-            ProjectOSUserManagementCommandRecord(
-                command_id=command_id,
-                project_id=project_id,
-                operation=operation,
-                actor_user_id=actor_user_id,
-                correlation_id=correlation_id,
-                causation_id=causation_id,
-                reference=reference,
-                recorded_at=message.timestamp,
-                reversible=reversible,
-                history_action=history_action,
-                related_command_id=related_command_id,
-                before_values=before_values,
-                after_values=after_values,
-                message_id=message.message_id,
-                audit_reference=audit_entry.get("reference"),
-            )
+        reversible, before_values, after_values = self._history_values(
+            operation, history_action, previous_domain_payload, domain_payload
         )
+        self.command_history.append(ProjectOSUserManagementCommandRecord(
+            command_id=command_id, project_id=project_id, operation=operation, actor_user_id=actor_user_id,
+            correlation_id=correlation_id, causation_id=causation_id, reference=reference,
+            recorded_at=message.timestamp, reversible=reversible, history_action=history_action,
+            related_command_id=related_command_id, before_values=before_values, after_values=after_values,
+            message_id=message.message_id, audit_reference=audit_entry.get("reference"),
+        ))
         trace = ProjectOSUserManagementChangeTrace(
-            message=message,
-            audit_entry=audit_entry,
-            command_id=command_id,
-            operation=operation,
-            actor_user_id=actor_user_id,
-            reference=reference,
+            message=message, audit_entry=audit_entry, command_id=command_id,
+            operation=operation, actor_user_id=actor_user_id, reference=reference,
         )
         self.messages.append(message)
         self.traces.append(trace)
