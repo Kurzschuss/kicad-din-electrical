@@ -60,6 +60,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
         command_history: ProjectOSUserManagementCommandHistory | None = None,
     ) -> None:
         self.manager = manager
+        self._uses_manager_audit_log = audit_log is None
         self.audit_log = audit_log or manager.sync_log
         self.correlation_id = _uuid(correlation_id or str(uuid4()), "correlation_id")
         self.causation_id = _uuid(causation_id, "causation_id") if causation_id is not None else None
@@ -67,9 +68,26 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.messages: list[ProjectOSMessageEnvelope] = []
         self.traces: list[ProjectOSUserManagementChangeTrace] = []
         self._previous_state = manager.user_management.as_dict()
+        self._runtime_generation = manager.user_management_runtime_generation
         self._last_message_by_correlation: dict[str, str] = {}
         if self.causation_id is not None:
             self._last_message_by_correlation[self.correlation_id] = self.causation_id
+
+    def prepare_for_change(self) -> None:
+        """Richtet rein laufzeitbezogene Nachweise nach Load/Recover/Discard/New neu aus."""
+        current_generation = self.manager.user_management_runtime_generation
+        if current_generation == self._runtime_generation:
+            return
+        self.command_history.clear()
+        self.messages.clear()
+        self.traces.clear()
+        self._previous_state = self.manager.user_management.as_dict()
+        self._last_message_by_correlation.clear()
+        self.correlation_id = str(uuid4())
+        self.causation_id = None
+        if self._uses_manager_audit_log:
+            self.audit_log = self.manager.sync_log
+        self._runtime_generation = current_generation
 
     @staticmethod
     def _changed_rows(
