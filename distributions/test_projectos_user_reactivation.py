@@ -237,7 +237,7 @@ def test_secured_reactivation_requires_right_and_matching_actor_and_creates_trac
     runtime = build_projectos_user_management_runtime(manager)
     before = manager.user_management.as_dict()
 
-    with pytest.raises(PermissionError, match="user_reactivated \(not_granted\)"):
+    with pytest.raises(PermissionError, match=r"user_reactivated \(not_granted\)"):
         runtime.changes.command_reactivate_user(
             user_id=user.user_id,
             reactivated_at=T2.isoformat(),
