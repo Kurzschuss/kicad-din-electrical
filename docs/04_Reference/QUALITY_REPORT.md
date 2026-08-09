@@ -11,7 +11,7 @@
 | Symbolbibliotheken | 29 |
 | davon befüllt | 20 |
 | davon vorbereitet, noch leer | 9 |
-| erkannte Hauptsymbole | 20 |
+| erkannte Hauptsymbole | 21 |
 | Footprintbibliotheken | 35 |
 | Footprints | 6 |
 | Validator-Fehler | 0 |

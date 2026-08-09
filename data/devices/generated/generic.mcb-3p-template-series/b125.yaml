@@ -1,0 +1,18 @@
+{
+  "abbreviation": "MCB",
+  "description": "Herstellerneutrale 3-polige Leitungsschutzschalter-Serie für B-, C- und D-Charakteristik; keine Produktempfehlung.",
+  "device_type": "Leitungsschutzschalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.mcb",
+  "id": "generic.mcb-3p-template-series.b125",
+  "manufacturer": "Generic",
+  "name_de": "Leitungsschutzschalter B125, 3-polig",
+  "name_en": "Miniature Circuit Breaker B125, 3-pole",
+  "part_number": "MCB-3P-B125",
+  "poles": 3,
+  "rated_current_a": 125,
+  "series": "Template MCB 3P",
+  "source_status": "template",
+  "symbol": "Z_MCB:MCB_3P",
+  "trip_curve": "B"
+}
