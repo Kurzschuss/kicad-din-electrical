@@ -11,7 +11,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   pytest:
@@ -19,9 +19,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -84,44 +81,3 @@ jobs:
         run: |
           python -m tools.generate_z_cockpit
           test -s docs/site/z-cockpit.html
-
-      - name: Generate review artifacts after MCB changes
-        if: always()
-        run: |
-          python tools/generate_device_variants.py
-          python tools/generate_library_reference.py
-          python tools/generate_quality_report.py
-          python tools/generate_symbol_previews.py
-          python -m tools.generate_html_reference
-          python -m tools.generate_device_catalog_html
-          python -m tools.generate_z_cockpit
-
-      - name: Commit generated MCB artifacts to draft branch
-        if: always() && github.event_name == 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/devices/generated \
-            docs/04_Reference/SYMBOL_INDEX.md \
-            docs/04_Reference/FOOTPRINT_INDEX.md \
-            docs/04_Reference/QUALITY_REPORT.md \
-            docs/site/index.html \
-            docs/site/devices.html \
-            docs/site/symbol-previews
-          if git diff --cached --quiet; then
-            echo "Keine generierten Änderungen zu committen."
-            exit 0
-          fi
-          git commit -m "chore(mcb): generierte Folgeartefakte aktualisieren"
-          git push origin HEAD:${{ github.head_ref }}
-
-      - name: Upload review artifacts after MCB changes
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mcb-generated-artifacts
-          if-no-files-found: error
-          path: |
-            data/devices/generated/
-            docs/04_Reference/
-            docs/site/
