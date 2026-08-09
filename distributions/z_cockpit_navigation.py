@@ -16,6 +16,7 @@ _ALLOWED_VIEWS = {
     "knowledge_origin",
     "recovery",
     "approval_trace",
+    "user_management_persistence",
 }
 
 
