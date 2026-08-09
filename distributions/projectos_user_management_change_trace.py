@@ -65,6 +65,9 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.correlation_id = _uuid(correlation_id or str(uuid4()), "correlation_id")
         self.causation_id = _uuid(causation_id, "causation_id") if causation_id is not None else None
         self.command_history = command_history or ProjectOSUserManagementCommandHistory()
+        self.command_history.bind_runtime_generation(
+            lambda: self.manager.user_management_runtime_generation
+        )
         self.messages: list[ProjectOSMessageEnvelope] = []
         self.traces: list[ProjectOSUserManagementChangeTrace] = []
         self._previous_state = manager.user_management.as_dict()
