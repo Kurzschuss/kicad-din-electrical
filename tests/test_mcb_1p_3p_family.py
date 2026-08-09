@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from tools.generate_device_variants import expand_series
 from tools.generate_symbol_previews import (
     _logical_points,
@@ -71,9 +73,9 @@ def test_mcb_1p_trip_arrowhead_is_smaller_and_shaft_is_longer():
 
     assert arrowhead in points
     assert ((-1.27, 0.0), (2.54, 1.27)) in points
-    assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == 1.27
-    assert max(y for _, y in arrowhead) - min(y for _, y in arrowhead) == 1.27
-    assert min(y for _, y in arrowhead) - (-1.27) == 1.27
+    assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
+    assert max(y for _, y in arrowhead) - min(y for _, y in arrowhead) == pytest.approx(1.27)
+    assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
 
 
 def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
@@ -119,8 +121,8 @@ def test_mcb_3p_arrowheads_are_smaller_with_clearance():
             (tip_x, 0.0),
         )
         assert arrowhead in points
-        assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == 1.27
-        assert min(y for _, y in arrowhead) - (-1.27) == 1.27
+        assert max(x for x, _ in arrowhead) - min(x for x, _ in arrowhead) == pytest.approx(1.27)
+        assert min(y for _, y in arrowhead) - (-1.27) == pytest.approx(1.27)
 
 
 def test_mcb_3p_coupling_marks_are_single_solid_short_lines():
