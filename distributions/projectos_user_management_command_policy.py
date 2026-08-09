@@ -15,6 +15,7 @@ DEFAULT_COMMAND_PERMISSION_MAP = MappingProxyType({
     "user_created": "project.user_management.user.create",
     "user_weight_changed": "project.user_management.weight.change",
     "permission_assigned": "project.user_management.permission.assign",
+    "permission_revoked": "project.user_management.permission.revoke",
     "project_role_assigned": "project.user_management.role.assign",
     "project_role_activated": "project.user_management.role.activate",
     "project_role_deactivated": "project.user_management.role.deactivate",
