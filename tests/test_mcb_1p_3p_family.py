@@ -45,6 +45,24 @@ def test_mcb_1p_uses_vertical_terminal_flow_1_to_2():
     assert '(number "2"' in block
 
 
+def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
+    block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
+    points = {polyline.points for polyline in parse_polylines(block)}
+
+    assert ((5.08, 5.08), (5.08, 3.81)) in points
+    assert ((1.27, 3.81), (5.08, -3.81)) in points
+    assert ((5.08, -3.81), (5.08, -5.08)) in points
+    assert (
+        (-5.08, -1.27),
+        (-3.81, -1.27),
+        (-2.54, -2.54),
+        (-1.27, -1.27),
+        (3.81, -1.27),
+    ) in points
+    assert ((-1.27, 1.27), (0.0, 2.54), (0.0, 0.0), (-1.27, 1.27)) in points
+    assert ((0.0, 1.27), (2.54, 1.27)) in points
+
+
 def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     pins = parse_pins(block)
@@ -56,6 +74,20 @@ def test_mcb_3p_uses_terminal_pairs_1_2_3_4_5_6():
     ]
     for number in ("1", "2", "3", "4", "5", "6"):
         assert f'(number "{number}"' in block
+
+
+def test_mcb_3p_reuses_same_reference_contact_shape_on_all_three_poles():
+    block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
+    points = {polyline.points for polyline in parse_polylines(block)}
+
+    for upper_x, slant_x, lower_x in (
+        (-5.08, -8.89, -5.08),
+        (2.54, -1.27, 2.54),
+        (10.16, 6.35, 10.16),
+    ):
+        assert ((upper_x, 5.08), (upper_x, 3.81)) in points
+        assert ((slant_x, 3.81), (lower_x, -3.81)) in points
+        assert ((lower_x, -3.81), (lower_x, -5.08)) in points
 
 
 def test_mcb_reference_widths_match_documented_400_and_800_mil_targets():

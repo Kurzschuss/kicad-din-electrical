@@ -5,6 +5,7 @@ from tools.generate_symbol_previews import (
     Polyline,
     _preview_projector,
     generated_files,
+    parse_pin_numbers,
     parse_pins,
     parse_polylines,
     parse_rectangles,
@@ -23,8 +24,12 @@ def sample_symbol() -> str:
         (stroke (width 0.254) (type default)) (fill (type none)))
     )
     (symbol "Switch_1_1"
-      (pin passive line (at -5.08 0 0) (length 2.54))
-      (pin passive line (at 5.08 0 180) (length 2.54))
+      (pin passive line (at -5.08 0 0) (length 2.54)
+        (name "~" (effects (font (size 1.0 1.0))))
+        (number "1" (effects (font (size 1.0 1.0)))))
+      (pin passive line (at 5.08 0 180) (length 2.54)
+        (name "~" (effects (font (size 1.0 1.0))))
+        (number "2" (effects (font (size 1.0 1.0)))))
     )
   )
 )\n'''
@@ -50,16 +55,18 @@ def test_parser_reads_only_top_level_symbol_name():
     assert symbol_names(sample_symbol()) == ["Switch"]
 
 
-def test_parser_reads_rectangles_pins_and_polylines():
+def test_parser_reads_rectangles_pins_pin_numbers_and_polylines():
     block = symbol_blocks(sample_symbol())["Switch"]
     rectangles = parse_rectangles(block)
     pins = parse_pins(block)
+    pin_numbers = parse_pin_numbers(block)
     polylines = parse_polylines(block)
 
     assert len(rectangles) == 1
     assert rectangles[0].x1 == -2.54
     assert len(pins) == 2
     assert pins[1].angle == 180
+    assert pin_numbers == ["1", "2"]
     assert len(polylines) == 1
     assert polylines[0].points[1] == (0.0, 1.27)
 
@@ -75,6 +82,22 @@ def test_svg_contains_accessible_title_and_graphics():
     assert "<polyline" in svg
     assert svg.count("<line") == 2
     assert "Switch</text>" in svg
+
+
+def test_mcb_preview_uses_visible_terminal_numbers_and_stronger_lines():
+    block = symbol_blocks(sample_symbol())["Switch"]
+    svg = render_svg(
+        "Z_MCB",
+        "MCB",
+        parse_rectangles(block),
+        parse_pins(block),
+        parse_polylines(block),
+        parse_pin_numbers(block),
+    )
+
+    assert 'stroke-width="3"' in svg
+    assert '>1</text>' in svg
+    assert '>2</text>' in svg
 
 
 def test_preview_projector_auto_fits_wide_and_tall_geometry_with_margin():

@@ -30,6 +30,7 @@ PIN_RE = re.compile(
     r'\(pin\s+\S+\s+\S+\s+\(at\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
     r'\(length\s+(-?[\d.]+)\)'
 )
+PIN_NUMBER_RE = re.compile(r'\(number\s+"([^"]*)"')
 POLYLINE_START_RE = re.compile(r'\(polyline\b')
 POINT_RE = re.compile(r'\(xy\s+(-?[\d.]+)\s+(-?[\d.]+)\)')
 
@@ -108,6 +109,10 @@ def parse_pins(text: str) -> list[Pin]:
     return [Pin(*(float(value) for value in match)) for match in PIN_RE.findall(text)]
 
 
+def parse_pin_numbers(text: str) -> list[str]:
+    return PIN_NUMBER_RE.findall(text)
+
+
 def parse_polylines(text: str) -> list[Polyline]:
     result: list[Polyline] = []
     for match in POLYLINE_START_RE.finditer(text):
@@ -181,9 +186,14 @@ def render_svg(
     rectangles: list[Rectangle],
     pins: list[Pin],
     polylines: list[Polyline] | None = None,
+    pin_numbers: list[str] | None = None,
 ) -> str:
     source_polylines = polylines or []
+    numbers = pin_numbers or []
     project = _preview_projector(rectangles, pins, source_polylines)
+    is_mcb = library == "Z_MCB"
+    stroke_width = "3" if is_mcb else "2"
+    pin_linecap = ' stroke-linecap="round"' if is_mcb else ""
     shapes: list[str] = []
     for item in rectangles:
         x1, y1 = project(item.x1, item.y1)
@@ -191,24 +201,29 @@ def render_svg(
         shapes.append(
             f'<rect x="{min(x1, x2):.2f}" y="{min(y1, y2):.2f}" '
             f'width="{abs(x2-x1):.2f}" height="{abs(y2-y1):.2f}" '
-            'fill="none" stroke="currentColor" stroke-width="2"/>'
+            f'fill="none" stroke="currentColor" stroke-width="{stroke_width}"/>'
         )
     for item in source_polylines:
         points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (project(x, y) for x, y in item.points))
         tag = "polygon" if item.filled else "polyline"
         fill = "currentColor" if item.filled else "none"
         shapes.append(
-            f'<{tag} points="{points}" fill="{fill}" stroke="currentColor" stroke-width="2" '
+            f'<{tag} points="{points}" fill="{fill}" stroke="currentColor" stroke-width="{stroke_width}" '
             'stroke-linejoin="round" stroke-linecap="round"/>'
         )
-    for item in pins:
+    for index, item in enumerate(pins):
         x1, y1 = project(item.x, item.y)
         endpoint_x, endpoint_y = _pin_endpoint(item)
         x2, y2 = project(endpoint_x, endpoint_y)
         shapes.append(
             f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
-            'stroke="currentColor" stroke-width="2"/>'
+            f'stroke="currentColor" stroke-width="{stroke_width}"{pin_linecap}/>'
         )
+        if is_mcb and index < len(numbers) and numbers[index]:
+            shapes.append(
+                f'<text x="{x1 - 11.0:.2f}" y="{y1 + 5.0:.2f}" text-anchor="middle" '
+                f'font-size="16" font-weight="600">{escape(numbers[index])}</text>'
+            )
 
     if not shapes:
         shapes.append('<text x="120" y="78" text-anchor="middle" font-size="13">Keine unterstützte Grafik</text>')
@@ -236,6 +251,7 @@ def generated_files(symbol_root: Path = SYMBOL_ROOT) -> dict[Path, str]:
                 parse_rectangles(block),
                 parse_pins(block),
                 parse_polylines(block),
+                parse_pin_numbers(block),
             )
     return files
 
