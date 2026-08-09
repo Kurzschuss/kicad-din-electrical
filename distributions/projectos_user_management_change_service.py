@@ -53,7 +53,7 @@ class ProjectOSUserManagementChangeService:
         }
         data.update(changes)
         candidate = ProjectOSUserManagementState(**data)
-        self.manager.set_user_management(candidate)
+        self.manager._commit_user_management_change(candidate)
         event = {
             "operation": operation,
             "project_id": candidate.project_id,
