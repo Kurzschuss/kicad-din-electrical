@@ -33,59 +33,56 @@ Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und `user_manage
 
 `ZCockpitUserManagementConsistencyView` prüft read-only die semantischen Lifecycle-Ketten Benutzer→Recht/Rolle→Aktivierung→Beendigung sowie Freigabeanforderung→Freigabe→Nachprüfung. Rote Fehler und gelbe Hinweise sind in Projektleiterübersicht, Aufmerksamkeit und Navigation eingebunden.
 
-## Benutzerverwaltungs-Command-/Change-Service – zuletzt umgesetzt
+## Benutzerverwaltungs-Command-/Change-Service – aktueller Stand
 
-Neu vorhanden ist `ProjectOSUserManagementChangeService`.
+`ProjectOSUserManagementChangeService` übernimmt Änderungen atomar: Für jede Operation wird zuerst ein vollständig validierter neuer `ProjectOSUserManagementState` aufgebaut und erst danach in den Manager übernommen. Erfolgreiche Änderungen markieren den Dirty-State; fehlgeschlagene Änderungen lassen State, Dirty-State und Hook unverändert.
 
-Der Service ersetzt direkte fachliche Komplettänderungen schrittweise durch atomare Operationen. Für jede Änderung wird zuerst ein vollständig validierter neuer `ProjectOSUserManagementState` aufgebaut. Erst nach erfolgreicher Validierung wird der Zustand über den Manager übernommen. Dadurch entstehen keine teilweisen Benutzerverwaltungszustände.
+Neben den objektbasierten Add-Methoden existieren jetzt enge fachliche Commands:
 
-Bereits vorhandene Operationen:
+- `command_assign_permission(...)`;
+- `command_assign_project_role(...)`;
+- `command_activate_project_role(...)`;
+- `command_deactivate_project_role(...)`;
+- `command_request_approval(...)`;
+- `command_record_approval(...)`;
+- `command_complete_post_review(...)`.
 
-- `create_user(...)`;
-- `change_user_weight(...)`;
-- `assign_permission(...)`;
-- `assign_project_role(...)`;
-- `activate_project_role(...)`;
-- `deactivate_project_role(...)`;
-- `request_approval(...)`;
-- `record_approval(...)`;
-- `complete_post_review(...)`.
+Die Commands bauen die Domainobjekte selbst aus Fachparametern. Kritische Referenzen werden aus dem bestehenden Zustand abgeleitet:
 
-Der optionale `on_change`-Hook erzeugt nach erfolgreicher Änderung ein transportneutrales Change-Event mit `operation`, `project_id` und Dirty-State. Er ist ausdrücklich als spätere Audit-/Bus-Anbindungsstelle vorgesehen; der Change-Service erzeugt derzeit selbst noch keine zweite Audit- oder Buswahrheit.
+- Projektrollen verwenden immer die aktuelle `project_id` des Managers;
+- Aktivierungen übernehmen `user_id` und `scope` aus der referenzierten Projektrolle;
+- Rückgaben übernehmen `user_id` und `scope` aus der referenzierten Aktivierung;
+- Freigaben und Nachprüfungen verlangen eine bekannte `action_id` und bekannte Benutzer;
+- unbekannte `user_id`, `role_assignment_id`, `activation_id` oder `action_id` werden vor Commit abgewiesen.
 
-Abgesicherte Regeln:
+Damit kann ein Aufrufer widersprüchliche Kombinationen nicht mehr frei zusammensetzen. Die Benutzergewichtung bleibt weiterhin rein sichtbar und ohne automatische Autorisierungswirkung.
 
-- erfolgreiche Änderung setzt den Manager über den bestehenden Snapshot automatisch auf Dirty;
-- nach explizitem Speichern ist der Dirty-State wieder sauber;
-- Änderung der Benutzergewichtung bleibt ohne Autorisierungswirkung (`weight_affects_authorization=false`);
-- unbekannte Benutzerreferenzen werden vor Zustandsübernahme abgewiesen;
-- doppelte Benutzer-ID wird vor Zustandsübernahme abgewiesen;
-- bei fehlgeschlagener Änderung bleiben vollständiger `user_management`-Zustand und Dirty-State unverändert;
-- der Change-Hook wird bei fehlgeschlagenen Änderungen nicht aufgerufen;
-- erfolgreiche Änderungen erzeugen genau ein transportneutrales Hook-Ereignis.
+Der optionale `on_change`-Hook bleibt transportneutral. Er feuert ausschließlich nach erfolgreichem Commit und ist die vorbereitete Anschlussstelle für Audit-/Bus-Korrelation; der Change-Service erzeugt noch keine zweite fachliche Wahrheit.
 
 Commits dieses Blocks:
 
 - `382ce198` feat(projectos): atomaren Benutzerverwaltungs-Change-Service einführen
 - `7dd862b0` test(projectos): atomare Benutzerverwaltungsänderungen absichern
+- `a53a01c6` feat(projectos): fachliche Benutzerverwaltungs-Commands ergänzen
+- `ff49e192` test(projectos): fachliche Benutzerverwaltungs-Commands absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #232, ist für Commit `7dd862b0e435404af47e1c9470b9925487ee09c7` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #235, ist für Commit `ff49e192f84d2064fe71b41c66f91bcd9da36a65` erfolgreich.
 
 PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den Change-Service von objektbasierten Add-Operationen auf engere fachliche Commands erweitern:
+Als Nächstes den neutralen `on_change`-Hook an die bestehende ProjectOS-Audit-/Bus-/Korrelationsschicht anbinden:
 
-1. Projektrolle direkt aus `user_id`, Rolle, Scope, Gültigkeit und Zuweisungsherkunft erzeugen;
-2. Aktivierung direkt aus `role_assignment_id`, Grund, Zeitraum, Scope und Trigger erzeugen;
-3. Beendigung/Rückgabe direkt aus `activation_id`, Grund, Endzeitpunkt und Trigger erzeugen;
-4. Freigabeanforderung/-entscheidung und Nachprüfung über konkrete Command-Parameter erzeugen;
-5. neutralen Change-Hook anschließend an bestehende ProjectOS-Audit-/Bus-Korrelation anbinden, ohne doppelte fachliche Wahrheit;
-6. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard/Tests schrittweise zurückdrängen.
+1. Change-Event um `actor_user_id`, `correlation_id`, `causation_id` und fachliche Referenz erweitern, ohne Domainwahrheit zu duplizieren;
+2. erfolgreiche Commands als korrelierte Bus-/Audit-Nachweise emittieren;
+3. fehlgeschlagene Commands dürfen keinerlei Bus-/Audit-Ereignis erzeugen;
+4. Aktivierungs-/Rückgabe-/Freigabe-Commands müssen bestehende `action_id`/`activation_id`/`role_assignment_id` als Referenzen tragen;
+5. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard und Tests weiter zurückdrängen;
+6. anschließend Undo/Redo-/Command-Historienstrategie für Benutzerverwaltung prüfen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #232. Bundle v4, Persistenz-/Migrationsstatus und Benutzerverwaltungs-Konsistenzdiagnosen sind integriert. Neu ist `ProjectOSUserManagementChangeService`: Änderungen werden atomar über einen vollständig validierten neuen `ProjectOSUserManagementState` übernommen, markieren Dirty-State und besitzen einen transportneutralen Change-Hook für spätere Audit-/Bus-Anbindung. Fahre mit engeren fachlichen Commands für Rolle, Aktivierung, Rückgabe, Freigabe und Nachprüfung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #235. Bundle v4, Persistenz-/Migrationsstatus und Benutzerverwaltungs-Konsistenzdiagnosen sind integriert. `ProjectOSUserManagementChangeService` besitzt jetzt fachliche Commands für Rechte, Projektrollen, Aktivierung, Rückgabe, Freigabe und Nachprüfung; Projekt, Benutzer und Scope werden aus dem bestehenden State abgeleitet und jede Änderung ist atomar. Fahre mit der Audit-/Bus-/Korrelationsanbindung des Change-Hooks fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
