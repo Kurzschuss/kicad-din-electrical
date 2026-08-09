@@ -3,24 +3,36 @@ import pytest
 from .projectos_user_management_reversibility import ProjectOSUserManagementReversibilityPolicy
 
 
-def test_reversibility_matrix_is_fail_closed_and_only_weight_change_is_reversible():
+def test_reversibility_matrix_is_fail_closed_with_explicit_compensations():
     policy = ProjectOSUserManagementReversibilityPolicy()
     state = policy.state()
 
-    assert state["reversible_operations"] == ["user_weight_changed"]
+    assert state["reversible_operations"] == [
+        "user_weight_changed",
+        "permission_assigned",
+        "permission_regranted",
+    ]
     assert state["fail_closed"] is True
     assert state["persisted"] is False
     assert policy.require(
         "user_weight_changed",
         compensation="restore_previous_weight",
     ).reversible is True
+    assert policy.require(
+        "permission_assigned",
+        compensation="revoke_assignment",
+    ).reversible is True
+    assert policy.require(
+        "permission_regranted",
+        compensation="revoke_assignment",
+    ).reversible is True
 
     for operation in (
         "user_created",
-        "permission_assigned",
         "permission_revoked",
         "project_role_assigned",
         "project_role_assignment_terminated",
+        "project_role_reassigned",
         "project_role_activated",
         "project_role_deactivated",
         "approval_requested",
