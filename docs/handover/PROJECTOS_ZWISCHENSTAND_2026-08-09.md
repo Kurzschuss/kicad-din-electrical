@@ -27,66 +27,65 @@ Negative Nachprüfung schreibt die historische Notfallwirkung nicht rückwirkend
 
 Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und `user_management`. v2/v3 bleiben lesbar und werden erst beim expliziten Speichern auf v4 migriert. Save-As, Recovery, Dirty-State und transaktionssichere Fehlerfälle sind inklusive Benutzerverwaltung abgesichert.
 
-## Z_Cockpit Persistenz/Migration
+## Z_Cockpit Persistenz/Migration und Konsistenz
 
 `ZCockpitUserManagementPersistenceView` zeigt tatsächliche gespeicherte Bundle-Version, Migrationsbedarf, Persistenzversion des Benutzerblocks, Objektzähler und bewusst nicht persistierte Ableitungen. Der Status ist in Projektleiterübersicht, Attention und Navigation integriert. `USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING` erscheint gelb und führt zum read-only Ziel `user_management_persistence`.
 
-## Benutzerverwaltungs-Konsistenzdiagnosen – zuletzt umgesetzt
+`ZCockpitUserManagementConsistencyView` prüft read-only die semantischen Lifecycle-Ketten Benutzer→Recht/Rolle→Aktivierung→Beendigung sowie Freigabeanforderung→Freigabe→Nachprüfung. Rote Fehler und gelbe Hinweise sind in Projektleiterübersicht, Aufmerksamkeit und Navigation eingebunden.
 
-Neu vorhanden ist `ZCockpitUserManagementConsistencyView`.
+## Benutzerverwaltungs-Command-/Change-Service – zuletzt umgesetzt
 
-Die Diagnose prüft read-only die semantischen Lifecycle-Ketten:
+Neu vorhanden ist `ProjectOSUserManagementChangeService`.
 
-- Benutzer → explizite Rechtezuweisung;
-- Benutzer → Projektrolle → Aktivierung → Beendigung;
-- Freigabeanforderung → Freigabe → Notfall-Nachprüfung.
+Der Service ersetzt direkte fachliche Komplettänderungen schrittweise durch atomare Operationen. Für jede Änderung wird zuerst ein vollständig validierter neuer `ProjectOSUserManagementState` aufgebaut. Erst nach erfolgreicher Validierung wird der Zustand über den Manager übernommen. Dadurch entstehen keine teilweisen Benutzerverwaltungszustände.
 
-Der Persistenzvertrag bleibt für grobe Referenzintegrität fail-closed zuständig. Die neue Z_Cockpit-Schicht erkennt zusätzlich formal vorhandene, aber semantisch widersprüchliche Verknüpfungen, unter anderem:
+Bereits vorhandene Operationen:
 
-- Aktivierung und Projektrolle gehören zu unterschiedlichen Benutzern (`UM_ACTIVATION_USER_MISMATCH`);
-- Aktivierung und Projektrolle haben abweichenden Scope (`UM_ACTIVATION_SCOPE_MISMATCH`);
-- Beendigung und Aktivierung gehören zu unterschiedlichen Benutzern (`UM_DEACTIVATION_USER_MISMATCH`);
-- Beendigung und Aktivierung haben abweichenden Scope (`UM_DEACTIVATION_SCOPE_MISMATCH`);
-- Nachprüfung gehört zu einer Nicht-Notfall-Anforderung (`UM_POST_REVIEW_NON_EMERGENCY`);
-- Anforderer prüft den eigenen Notfallvorgang (`UM_POST_REVIEW_SELF_REVIEW`);
-- mehrere Nachprüfungen derselben Aktion sind mehrdeutig (`UM_POST_REVIEW_AMBIGUOUS`).
+- `create_user(...)`;
+- `change_user_weight(...)`;
+- `assign_permission(...)`;
+- `assign_project_role(...)`;
+- `activate_project_role(...)`;
+- `deactivate_project_role(...)`;
+- `request_approval(...)`;
+- `record_approval(...)`;
+- `complete_post_review(...)`.
 
-Fehler werden rot, Scope-Hinweise gelb und konsistenter Zustand grün bewertet. Die Diagnose verändert keine fachlichen oder persistierten Daten.
+Der optionale `on_change`-Hook erzeugt nach erfolgreicher Änderung ein transportneutrales Change-Event mit `operation`, `project_id` und Dirty-State. Er ist ausdrücklich als spätere Audit-/Bus-Anbindungsstelle vorgesehen; der Change-Service erzeugt derzeit selbst noch keine zweite Audit- oder Buswahrheit.
 
-Die Diagnose ist vollständig integriert:
+Abgesicherte Regeln:
 
-- `ZCockpitProjectLeadOverview` führt `user_management_consistency` und eigene Summary-Zähler;
-- rote Konsistenzfehler setzen die Projektleiterampel auf Rot;
-- `ZCockpitAttentionView` erzeugt aus jedem Diagnosepunkt einen priorisierten Arbeitspunkt;
-- roter Fehler erhält Priorität 30, gelber Hinweis Priorität 20;
-- neues Navigationsziel `user_management_consistency` öffnet die read-only Diagnose über den `ZCockpitNavigationResolver`.
+- erfolgreiche Änderung setzt den Manager über den bestehenden Snapshot automatisch auf Dirty;
+- nach explizitem Speichern ist der Dirty-State wieder sauber;
+- Änderung der Benutzergewichtung bleibt ohne Autorisierungswirkung (`weight_affects_authorization=false`);
+- unbekannte Benutzerreferenzen werden vor Zustandsübernahme abgewiesen;
+- doppelte Benutzer-ID wird vor Zustandsübernahme abgewiesen;
+- bei fehlgeschlagener Änderung bleiben vollständiger `user_management`-Zustand und Dirty-State unverändert;
+- der Change-Hook wird bei fehlgeschlagenen Änderungen nicht aufgerufen;
+- erfolgreiche Änderungen erzeugen genau ein transportneutrales Hook-Ereignis.
 
 Commits dieses Blocks:
 
-- `9830876a` feat(z-cockpit): Benutzerverwaltungs-Konsistenzdiagnosen ergänzen
-- `523b4815` test(z-cockpit): Benutzerverwaltungs-Konsistenzdiagnosen absichern
-- `d1d65fc3` feat(z-cockpit): Benutzerkonsistenz in Projektleiterübersicht integrieren
-- `8dd2095a` feat(z-cockpit): Benutzerkonsistenz als Navigationsziel ergänzen
-- `a9e3406c` feat(z-cockpit): Benutzerkonsistenz über Navigation auflösen
-- `60d38512` feat(z-cockpit): Benutzerkonsistenz im Aufmerksamkeitsblock anzeigen
-- `ff7a9bf3` test(z-cockpit): Benutzerkonsistenz in Übersicht Aufmerksamkeit und Navigation absichern
+- `382ce198` feat(projectos): atomaren Benutzerverwaltungs-Change-Service einführen
+- `7dd862b0` test(projectos): atomare Benutzerverwaltungsänderungen absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #229, ist für Commit `ff7a9bf384d4631a38509138ec43aa7d21283386` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #232, ist für Commit `7dd862b0e435404af47e1c9470b9925487ee09c7` erfolgreich.
 
 PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den Benutzerverwaltungsblock auf **Command-/Change-Service-Reife** prüfen. Der fachliche Zustand ist persistierbar, simulierbar und diagnostizierbar, wird derzeit aber noch über vollständige `ProjectOSUserManagementState`-Ersetzung in den Manager gesetzt. Nächste Schritte:
+Als Nächstes den Change-Service von objektbasierten Add-Operationen auf engere fachliche Commands erweitern:
 
-1. atomare Commands für Benutzer anlegen/ändern, Gewichtung setzen und Benutzer deaktivieren definieren;
-2. Commands für Rechtezuweisung/-entzug, Projektrollen-Zuweisung, Aktivierung, Beendigung, Freigabe und Nachprüfung definieren;
-3. jede Änderung über einen zentralen Change-Service mit Validierung, Dirty-State und Audit-/Bus-Hook führen;
-4. keine direkte Mutation und keine zweite fachliche Wahrheit zulassen;
-5. read-only Simulation weiterhin strikt vom tatsächlichen Command-Pfad trennen.
+1. Projektrolle direkt aus `user_id`, Rolle, Scope, Gültigkeit und Zuweisungsherkunft erzeugen;
+2. Aktivierung direkt aus `role_assignment_id`, Grund, Zeitraum, Scope und Trigger erzeugen;
+3. Beendigung/Rückgabe direkt aus `activation_id`, Grund, Endzeitpunkt und Trigger erzeugen;
+4. Freigabeanforderung/-entscheidung und Nachprüfung über konkrete Command-Parameter erzeugen;
+5. neutralen Change-Hook anschließend an bestehende ProjectOS-Audit-/Bus-Korrelation anbinden, ohne doppelte fachliche Wahrheit;
+6. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard/Tests schrittweise zurückdrängen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #229. Bundle v4 und Benutzerverwaltung sind persistenzseitig gehärtet. Z_Cockpit besitzt Persistenz-/Migrationsstatus sowie read-only Benutzerverwaltungs-Konsistenzdiagnosen, integriert in Projektleiterübersicht, Aufmerksamkeit und Navigation. Fahre mit der Command-/Change-Service-Reife des Benutzerverwaltungsblocks fort; direkte State-Ersetzung soll durch atomare, validierte Änderungsoperationen ergänzt werden. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #232. Bundle v4, Persistenz-/Migrationsstatus und Benutzerverwaltungs-Konsistenzdiagnosen sind integriert. Neu ist `ProjectOSUserManagementChangeService`: Änderungen werden atomar über einen vollständig validierten neuen `ProjectOSUserManagementState` übernommen, markieren Dirty-State und besitzen einen transportneutralen Change-Hook für spätere Audit-/Bus-Anbindung. Fahre mit engeren fachlichen Commands für Rolle, Aktivierung, Rückgabe, Freigabe und Nachprüfung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
