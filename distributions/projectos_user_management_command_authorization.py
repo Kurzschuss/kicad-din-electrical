@@ -4,15 +4,16 @@ Der Autorisierer verändert keinen Fachzustand. Er bewertet den expliziten Comma
 gegen persistierte Rechtezuweisungen und optional gegen Rechte aus wirksam aktivierten,
 freigegebenen Projektfunktionen. Vier-Augen-Wirksamkeit wird dabei nicht nachgebaut,
 sondern über die bestehenden Approval-Evaluatoren übernommen. Explizite Rechtewiderrufe
-und Rollenzuweisungs-Beendigungen beenden ihre Rechtewirkung zeitabhängig.
+und freigabewirksame Rollenzuweisungs-Beendigungen beenden ihre Rechtewirkung zeitabhängig.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Iterable, Mapping
 
 from .projectos_approved_role_activation import ProjectOSApprovedRoleActivationEvaluator
 from .projectos_authorization import ProjectOSAuthorizationEvaluator, ProjectOSPermissionAssignment, ProjectOSUserProfile
+from .projectos_role_assignment_termination_approval import ProjectOSApprovedRoleAssignmentTerminationEvaluator
 from .projectos_role_deactivation_approval import ProjectOSApprovedRoleDeactivationEvaluator
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 
@@ -70,6 +71,27 @@ class ProjectOSUserManagementCommandAuthorization:
     def _deactivation_target(deactivation_id: str) -> str:
         return f"deactivation:{deactivation_id}"
 
+    def _role_termination_state(
+        self,
+        user: ProjectOSUserProfile,
+        *,
+        at: datetime | None,
+    ) -> dict[str, Any]:
+        state = self.manager.user_management
+        evaluator = ProjectOSApprovedRoleAssignmentTerminationEvaluator(
+            roles=state.project_roles,
+            terminations=state.role_assignment_terminations,
+            approval_requests=state.approval_requests,
+            approvals=state.approvals,
+            risk_class_map=self.role_risk_class_map,
+        )
+        return evaluator.state(
+            project_id=state.project_id,
+            user=user,
+            scope=self.scope,
+            at=at,
+        )
+
     def _activation_still_effective(
         self,
         *,
@@ -102,7 +124,7 @@ class ProjectOSUserManagementCommandAuthorization:
             roles=roles,
             activations=activations,
             deactivations=[deactivation],
-            role_terminations=state.role_assignment_terminations,
+            role_terminations=(),
             approval_requests=requests,
             approvals=approvals,
         )
@@ -140,36 +162,39 @@ class ProjectOSUserManagementCommandAuthorization:
                 effective.append(assignment)
         return tuple(effective)
 
-    def _terminated_granting_role_count(
+    def _granting_role_termination_diagnostics(
         self,
         user: ProjectOSUserProfile,
         required_permission: str,
         *,
         at: datetime | None,
-    ) -> int:
+    ) -> tuple[int, int, bool]:
         granting_role_types = {
             role_type for role_type, permissions in self.role_permission_map.items()
             if required_permission in permissions
         }
         if not granting_role_types:
-            return 0
-        current = at or datetime.now(timezone.utc)
-        if current.tzinfo is None:
-            raise ValueError("authorization evaluation time must include timezone")
+            return 0, 0, False
         state = self.manager.user_management
-        roles = {
-            item.role_assignment_id: item
+        role_ids = {
+            item.role_assignment_id
             for item in state.project_roles
             if item.user_id == user.user_id and item.scope == self.scope and item.role_type in granting_role_types
         }
-        return sum(
-            1 for item in state.role_assignment_terminations
-            if item.role_assignment_id in roles
-            and item.project_id == state.project_id
-            and item.user_id == user.user_id
-            and item.scope == self.scope
-            and item.is_effective(current)
+        termination_state = self._role_termination_state(user, at=at)
+        effective = sum(
+            1 for item in termination_state["effective_terminations"]
+            if item["role_assignment_id"] in role_ids
         )
+        blocked_rows = [
+            item for item in termination_state["blocked_terminations"]
+            if item["termination"]["role_assignment_id"] in role_ids
+        ]
+        configuration_required = any(
+            item["approval"].get("status") == "risk_not_configured"
+            for item in blocked_rows
+        )
+        return effective, len(blocked_rows), configuration_required
 
     def evaluate(
         self,
@@ -207,7 +232,11 @@ class ProjectOSUserManagementCommandAuthorization:
             direct_assignments + role_assignments,
             state.permission_revocations,
         ).evaluate(actor, required_permission, scope=self.scope, at=at)
-        terminated_granting_role_count = self._terminated_granting_role_count(actor, required_permission, at=at)
+        terminated_count, blocked_termination_count, configuration_required = self._granting_role_termination_diagnostics(
+            actor,
+            required_permission,
+            at=at,
+        )
         return {
             "operation": str(operation).strip(),
             "history_action": command_context.history_action,
@@ -222,7 +251,9 @@ class ProjectOSUserManagementCommandAuthorization:
             "active_assignment_count": len(authorization["active_assignments"]),
             "revoked_assignment_count": authorization["revocation_count"],
             "role_derived_assignment_count": len(role_assignments),
-            "terminated_granting_role_count": terminated_granting_role_count,
+            "terminated_granting_role_count": terminated_count,
+            "blocked_granting_role_termination_count": blocked_termination_count,
+            "role_termination_configuration_required": configuration_required,
             "deny_precedence": authorization["deny_precedence"],
             "weight_used_for_decision": authorization["weight_used_for_decision"],
             "read_only": True,
