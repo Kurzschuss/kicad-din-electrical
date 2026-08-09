@@ -26,6 +26,7 @@ class DinSyncLog:
         action: str,
         *,
         project_id: str | None = None,
+        command_id: str | None = None,
         correlation_id: str | None = None,
         causation_id: str | None = None,
     ) -> dict:
@@ -38,6 +39,7 @@ class DinSyncLog:
         }
         for field_name, field_value in (
             ("project_id", project_id),
+            ("command_id", command_id),
             ("correlation_id", correlation_id),
             ("causation_id", causation_id),
         ):
@@ -88,7 +90,7 @@ class DinSyncLog:
                 raise ValueError("DIN synchronization log action is required")
             clean = dict(entry)
             clean["timestamp"] = normalized
-            for field_name in ("project_id", "correlation_id", "causation_id"):
+            for field_name in ("project_id", "command_id", "correlation_id", "causation_id"):
                 if field_name in clean:
                     clean[field_name] = _normalize_optional_uuid(clean[field_name], field_name)
             validated.append(clean)
