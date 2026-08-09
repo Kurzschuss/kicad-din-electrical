@@ -79,9 +79,58 @@ class ZCockpitAttentionView:
             })
 
         persistence = overview.get("persistence", {})
-        if persistence.get("migration_pending"):
-            target = ZCockpitNavigationTarget(view="user_management_persistence", project_id=project_id, metadata={"persisted_bundle_version": persistence.get("persisted_bundle_version"), "migration_target_version": persistence.get("migration_target_version")})
-            items.append({"source": "persistence", "code": "USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING", "traffic_light": "yellow", "priority": 20, "summary": f"Das Projektbundle benötigt Migration auf Version {persistence.get('migration_target_version')}.", "recommended_action": "Persistenzstatus öffnen und Migration prüfen. Die Migration erfolgt erst beim expliziten Speichern des Projekts.", "correlation_id": None, "affected": {"persisted_bundle_version": persistence.get("persisted_bundle_version"), "migration_target_version": persistence.get("migration_target_version"), "persisted_object_count": persistence.get("persisted_object_count", 0)}, "detail_target": target.as_dict()})
+        if persistence.get("bundle_migration_pending"):
+            target = ZCockpitNavigationTarget(
+                view="user_management_persistence",
+                project_id=project_id,
+                metadata={
+                    "persisted_bundle_version": persistence.get("persisted_bundle_version"),
+                    "migration_target_version": persistence.get("migration_target_version"),
+                },
+            )
+            items.append({
+                "source": "persistence",
+                "code": "USER_MANAGEMENT_BUNDLE_MIGRATION_PENDING",
+                "traffic_light": "yellow",
+                "priority": 20,
+                "summary": f"Das Projektbundle benötigt Migration auf Version {persistence.get('migration_target_version')}.",
+                "recommended_action": "Persistenzstatus öffnen und Migration prüfen. Die Migration erfolgt erst beim expliziten Speichern des Projekts.",
+                "correlation_id": None,
+                "affected": {
+                    "persisted_bundle_version": persistence.get("persisted_bundle_version"),
+                    "migration_target_version": persistence.get("migration_target_version"),
+                    "persisted_object_count": persistence.get("persisted_object_count", 0),
+                },
+                "detail_target": target.as_dict(),
+            })
+        if persistence.get("user_management_migration_pending"):
+            target = ZCockpitNavigationTarget(
+                view="user_management_persistence",
+                project_id=project_id,
+                metadata={
+                    "persisted_user_management_version": persistence.get("persisted_user_management_version"),
+                    "user_management_migration_target_version": persistence.get("user_management_migration_target_version"),
+                },
+            )
+            items.append({
+                "source": "persistence",
+                "code": "USER_MANAGEMENT_PERSISTENCE_MIGRATION_PENDING",
+                "traffic_light": "yellow",
+                "priority": 20,
+                "summary": (
+                    "Benutzerverwaltungsdaten benötigen Migration von Persistenzversion "
+                    f"{persistence.get('persisted_user_management_version')} auf "
+                    f"{persistence.get('user_management_migration_target_version')}."
+                ),
+                "recommended_action": "Persistenzstatus öffnen und Benutzerverwaltungs-Migration prüfen. Die Aktualisierung erfolgt erst beim expliziten Speichern des Projekts.",
+                "correlation_id": None,
+                "affected": {
+                    "persisted_user_management_version": persistence.get("persisted_user_management_version"),
+                    "user_management_migration_target_version": persistence.get("user_management_migration_target_version"),
+                    "persisted_object_count": persistence.get("persisted_object_count", 0),
+                },
+                "detail_target": target.as_dict(),
+            })
 
         audit = overview["audit"]
         if audit["causation_unresolved_entry_count"] > 0:
