@@ -6,18 +6,15 @@ from typing import Any, Iterable
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation, ProjectOSProjectRoleLifecycleEvaluator
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 from .z_cockpit_authorization import ZCockpitAuthorizationView
 
 _END_REASON_LABELS = {
-    "manual_return": "Manuelle Rückgabe",
-    "principal_returned": "Projektleiter zurückgekehrt",
-    "period_ended": "Zeitraum beendet",
-    "revoked": "Widerrufen",
-    "handover_completed": "Übergabe abgeschlossen",
-    "emergency_ended": "Notfall beendet",
-    "succession_completed": "Nachfolge abgeschlossen",
+    "manual_return": "Manuelle Rückgabe", "principal_returned": "Projektleiter zurückgekehrt",
+    "period_ended": "Zeitraum beendet", "revoked": "Widerrufen", "handover_completed": "Übergabe abgeschlossen",
+    "emergency_ended": "Notfall beendet", "succession_completed": "Nachfolge abgeschlossen",
 }
 
 
@@ -32,6 +29,7 @@ class ZCockpitProjectRoleDeactivationView:
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
         deactivations: Iterable[ProjectOSProjectRoleDeactivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         base_assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
         permission_map: dict[str, Iterable[str]] | None = None,
     ) -> None:
@@ -40,6 +38,7 @@ class ZCockpitProjectRoleDeactivationView:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
         self.deactivations = tuple(deactivations or ())
+        self.role_terminations = tuple(role_terminations or ())
         self.base_assignments = tuple(base_assignments or ())
         self.permission_map = {key: tuple(values) for key, values in (permission_map or {}).items()}
 
@@ -48,14 +47,11 @@ class ZCockpitProjectRoleDeactivationView:
             roles=self.roles,
             activations=self.activations,
             deactivations=self.deactivations,
+            role_terminations=self.role_terminations,
         )
         lifecycle_state = lifecycle.state(project_id=self.project_id, user=self.user, scope=scope, at=at)
         derived = lifecycle.permission_assignments(
-            project_id=self.project_id,
-            user=self.user,
-            permission_map=self.permission_map,
-            scope=scope,
-            at=at,
+            project_id=self.project_id, user=self.user, permission_map=self.permission_map, scope=scope, at=at
         )
         permissions = sorted({item.permission for item in self.base_assignments + derived if item.user_id == self.user.user_id and item.scope == scope})
         auth = ZCockpitAuthorizationView(self.user, self.base_assignments + derived)
@@ -65,6 +61,7 @@ class ZCockpitProjectRoleDeactivationView:
             "user": self.user.as_dict(),
             "scope": scope,
             "effective_roles": lifecycle_state["effective_roles"],
+            "terminated_assigned_roles": lifecycle_state["terminated_assigned_roles"],
             "effective_activations": lifecycle_state["effective_activations"],
             "ended_activations": [self._ended(item) for item in lifecycle_state["ended_activations"]],
             "rights": rights,
@@ -86,6 +83,7 @@ class ZCockpitProjectRoleDeactivationView:
             roles=self.roles,
             activations=self.activations,
             deactivations=self.deactivations + (deactivation,),
+            role_terminations=self.role_terminations,
             base_assignments=self.base_assignments,
             permission_map=self.permission_map,
         )
@@ -118,7 +116,7 @@ class ZCockpitProjectRoleDeactivationView:
             "lost_permission_count": sum(1 for item in impacts if item["lost_permission"]),
             "changed_permission_count": sum(1 for item in impacts if item["decision_changed"]),
             "read_only": True,
-            "note": "Die Rückgabe-Simulation verändert keine gespeicherten Aktivierungen, Funktionen oder Rechtezuweisungen.",
+            "note": "Die Rückgabe-Simulation verändert keine gespeicherten Aktivierungen, Rollenzuweisungs-Beendigungen, Funktionen oder Rechtezuweisungen.",
         }
 
     @staticmethod
