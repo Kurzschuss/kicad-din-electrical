@@ -32,12 +32,16 @@ class ZCockpitUserManagementCommandDiagnosticsView:
         deny_blocked = decision == "deny"
         revoked_assignment_count = authorization.get("revoked_assignment_count", 0) if authorization is not None else 0
         terminated_granting_role_count = authorization.get("terminated_granting_role_count", 0) if authorization is not None else 0
-        traffic_light = "yellow" if blocked else "green"
+        blocked_granting_role_termination_count = authorization.get("blocked_granting_role_termination_count", 0) if authorization is not None else 0
+        role_termination_configuration_required = bool(
+            authorization.get("role_termination_configuration_required", False)
+        ) if authorization is not None else False
+        traffic_light = "yellow" if blocked or role_termination_configuration_required else "green"
 
         return {
             "project_id": runtime_state["project_id"],
             "traffic_light": traffic_light,
-            "attention_required": blocked,
+            "attention_required": bool(blocked or role_termination_configuration_required),
             "last_decision": decision,
             "last_decision_label": _DECISION_LABELS.get(decision, "Noch keine Entscheidung") if decision else "Noch keine Entscheidung",
             "last_allowed": authorization.get("allowed") if authorization is not None else None,
@@ -51,6 +55,9 @@ class ZCockpitUserManagementCommandDiagnosticsView:
             "revocation_blocked": bool(blocked and revoked_assignment_count > 0),
             "terminated_granting_role_count": terminated_granting_role_count,
             "role_termination_blocked": bool(blocked and terminated_granting_role_count > 0),
+            "blocked_granting_role_termination_count": blocked_granting_role_termination_count,
+            "role_termination_approval_pending": bool(blocked_granting_role_termination_count > 0),
+            "role_termination_configuration_required": role_termination_configuration_required,
             "deny_precedence": True,
             "deny_blocked": deny_blocked,
             "weight_used_for_decision": False,
@@ -65,8 +72,8 @@ class ZCockpitUserManagementCommandDiagnosticsView:
             "read_only": True,
             "persisted": False,
             "note": (
-                "Die Diagnose zeigt ausschließlich Runtime-Nachweise einschließlich wirksamer Rechtewiderrufe "
-                "und beendeter Rollenzuweisungen. Sie ändert weder Rechte, Rollen, Command-Historie noch "
-                "Audit-/Bus-Daten."
+                "Die Diagnose zeigt ausschließlich Runtime-Nachweise einschließlich wirksamer Rechtewiderrufe, "
+                "freigabewirksamer Rollenzuweisungs-Beendigungen sowie blockierter/pending Beendigungen. "
+                "Sie ändert weder Rechte, Rollen, Command-Historie noch Audit-/Bus-Daten."
             ),
         }
