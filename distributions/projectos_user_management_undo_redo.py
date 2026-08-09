@@ -1,8 +1,8 @@
 """Kompensierendes Undo/Redo für reversible ProjectOS-Benutzerverwaltungs-Commands.
 
 Undo und Redo sind neue fachliche Änderungen. Weder Domainzustand noch Audit-Historie
-werden auf einen alten Snapshot zurückgesetzt. Der erste Referenzfall ist ausschließlich
-`user_weight_changed`.
+werden auf einen alten Snapshot zurückgesetzt. Reversibilität wird zentral fail-closed
+über ProjectOSUserManagementReversibilityPolicy entschieden.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from uuid import UUID, uuid4
 from .projectos_user_management_change_service import ProjectOSUserManagementChangeService
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 from .projectos_user_management_command_history import ProjectOSUserManagementCommandRecord
+from .projectos_user_management_reversibility import ProjectOSUserManagementReversibilityPolicy
 
 
 def _uuid(value: str, field_name: str) -> str:
@@ -48,11 +49,17 @@ class ProjectOSUserManagementUndoRedoResult:
 class ProjectOSUserManagementUndoRedoService:
     """Führt lineares Undo/Redo fail-closed über neue Benutzerverwaltungs-Commands aus."""
 
-    def __init__(self, change_service: ProjectOSUserManagementChangeService) -> None:
+    def __init__(
+        self,
+        change_service: ProjectOSUserManagementChangeService,
+        *,
+        reversibility: ProjectOSUserManagementReversibilityPolicy | None = None,
+    ) -> None:
         if change_service.command_history is None:
             raise ValueError("undo/redo requires command history")
         self.change_service = change_service
         self.history = change_service.command_history
+        self.reversibility = reversibility or ProjectOSUserManagementReversibilityPolicy()
 
     def _user_weight(self, user_id: str) -> int:
         normalized = _uuid(user_id, "user_id")
@@ -75,8 +82,11 @@ class ProjectOSUserManagementUndoRedoService:
             raise ValueError("undo/redo requires a new correlation_id")
         return resolved
 
-    @staticmethod
-    def _weight_values(record: ProjectOSUserManagementCommandRecord) -> tuple[int, int]:
+    def _weight_values(self, record: ProjectOSUserManagementCommandRecord) -> tuple[int, int]:
+        self.reversibility.require(
+            record.operation,
+            compensation="restore_previous_weight",
+        )
         if record.operation != "user_weight_changed" or not record.reversible:
             raise ValueError("command is not a reversible user weight change")
         if set(record.before_values) != {"weight"} or set(record.after_values) != {"weight"}:
