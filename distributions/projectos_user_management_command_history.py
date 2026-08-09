@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 from uuid import UUID
 
 _HISTORY_ACTIONS = {"command", "undo", "redo"}
@@ -121,8 +121,25 @@ class ProjectOSUserManagementCommandHistory:
     def __init__(self) -> None:
         self._records: list[ProjectOSUserManagementCommandRecord] = []
         self._command_ids: set[str] = set()
+        self._runtime_generation_provider: Callable[[], int] | None = None
+        self._runtime_generation: int | None = None
+
+    def bind_runtime_generation(self, provider: Callable[[], int]) -> None:
+        self._runtime_generation_provider = provider
+        self._runtime_generation = int(provider())
+
+    def _align_runtime_generation(self) -> None:
+        if self._runtime_generation_provider is None:
+            return
+        current = int(self._runtime_generation_provider())
+        if current == self._runtime_generation:
+            return
+        self._records.clear()
+        self._command_ids.clear()
+        self._runtime_generation = current
 
     def append(self, record: ProjectOSUserManagementCommandRecord) -> ProjectOSUserManagementCommandRecord:
+        self._align_runtime_generation()
         if record.command_id in self._command_ids:
             raise ValueError("command_id already recorded")
         if record.related_command_id is not None and record.related_command_id not in self._command_ids:
@@ -132,13 +149,16 @@ class ProjectOSUserManagementCommandHistory:
         return record
 
     def all(self) -> tuple[ProjectOSUserManagementCommandRecord, ...]:
+        self._align_runtime_generation()
         return tuple(self._records)
 
     def get(self, command_id: str) -> ProjectOSUserManagementCommandRecord | None:
+        self._align_runtime_generation()
         normalized = _uuid(command_id, "command_id")
         return next((item for item in self._records if item.command_id == normalized), None)
 
     def latest(self) -> ProjectOSUserManagementCommandRecord | None:
+        self._align_runtime_generation()
         return self._records[-1] if self._records else None
 
     def undo_candidate(self) -> ProjectOSUserManagementCommandRecord | None:
@@ -171,3 +191,5 @@ class ProjectOSUserManagementCommandHistory:
     def clear(self) -> None:
         self._records.clear()
         self._command_ids.clear()
+        if self._runtime_generation_provider is not None:
+            self._runtime_generation = int(self._runtime_generation_provider())
