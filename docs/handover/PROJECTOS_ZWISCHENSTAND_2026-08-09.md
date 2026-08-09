@@ -33,56 +33,53 @@ Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und `user_manage
 
 `ZCockpitUserManagementConsistencyView` prüft read-only die semantischen Lifecycle-Ketten Benutzer→Recht/Rolle→Aktivierung→Beendigung sowie Freigabeanforderung→Freigabe→Nachprüfung. Rote Fehler und gelbe Hinweise sind in Projektleiterübersicht, Aufmerksamkeit und Navigation eingebunden.
 
-## Benutzerverwaltungs-Command-/Change-Service – aktueller Stand
+## Benutzerverwaltungs-Command-/Change-Service
 
 `ProjectOSUserManagementChangeService` übernimmt Änderungen atomar: Für jede Operation wird zuerst ein vollständig validierter neuer `ProjectOSUserManagementState` aufgebaut und erst danach in den Manager übernommen. Erfolgreiche Änderungen markieren den Dirty-State; fehlgeschlagene Änderungen lassen State, Dirty-State und Hook unverändert.
 
-Neben den objektbasierten Add-Methoden existieren jetzt enge fachliche Commands:
+Enge fachliche Commands existieren für Rechte, Projektrollen, Aktivierung, Rückgabe, Freigabeanforderung, Freigabeentscheidung und Nachprüfung. Projekt, Benutzer und Scope werden aus dem bestehenden Zustand abgeleitet; unbekannte Referenzen werden vor Commit abgewiesen.
 
-- `command_assign_permission(...)`;
-- `command_assign_project_role(...)`;
-- `command_activate_project_role(...)`;
-- `command_deactivate_project_role(...)`;
-- `command_request_approval(...)`;
-- `command_record_approval(...)`;
-- `command_complete_post_review(...)`.
+## Audit-/Bus-/Korrelationsanbindung – zuletzt umgesetzt
 
-Die Commands bauen die Domainobjekte selbst aus Fachparametern. Kritische Referenzen werden aus dem bestehenden Zustand abgeleitet:
+Neu vorhanden sind `ProjectOSUserManagementChangeTrace` und `ProjectOSUserManagementChangeTraceEmitter`.
 
-- Projektrollen verwenden immer die aktuelle `project_id` des Managers;
-- Aktivierungen übernehmen `user_id` und `scope` aus der referenzierten Projektrolle;
-- Rückgaben übernehmen `user_id` und `scope` aus der referenzierten Aktivierung;
-- Freigaben und Nachprüfungen verlangen eine bekannte `action_id` und bekannte Benutzer;
-- unbekannte `user_id`, `role_assignment_id`, `activation_id` oder `action_id` werden vor Commit abgewiesen.
+Der Emitter wird als `on_change`-Hook des Change-Service verwendet. Er erzeugt keine Mutation und keine zweite fachliche Wahrheit, sondern beschreibt ausschließlich bereits erfolgreich übernommene Änderungen als ProjectOS-Busnachricht und Audit-Eintrag.
 
-Damit kann ein Aufrufer widersprüchliche Kombinationen nicht mehr frei zusammensetzen. Die Benutzergewichtung bleibt weiterhin rein sichtbar und ohne automatische Autorisierungswirkung.
+Regeln:
 
-Der optionale `on_change`-Hook bleibt transportneutral. Er feuert ausschließlich nach erfolgreichem Commit und ist die vorbereitete Anschlussstelle für Audit-/Bus-Korrelation; der Change-Service erzeugt noch keine zweite fachliche Wahrheit.
+- jede erfolgreiche Benutzerverwaltungsänderung erzeugt genau einen Bus-Nachweis und genau einen Audit-Eintrag;
+- alle Änderungen eines Emitter-Vorgangs tragen dieselbe `correlation_id`;
+- Folgeschritte bilden eine echte `causation_id`-Kette über die vorherige `message_id`;
+- der Nachweis führt `operation`, `actor_user_id`, fachliche `reference`, Dirty-State und das bereits persistierte Domainobjekt;
+- Projektrollen verwenden `assigned_by_user_id` als Akteur, sofern vorhanden;
+- Aktivierungen/Rückgaben verwenden `triggered_by_user_id`, sofern vorhanden;
+- Freigabeanforderung, Freigabeentscheidung und Nachprüfung verwenden jeweils Anforderer, Freigeber bzw. Prüfer als Akteur;
+- Delegationen verwenden `delegated_by_user_id`, sofern vorhanden;
+- bei fehlgeschlagenen Commands wird der Hook nicht aufgerufen und es entsteht weder Bus- noch Audit-Nachweis;
+- der Emitter hält einen read-only vorherigen Snapshot, um die tatsächlich geänderte Fachreferenz aus dem Delta zu bestimmen; dadurch wird z. B. eine Gewichtsänderung eines nicht-letzten Benutzers korrekt zugeordnet.
 
 Commits dieses Blocks:
 
-- `382ce198` feat(projectos): atomaren Benutzerverwaltungs-Change-Service einführen
-- `7dd862b0` test(projectos): atomare Benutzerverwaltungsänderungen absichern
-- `a53a01c6` feat(projectos): fachliche Benutzerverwaltungs-Commands ergänzen
-- `ff49e192` test(projectos): fachliche Benutzerverwaltungs-Commands absichern
+- `f2592de3` feat(projectos): Benutzerverwaltungsänderungen an Audit und Bus anbinden
+- `2f45cbe3` fix(projectos): Änderungsreferenz aus Snapshot-Differenz bestimmen
+- `40d332d0` test(projectos): korrelierte Benutzerverwaltungsänderungen absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #235, ist für Commit `ff49e192f84d2064fe71b41c66f91bcd9da36a65` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #239, ist für Commit `40d332d0229fe178ca7411f517b5e4a18f21f157` erfolgreich.
 
 PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes den neutralen `on_change`-Hook an die bestehende ProjectOS-Audit-/Bus-/Korrelationsschicht anbinden:
+Als Nächstes die Audit-/Bus-Anbindung in die Command-Nutzung selbst weiter härten:
 
-1. Change-Event um `actor_user_id`, `correlation_id`, `causation_id` und fachliche Referenz erweitern, ohne Domainwahrheit zu duplizieren;
-2. erfolgreiche Commands als korrelierte Bus-/Audit-Nachweise emittieren;
-3. fehlgeschlagene Commands dürfen keinerlei Bus-/Audit-Ereignis erzeugen;
-4. Aktivierungs-/Rückgabe-/Freigabe-Commands müssen bestehende `action_id`/`activation_id`/`role_assignment_id` als Referenzen tragen;
-5. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard und Tests weiter zurückdrängen;
-6. anschließend Undo/Redo-/Command-Historienstrategie für Benutzerverwaltung prüfen.
+1. expliziten Command-Kontext mit Akteur/Korrelation für Fälle ergänzen, in denen der Akteur nicht aus dem Domainobjekt ableitbar ist (z. B. direkte Rechtezuweisung oder Benutzergewichtung durch Administrator);
+2. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard und Tests weiter zurückdrängen;
+3. Benutzerverwaltungs-Command-Historie und Undo/Redo-Strategie definieren, ohne Audit-Historie rückwirkend zu löschen;
+4. Undo/Redo als neue fachliche Änderung mit eigener Korrelation/Auditspur modellieren;
+5. danach Command-Rechte selbst über den vorhandenen Autorisierungs-/Vier-Augen-Vertrag absichern.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #235. Bundle v4, Persistenz-/Migrationsstatus und Benutzerverwaltungs-Konsistenzdiagnosen sind integriert. `ProjectOSUserManagementChangeService` besitzt jetzt fachliche Commands für Rechte, Projektrollen, Aktivierung, Rückgabe, Freigabe und Nachprüfung; Projekt, Benutzer und Scope werden aus dem bestehenden State abgeleitet und jede Änderung ist atomar. Fahre mit der Audit-/Bus-/Korrelationsanbindung des Change-Hooks fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #239. `ProjectOSUserManagementChangeService` besitzt atomare fachliche Commands. Neu ist `ProjectOSUserManagementChangeTraceEmitter`: erfolgreiche Benutzerverwaltungsänderungen erzeugen korrelierte Bus-/Audit-Nachweise mit Fachreferenz, Akteur und Kausalkette; fehlgeschlagene Commands erzeugen nichts. Fahre mit explizitem Command-Kontext für nicht eindeutig ableitbare Akteure und anschließend Undo/Redo-/Command-Historienstrategie fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
