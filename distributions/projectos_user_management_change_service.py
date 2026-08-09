@@ -28,6 +28,7 @@ class ProjectOSUserManagementChangeService:
     def __init__(self, manager, *, on_change: ChangeHook | None = None) -> None:
         self.manager = manager
         self.on_change = on_change
+        self.command_history = getattr(on_change, "command_history", None)
         self._completed_command_ids: set[str] = set()
 
     @property
@@ -43,6 +44,8 @@ class ProjectOSUserManagementChangeService:
     ) -> ProjectOSUserManagementState:
         command_id = command_context.command_id if command_context is not None else str(uuid4())
         if command_id in self._completed_command_ids:
+            raise ValueError("command_id already used")
+        if self.command_history is not None and self.command_history.get(command_id) is not None:
             raise ValueError("command_id already used")
 
         current = self.state
