@@ -1,10 +1,4 @@
-"""Konservativer read-only Autorisierungsvertrag für ProjectOS.
-
-Die Benutzergewichtung ist sichtbar und validiert, beeinflusst aber keine
-Rechteentscheidung. Explizite DENY-Regeln haben Vorrang vor ALLOW-Regeln.
-Rechtewiderrufe und Benutzer-Deaktivierungen beenden Rechtewirkung, ohne historische
-Zuweisungen oder Benutzeridentitäten zu löschen.
-"""
+"""Konservativer read-only Autorisierungsvertrag für ProjectOS."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,10 +8,10 @@ from uuid import UUID, uuid4
 
 from .projectos_permission_revocation import ProjectOSPermissionRevocation
 from .projectos_user_deactivation import ProjectOSUserDeactivation
+from .projectos_user_lifecycle import ProjectOSUserLifecycleEvaluator
+from .projectos_user_reactivation import ProjectOSUserReactivation
 
-_ALLOWED_SOURCES = {
-    "role", "direct", "delegation", "deny", "exception", "whitelist", "blacklist",
-}
+_ALLOWED_SOURCES = {"role", "direct", "delegation", "deny", "exception", "whitelist", "blacklist"}
 _ALLOWED_EFFECTS = {"allow", "deny"}
 _ALLOWED_RISK_CLASSES = {"low", "medium", "high", "critical"}
 
@@ -63,8 +57,11 @@ class ProjectOSUserProfile:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "user_id": self.user_id, "display_name": self.display_name, "weight": self.weight,
-            "roles": list(self.roles), "weight_affects_authorization": False,
+            "user_id": self.user_id,
+            "display_name": self.display_name,
+            "weight": self.weight,
+            "roles": list(self.roles),
+            "weight_affects_authorization": False,
         }
 
 
@@ -130,11 +127,18 @@ class ProjectOSPermissionAssignment:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "assignment_id": self.assignment_id, "user_id": self.user_id,
-            "permission": self.permission, "source_type": self.source_type, "effect": self.effect,
-            "scope": self.scope, "risk_class": self.risk_class, "valid_from": self.valid_from,
-            "valid_until": self.valid_until, "source_reference": self.source_reference,
-            "delegated_by_user_id": self.delegated_by_user_id, "metadata": dict(self.metadata),
+            "assignment_id": self.assignment_id,
+            "user_id": self.user_id,
+            "permission": self.permission,
+            "source_type": self.source_type,
+            "effect": self.effect,
+            "scope": self.scope,
+            "risk_class": self.risk_class,
+            "valid_from": self.valid_from,
+            "valid_until": self.valid_until,
+            "source_reference": self.source_reference,
+            "delegated_by_user_id": self.delegated_by_user_id,
+            "metadata": dict(self.metadata),
         }
 
 
@@ -146,10 +150,16 @@ class ProjectOSAuthorizationEvaluator:
         assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
         revocations: Iterable[ProjectOSPermissionRevocation] | None = None,
         user_deactivations: Iterable[ProjectOSUserDeactivation] | None = None,
+        user_reactivations: Iterable[ProjectOSUserReactivation] | None = None,
     ) -> None:
         self._assignments = tuple(assignments or ())
         self._revocations = tuple(revocations or ())
         self._user_deactivations = tuple(user_deactivations or ())
+        self._user_reactivations = tuple(user_reactivations or ())
+        self._user_lifecycle = ProjectOSUserLifecycleEvaluator(
+            deactivations=self._user_deactivations,
+            reactivations=self._user_reactivations,
+        )
 
     def evaluate(
         self,
@@ -163,24 +173,18 @@ class ProjectOSAuthorizationEvaluator:
         if current.tzinfo is None or current.utcoffset() is None:
             raise ValueError("authorization evaluation time must include timezone")
         current = current.astimezone(timezone.utc)
+        lifecycle = self._user_lifecycle.state(user_id=user.user_id, at=current)
         candidates = [
             item for item in self._assignments
             if item.user_id == user.user_id and item.permission == permission and item.scope == scope
         ]
-        relevant_deactivations = [
-            item for item in self._user_deactivations
-            if item.user_id == user.user_id and item.is_effective(current)
-        ]
-        if len(relevant_deactivations) > 1:
-            raise ValueError("multiple effective user deactivations are ambiguous")
-        user_deactivation = relevant_deactivations[0] if relevant_deactivations else None
         revocation_by_assignment = {
             item.assignment_id: item
             for item in self._revocations
             if item.user_id == user.user_id and item.scope == scope and item.is_effective(current)
         }
         revoked = [item for item in candidates if item.assignment_id in revocation_by_assignment]
-        if user_deactivation is not None:
+        if lifecycle["deactivated"]:
             active: list[ProjectOSPermissionAssignment] = []
         else:
             active = [
@@ -190,16 +194,21 @@ class ProjectOSAuthorizationEvaluator:
         inactive = [item for item in candidates if item not in active]
         denies = [item for item in active if item.effect == "deny"]
         allows = [item for item in active if item.effect == "allow"]
-        if user_deactivation is not None:
+        if lifecycle["deactivated"]:
             allowed = False
             decision = "user_deactivated"
         else:
             allowed = bool(allows) and not denies
             decision = "deny" if denies else "allow" if allows else "not_granted"
+        latest_event = lifecycle["latest_event"]
         return {
-            "user": user.as_dict(), "permission": permission, "scope": scope,
-            "evaluated_at": current.isoformat(), "decision": decision, "allowed": allowed,
-            "effective_sources": [item.as_dict() for item in (denies or allows)] if user_deactivation is None else [],
+            "user": user.as_dict(),
+            "permission": permission,
+            "scope": scope,
+            "evaluated_at": current.isoformat(),
+            "decision": decision,
+            "allowed": allowed,
+            "effective_sources": [item.as_dict() for item in (denies or allows)] if not lifecycle["deactivated"] else [],
             "active_assignments": [item.as_dict() for item in active],
             "inactive_assignments": [item.as_dict() for item in inactive],
             "revoked_assignments": [
@@ -207,10 +216,14 @@ class ProjectOSAuthorizationEvaluator:
                 for item in revoked
             ],
             "revocation_count": len(revoked),
-            "user_deactivated": user_deactivation is not None,
-            "user_deactivation": user_deactivation.as_dict() if user_deactivation is not None else None,
-            "user_deactivation_count": 1 if user_deactivation is not None else 0,
-            "deny_precedence": True, "weight_used_for_decision": False, "read_only": True,
+            "user_lifecycle_status": lifecycle["status"],
+            "user_deactivated": lifecycle["deactivated"],
+            "user_deactivation": latest_event if lifecycle["latest_event_type"] == "deactivated" else None,
+            "user_reactivation": latest_event if lifecycle["latest_event_type"] == "reactivated" else None,
+            "user_lifecycle_event_count": lifecycle["event_count"],
+            "deny_precedence": True,
+            "weight_used_for_decision": False,
+            "read_only": True,
         }
 
     def simulate(
@@ -227,10 +240,12 @@ class ProjectOSAuthorizationEvaluator:
             self._assignments + tuple(hypothetical_assignments or ()),
             self._revocations,
             self._user_deactivations,
+            self._user_reactivations,
         ).evaluate(user, permission, scope=scope, at=at)
         return {
-            "baseline": baseline, "simulated": simulated,
+            "baseline": baseline,
+            "simulated": simulated,
             "decision_changed": baseline["decision"] != simulated["decision"],
             "read_only": True,
-            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen, Widerrufe oder Benutzer-Deaktivierungen.",
+            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen, Widerrufe oder Benutzer-Lifecycle-Ereignisse.",
         }
