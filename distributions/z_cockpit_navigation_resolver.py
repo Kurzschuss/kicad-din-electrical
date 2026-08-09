@@ -13,6 +13,7 @@ from .z_cockpit_navigation_context import ZCockpitNavigationContext
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
 from .z_cockpit_project_lead_overview import ZCockpitProjectLeadOverview
 from .z_cockpit_role_approval_trace import ZCockpitRoleApprovalTraceView
+from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersistenceView
 
 
 class ZCockpitNavigationResolver:
@@ -55,6 +56,7 @@ class ZCockpitNavigationResolver:
             "knowledge_origin": self._knowledge_origin,
             "recovery": self._recovery,
             "approval_trace": self._approval_trace,
+            "user_management_persistence": self._user_management_persistence,
         }
         payload = handlers[target.view](target)
         return {
@@ -174,3 +176,6 @@ class ZCockpitNavigationResolver:
             correlation_id=target.correlation_id,
             action_id=action_id,
         )
+
+    def _user_management_persistence(self, target: ZCockpitNavigationTarget) -> dict[str, Any]:
+        return ZCockpitUserManagementPersistenceView(self.manager).state()
