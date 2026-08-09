@@ -94,8 +94,20 @@ class ProjectOSApprovedRoleAssignmentTerminationEvaluator:
         self,
         termination: ProjectOSProjectRoleAssignmentTermination,
         role: ProjectOSUserProjectRole,
-    ) -> tuple[str, dict[str, Any]]:
-        risk_class = self.risk_class_map.get(role.role_type, "low")
+    ) -> tuple[str | None, dict[str, Any]]:
+        risk_class = self.risk_class_map.get(role.role_type)
+        if risk_class is None:
+            return None, {
+                "status": "risk_not_configured",
+                "effective": False,
+                "approval_required": False,
+                "second_person_required": False,
+                "configuration_required": True,
+                "post_review_required": False,
+                "request": None,
+                "read_only": True,
+            }
+
         request = self._request(termination)
         if request is None:
             if risk_class in {"high", "critical"}:
@@ -104,6 +116,7 @@ class ProjectOSApprovedRoleAssignmentTerminationEvaluator:
                     "effective": False,
                     "approval_required": True,
                     "second_person_required": True,
+                    "configuration_required": False,
                     "post_review_required": False,
                     "request": None,
                     "read_only": True,
@@ -113,6 +126,7 @@ class ProjectOSApprovedRoleAssignmentTerminationEvaluator:
                 "effective": True,
                 "approval_required": False,
                 "second_person_required": False,
+                "configuration_required": False,
                 "post_review_required": False,
                 "request": None,
                 "read_only": True,
@@ -123,7 +137,9 @@ class ProjectOSApprovedRoleAssignmentTerminationEvaluator:
             raise ValueError("role assignment termination approval scope does not match termination")
         if request.risk_class != risk_class:
             raise ValueError("role assignment termination approval risk_class does not match role risk")
-        return risk_class, ProjectOSRoleActionApprovalEvaluator(self.approvals).evaluate(request)
+        approval = ProjectOSRoleActionApprovalEvaluator(self.approvals).evaluate(request)
+        approval["configuration_required"] = False
+        return risk_class, approval
 
     def state(
         self,
@@ -176,6 +192,10 @@ class ProjectOSApprovedRoleAssignmentTerminationEvaluator:
             "blocked_terminations": blocked,
             "scheduled_terminations": scheduled,
             "pending_post_reviews": pending_reviews,
+            "configuration_required": any(
+                item["approval"].get("configuration_required", False)
+                for item in states
+            ),
             "read_only": True,
         }
 
