@@ -29,48 +29,68 @@ Nicht persistiert werden reproduzierbare Ableitungen: Autorisierungs-/Evaluator-
 
 Der Vertrag validiert Projektgrenzen, eindeutige IDs und Referenzketten Rolle→Benutzer, Aktivierung→Rolle, Beendigung→Aktivierung, Freigabe→Anforderung und Nachprüfung→Anforderung fail-closed.
 
-## Bundle v4 – zuletzt umgesetzt
+## Bundle v4 – aktueller Stand
 
-Neu vorhanden ist `projectos_project_bundle_v4.py` mit `CURRENT_PROJECTOS_BUNDLE_VERSION = 4`.
+`projectos_project_bundle_v4.py` führt `CURRENT_PROJECTOS_BUNDLE_VERSION = 4`.
 
 Regeln:
 
 - v4 speichert `session`, `sync_log`, stabile `project_id` und `user_management`;
-- der vorhandene v2/v3-Bundle-Code bleibt unverändert und wird als bewährte Legacy-Schicht weiterverwendet;
 - v2/v3 bleiben lesbar und werden beim Laden als migrationspflichtig markiert;
-- v3 behält seine vorhandene `project_id`; Benutzerverwaltung startet leer;
+- Migration auf v4 erfolgt ausschließlich beim expliziten Speichern;
+- v3 behält seine vorhandene `project_id`, Benutzerverwaltung startet leer;
 - v2 erhält wie bisher erst im Manager eine neue stabile `project_id`;
-- beim nächsten expliziten Speichern wird auf v4 geschrieben; es gibt keinen Hintergrundschreibzugriff;
-- ein `user_management`-Block eines fremden Projekts wird abgewiesen;
-- Recovery kann v4 inklusive Benutzerverwaltung lesen und validieren.
+- fremde `user_management.project_id` wird fail-closed abgewiesen;
+- `user_management` ist Bestandteil des Manager-Snapshots und Dirty-State;
+- Save, Load, Save-As, Recover, Discard und New Project führen den Benutzerverwaltungszustand mit.
 
-Der `DinEditorProjectManager` verwendet jetzt die v4-Schicht. `user_management` ist Teil des Manager-Snapshots und damit des Dirty-State. `set_user_management()` akzeptiert ausschließlich Zustand derselben `project_id`. Save, Load, Recover, Discard und New Project führen den Benutzerverwaltungszustand konsistent mit.
+## Bundle-v4-Hardening – zuletzt umgesetzt
+
+Neu abgesichert sind die harten Lifecycle- und Fehlerfälle:
+
+- Save-As bewahrt die stabile `project_id` und den vollständigen `user_management`-Zustand;
+- v4-Recovery stellt Benutzerverwaltung und Projektidentität aus dem Recovery-Bundle vollständig wieder her;
+- Recovery-Metadaten zeigen `bundle_version`, `project_id` und `user_management_present`;
+- beschädigte oder widersprüchliche Benutzerverwaltungsreferenzen werden bereits beim Laden fail-closed abgewiesen;
+- fehlgeschlagenes v4-Load verändert keinerlei bestehenden Managerzustand;
+- fehlgeschlagenes v4-Recover verändert keinerlei bestehenden Managerzustand.
+
+Für die Transaktionssicherheit wird explizit der komplette relevante Zustand verglichen:
+
+- `project_id`;
+- aktueller Projektpfad;
+- Sessionzustand;
+- Sync-Log;
+- vollständiger `user_management`-Block;
+- Dirty-State;
+- Migrationsstatus.
+
+Damit gilt auch für Benutzerverwaltungsdaten dieselbe Grundregel wie für Session-/Persistenzdaten: **erst vollständig laden und validieren, dann atomar in den Manager übernehmen**.
 
 Commits dieses Blocks:
 
 - `e74f149f` feat(projectos): Bundle v4 mit Benutzerverwaltung ergänzen
 - `7843a06f` feat(projectos): Projektmanager auf Bundle v4 umstellen
 - `f3676ef0` test(projectos): Bundle v4 und Benutzerverwaltung absichern
+- `866ccdfa` test(projectos): Bundle v4 Save-As Recovery und Transaktionssicherheit absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die bestehende vollständige Suite blieb nach der Manager-Umstellung grün (Run #209). Die ergänzten v4-Regressionen sind ebenfalls grün: `ProjectOS complete test suite`, Run #210, für Commit `f3676ef0a8ed669d5dfbccd6dc4ae9cd483ae7b4`.
-
-Abgesichert sind insbesondere v4-Roundtrip, Projektgrenze des Benutzerblocks, Dirty-State durch Benutzerverwaltungsänderung und explizite v3→v4-Migration.
+Die vollständige `ProjectOS complete test suite`, Run #212, ist für Commit `866ccdfa71bf0f97228d59dfe83bf7b8f44e733c` erfolgreich.
 
 PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes Bundle v4 vollständig bis Save-As und Recovery absichern:
+Als Nächstes Z_Cockpit um einen read-only Persistenz-/Migrationsstatus der Benutzerverwaltung ergänzen:
 
-1. Save-As mit vollständigem `user_management` und unveränderter `project_id` testen;
-2. v4-Recovery muss Benutzerverwaltung exakt wiederherstellen;
-3. fehlerhafte Benutzerverwaltungsreferenzen in v4 müssen beim Load/Recovery transaktionssicher abgewiesen werden;
-4. fehlgeschlagenes v4-Laden darf Managerzustand einschließlich `user_management` nicht verändern;
-5. Recovery-Metadaten um v4-/Benutzerverwaltungsinformationen konsistent vervollständigen;
-6. danach Z_Cockpit um einen read-only Persistenz-/Migrationsstatus für Benutzerverwaltung ergänzen.
+1. aktuelle Bundle-Version und Persistenzversion des Benutzerblocks anzeigen;
+2. `migration_pending` für v2/v3 sichtbar machen;
+3. Anzahl persistierter Benutzer, Rechte, Rollen, Aktivierungen, Rückgaben, Freigaben und Nachprüfungen anzeigen;
+4. deutlich markieren, dass Simulationen/Evaluator-/Z_Cockpit-/Trace-/materialisierte Wissensdaten nicht persistiert werden;
+5. Recovery-Status für Benutzerverwaltung in dieselbe Projektleiteransicht aufnehmen;
+6. danach Persistenzdiagnosen für fehlende/inkonsistente Referenzen als read-only Z_Cockpit-Diagnose ergänzen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #210. Bundle v4 ist eingeführt: `user_management` wird versioniert persistiert, v2/v3 bleiben lesbar und werden erst beim expliziten Speichern auf v4 migriert. Der Projektmanager führt Benutzerverwaltung jetzt durch Save/Load/Recover/Discard/New Project und berücksichtigt sie im Dirty-State. Fahre mit Save-As-, Recovery- und transaktionssicheren Fehlerfällen für Bundle v4 fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #212. Bundle v4 ist inklusive Benutzerverwaltung für Roundtrip, Dirty-State, Save-As, Recovery und transaktionssichere Fehlerfälle abgesichert. Ein fehlgeschlagener v4-Load/Recover verändert weder Session, Sync-Log, project_id, Pfad noch user_management. Fahre mit dem read-only Z_Cockpit-Persistenz-/Migrationsstatus für Benutzerverwaltung fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
