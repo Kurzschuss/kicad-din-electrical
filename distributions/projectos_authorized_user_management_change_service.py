@@ -49,8 +49,13 @@ class ProjectOSAuthorizedUserManagementChangeService(ProjectOSUserManagementChan
         command_context: ProjectOSUserManagementCommandContext | None = None,
         **changes: Any,
     ) -> ProjectOSUserManagementState:
-        decision = self.authorization.require(operation, command_context)
+        decision = self.authorization.evaluate(operation, command_context)
         self._last_authorization = dict(decision)
+        if not decision["allowed"]:
+            raise PermissionError(
+                "ProjectOS command authorization denied: "
+                f"{decision['policy_key']} ({decision['decision']})"
+            )
         return super()._commit(
             operation,
             command_context=command_context,
