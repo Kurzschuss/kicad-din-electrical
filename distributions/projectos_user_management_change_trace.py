@@ -59,6 +59,9 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.messages: list[ProjectOSMessageEnvelope] = []
         self.traces: list[ProjectOSUserManagementChangeTrace] = []
         self._previous_state = manager.user_management.as_dict()
+        self._last_message_by_correlation: dict[str, str] = {}
+        if self.causation_id is not None:
+            self._last_message_by_correlation[self.correlation_id] = self.causation_id
 
     @staticmethod
     def _changed_row(previous: list[dict[str, Any]], current: list[dict[str, Any]], id_field: str) -> dict[str, Any]:
@@ -67,6 +70,20 @@ class ProjectOSUserManagementChangeTraceEmitter:
         if len(changed) != 1:
             raise ValueError(f"expected exactly one changed {id_field}")
         return changed[0]
+
+    @staticmethod
+    def _command_context(event: dict[str, Any]) -> dict[str, str | None] | None:
+        raw = event.get("command_context")
+        if raw is None:
+            return None
+        if not isinstance(raw, dict):
+            raise ValueError("command_context must be an object")
+        causation_id = raw.get("causation_id")
+        return {
+            "actor_user_id": _uuid(raw.get("actor_user_id"), "actor_user_id"),
+            "correlation_id": _uuid(raw.get("correlation_id"), "correlation_id"),
+            "causation_id": _uuid(causation_id, "causation_id") if causation_id is not None else None,
+        }
 
     def _change_context(self, operation: str) -> tuple[str, str | None, dict[str, Any]]:
         current = self.manager.user_management.as_dict()
@@ -113,10 +130,23 @@ class ProjectOSUserManagementChangeTraceEmitter:
         if project_id != self.manager.project_id:
             raise ValueError("change event belongs to another project")
 
-        reference, actor_user_id, domain_payload = self._change_context(operation)
+        reference, derived_actor_user_id, domain_payload = self._change_context(operation)
+        command_context = self._command_context(event)
+        if command_context is None:
+            actor_user_id = derived_actor_user_id
+            correlation_id = self.correlation_id
+            causation_id = self._last_message_by_correlation.get(correlation_id)
+            actor_source = "domain"
+        else:
+            actor_user_id = command_context["actor_user_id"]
+            correlation_id = str(command_context["correlation_id"])
+            causation_id = command_context["causation_id"] or self._last_message_by_correlation.get(correlation_id)
+            actor_source = "command_context"
+
         payload = {
             "operation": operation,
             "actor_user_id": actor_user_id,
+            "actor_source": actor_source,
             "reference": reference,
             "dirty": bool(event.get("dirty")),
             "domain": domain_payload,
@@ -125,8 +155,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
             message_type="event",
             name=f"projectos.user_management.{operation}",
             project_id=project_id,
-            correlation_id=self.correlation_id,
-            causation_id=self.causation_id,
+            correlation_id=correlation_id,
+            causation_id=causation_id,
             payload=payload,
         )
         audit_entry = self.audit_log.record(
@@ -135,8 +165,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
             value=actor_user_id or "system",
             action=operation,
             project_id=project_id,
-            correlation_id=self.correlation_id,
-            causation_id=self.causation_id or message.message_id,
+            correlation_id=correlation_id,
+            causation_id=causation_id or message.message_id,
         )
         trace = ProjectOSUserManagementChangeTrace(
             message=message,
@@ -147,5 +177,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
         )
         self.messages.append(message)
         self.traces.append(trace)
-        self.causation_id = message.message_id
+        self._last_message_by_correlation[correlation_id] = message.message_id
+        if correlation_id == self.correlation_id:
+            self.causation_id = message.message_id
         self._previous_state = self.manager.user_management.as_dict()
