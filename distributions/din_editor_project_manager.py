@@ -48,6 +48,7 @@ class DinEditorProjectManager:
         self.path: Path | None = None
         self._saved_state = self._snapshot()
         self._recovered_from: Path | None = None
+        self._user_management_runtime_generation = 0
         self.dirty = False
         self.change_service = self._build_change_service()
 
@@ -95,6 +96,14 @@ class DinEditorProjectManager:
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
 
+    @property
+    def user_management_runtime_generation(self) -> int:
+        """Nicht persistierte Generation für vollständige User-Management-Zustandswechsel."""
+        return self._user_management_runtime_generation
+
+    def _advance_user_management_runtime_generation(self) -> None:
+        self._user_management_runtime_generation += 1
+
     def _commit_user_management_change(self, state: ProjectOSUserManagementState) -> None:
         """Interner Commit-Pfad für bereits vollständig validierte Fachänderungen."""
         if state.project_id != self.project_id:
@@ -109,6 +118,7 @@ class DinEditorProjectManager:
         laufen, damit Atomarität sowie Audit-/Bus-Hooks nicht umgangen werden.
         """
         self._commit_user_management_change(state)
+        self._advance_user_management_runtime_generation()
 
     def sync_actions(self, view_model) -> DinEditorSyncActions:
         sync_service = getattr(view_model, "sync_service", None)
@@ -205,6 +215,7 @@ class DinEditorProjectManager:
         self._saved_state = saved_state
         self._recovered_from = None
         self.dirty = migration_required
+        self._advance_user_management_runtime_generation()
         return self.session
 
     def recover(self, path: str | Path | None = None, *, discard_changes: bool = False) -> DinEditorSession:
@@ -230,6 +241,7 @@ class DinEditorProjectManager:
         self._saved_state = saved_state
         self._recovered_from = recovery_path_for(target)
         self.dirty = True
+        self._advance_user_management_runtime_generation()
         return self.session
 
     def new_project(self, *, discard_changes: bool = False) -> DinEditorSession:
@@ -253,6 +265,7 @@ class DinEditorProjectManager:
         self._saved_state = saved_state
         self._recovered_from = None
         self.dirty = False
+        self._advance_user_management_runtime_generation()
         return self.session
 
     def discard_changes(self) -> None:
@@ -277,6 +290,7 @@ class DinEditorProjectManager:
         self._saved_state = saved_state
         self._recovered_from = None
         self.dirty = migration_required
+        self._advance_user_management_runtime_generation()
 
     def state(self) -> dict:
         issues = self.validate()
@@ -295,4 +309,5 @@ class DinEditorProjectManager:
             "session": self.session.state(),
             "sync_log_entries": len(self.sync_log.entries),
             "user_management": self.user_management.as_dict(),
+            "user_management_runtime_generation": self.user_management_runtime_generation,
         }
