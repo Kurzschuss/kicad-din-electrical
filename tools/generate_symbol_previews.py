@@ -191,7 +191,9 @@ def render_svg(
     source_polylines = polylines or []
     numbers = pin_numbers or []
     project = _preview_projector(rectangles, pins, source_polylines)
-    stroke_width = "3" if library == "Z_MCB" else "2"
+    is_mcb = library == "Z_MCB"
+    stroke_width = "3" if is_mcb else "2"
+    pin_linecap = ' stroke-linecap="round"' if is_mcb else ""
     shapes: list[str] = []
     for item in rectangles:
         x1, y1 = project(item.x1, item.y1)
@@ -215,9 +217,9 @@ def render_svg(
         x2, y2 = project(endpoint_x, endpoint_y)
         shapes.append(
             f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
-            f'stroke="currentColor" stroke-width="{stroke_width}" stroke-linecap="round"/>'
+            f'stroke="currentColor" stroke-width="{stroke_width}"{pin_linecap}/>'
         )
-        if library == "Z_MCB" and index < len(numbers) and numbers[index]:
+        if is_mcb and index < len(numbers) and numbers[index]:
             shapes.append(
                 f'<text x="{x1 - 11.0:.2f}" y="{y1 + 5.0:.2f}" text-anchor="middle" '
                 f'font-size="16" font-weight="600">{escape(numbers[index])}</text>'
