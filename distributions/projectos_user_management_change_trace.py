@@ -239,6 +239,7 @@ class ProjectOSUserManagementChangeTraceEmitter:
             value=actor_user_id or "system",
             action=operation,
             project_id=project_id,
+            command_id=command_id,
             correlation_id=correlation_id,
             causation_id=causation_id or message.message_id,
         )
