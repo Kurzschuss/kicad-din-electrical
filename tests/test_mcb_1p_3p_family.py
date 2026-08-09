@@ -74,25 +74,26 @@ def test_mcb_1p_left_end_stop_is_centered_on_horizontal_trip_line():
     assert midpoint_y == pytest.approx(-1.27)
 
 
-def test_mcb_1p_trip_arrow_is_rotated_shorter_and_keeps_clearance():
+def test_mcb_1p_trip_arrow_is_shorter_but_still_touches_switch_contact():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
-    polylines = parse_polylines(block)
-    points = {polyline.points for polyline in polylines}
+    points = {polyline.points for polyline in parse_polylines(block)}
     arrowhead = (
-        (-2.788, -0.506),
-        (-1.507, 0.712),
-        (-1.033, -0.712),
-        (-2.788, -0.506),
+        (-1.518, -0.083),
+        (-0.237, 1.135),
+        (0.237, -0.289),
+        (-1.518, -0.083),
     )
-    shaft = ((-1.27, 0.0), (1.27, 1.27))
+    shaft = ((0.0, 0.423), (2.54, 1.27))
 
     assert arrowhead in points
     assert shaft in points
+    assert shaft[1] == pytest.approx((2.54, 1.27))
     assert shaft[1][0] - shaft[0][0] == pytest.approx(2.54)
-    # Die hintere Kante darf nicht senkrecht stehen; der komplette Kopf ist gedreht.
+    # Pfeilkopf bleibt gedreht und behält Luft zur waagrechten Betätigungslinie.
     assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
-    # Unterkante der Pfeilspitze bleibt sichtbar oberhalb der Betätigungslinie y=-1.27.
     assert min(y for _, y in arrowhead) - (-1.27) > 0.5
+    # Der Schaft endet wieder exakt auf dem schrägen Schaltkontakt.
+    assert ((1.27, 3.81), (5.08, -3.81)) in points
 
 
 def test_mcb_3p_uses_terminal_pairs_with_300_mil_pole_pitch():
@@ -132,28 +133,29 @@ def test_mcb_3p_reuses_full_1p_reference_shape_on_first_pole():
         assert ((terminal_x, -3.81), (terminal_x, -5.08)) in points
 
 
-def test_mcb_3p_trip_arrows_are_rotated_shorter_and_clear():
+def test_mcb_3p_trip_arrows_are_shorter_and_touch_each_switch_contact():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
-    polylines = parse_polylines(block)
-    points = {polyline.points for polyline in polylines}
+    points = {polyline.points for polyline in parse_polylines(block)}
 
     arrowheads = (
-        ((-2.788, -0.506), (-1.507, 0.712), (-1.033, -0.712), (-2.788, -0.506)),
-        ((4.832, -0.506), (6.113, 0.712), (6.587, -0.712), (4.832, -0.506)),
-        ((12.452, -0.506), (13.733, 0.712), (14.207, -0.712), (12.452, -0.506)),
+        ((-1.518, -0.083), (-0.237, 1.135), (0.237, -0.289), (-1.518, -0.083)),
+        ((6.102, -0.083), (7.383, 1.135), (7.857, -0.289), (6.102, -0.083)),
+        ((13.722, -0.083), (15.003, 1.135), (15.477, -0.289), (13.722, -0.083)),
     )
     shafts = (
-        ((-1.27, 0.0), (1.27, 1.27)),
-        ((6.35, 0.0), (8.89, 1.27)),
-        ((13.97, 0.0), (16.51, 1.27)),
+        ((0.0, 0.423), (2.54, 1.27)),
+        ((7.62, 0.423), (10.16, 1.27)),
+        ((15.24, 0.423), (17.78, 1.27)),
     )
+    expected_contact_points = ((2.54, 1.27), (10.16, 1.27), (17.78, 1.27))
 
-    for arrowhead, shaft in zip(arrowheads, shafts):
+    for arrowhead, shaft, contact_point in zip(arrowheads, shafts, expected_contact_points):
         assert arrowhead in points
         assert shaft in points
+        assert shaft[1] == pytest.approx(contact_point)
+        assert shaft[1][0] - shaft[0][0] == pytest.approx(2.54)
         assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
         assert min(y for _, y in arrowhead) - (-1.27) > 0.5
-        assert shaft[1][0] - shaft[0][0] == pytest.approx(2.54)
 
 
 def test_mcb_3p_coupling_marks_are_one_short_solid_line_per_gap():
