@@ -13,26 +13,36 @@ def test_mcb_3p_shows_two_horizontal_strokes_in_each_pole_gap():
     polylines = parse_polylines(block)
     points = {polyline.points for polyline in polylines}
 
-    expected_strokes = {
-        # Zwischen Pol 1 und Pol 2: freier Trennungsstrich + Kontaktstrich zu Pol 2.
+    free_separator_strokes = {
         ((6.985, -1.27), (8.255, -1.27)),
-        ((10.16, -1.27), (11.43, -1.27)),
-        # Zwischen Pol 2 und Pol 3: freier Trennungsstrich + Kontaktstrich zu Pol 3.
         ((14.605, -1.27), (15.875, -1.27)),
-        ((17.78, -1.27), (19.05, -1.27)),
+    }
+    contact_strokes = {
+        ((8.89, -1.27), (11.43, -1.27)),
+        ((16.51, -1.27), (19.05, -1.27)),
     }
 
-    assert expected_strokes.issubset(points)
+    assert free_separator_strokes.issubset(points)
+    assert contact_strokes.issubset(points)
 
-    short_horizontal_strokes = [
+    free_short_strokes = [
         polyline
         for polyline in polylines
         if len(polyline.points) == 2
         and all(y == pytest.approx(-1.27) for _, y in polyline.points)
         and abs(polyline.points[1][0] - polyline.points[0][0]) == pytest.approx(1.27)
     ]
-    assert len(short_horizontal_strokes) == 4
+    contact_short_strokes = [
+        polyline
+        for polyline in polylines
+        if len(polyline.points) == 2
+        and all(y == pytest.approx(-1.27) for _, y in polyline.points)
+        and abs(polyline.points[1][0] - polyline.points[0][0]) == pytest.approx(2.54)
+    ]
 
-    # Die beiden zusätzlichen Kontaktstriche enden genau am jeweiligen schrägen Kontakt.
-    assert ((10.16, -1.27), (11.43, -1.27)) in points
-    assert ((17.78, -1.27), (19.05, -1.27)) in points
+    assert len(free_short_strokes) == 2
+    assert len(contact_short_strokes) == 2
+
+    # Die Kontaktstriche enden exakt am jeweiligen schrägen Schaltkontakt.
+    assert ((8.89, -1.27), (11.43, -1.27)) in points
+    assert ((16.51, -1.27), (19.05, -1.27)) in points
