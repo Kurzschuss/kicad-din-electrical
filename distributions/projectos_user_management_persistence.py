@@ -17,10 +17,11 @@ from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleA
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
 from .projectos_role_post_review import ProjectOSRoleEmergencyPostReview
+from .projectos_user_deactivation import ProjectOSUserDeactivation
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
-USER_MANAGEMENT_PERSISTENCE_VERSION = 2
-LEGACY_USER_MANAGEMENT_PERSISTENCE_VERSIONS = {1}
+USER_MANAGEMENT_PERSISTENCE_VERSION = 3
+LEGACY_USER_MANAGEMENT_PERSISTENCE_VERSIONS = {1, 2}
 
 DERIVED_NOT_PERSISTED = (
     "authorization_evaluations",
@@ -45,6 +46,7 @@ def _uuid(value: str, field_name: str) -> str:
 class ProjectOSUserManagementState:
     project_id: str
     users: tuple[ProjectOSUserProfile, ...] = ()
+    user_deactivations: tuple[ProjectOSUserDeactivation, ...] = ()
     permission_assignments: tuple[ProjectOSPermissionAssignment, ...] = ()
     permission_revocations: tuple[ProjectOSPermissionRevocation, ...] = ()
     project_roles: tuple[ProjectOSUserProjectRole, ...] = ()
@@ -59,6 +61,7 @@ class ProjectOSUserManagementState:
         project_id = _uuid(self.project_id, "project_id")
         object.__setattr__(self, "project_id", project_id)
         self._validate_unique("user_id", self.users)
+        self._validate_unique("deactivation_id", self.user_deactivations)
         self._validate_unique("assignment_id", self.permission_assignments)
         self._validate_unique("revocation_id", self.permission_revocations)
         self._validate_unique("role_assignment_id", self.project_roles)
@@ -69,6 +72,9 @@ class ProjectOSUserManagementState:
         self._validate_unique("approval_id", self.approvals)
         self._validate_unique("review_id", self.post_reviews)
 
+        deactivated_user_ids = [item.user_id for item in self.user_deactivations]
+        if len(deactivated_user_ids) != len(set(deactivated_user_ids)):
+            raise ValueError("user already deactivated")
         revoked_assignment_ids = [item.assignment_id for item in self.permission_revocations]
         if len(revoked_assignment_ids) != len(set(revoked_assignment_ids)):
             raise ValueError("permission assignment already revoked")
@@ -83,6 +89,13 @@ class ProjectOSUserManagementState:
         activation_ids = {item.activation_id for item in self.activations}
         action_ids = {item.action_id for item in self.approval_requests}
 
+        for item in self.user_deactivations:
+            if item.project_id != project_id:
+                raise ValueError("user deactivation belongs to another project")
+            if item.user_id not in user_ids:
+                raise ValueError("user deactivation references unknown user_id")
+            if item.deactivated_by_user_id not in user_ids:
+                raise ValueError("user deactivation references unknown deactivated_by_user_id")
         for item in self.project_roles:
             if item.project_id != project_id:
                 raise ValueError("project role belongs to another project")
@@ -160,6 +173,7 @@ class ProjectOSUserManagementState:
             "version": USER_MANAGEMENT_PERSISTENCE_VERSION,
             "project_id": self.project_id,
             "users": [item.as_dict() for item in self.users],
+            "user_deactivations": [item.as_dict() for item in self.user_deactivations],
             "permission_assignments": [item.as_dict() for item in self.permission_assignments],
             "permission_revocations": [item.as_dict() for item in self.permission_revocations],
             "project_roles": [item.as_dict() for item in self.project_roles],
@@ -187,11 +201,10 @@ class ProjectOSUserManagementState:
             return value
 
         users = tuple(ProjectOSUserProfile(
-            user_id=item["user_id"],
-            display_name=item["display_name"],
-            weight=item.get("weight", 100),
-            roles=tuple(item.get("roles", ())),
+            user_id=item["user_id"], display_name=item["display_name"],
+            weight=item.get("weight", 100), roles=tuple(item.get("roles", ())),
         ) for item in rows("users"))
+        user_deactivations = tuple(ProjectOSUserDeactivation(**item) for item in rows("user_deactivations")) if version >= 3 else ()
         permissions = tuple(ProjectOSPermissionAssignment(**item) for item in rows("permission_assignments"))
         revocations = tuple(ProjectOSPermissionRevocation(**item) for item in rows("permission_revocations")) if version >= 2 else ()
         project_roles = tuple(ProjectOSUserProjectRole(**item) for item in rows("project_roles"))
@@ -207,8 +220,9 @@ class ProjectOSUserManagementState:
         approvals = tuple(ProjectOSRoleActionApproval(**item) for item in rows("approvals"))
         reviews = tuple(ProjectOSRoleEmergencyPostReview(**item) for item in rows("post_reviews"))
         return cls(
-            project_id=data["project_id"], users=users, permission_assignments=permissions,
-            permission_revocations=revocations, project_roles=project_roles,
-            role_assignment_terminations=role_terminations, activations=activations,
-            deactivations=deactivations, approval_requests=requests, approvals=approvals, post_reviews=reviews,
+            project_id=data["project_id"], users=users, user_deactivations=user_deactivations,
+            permission_assignments=permissions, permission_revocations=revocations,
+            project_roles=project_roles, role_assignment_terminations=role_terminations,
+            activations=activations, deactivations=deactivations,
+            approval_requests=requests, approvals=approvals, post_reviews=reviews,
         )
