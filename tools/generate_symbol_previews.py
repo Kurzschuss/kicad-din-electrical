@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Erzeugt einfache SVG-Vorschauen aus KiCad-Symbolbibliotheken.
+"""Erzeugt reproduzierbare SVG-Vorschauen aus KiCad-Symbolbibliotheken.
 
-Phase 1 unterstützt die in den vorhandenen Bibliotheken verwendeten
-Grundelemente Rechteck und Pin. Die Quelldateien werden nicht verändert.
+Unterstützt Rechtecke, Polylinien und Pins. Bei Bibliotheken mit mehreren
+Top-Level-Symbolen wird jede Vorschau ausschließlich aus dem zugehörigen
+Symbolblock erzeugt. Die Quelldateien werden nicht verändert.
 """
 
 from __future__ import annotations
@@ -27,6 +28,8 @@ PIN_RE = re.compile(
     r'\(pin\s+\S+\s+\S+\s+\(at\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
     r'\(length\s+(-?[\d.]+)\)'
 )
+POLYLINE_START_RE = re.compile(r'\(polyline\b')
+POINT_RE = re.compile(r'\(xy\s+(-?[\d.]+)\s+(-?[\d.]+)\)')
 
 
 @dataclass(frozen=True)
@@ -45,8 +48,48 @@ class Pin:
     length: float
 
 
+@dataclass(frozen=True)
+class Polyline:
+    points: tuple[tuple[float, float], ...]
+    filled: bool = False
+
+
+def _balanced_expression(text: str, start: int) -> str:
+    """Liefert den geklammerten S-Expression-Block ab ``start``."""
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return text[start:index + 1]
+    raise ValueError("Unvollständiger KiCad-S-Expression-Block")
+
+
+def symbol_blocks(text: str) -> dict[str, str]:
+    """Trennt Top-Level-Symbole, damit Geometrie nicht bibliotheksweit vermischt wird."""
+    return {
+        match.group(1): _balanced_expression(text, match.start())
+        for match in TOP_LEVEL_SYMBOL_RE.finditer(text)
+    }
+
+
 def symbol_names(text: str) -> list[str]:
-    return TOP_LEVEL_SYMBOL_RE.findall(text)
+    return list(symbol_blocks(text))
 
 
 def parse_rectangles(text: str) -> list[Rectangle]:
@@ -57,11 +100,28 @@ def parse_pins(text: str) -> list[Pin]:
     return [Pin(*(float(value) for value in match)) for match in PIN_RE.findall(text)]
 
 
+def parse_polylines(text: str) -> list[Polyline]:
+    result: list[Polyline] = []
+    for match in POLYLINE_START_RE.finditer(text):
+        block = _balanced_expression(text, match.start())
+        points = tuple((float(x), float(y)) for x, y in POINT_RE.findall(block))
+        if len(points) < 2:
+            continue
+        result.append(Polyline(points=points, filled="(fill (type outline))" in block))
+    return result
+
+
 def _point(x: float, y: float, scale: float = 12.0) -> tuple[float, float]:
     return 120 + x * scale, 90 - y * scale
 
 
-def render_svg(library: str, symbol: str, rectangles: list[Rectangle], pins: list[Pin]) -> str:
+def render_svg(
+    library: str,
+    symbol: str,
+    rectangles: list[Rectangle],
+    pins: list[Pin],
+    polylines: list[Polyline] | None = None,
+) -> str:
     shapes: list[str] = []
     for item in rectangles:
         x1, y1 = _point(item.x1, item.y1)
@@ -70,6 +130,14 @@ def render_svg(library: str, symbol: str, rectangles: list[Rectangle], pins: lis
             f'<rect x="{min(x1, x2):.2f}" y="{min(y1, y2):.2f}" '
             f'width="{abs(x2-x1):.2f}" height="{abs(y2-y1):.2f}" '
             'fill="none" stroke="currentColor" stroke-width="2"/>'
+        )
+    for item in polylines or []:
+        points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (_point(x, y) for x, y in item.points))
+        tag = "polygon" if item.filled else "polyline"
+        fill = "currentColor" if item.filled else "none"
+        shapes.append(
+            f'<{tag} points="{points}" fill="{fill}" stroke="currentColor" stroke-width="2" '
+            'stroke-linejoin="round" stroke-linecap="round"/>'
         )
     for item in pins:
         x1, y1 = _point(item.x, item.y)
@@ -99,14 +167,15 @@ def generated_files(symbol_root: Path = SYMBOL_ROOT) -> dict[Path, str]:
     files: dict[Path, str] = {}
     for source in sorted(symbol_root.glob("Z_*.kicad_sym"), key=lambda path: path.name.casefold()):
         text = source.read_text(encoding="utf-8")
-        names = symbol_names(text)
-        if not names:
-            continue
-        rectangles = parse_rectangles(text)
-        pins = parse_pins(text)
-        for name in names:
+        for name, block in symbol_blocks(text).items():
             target = OUTPUT_ROOT / source.stem / f"{name}.svg"
-            files[target] = render_svg(source.stem, name, rectangles, pins)
+            files[target] = render_svg(
+                source.stem,
+                name,
+                parse_rectangles(block),
+                parse_pins(block),
+                parse_polylines(block),
+            )
     return files
 
 
