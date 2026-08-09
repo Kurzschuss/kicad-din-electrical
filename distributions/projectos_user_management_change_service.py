@@ -2,7 +2,7 @@
 
 Jede Operation erzeugt zuerst einen vollständig validierten neuen
 ProjectOSUserManagementState. Erst danach wird der Managerzustand ersetzt. Der optionale
-on_change-Hook ist transportneutral und für spätere Audit-/Bus-Anbindung vorgesehen.
+on_change-Hook ist transportneutral und für Audit-/Bus-Anbindung vorgesehen.
 """
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
 from .projectos_role_post_review import ProjectOSRoleEmergencyPostReview
+from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 from .projectos_user_management_persistence import ProjectOSUserManagementState
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
@@ -31,7 +32,13 @@ class ProjectOSUserManagementChangeService:
     def state(self) -> ProjectOSUserManagementState:
         return self.manager.user_management
 
-    def _commit(self, operation: str, **changes: Any) -> ProjectOSUserManagementState:
+    def _commit(
+        self,
+        operation: str,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+        **changes: Any,
+    ) -> ProjectOSUserManagementState:
         current = self.state
         data = {
             "project_id": current.project_id,
@@ -53,6 +60,8 @@ class ProjectOSUserManagementChangeService:
             "dirty": self.manager.has_unsaved_changes,
             "read_only": False,
         }
+        if command_context is not None:
+            event["command_context"] = command_context.as_dict()
         if self.on_change is not None:
             self.on_change(dict(event))
         return candidate
@@ -88,26 +97,39 @@ class ProjectOSUserManagementChangeService:
         weight: int = 100,
         roles: tuple[str, ...] = (),
         user_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSUserProfile:
         kwargs: dict[str, Any] = {"display_name": display_name, "weight": weight, "roles": roles}
         if user_id is not None:
             kwargs["user_id"] = user_id
         user = ProjectOSUserProfile(**kwargs)
-        self._commit("user_created", users=self.state.users + (user,))
+        self._commit("user_created", command_context=command_context, users=self.state.users + (user,))
         return user
 
-    def change_user_weight(self, user_id: str, weight: int) -> ProjectOSUserProfile:
+    def change_user_weight(
+        self,
+        user_id: str,
+        weight: int,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSUserProfile:
         matches = [user for user in self.state.users if user.user_id == user_id]
         if len(matches) != 1:
             raise ValueError("unknown user_id")
         updated = replace(matches[0], weight=weight)
         users = tuple(updated if user.user_id == user_id else user for user in self.state.users)
-        self._commit("user_weight_changed", users=users)
+        self._commit("user_weight_changed", command_context=command_context, users=users)
         return updated
 
-    def assign_permission(self, assignment: ProjectOSPermissionAssignment) -> ProjectOSPermissionAssignment:
+    def assign_permission(
+        self,
+        assignment: ProjectOSPermissionAssignment,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSPermissionAssignment:
         self._commit(
             "permission_assigned",
+            command_context=command_context,
             permission_assignments=self.state.permission_assignments + (assignment,),
         )
         return assignment
@@ -127,6 +149,7 @@ class ProjectOSUserManagementChangeService:
         delegated_by_user_id: str | None = None,
         metadata: dict[str, Any] | None = None,
         assignment_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSPermissionAssignment:
         self._user(user_id)
         kwargs: dict[str, Any] = {
@@ -144,10 +167,22 @@ class ProjectOSUserManagementChangeService:
         }
         if assignment_id is not None:
             kwargs["assignment_id"] = assignment_id
-        return self.assign_permission(ProjectOSPermissionAssignment(**kwargs))
+        return self.assign_permission(
+            ProjectOSPermissionAssignment(**kwargs),
+            command_context=command_context,
+        )
 
-    def assign_project_role(self, role: ProjectOSUserProjectRole) -> ProjectOSUserProjectRole:
-        self._commit("project_role_assigned", project_roles=self.state.project_roles + (role,))
+    def assign_project_role(
+        self,
+        role: ProjectOSUserProjectRole,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSUserProjectRole:
+        self._commit(
+            "project_role_assigned",
+            command_context=command_context,
+            project_roles=self.state.project_roles + (role,),
+        )
         return role
 
     def command_assign_project_role(
@@ -162,6 +197,7 @@ class ProjectOSUserManagementChangeService:
         source_reference: str | None = None,
         metadata: dict[str, Any] | None = None,
         role_assignment_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSUserProjectRole:
         self._user(user_id)
         if assigned_by_user_id is not None:
@@ -179,10 +215,22 @@ class ProjectOSUserManagementChangeService:
         }
         if role_assignment_id is not None:
             kwargs["role_assignment_id"] = role_assignment_id
-        return self.assign_project_role(ProjectOSUserProjectRole(**kwargs))
+        return self.assign_project_role(
+            ProjectOSUserProjectRole(**kwargs),
+            command_context=command_context,
+        )
 
-    def activate_project_role(self, activation: ProjectOSProjectRoleActivation) -> ProjectOSProjectRoleActivation:
-        self._commit("project_role_activated", activations=self.state.activations + (activation,))
+    def activate_project_role(
+        self,
+        activation: ProjectOSProjectRoleActivation,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSProjectRoleActivation:
+        self._commit(
+            "project_role_activated",
+            command_context=command_context,
+            activations=self.state.activations + (activation,),
+        )
         return activation
 
     def command_activate_project_role(
@@ -196,6 +244,7 @@ class ProjectOSUserManagementChangeService:
         trigger_reference: str | None = None,
         metadata: dict[str, Any] | None = None,
         activation_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSProjectRoleActivation:
         role = self._role(role_assignment_id)
         if triggered_by_user_id is not None:
@@ -214,10 +263,22 @@ class ProjectOSUserManagementChangeService:
         }
         if activation_id is not None:
             kwargs["activation_id"] = activation_id
-        return self.activate_project_role(ProjectOSProjectRoleActivation(**kwargs))
+        return self.activate_project_role(
+            ProjectOSProjectRoleActivation(**kwargs),
+            command_context=command_context,
+        )
 
-    def deactivate_project_role(self, deactivation: ProjectOSProjectRoleDeactivation) -> ProjectOSProjectRoleDeactivation:
-        self._commit("project_role_deactivated", deactivations=self.state.deactivations + (deactivation,))
+    def deactivate_project_role(
+        self,
+        deactivation: ProjectOSProjectRoleDeactivation,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSProjectRoleDeactivation:
+        self._commit(
+            "project_role_deactivated",
+            command_context=command_context,
+            deactivations=self.state.deactivations + (deactivation,),
+        )
         return deactivation
 
     def command_deactivate_project_role(
@@ -230,6 +291,7 @@ class ProjectOSUserManagementChangeService:
         trigger_reference: str | None = None,
         metadata: dict[str, Any] | None = None,
         deactivation_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSProjectRoleDeactivation:
         activation = self._activation(activation_id)
         if triggered_by_user_id is not None:
@@ -247,10 +309,22 @@ class ProjectOSUserManagementChangeService:
         }
         if deactivation_id is not None:
             kwargs["deactivation_id"] = deactivation_id
-        return self.deactivate_project_role(ProjectOSProjectRoleDeactivation(**kwargs))
+        return self.deactivate_project_role(
+            ProjectOSProjectRoleDeactivation(**kwargs),
+            command_context=command_context,
+        )
 
-    def request_approval(self, request: ProjectOSRoleActionApprovalRequest) -> ProjectOSRoleActionApprovalRequest:
-        self._commit("approval_requested", approval_requests=self.state.approval_requests + (request,))
+    def request_approval(
+        self,
+        request: ProjectOSRoleActionApprovalRequest,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSRoleActionApprovalRequest:
+        self._commit(
+            "approval_requested",
+            command_context=command_context,
+            approval_requests=self.state.approval_requests + (request,),
+        )
         return request
 
     def command_request_approval(
@@ -266,6 +340,7 @@ class ProjectOSUserManagementChangeService:
         reason: str | None = None,
         metadata: dict[str, Any] | None = None,
         action_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSRoleActionApprovalRequest:
         self._user(requested_by_user_id)
         kwargs: dict[str, Any] = {
@@ -282,10 +357,22 @@ class ProjectOSUserManagementChangeService:
         }
         if action_id is not None:
             kwargs["action_id"] = action_id
-        return self.request_approval(ProjectOSRoleActionApprovalRequest(**kwargs))
+        return self.request_approval(
+            ProjectOSRoleActionApprovalRequest(**kwargs),
+            command_context=command_context,
+        )
 
-    def record_approval(self, approval: ProjectOSRoleActionApproval) -> ProjectOSRoleActionApproval:
-        self._commit("approval_recorded", approvals=self.state.approvals + (approval,))
+    def record_approval(
+        self,
+        approval: ProjectOSRoleActionApproval,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSRoleActionApproval:
+        self._commit(
+            "approval_recorded",
+            command_context=command_context,
+            approvals=self.state.approvals + (approval,),
+        )
         return approval
 
     def command_record_approval(
@@ -297,6 +384,7 @@ class ProjectOSUserManagementChangeService:
         decided_at: str,
         comment: str | None = None,
         approval_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSRoleActionApproval:
         self._request(action_id)
         self._user(approver_user_id)
@@ -309,10 +397,22 @@ class ProjectOSUserManagementChangeService:
         }
         if approval_id is not None:
             kwargs["approval_id"] = approval_id
-        return self.record_approval(ProjectOSRoleActionApproval(**kwargs))
+        return self.record_approval(
+            ProjectOSRoleActionApproval(**kwargs),
+            command_context=command_context,
+        )
 
-    def complete_post_review(self, review: ProjectOSRoleEmergencyPostReview) -> ProjectOSRoleEmergencyPostReview:
-        self._commit("post_review_completed", post_reviews=self.state.post_reviews + (review,))
+    def complete_post_review(
+        self,
+        review: ProjectOSRoleEmergencyPostReview,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSRoleEmergencyPostReview:
+        self._commit(
+            "post_review_completed",
+            command_context=command_context,
+            post_reviews=self.state.post_reviews + (review,),
+        )
         return review
 
     def command_complete_post_review(
@@ -325,6 +425,7 @@ class ProjectOSUserManagementChangeService:
         comment: str | None = None,
         metadata: dict[str, Any] | None = None,
         review_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSRoleEmergencyPostReview:
         self._request(action_id)
         self._user(reviewer_user_id)
@@ -338,4 +439,7 @@ class ProjectOSUserManagementChangeService:
         }
         if review_id is not None:
             kwargs["review_id"] = review_id
-        return self.complete_post_review(ProjectOSRoleEmergencyPostReview(**kwargs))
+        return self.complete_post_review(
+            ProjectOSRoleEmergencyPostReview(**kwargs),
+            command_context=command_context,
+        )
