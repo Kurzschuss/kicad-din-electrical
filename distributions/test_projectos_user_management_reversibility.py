@@ -20,6 +20,7 @@ def test_reversibility_matrix_is_fail_closed_and_only_weight_change_is_reversibl
         "permission_assigned",
         "permission_revoked",
         "project_role_assigned",
+        "project_role_assignment_terminated",
         "project_role_activated",
         "project_role_deactivated",
         "approval_requested",
