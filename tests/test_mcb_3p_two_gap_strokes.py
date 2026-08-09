@@ -33,7 +33,6 @@ def test_mcb_3p_shows_two_horizontal_strokes_in_each_pole_gap():
     ]
     assert len(short_horizontal_strokes) == 4
 
-    # Die beiden Kontaktstriche müssen exakt an den schrägen Kontakten enden.
-    assert (11.43, -1.27) in expected_strokes.pop()
+    # Die beiden zusätzlichen Kontaktstriche enden genau am jeweiligen schrägen Kontakt.
     assert ((10.16, -1.27), (11.43, -1.27)) in points
     assert ((17.78, -1.27), (19.05, -1.27)) in points
