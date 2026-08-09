@@ -7,6 +7,7 @@ from typing import Any, Iterable
 from uuid import UUID, uuid4
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 
 _ALLOWED_PROJECT_ROLES = {
     "project_lead",
@@ -102,11 +103,27 @@ class ProjectOSUserProjectRole:
 class ProjectOSUserProjectRoleRegistry:
     """Read-only auswertbare Sammlung projektbezogener Benutzerfunktionen."""
 
-    def __init__(self, roles: Iterable[ProjectOSUserProjectRole] | None = None) -> None:
+    def __init__(
+        self,
+        roles: Iterable[ProjectOSUserProjectRole] | None = None,
+        terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
+    ) -> None:
         self._roles = tuple(roles or ())
+        self._terminations = tuple(terminations or ())
         ids = [item.role_assignment_id for item in self._roles]
         if len(ids) != len(set(ids)):
             raise ValueError("role_assignment_id already exists")
+        termination_ids = [item.termination_id for item in self._terminations]
+        if len(termination_ids) != len(set(termination_ids)):
+            raise ValueError("termination_id already exists")
+        role_ids = set(ids)
+        terminated_role_ids: set[str] = set()
+        for item in self._terminations:
+            if item.role_assignment_id not in role_ids:
+                raise ValueError("role assignment termination references unknown role_assignment_id")
+            if item.role_assignment_id in terminated_role_ids:
+                raise ValueError("role assignment already terminated")
+            terminated_role_ids.add(item.role_assignment_id)
 
     def state(
         self,
@@ -124,7 +141,19 @@ class ProjectOSUserProjectRoleRegistry:
             item for item in self._roles
             if item.project_id == project and item.user_id == user.user_id and item.scope == scope
         ]
-        active = [item for item in candidates if item.is_active(current)]
+        effective_terminations = {
+            item.role_assignment_id: item
+            for item in self._terminations
+            if item.project_id == project
+            and item.user_id == user.user_id
+            and item.scope == scope
+            and item.is_effective(current)
+        }
+        terminated = [item for item in candidates if item.role_assignment_id in effective_terminations]
+        active = [
+            item for item in candidates
+            if item.is_active(current) and item.role_assignment_id not in effective_terminations
+        ]
         inactive = [item for item in candidates if item not in active]
         return {
             "project_id": project,
@@ -133,6 +162,14 @@ class ProjectOSUserProjectRoleRegistry:
             "evaluated_at": current.astimezone(timezone.utc).isoformat(),
             "active_roles": [item.as_dict() for item in active],
             "inactive_roles": [item.as_dict() for item in inactive],
+            "terminated_roles": [
+                {
+                    "role": item.as_dict(),
+                    "termination": effective_terminations[item.role_assignment_id].as_dict(),
+                }
+                for item in terminated
+            ],
+            "termination_count": len(terminated),
             "read_only": True,
         }
 
