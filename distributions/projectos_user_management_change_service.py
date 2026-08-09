@@ -14,6 +14,7 @@ from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUse
 from .projectos_permission_revocation import ProjectOSPermissionRevocation
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
 from .projectos_role_post_review import ProjectOSRoleEmergencyPostReview
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
@@ -68,6 +69,7 @@ class ProjectOSUserManagementChangeService:
             "permission_assignments": current.permission_assignments,
             "permission_revocations": current.permission_revocations,
             "project_roles": current.project_roles,
+            "role_assignment_terminations": current.role_assignment_terminations,
             "activations": current.activations,
             "deactivations": current.deactivations,
             "approval_requests": current.approval_requests,
@@ -198,10 +200,7 @@ class ProjectOSUserManagementChangeService:
         }
         if assignment_id is not None:
             kwargs["assignment_id"] = assignment_id
-        return self.assign_permission(
-            ProjectOSPermissionAssignment(**kwargs),
-            command_context=command_context,
-        )
+        return self.assign_permission(ProjectOSPermissionAssignment(**kwargs), command_context=command_context)
 
     def revoke_permission(
         self,
@@ -245,10 +244,7 @@ class ProjectOSUserManagementChangeService:
         }
         if revocation_id is not None:
             kwargs["revocation_id"] = revocation_id
-        return self.revoke_permission(
-            ProjectOSPermissionRevocation(**kwargs),
-            command_context=command_context,
-        )
+        return self.revoke_permission(ProjectOSPermissionRevocation(**kwargs), command_context=command_context)
 
     def assign_project_role(
         self,
@@ -293,8 +289,52 @@ class ProjectOSUserManagementChangeService:
         }
         if role_assignment_id is not None:
             kwargs["role_assignment_id"] = role_assignment_id
-        return self.assign_project_role(
-            ProjectOSUserProjectRole(**kwargs),
+        return self.assign_project_role(ProjectOSUserProjectRole(**kwargs), command_context=command_context)
+
+    def terminate_project_role_assignment(
+        self,
+        termination: ProjectOSProjectRoleAssignmentTermination,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSProjectRoleAssignmentTermination:
+        self._commit(
+            "project_role_assignment_terminated",
+            command_context=command_context,
+            role_assignment_terminations=self.state.role_assignment_terminations + (termination,),
+        )
+        return termination
+
+    def command_terminate_project_role_assignment(
+        self,
+        *,
+        role_assignment_id: str,
+        ended_at: str,
+        ended_by_user_id: str,
+        reason: str,
+        source_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        termination_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSProjectRoleAssignmentTermination:
+        role = self._role(role_assignment_id)
+        self._user(ended_by_user_id)
+        if any(item.role_assignment_id == role.role_assignment_id for item in self.state.role_assignment_terminations):
+            raise ValueError("role assignment already terminated")
+        kwargs: dict[str, Any] = {
+            "role_assignment_id": role.role_assignment_id,
+            "project_id": self.state.project_id,
+            "user_id": role.user_id,
+            "scope": role.scope,
+            "ended_at": ended_at,
+            "ended_by_user_id": ended_by_user_id,
+            "reason": reason,
+            "source_reference": source_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if termination_id is not None:
+            kwargs["termination_id"] = termination_id
+        return self.terminate_project_role_assignment(
+            ProjectOSProjectRoleAssignmentTermination(**kwargs),
             command_context=command_context,
         )
 
@@ -325,6 +365,8 @@ class ProjectOSUserManagementChangeService:
         command_context: ProjectOSUserManagementCommandContext | None = None,
     ) -> ProjectOSProjectRoleActivation:
         role = self._role(role_assignment_id)
+        if any(item.role_assignment_id == role.role_assignment_id for item in self.state.role_assignment_terminations):
+            raise ValueError("role assignment already terminated")
         if triggered_by_user_id is not None:
             self._user(triggered_by_user_id)
         kwargs: dict[str, Any] = {
@@ -341,10 +383,7 @@ class ProjectOSUserManagementChangeService:
         }
         if activation_id is not None:
             kwargs["activation_id"] = activation_id
-        return self.activate_project_role(
-            ProjectOSProjectRoleActivation(**kwargs),
-            command_context=command_context,
-        )
+        return self.activate_project_role(ProjectOSProjectRoleActivation(**kwargs), command_context=command_context)
 
     def deactivate_project_role(
         self,
@@ -387,10 +426,7 @@ class ProjectOSUserManagementChangeService:
         }
         if deactivation_id is not None:
             kwargs["deactivation_id"] = deactivation_id
-        return self.deactivate_project_role(
-            ProjectOSProjectRoleDeactivation(**kwargs),
-            command_context=command_context,
-        )
+        return self.deactivate_project_role(ProjectOSProjectRoleDeactivation(**kwargs), command_context=command_context)
 
     def request_approval(
         self,
@@ -435,10 +471,7 @@ class ProjectOSUserManagementChangeService:
         }
         if action_id is not None:
             kwargs["action_id"] = action_id
-        return self.request_approval(
-            ProjectOSRoleActionApprovalRequest(**kwargs),
-            command_context=command_context,
-        )
+        return self.request_approval(ProjectOSRoleActionApprovalRequest(**kwargs), command_context=command_context)
 
     def record_approval(
         self,
@@ -475,10 +508,7 @@ class ProjectOSUserManagementChangeService:
         }
         if approval_id is not None:
             kwargs["approval_id"] = approval_id
-        return self.record_approval(
-            ProjectOSRoleActionApproval(**kwargs),
-            command_context=command_context,
-        )
+        return self.record_approval(ProjectOSRoleActionApproval(**kwargs), command_context=command_context)
 
     def complete_post_review(
         self,
@@ -517,7 +547,4 @@ class ProjectOSUserManagementChangeService:
         }
         if review_id is not None:
             kwargs["review_id"] = review_id
-        return self.complete_post_review(
-            ProjectOSRoleEmergencyPostReview(**kwargs),
-            command_context=command_context,
-        )
+        return self.complete_post_review(ProjectOSRoleEmergencyPostReview(**kwargs), command_context=command_context)
