@@ -50,7 +50,11 @@ _DEFAULT_RULES = (
     ),
     ProjectOSUserManagementReversibilityRule(
         "permission_assigned", False, None,
-        "Eine explizite Rechteentziehungs-/Widerrufsoperation ist noch nicht modelliert.",
+        "Ein Widerruf beendet die Zuweisung historisch; ob er als Kompensation einer Zuweisung dienen darf, ist noch nicht freigegeben.",
+    ),
+    ProjectOSUserManagementReversibilityRule(
+        "permission_revoked", False, None,
+        "Ein Widerruf bleibt historische Tatsache; eine Wiedererteilung wäre ein neuer fachlicher Vorgang.",
     ),
     ProjectOSUserManagementReversibilityRule(
         "project_role_assigned", False, None,
