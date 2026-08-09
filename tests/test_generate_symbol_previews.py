@@ -1,6 +1,9 @@
 from pathlib import Path
 
 from tools.generate_symbol_previews import (
+    Pin,
+    Polyline,
+    _preview_projector,
     generated_files,
     parse_pins,
     parse_polylines,
@@ -72,6 +75,20 @@ def test_svg_contains_accessible_title_and_graphics():
     assert "<polyline" in svg
     assert svg.count("<line") == 2
     assert "Switch</text>" in svg
+
+
+def test_preview_projector_auto_fits_wide_and_tall_geometry_with_margin():
+    pins = [
+        Pin(0.0, 7.62, 270.0, 2.54),
+        Pin(0.0, -7.62, 90.0, 2.54),
+    ]
+    polylines = [Polyline(((-10.16, 0.0), (10.16, 0.0)))]
+    project = _preview_projector([], pins, polylines)
+
+    for x, y in [(-10.16, 0.0), (10.16, 0.0), (0.0, 7.62), (0.0, -7.62)]:
+        projected_x, projected_y = project(x, y)
+        assert 10.0 <= projected_x <= 230.0
+        assert 10.0 <= projected_y <= 146.0
 
 
 def test_multiple_top_level_symbols_do_not_share_geometry(tmp_path: Path):
