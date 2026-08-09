@@ -17,6 +17,7 @@ from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleA
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
 from .projectos_role_post_review import ProjectOSRoleEmergencyPostReview
+from .projectos_user_deactivation import ProjectOSUserDeactivation
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 from .projectos_user_management_persistence import ProjectOSUserManagementState
 from .projectos_user_project_roles import ProjectOSUserProjectRole
@@ -66,6 +67,7 @@ class ProjectOSUserManagementChangeService:
         data = {
             "project_id": current.project_id,
             "users": current.users,
+            "user_deactivations": current.user_deactivations,
             "permission_assignments": current.permission_assignments,
             "permission_revocations": current.permission_revocations,
             "project_roles": current.project_roles,
@@ -153,6 +155,48 @@ class ProjectOSUserManagementChangeService:
         users = tuple(updated if user.user_id == user_id else user for user in self.state.users)
         self._commit("user_weight_changed", command_context=command_context, users=users)
         return updated
+
+    def deactivate_user(
+        self,
+        deactivation: ProjectOSUserDeactivation,
+        *,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSUserDeactivation:
+        self._commit(
+            "user_deactivated",
+            command_context=command_context,
+            user_deactivations=self.state.user_deactivations + (deactivation,),
+        )
+        return deactivation
+
+    def command_deactivate_user(
+        self,
+        *,
+        user_id: str,
+        deactivated_at: str,
+        deactivated_by_user_id: str,
+        reason: str,
+        source_reference: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        deactivation_id: str | None = None,
+        command_context: ProjectOSUserManagementCommandContext | None = None,
+    ) -> ProjectOSUserDeactivation:
+        self._user(user_id)
+        self._user(deactivated_by_user_id)
+        if any(item.user_id == user_id for item in self.state.user_deactivations):
+            raise ValueError("user already deactivated")
+        kwargs: dict[str, Any] = {
+            "project_id": self.state.project_id,
+            "user_id": user_id,
+            "deactivated_at": deactivated_at,
+            "deactivated_by_user_id": deactivated_by_user_id,
+            "reason": reason,
+            "source_reference": source_reference,
+            "metadata": dict(metadata or {}),
+        }
+        if deactivation_id is not None:
+            kwargs["deactivation_id"] = deactivation_id
+        return self.deactivate_user(ProjectOSUserDeactivation(**kwargs), command_context=command_context)
 
     def assign_permission(
         self,
