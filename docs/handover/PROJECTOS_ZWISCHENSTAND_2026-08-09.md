@@ -9,170 +9,154 @@ Pull Request: #159 – `Test: fehlgeschlagenes Projektladen hält Managerzustand
 
 Architecture Freeze 1.0 bleibt maßgeblich. Weiterhin gelten Single Source of Truth, Domain Ownership, Object First, Offline First, Simulation First, Documentation First und Configuration before Code.
 
-Benutzergewichtung bleibt sichtbar, beeinflusst Autorisierung aber nicht. `DENY` hat Vorrang vor `ALLOW`. Audit-/Bus-Nachweise bleiben append-only. Historische Lifecycle-Tatsachen werden für Undo/Redo niemals aus dem Zustand gelöscht.
+Benutzergewichtung beeinflusst Autorisierung nicht. `DENY` hat Vorrang vor `ALLOW`. Audit-/Bus-Nachweise und fachliche Lifecycle-Tatsachen bleiben append-only; Undo/Redo löscht keine historische Tatsache.
 
 ## Persistenz
 
-Das äußere Projektbundle bleibt **Bundle v4**.
+Das äußere Projektbundle bleibt **Bundle v4**. Der Benutzerverwaltungs-Persistenzvertrag bleibt **Version 2**; Version 1 bleibt lesbar.
 
-Der Benutzerverwaltungs-Persistenzvertrag steht aktuell auf **Version 2** und persistiert zusätzlich zu Benutzern/Rechten/Rollen/Aktivierungen/Freigaben zwei explizite Lifecycle-Listen:
+Persistiert sind insbesondere:
 
-- `permission_revocations`;
-- `role_assignment_terminations`.
+- Rechtezuweisungen und `permission_revocations`;
+- Projektrollen und `role_assignment_terminations`;
+- Aktivierungen/Deaktivierungen;
+- Approval-Requests, Approvals und Nachprüfungen.
 
-Version 1 bleibt lesbar und wird erst beim expliziten Speichern auf Version 2 geschrieben. Reproduzierbare Runtime-, Z_Cockpit-, Autorisierungs- und Undo/Redo-History-Zustände werden nicht als zweite Domainwahrheit persistiert.
+Regrant-/Neu-Zuweisungs-Lineage nutzt die bereits persistierten `metadata` der neuen Assignment-Objekte. Es gibt dafür **keinen Schema-Bump** und keinen zweiten Wahrheitsbestand.
 
-## Rechtewiderruf – umgesetzt
+## Rechtewiderruf und Rollenzuweisungs-Beendigung
 
-`ProjectOSPermissionRevocation` beendet die Wirksamkeit einer vorhandenen `ProjectOSPermissionAssignment`, ohne die historische Zuweisung zu löschen.
+`ProjectOSPermissionRevocation` beendet eine Rechtezuweisung, ohne sie zu löschen.
 
-Der atomare Command `permission_revoked` benötigt in der Default-Policy `project.user_management.permission.revoke`.
+`ProjectOSProjectRoleAssignmentTermination` beendet eine Rollenzuweisung, ohne Rolle, Aktivierung oder Freigaben historisch zu entfernen.
 
-Wirksame Widerrufe werden von der allgemeinen Autorisierung und der produktiven Command-Autorisierung berücksichtigt. `DENY` bleibt auf den verbleibenden aktiven Quellen vorrangig.
+Administrative High-/Critical-Rollenzuweisungs-Beendigungen nutzen den bestehenden Approval-Action-Typ `role_assignment_termination`. Maßgeblich ist `EE-PROJECTOS-0002_Rollenzuweisungsbeendigung_Vier_Augen.md`.
 
-## Rollenzuweisungs-Beendigung – umgesetzt
+Fehlende `role_risk_class_map`-Konfiguration bleibt `risk_not_configured` und fail-closed. High/Critical wirken erst nach fremder Freigabe; Selbstfreigabe wird ignoriert; Ablehnung bleibt wirkungslos; Notfall bleibt vorläufig wirksam und nachprüfungspflichtig.
 
-`ProjectOSProjectRoleAssignmentTermination` beendet eine `ProjectOSUserProjectRole`, ohne die historische Rollenzuweisung, Aktivierungen oder Freigaben zu löschen.
+## Regrant mit neuer Rechtezuweisungsidentität – umgesetzt
 
-Der atomare Command `project_role_assignment_terminated` benötigt `project.user_management.role.terminate`.
+Der neue produktive Command `permission_regranted` benötigt:
 
-Die Beendigung der **Rollenzuweisung** bleibt fachlich getrennt von `ProjectOSProjectRoleDeactivation`, das lediglich eine konkrete Aktivierung beendet.
+`project.user_management.permission.regrant`
 
-## Vier-Augen-Vertrag für administrative Rollenzuweisungs-Beendigungen – beschlossen und umgesetzt
+Er erzeugt eine **neue** `ProjectOSPermissionAssignment` und reaktiviert niemals die alte `assignment_id`.
 
-Maßgeblich ist:
+Invarianten:
 
-`docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0002_Rollenzuweisungsbeendigung_Vier_Augen.md`
+- genau eine historische Vorgänger-Zuweisung;
+- genau ein zugehöriger Widerruf;
+- Widerruf muss zum `regranted_at` wirksam sein;
+- neue `assignment_id`;
+- höchstens ein direkter Regrant-Nachfolger pro Zuweisung;
+- Benutzer, Permission, Effekt, Scope, Quelltyp und Risikoklasse werden aus dem Vorgänger übernommen;
+- Lineage-Metadaten referenzieren Vorgänger, Widerruf, Zeitpunkt und Akteur;
+- alte Zuweisung und Widerruf bleiben erhalten.
 
-### Action-Typ
+## Rollen-Neu-Zuweisung mit neuer Identität – umgesetzt
 
-Der vorhandene Approval-Vertrag wurde um den expliziten Action-Typ
+Der neue produktive Command `project_role_reassigned` benötigt:
 
-`role_assignment_termination`
+`project.user_management.role.reassign`
 
-erweitert. Der Target-Vertrag lautet:
+Er erzeugt eine **neue** `ProjectOSUserProjectRole` mit neuer `role_assignment_id`.
 
-`role_assignment_termination:<termination_id>`
+Invarianten:
 
-Es gibt **keine zweite Approval-State-Machine**.
+- genau eine historische Vorgänger-Rollenzuweisung;
+- genau eine zugehörige Beendigung;
+- Beendigung muss zum `reassigned_at` zeitlich wirksam sein;
+- produktiv muss die Beendigung zusätzlich gemäß Vier-Augen-Vertrag approval-wirksam sein;
+- fehlende Risikokonfiguration bleibt fail-closed;
+- neue `role_assignment_id`;
+- höchstens ein direkter Neu-Zuweisungs-Nachfolger pro Vorgänger;
+- alte Rollenzuweisung, Beendigung, Aktivierungen und Approvals bleiben erhalten.
 
-### Configuration before Code
+## Lineage im Z_Cockpit
 
-Die Risikoklasse der zu beendenden Rolle kommt ausschließlich aus `role_risk_class_map`.
+`ZCockpitUserManagementLineageView` zeigt read-only:
 
-Fehlt die Risikoklasse, wird nicht mehr implizit `low` angenommen. Der Status lautet `risk_not_configured`; die Beendigung bleibt fail-closed ohne Rechtewirkung.
+- Vorgänger-Zuweisung;
+- Widerruf bzw. Beendigung;
+- neue Nachfolger-Zuweisung;
+- Gültigkeit der Lineage-Kette;
+- Diagnosefehler als Attention.
 
-### Wirksamkeit
+Die Sicht verändert keinen Domainzustand und wird nicht persistiert.
 
-- `low` / `medium`: keine zweite Person erforderlich, Wirkung ab `ended_at`;
-- `high` / `critical` ohne Request: `approval_missing`, keine Rechtewirkung;
-- pending Request: `pending_approval`, keine Rechtewirkung;
-- Selbstfreigabe wird ignoriert;
-- fremde Freigabe: `approved`, Wirkung ab `ended_at`;
-- fremde Ablehnung: `rejected`, keine Rechtewirkung;
-- Notfall: `emergency_pending_review`, vorläufig wirksam und nachprüfungspflichtig.
+## Identitätswechselndes Undo/Redo für Rechtezuweisungen – umgesetzt
 
-`ProjectOSApprovedRoleAssignmentTerminationEvaluator` ist die zentrale read-only Quelle für die freigabewirksamen Beendigungen.
+`permission_assigned` und `permission_regranted` sind jetzt explizit kompensierbar.
 
-## Rechte-/Command-Wirkung
+### Undo
 
-`ProjectOSApprovedRoleActivationEvaluator` berücksichtigt ausschließlich freigabewirksame Rollenzuweisungs-Beendigungen.
+Undo erzeugt einen **neuen `permission_revoked`-Command**. Die Zuweisung bleibt erhalten. Der Undo-Widerruf erhält eigene `revocation_id`, `command_id`, Korrelation sowie neue Audit-/Bus-Nachweise.
 
-`ProjectOSUserManagementCommandAuthorization` wurde gegen einen früheren Doppelpfad gehärtet:
+Benötigtes Recht:
 
-- eine pending/rejected High-Risk-Beendigung entfernt keine rollenabgeleiteten Command-Rechte;
-- erst eine approval-wirksame Beendigung erhöht `terminated_granting_role_count` und kann ein rollenabgeleitetes Recht entfernen;
-- blockierte relevante Beendigungen werden separat als `blocked_granting_role_termination_count` diagnostiziert;
-- fehlende Risikokonfiguration wird als `role_termination_configuration_required` sichtbar.
+`project.user_management.permission.undo_assign`
 
-Die nachgelagerte Approved-Deactivation-Auswertung verarbeitet Rollenzuweisungs-Beendigungen ebenfalls nur noch über deren eigenen Approval-Vertrag.
+### Redo
 
-## Konservativer Aktivierungs-Guard
+Redo entfernt den Undo-Widerruf nicht und belebt die alte Assignment-ID nicht wieder. Es erzeugt einen **neuen `permission_regranted`-Command** mit neuer `assignment_id` und Lineage zum gerade widerrufenen Vorgänger.
 
-Die bestehende Command-Grenze eröffnet keine neue Aktivierung derselben historischen Rollenzuweisung mehr, sobald ein Beendigungsobjekt angelegt wurde.
+Benötigtes Recht:
 
-Das ist bewusst konservativer als die Rechtewirkung: vorhandene High-/Critical-Aktivierungen behalten ihre Rechte bis zur wirksamen zweiten Freigabe; neue Aktivierungszyklen werden nach angelegter administrativer Beendigung nicht mehr eröffnet.
+`project.user_management.permission.redo_assign`
 
-## Z_Cockpit / Simulation First
+Mehrere Undo-/Redo-Zyklen erzeugen eine lineare Folge neuer Assignment- und Widerrufsidentitäten.
 
-Neu ist:
+Ein **normaler manueller `permission_revoked`** bleibt ausdrücklich nicht reversibel. Nur ein als `history_action=undo` erzeugter Widerrufs-History-Eintrag kann den unmittelbar folgenden Redo-Schritt tragen.
 
-`distributions/z_cockpit_role_assignment_termination.py`
+## Reversibilitätsmatrix
 
-`ZCockpitRoleAssignmentTerminationView` zeigt read-only:
+Aktuell vollständig kompensierbar sind:
 
-- vorhandene Termination-/Approval-Zustände;
-- `risk_not_configured`, fehlende/pending Freigabe, Freigabe, Ablehnung und Notfall-Nachprüfung;
-- eine Vorab-Simulation einer geplanten Beendigung;
-- die potenziell verlorenen rollenabgeleiteten Rechte;
-- ob eine zweite Freigabe erforderlich ist;
-- den nächsten fachlichen Schritt.
+- `user_weight_changed` über Wiederherstellung des vorherigen Gewichts;
+- `permission_assigned` über neuen Widerruf / neuen Regrant;
+- `permission_regranted` analog über neuen Widerruf / erneuten Regrant.
 
-Die bestehende Approved-Activation-Z_Cockpit-Sicht zeigt den Rollenzuweisungs-Beendigungs-Approval-Zustand ebenfalls an.
+Nicht generisch reversibel bleiben insbesondere:
 
-`ZCockpitUserManagementCommandDiagnosticsView` unterscheidet wirksame und blockierte rollenbezogene Beendigungsursachen.
+- normale `permission_revoked`;
+- `project_role_assigned`;
+- `project_role_assignment_terminated`;
+- `project_role_reassigned`;
+- Rollenaktivierungen/-deaktivierungen;
+- Approval- und Nachprüfungsereignisse.
 
-## Command-/Audit-/Undo-Infrastruktur – weiterhin gültig
+Für Rollen ist die Sperre bewusst: High-/Critical-Beendigungen können einen mehrstufigen Approval-/Notfall-/Nachprüfungs-Lifecycle besitzen. Ein synchrones generisches Undo darf diesen Ablauf nicht vortäuschen.
 
-Weiterhin umgesetzt:
+Maßgeblich sind `EE-PROJECTOS-0001`, `EE-PROJECTOS-0002` und `EE-PROJECTOS-0003_Regrant_Lineage_Kompensation.md`.
 
-- expliziter `ProjectOSUserManagementCommandContext` mit `command_id`, Akteur, Korrelation und Undo-/Redo-Bezug;
-- atomare Fachmutation über `ProjectOSUserManagementChangeService`;
-- produktiver Einstieg über `build_projectos_user_management_runtime()`;
-- zentrale `ProjectOSUserManagementCommandPolicy`;
-- fail-closed `ProjectOSUserManagementCommandAuthorization`;
-- Bus-/Audit-Nachweis über `ProjectOSUserManagementChangeTraceEmitter`;
-- read-only Authorization Evidence und Command History;
-- Runtime-History-Reset bei Load/Recover/Discard/New Project;
-- Undo/Redo als neue kompensierende Fachcommands, niemals Snapshot-Rollback.
+## Bestätigte vollständige Teststände
 
-Aktuell vollständig reversibler Referenzfall bleibt `user_weight_changed`. Rechtewiderruf und Rollenzuweisungs-Beendigung bleiben historische Tatsachen; Regrant/Neu-Zuweisung sind noch nicht als vollständiger Undo/Redo-Vertrag umgesetzt.
+- **Run #360** – bereinigter Vier-Augen-/Risikovertrag und Dokumentationsstand vollständig grün;
+- **Run #367** – Regrant-/Rollen-Neu-Zuweisung, Lineage, Bundle-Roundtrip und High-Risk-Grenze vollständig grün;
+- **Run #373** – identitätswechselndes Rechte-Undo/Redo einschließlich Mehrfachzyklen und Rechteprüfung vollständig grün.
 
-## Neue/angepasste Dateien dieses Sicherheitsblocks
-
-- `distributions/projectos_role_assignment_termination_approval.py`
-- `distributions/projectos_user_management_command_authorization.py`
-- `distributions/projectos_role_deactivation_approval.py`
-- `distributions/z_cockpit_role_assignment_termination.py`
-- `distributions/z_cockpit_approved_role_activation.py`
-- `distributions/z_cockpit_user_management_command_diagnostics.py`
-- `distributions/test_projectos_role_assignment_termination_approval.py`
-- `distributions/test_z_cockpit_role_assignment_termination.py`
-- angepasste Rollenbeendigungs-/Integrationstests
-
-## Tests / bestätigter Stand
-
-**ProjectOS complete test suite Run #356** ist vollständig erfolgreich.
-
-Bestätigt wurden unter anderem:
-
-- Repository Health;
-- komplette Pytest-Suite;
-- High-/Critical-Beendigungen ohne/pending Freigabe behalten bestehende Rechtewirkung;
-- fremde Freigabe beendet die Rechtewirkung;
-- Selbstfreigabe wird ignoriert;
-- Ablehnung bleibt wirkungslos;
-- Notfall bleibt vorläufig wirksam und nachprüfungspflichtig;
-- fehlende Risikokonfiguration ist fail-closed;
-- Command-Autorisierung und Z_Cockpit verwenden denselben Wirksamkeitsvertrag;
-- Z_-Qualitätsprofil;
-- KiCad-Bibliotheks- und Generierungsprüfungen;
-- Z_Cockpit-HTML-Generierung.
+Die vollständige `ProjectOS complete test suite` umfasst Repository Health, komplette Pytest-Suite, Z_-Qualitätsprofil, KiCad-Prüfungen und Z_Cockpit-Generierung.
 
 PR #159 bleibt bewusst **Draft**.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als nächstes den **Regrant-/Neu-Zuweisungsvertrag mit neuen Identitäten** umsetzen, ohne historische Lifecycle-Tatsachen zu verändern:
+Als nächstes **Simulation First: read-only Rollen-Kompensationsplan**.
 
-1. `permission_regranted` als neue `ProjectOSPermissionAssignment` mit neuer `assignment_id` und expliziter Lineage zur widerrufenen Zuweisung;
-2. `project_role_reassigned` als neue `ProjectOSUserProjectRole` mit neuer `role_assignment_id` und Lineage zur beendeten Zuweisung;
-3. keine Wiederbelebung alter IDs;
-4. neue Commands über zentrale Policy, Audit/Bus und gesicherte Runtime führen;
-5. High-/Critical-Rollen-Neu-Zuweisung nur auf Basis einer tatsächlich wirksamen alten Beendigung zulassen;
-6. Lineage read-only im Z_Cockpit zeigen;
-7. erst danach prüfen, ob `permission_assigned` oder `project_role_assigned` in der Reversibilitätsmatrix erweitert werden dürfen.
+Noch kein mutierendes generisches Rollen-Undo einführen.
+
+Der Plan soll für eine konkrete `project_role_assigned`-/`project_role_reassigned`-Zuweisung vorab beantworten:
+
+1. darf der Akteur `project.user_management.role.terminate` ausführen;
+2. welche Risikoklasse gilt aus `role_risk_class_map`;
+3. ist eine zweite Person erforderlich;
+4. ist eine bereits vorhandene Beendigung approval-wirksam oder nur pending/rejected/not configured;
+5. kann die Kompensation synchron abgeschlossen werden oder benötigt sie einen mehrstufigen Approval-/Nachprüfungsablauf;
+6. welche effektiven rollenabgeleiteten Rechte würden nach wirksamer Beendigung verloren gehen;
+7. welche spätere Neu-Zuweisung wäre als neuer Lifecycle-Vorgang möglich.
+
+Z_Cockpit soll diesen Plan rein lesend anzeigen. Erst danach entscheiden, ob irgendein Rollenfall in generisches Undo/Redo aufgenommen werden darf.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen `kicad-din-electrical / ProjectOS` fort. Lies `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte bestätigte Code-Stand ist ProjectOS complete test suite Run #356. Der Vier-Augen-Vertrag für administrative Rollenzuweisungs-Beendigungen ist über den vorhandenen Approval-Action-Typ `role_assignment_termination` umgesetzt; fehlende Risikokonfiguration ist fail-closed, High/Critical wirkt erst nach fremder Freigabe, Notfall bleibt nachprüfungspflichtig, und Z_Cockpit kann die Rechteauswirkung vorab read-only simulieren. Fahre mit Regrant/Neu-Zuweisung mit neuen Identitäten fort. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, Configuration before Code, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung und append-only Audit-/Bus-Historie nicht verletzen.
+> Wir setzen `kicad-din-electrical / ProjectOS` fort. Lies `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Code-Stand ist ProjectOS complete test suite Run #373. Regrant und Rollen-Neu-Zuweisung erzeugen neue IDs mit persistierter Lineage; High-/Critical-Rollen-Neu-Zuweisung erfordert eine approval-wirksame alte Beendigung. `permission_assigned` und `permission_regranted` sind identitätswechselnd undo-/redo-fähig: Undo erzeugt Widerruf, Redo neuen Regrant mit neuer `assignment_id`; normale Widerrufe bleiben nicht reversibel. Fahre mit einem read-only Rollen-Kompensationsplan fort, ohne mutierendes Rollen-Undo einzuführen. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, Configuration before Code, DENY-Vorrang und append-only Audit-/Bus-Historie nicht verletzen.
