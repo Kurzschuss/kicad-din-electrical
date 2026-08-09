@@ -32,43 +32,54 @@ Vorhanden sind Projektkorrelationssicht, Projektleiter-Gesamtübersicht, Aufmerk
 
 Bestätigte Notfall-Nachprüfungen schließen Aufmerksamkeit. Negative Nachprüfungen bleiben als rote Eskalation sichtbar. Die Projektleiterübersicht zählt offene, bestätigte und eskalierte Nachprüfungen getrennt.
 
-## Projektgedächtnis und Wissensherkunft – zuletzt umgesetzt
+## Projektgedächtnis und Wissensherkunft
 
-Neu vorhanden ist `ProjectOSRoleKnowledgeBridge`.
+`ProjectOSRoleKnowledgeBridge` materialisiert vorhandene Freigabe-/Nachprüfungs-Traces als referenzierte Wissensnachweise, ohne eine zweite fachliche Wahrheit zu erzeugen. Die fachliche Wahrheit bleibt bei `ProjectOSRoleActionApprovalEvaluator` bzw. `ProjectOSRoleEmergencyPostReviewEvaluator`.
 
-Der Adapter erzeugt ausdrücklich **keine zweite Freigabe- oder Nachprüfungswahrheit**. Die fachliche Wahrheit bleibt bei `ProjectOSRoleActionApprovalEvaluator` bzw. `ProjectOSRoleEmergencyPostReviewEvaluator`. Das Projektgedächtnis materialisiert nur referenzierte Nachweise aus bereits vorhandenen Trace-Daten.
+Abgebildet werden Freigabeanforderung und Freigabewirksamkeit als `approval`, Nachprüfung als `review_result`, dazu `derived_from`-Beziehungen und Originalreferenzen wie `action_id`, `review_id`, `message_id`, `correlation_id`, `truth_source`, `escalation_required` und `historical_emergency_effect_preserved`.
 
-Abgebildet werden unter anderem:
+## Z_Cockpit-Wissensherkunft – zuletzt umgesetzt
 
-- Freigabeanforderung als Wissenselement `approval`;
-- Freigabewirksamkeit als Wissenselement `approval`;
-- Notfall-Nachprüfung als Wissenselement `review_result`;
-- `derived_from`-Beziehungen zwischen Nachweisen;
-- Originalreferenzen `action_id`, `review_id`, `message_id`, `correlation_id` und `truth_source` in den Metadaten;
-- `historical_emergency_effect_preserved` und `escalation_required` beim Nachprüfungsnachweis.
+Neu vorhanden ist `ZCockpitKnowledgeOriginEvidenceView`.
 
-Die Materialisierung ist idempotent: dieselbe `action_id`/`review_id` erzeugt nicht mehrfach denselben Wissensnachweis. Fremde Projekttraces werden abgewiesen.
+Die bestehende `knowledge_origin`-Erklärung bleibt die Quelle für gespeicherte Wissenspfade. Darüber legt die neue read-only Evidenzsicht ausschließlich die bereits gespeicherten Referenzmetadaten offen.
+
+Sie zeigt für Freigabe-/Nachprüfungswissen unter anderem:
+
+- `truth_source`;
+- `action_id`;
+- `review_id`;
+- `message_id`;
+- `correlation_id`;
+- `reference_id`;
+- Quelltyp und Evidenzstatus des Wissensknotens.
+
+Wenn `action_id` und `correlation_id` vorhanden sind, wird ein validiertes `approval_trace`-Navigationsziel erzeugt. Der `ZCockpitNavigationResolver` verwendet diese evidenzbewusste Herkunftssicht jetzt direkt für `knowledge_origin`.
+
+Normale Wissensknoten ohne Freigabe-/Nachprüfungsmetadaten erhalten ausdrücklich keine künstliche Freigabeherkunft.
 
 Commits dieses Blocks:
 
-- `906eac84` feat(project): Freigaben und Nachprüfungen ins Projektgedächtnis referenzieren
-- `d6733091` test(project): Freigabe- und Nachprüfungswissen absichern
+- `e4d6c7f1` feat(z-cockpit): Freigabenachweise in Wissensherkunft erklären
+- `e7fee07e` feat(z-cockpit): Wissensherkunft mit Freigabenachweisen auflösen
+- `97abe866` test(z-cockpit): Freigabenachweise in Wissensherkunft absichern
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #199, ist für Commit `d67330914525ed1bc746ded3f0f548d26b20a2c6` erfolgreich.
+Die vollständige `ProjectOS complete test suite`, Run #203, ist für Commit `97abe866e635784be74564bd395a8ec35228e9fe` erfolgreich.
 
 PR #159 ist offen, Draft und mergebar. Der Branch ist inzwischen ein integrierter ProjectOS-Umsetzungsbranch und enthält wesentlich mehr als den ursprünglichen Persistenz-Test.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die referenzierten Freigabe-/Nachprüfungsnachweise in die bestehende Z_Cockpit-Wissensherkunft integrieren:
+Als Nächstes den Benutzerverwaltungsblock als Ganzes auf Konsistenz und Persistenzreife prüfen:
 
-1. `knowledge_origin` soll `action_id`, `review_id`, `message_id`, `correlation_id` und `truth_source` sichtbar erklären;
-2. von einem Freigabe-/Nachprüfungs-Wissensknoten direkt zum `approval_trace` navigieren;
-3. Herkunftspfad `Freigabeanforderung → Wirksamkeit → Nachprüfung/Eskalation` lesbar aufbereiten;
-4. anschließend Benutzerverwaltungsblock auf Konsistenz, Persistenzbedarf und offene Architekturpunkte prüfen.
+1. welche Benutzer-/Rollen-/Freigabe-/Aktivierungsdaten müssen dauerhaft im Projektbundle gespeichert werden;
+2. welche Daten sind ausschließlich abgeleitete read-only Sichten und dürfen nicht persistiert werden;
+3. Projektgrenzen, ID-Stabilität und Migration für bestehende Bundle-Versionen festlegen;
+4. Validierungsregeln für unvollständige oder widersprüchliche Benutzer-/Freigabedaten definieren;
+5. danach Persistenzschema versionieren und Roundtrip-/Migrations-Tests ergänzen.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #199. Freigabe- und Notfall-Nachprüfungsdaten werden inzwischen ohne zweite Wahrheit als referenzierte Wissensnachweise ins Projektgedächtnis materialisiert. Fahre mit der Z_Cockpit-Wissensherkunft und Navigation vom Wissensknoten zum `approval_trace` fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #203. Freigabe-/Nachprüfungswissen ist ohne zweite Wahrheit im Projektgedächtnis referenziert; `knowledge_origin` erklärt jetzt `truth_source`, `action_id`, `review_id`, `message_id` und `correlation_id` und kann direkt zum `approval_trace` navigieren. Fahre mit der Konsistenz- und Persistenzreifeprüfung des gesamten Benutzerverwaltungsblocks fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
