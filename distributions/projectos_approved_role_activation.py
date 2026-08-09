@@ -1,7 +1,8 @@
 """Freigabegesteuerte Rechtewirkung aktivierter Projektfunktionen.
 
 High/critical-Aktivierungen wirken nur mit explizit wirksamer Vier-Augen-Freigabe.
-Notfallfreigaben dürfen vorläufig wirken, bleiben aber nachprüfungspflichtig.
+Notfallfreigaben dürfen vorläufig wirken, bleiben aber nachprüfungspflichtig. Eine
+beendete Rollenzuweisung erzeugt auch bei historisch genehmigter Aktivierung keine Rechte.
 """
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from .projectos_role_approval import (
     ProjectOSRoleActionApprovalEvaluator,
     ProjectOSRoleActionApprovalRequest,
 )
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
 _ALLOWED_RISKS = {"low", "medium", "high", "critical"}
@@ -28,12 +30,14 @@ class ProjectOSApprovedRoleActivationEvaluator:
         *,
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         approval_requests: Iterable[ProjectOSRoleActionApprovalRequest] | None = None,
         approvals: Iterable[ProjectOSRoleActionApproval] | None = None,
         risk_class_map: dict[str, str] | None = None,
     ) -> None:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
+        self.role_terminations = tuple(role_terminations or ())
         self.approval_requests = tuple(approval_requests or ())
         self.approvals = tuple(approvals or ())
         self.risk_class_map = {
@@ -63,7 +67,11 @@ class ProjectOSApprovedRoleActivationEvaluator:
         scope: str = "project",
         at: datetime | None = None,
     ) -> dict[str, Any]:
-        registry = ProjectOSProjectRoleActivationRegistry(self.roles, self.activations)
+        registry = ProjectOSProjectRoleActivationRegistry(
+            self.roles,
+            self.activations,
+            self.role_terminations,
+        )
         activation_state = registry.state(project_id=project_id, user=user, scope=scope, at=at)
         role_by_assignment = {
             item["role_assignment_id"]: item for item in activation_state["activated_roles"]
@@ -130,6 +138,7 @@ class ProjectOSApprovedRoleActivationEvaluator:
             "blocked_activations": blocked_activations,
             "pending_post_reviews": pending_reviews,
             "assigned_not_activated_roles": activation_state["assigned_not_activated_roles"],
+            "terminated_assigned_roles": activation_state["terminated_assigned_roles"],
             "read_only": True,
         }
 
