@@ -8,6 +8,7 @@ from .projectos_approved_role_activation import ProjectOSApprovedRoleActivationE
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 from .z_cockpit_authorization import ZCockpitAuthorizationView
 
@@ -29,6 +30,7 @@ class ZCockpitApprovedRoleActivationView:
         user: ProjectOSUserProfile,
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         approval_requests: Iterable[ProjectOSRoleActionApprovalRequest] | None = None,
         approvals: Iterable[ProjectOSRoleActionApproval] | None = None,
         base_assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
@@ -42,6 +44,7 @@ class ZCockpitApprovedRoleActivationView:
         self.evaluator = ProjectOSApprovedRoleActivationEvaluator(
             roles=roles,
             activations=activations,
+            role_terminations=role_terminations,
             approval_requests=approval_requests,
             approvals=approvals,
             risk_class_map=risk_class_map,
@@ -57,18 +60,13 @@ class ZCockpitApprovedRoleActivationView:
             at=at,
         )
         auth = ZCockpitAuthorizationView(self.user, self.base_assignments + derived)
-        permissions = sorted({
-            item.permission for item in self.base_assignments + derived
-            if item.user_id == self.user.user_id and item.scope == scope
-        })
+        permissions = sorted({item.permission for item in self.base_assignments + derived if item.user_id == self.user.user_id and item.scope == scope})
         rights = [auth.state(permission, scope=scope, at=at) for permission in permissions]
 
         def decorate(item: dict[str, Any]) -> dict[str, Any]:
             result = dict(item)
             result["approval"] = dict(result["approval"])
-            result["approval"]["status_label"] = _STATUS_LABELS.get(
-                result["approval"]["status"], result["approval"]["status"]
-            )
+            result["approval"]["status_label"] = _STATUS_LABELS.get(result["approval"]["status"], result["approval"]["status"])
             return result
 
         return {
@@ -78,6 +76,7 @@ class ZCockpitApprovedRoleActivationView:
             "effective_activations": [decorate(item) for item in approval_state["effective_activations"]],
             "blocked_activations": [decorate(item) for item in approval_state["blocked_activations"]],
             "pending_post_reviews": [decorate(item) for item in approval_state["pending_post_reviews"]],
+            "terminated_assigned_roles": list(approval_state["terminated_assigned_roles"]),
             "rights": rights,
             "post_review_required": bool(approval_state["pending_post_reviews"]),
             "read_only": True,
