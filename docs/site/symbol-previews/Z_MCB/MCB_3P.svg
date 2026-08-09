@@ -13,11 +13,13 @@
   <polyline points="159.60,107.70 159.60,117.60" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polygon points="108.17,78.65 118.15,69.15 121.85,80.25 108.17,78.65" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="120.00,74.70 139.80,68.10" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="129.90,87.90 149.70,87.90" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="219.00,38.40 219.00,48.30" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="189.30,48.30 219.00,107.70" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="219.00,107.70 219.00,117.60" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polygon points="167.57,78.65 177.55,69.15 181.25,80.25 167.57,78.65" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="179.40,74.70 199.20,68.10" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="189.30,87.90 209.10,87.90" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="115.05,87.90 124.95,87.90" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <polyline points="174.45,87.90 184.35,87.90" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
   <line x1="100.20" y1="18.60" x2="100.20" y2="38.40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
