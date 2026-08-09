@@ -14,6 +14,7 @@ from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUse
 from .projectos_permission_revocation import ProjectOSPermissionRevocation
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalRequest
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation
 from .projectos_role_post_review import ProjectOSRoleEmergencyPostReview
 from .projectos_user_project_roles import ProjectOSUserProjectRole
@@ -47,6 +48,7 @@ class ProjectOSUserManagementState:
     permission_assignments: tuple[ProjectOSPermissionAssignment, ...] = ()
     permission_revocations: tuple[ProjectOSPermissionRevocation, ...] = ()
     project_roles: tuple[ProjectOSUserProjectRole, ...] = ()
+    role_assignment_terminations: tuple[ProjectOSProjectRoleAssignmentTermination, ...] = ()
     activations: tuple[ProjectOSProjectRoleActivation, ...] = ()
     deactivations: tuple[ProjectOSProjectRoleDeactivation, ...] = ()
     approval_requests: tuple[ProjectOSRoleActionApprovalRequest, ...] = ()
@@ -60,6 +62,7 @@ class ProjectOSUserManagementState:
         self._validate_unique("assignment_id", self.permission_assignments)
         self._validate_unique("revocation_id", self.permission_revocations)
         self._validate_unique("role_assignment_id", self.project_roles)
+        self._validate_unique("termination_id", self.role_assignment_terminations)
         self._validate_unique("activation_id", self.activations)
         self._validate_unique("deactivation_id", self.deactivations)
         self._validate_unique("action_id", self.approval_requests)
@@ -69,10 +72,14 @@ class ProjectOSUserManagementState:
         revoked_assignment_ids = [item.assignment_id for item in self.permission_revocations]
         if len(revoked_assignment_ids) != len(set(revoked_assignment_ids)):
             raise ValueError("permission assignment already revoked")
+        terminated_role_ids = [item.role_assignment_id for item in self.role_assignment_terminations]
+        if len(terminated_role_ids) != len(set(terminated_role_ids)):
+            raise ValueError("role assignment already terminated")
 
         user_ids = {item.user_id for item in self.users}
         assignments = {item.assignment_id: item for item in self.permission_assignments}
-        role_ids = {item.role_assignment_id for item in self.project_roles}
+        roles = {item.role_assignment_id: item for item in self.project_roles}
+        role_ids = set(roles)
         activation_ids = {item.activation_id for item in self.activations}
         action_ids = {item.action_id for item in self.approval_requests}
 
@@ -98,6 +105,20 @@ class ProjectOSUserManagementState:
                 raise ValueError("permission revocation user does not match assignment")
             if item.scope != assignment.scope:
                 raise ValueError("permission revocation scope does not match assignment")
+        for item in self.role_assignment_terminations:
+            role = roles.get(item.role_assignment_id)
+            if role is None:
+                raise ValueError("role assignment termination references unknown role_assignment_id")
+            if item.project_id != project_id:
+                raise ValueError("role assignment termination belongs to another project")
+            if item.user_id not in user_ids:
+                raise ValueError("role assignment termination references unknown user_id")
+            if item.ended_by_user_id not in user_ids:
+                raise ValueError("role assignment termination references unknown ended_by_user_id")
+            if item.user_id != role.user_id:
+                raise ValueError("role assignment termination user does not match role")
+            if item.scope != role.scope:
+                raise ValueError("role assignment termination scope does not match role")
         for item in self.activations:
             if item.project_id != project_id:
                 raise ValueError("activation belongs to another project")
@@ -142,6 +163,7 @@ class ProjectOSUserManagementState:
             "permission_assignments": [item.as_dict() for item in self.permission_assignments],
             "permission_revocations": [item.as_dict() for item in self.permission_revocations],
             "project_roles": [item.as_dict() for item in self.project_roles],
+            "role_assignment_terminations": [item.as_dict() for item in self.role_assignment_terminations],
             "activations": [item.as_dict() for item in self.activations],
             "deactivations": [item.as_dict() for item in self.deactivations],
             "approval_requests": [item.as_dict() for item in self.approval_requests],
@@ -173,6 +195,7 @@ class ProjectOSUserManagementState:
         permissions = tuple(ProjectOSPermissionAssignment(**item) for item in rows("permission_assignments"))
         revocations = tuple(ProjectOSPermissionRevocation(**item) for item in rows("permission_revocations")) if version >= 2 else ()
         project_roles = tuple(ProjectOSUserProjectRole(**item) for item in rows("project_roles"))
+        role_terminations = tuple(ProjectOSProjectRoleAssignmentTermination(**item) for item in rows("role_assignment_terminations")) if version >= 2 else ()
         activations = tuple(ProjectOSProjectRoleActivation(**item) for item in rows("activations"))
         deactivations = tuple(ProjectOSProjectRoleDeactivation(**item) for item in rows("deactivations"))
         requests = tuple(ProjectOSRoleActionApprovalRequest(
@@ -185,6 +208,7 @@ class ProjectOSUserManagementState:
         reviews = tuple(ProjectOSRoleEmergencyPostReview(**item) for item in rows("post_reviews"))
         return cls(
             project_id=data["project_id"], users=users, permission_assignments=permissions,
-            permission_revocations=revocations, project_roles=project_roles, activations=activations,
+            permission_revocations=revocations, project_roles=project_roles,
+            role_assignment_terminations=role_terminations, activations=activations,
             deactivations=deactivations, approval_requests=requests, approvals=approvals, post_reviews=reviews,
         )
