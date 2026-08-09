@@ -3,7 +3,8 @@
 
 Unterstützt Rechtecke, Polylinien und Pins. Bei Bibliotheken mit mehreren
 Top-Level-Symbolen wird jede Vorschau ausschließlich aus dem zugehörigen
-Symbolblock erzeugt. Die Quelldateien werden nicht verändert.
+Symbolblock erzeugt. Die Vorschaugeometrie wird automatisch mit Sicherheitsrand
+in die feste SVG-Fläche eingepasst. Die Quelldateien werden nicht verändert.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from html import escape
+from math import cos, radians, sin
 from pathlib import Path
 import re
 import sys
@@ -30,6 +32,12 @@ PIN_RE = re.compile(
 )
 POLYLINE_START_RE = re.compile(r'\(polyline\b')
 POINT_RE = re.compile(r'\(xy\s+(-?[\d.]+)\s+(-?[\d.]+)\)')
+
+PREVIEW_CENTER_X = 120.0
+PREVIEW_CENTER_Y = 78.0
+PREVIEW_MAX_SCALE = 12.0
+PREVIEW_USABLE_WIDTH = 198.0
+PREVIEW_USABLE_HEIGHT = 122.0
 
 
 @dataclass(frozen=True)
@@ -111,8 +119,60 @@ def parse_polylines(text: str) -> list[Polyline]:
     return result
 
 
-def _point(x: float, y: float, scale: float = 12.0) -> tuple[float, float]:
-    return 120 + x * scale, 90 - y * scale
+def _pin_endpoint(pin: Pin) -> tuple[float, float]:
+    angle = radians(pin.angle)
+    return (
+        pin.x + pin.length * cos(angle),
+        pin.y + pin.length * sin(angle),
+    )
+
+
+def _logical_points(
+    rectangles: list[Rectangle],
+    pins: list[Pin],
+    polylines: list[Polyline],
+) -> list[tuple[float, float]]:
+    points: list[tuple[float, float]] = []
+    for item in rectangles:
+        points.extend(((item.x1, item.y1), (item.x2, item.y2)))
+    for item in polylines:
+        points.extend(item.points)
+    for item in pins:
+        points.extend(((item.x, item.y), _pin_endpoint(item)))
+    return points
+
+
+def _preview_projector(
+    rectangles: list[Rectangle],
+    pins: list[Pin],
+    polylines: list[Polyline],
+):
+    """Erzeugt eine Projektion, die die komplette Symbolgeometrie sicher einpasst."""
+    points = _logical_points(rectangles, pins, polylines)
+    if not points:
+        return lambda x, y: (PREVIEW_CENTER_X + x, PREVIEW_CENTER_Y - y)
+
+    xs = [point[0] for point in points]
+    ys = [point[1] for point in points]
+    minimum_x, maximum_x = min(xs), max(xs)
+    minimum_y, maximum_y = min(ys), max(ys)
+    width = max(maximum_x - minimum_x, 1.0)
+    height = max(maximum_y - minimum_y, 1.0)
+    scale = min(
+        PREVIEW_MAX_SCALE,
+        PREVIEW_USABLE_WIDTH / width,
+        PREVIEW_USABLE_HEIGHT / height,
+    )
+    center_x = (minimum_x + maximum_x) / 2.0
+    center_y = (minimum_y + maximum_y) / 2.0
+
+    def project(x: float, y: float) -> tuple[float, float]:
+        return (
+            PREVIEW_CENTER_X + (x - center_x) * scale,
+            PREVIEW_CENTER_Y - (y - center_y) * scale,
+        )
+
+    return project
 
 
 def render_svg(
@@ -122,17 +182,19 @@ def render_svg(
     pins: list[Pin],
     polylines: list[Polyline] | None = None,
 ) -> str:
+    source_polylines = polylines or []
+    project = _preview_projector(rectangles, pins, source_polylines)
     shapes: list[str] = []
     for item in rectangles:
-        x1, y1 = _point(item.x1, item.y1)
-        x2, y2 = _point(item.x2, item.y2)
+        x1, y1 = project(item.x1, item.y1)
+        x2, y2 = project(item.x2, item.y2)
         shapes.append(
             f'<rect x="{min(x1, x2):.2f}" y="{min(y1, y2):.2f}" '
             f'width="{abs(x2-x1):.2f}" height="{abs(y2-y1):.2f}" '
             'fill="none" stroke="currentColor" stroke-width="2"/>'
         )
-    for item in polylines or []:
-        points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (_point(x, y) for x, y in item.points))
+    for item in source_polylines:
+        points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (project(x, y) for x, y in item.points))
         tag = "polygon" if item.filled else "polyline"
         fill = "currentColor" if item.filled else "none"
         shapes.append(
@@ -140,17 +202,16 @@ def render_svg(
             'stroke-linejoin="round" stroke-linecap="round"/>'
         )
     for item in pins:
-        x1, y1 = _point(item.x, item.y)
-        radians = item.angle * 3.141592653589793 / 180.0
-        x2 = x1 + item.length * 12.0 * __import__("math").cos(radians)
-        y2 = y1 - item.length * 12.0 * __import__("math").sin(radians)
+        x1, y1 = project(item.x, item.y)
+        endpoint_x, endpoint_y = _pin_endpoint(item)
+        x2, y2 = project(endpoint_x, endpoint_y)
         shapes.append(
             f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
             'stroke="currentColor" stroke-width="2"/>'
         )
 
     if not shapes:
-        shapes.append('<text x="120" y="90" text-anchor="middle" font-size="13">Keine unterstützte Grafik</text>')
+        shapes.append('<text x="120" y="78" text-anchor="middle" font-size="13">Keine unterstützte Grafik</text>')
 
     return "\n".join([
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">',
