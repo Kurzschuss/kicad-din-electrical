@@ -54,7 +54,7 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
     assert ((5.08, 5.08), (5.08, 3.81)) in points
     assert ((1.27, 3.81), (5.08, -3.81)) in points
     assert ((5.08, -3.81), (5.08, -5.08)) in points
-    assert ((-5.08, 1.27), (-5.08, -2.54)) in points
+    assert ((-5.08, 0.0), (-5.08, -2.54)) in points
     assert (
         (-5.08, -1.27),
         (-3.81, -1.27),
@@ -64,7 +64,17 @@ def test_mcb_1p_matches_reference_contact_trip_and_lower_terminal_shape():
     ) in points
 
 
-def test_mcb_1p_trip_arrow_is_rotated_and_keeps_clearance():
+def test_mcb_1p_left_end_stop_is_centered_on_horizontal_trip_line():
+    block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
+    points = {polyline.points for polyline in parse_polylines(block)}
+    end_stop = ((-5.08, 0.0), (-5.08, -2.54))
+
+    assert end_stop in points
+    midpoint_y = (end_stop[0][1] + end_stop[1][1]) / 2.0
+    assert midpoint_y == pytest.approx(-1.27)
+
+
+def test_mcb_1p_trip_arrow_is_rotated_shorter_and_keeps_clearance():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB"]
     polylines = parse_polylines(block)
     points = {polyline.points for polyline in polylines}
@@ -74,9 +84,11 @@ def test_mcb_1p_trip_arrow_is_rotated_and_keeps_clearance():
         (-1.033, -0.712),
         (-2.788, -0.506),
     )
+    shaft = ((-1.27, 0.0), (1.27, 1.27))
 
     assert arrowhead in points
-    assert ((-1.27, 0.0), (2.54, 1.27)) in points
+    assert shaft in points
+    assert shaft[1][0] - shaft[0][0] == pytest.approx(2.54)
     # Die hintere Kante darf nicht senkrecht stehen; der komplette Kopf ist gedreht.
     assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
     # Unterkante der Pfeilspitze bleibt sichtbar oberhalb der Betätigungslinie y=-1.27.
@@ -105,7 +117,7 @@ def test_mcb_3p_reuses_full_1p_reference_shape_on_first_pole():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     points = {polyline.points for polyline in parse_polylines(block)}
 
-    assert ((-5.08, 1.27), (-5.08, -2.54)) in points
+    assert ((-5.08, 0.0), (-5.08, -2.54)) in points
     assert (
         (-5.08, -1.27),
         (-3.81, -1.27),
@@ -120,7 +132,7 @@ def test_mcb_3p_reuses_full_1p_reference_shape_on_first_pole():
         assert ((terminal_x, -3.81), (terminal_x, -5.08)) in points
 
 
-def test_mcb_3p_trip_arrows_are_rotated_long_and_clear():
+def test_mcb_3p_trip_arrows_are_rotated_shorter_and_clear():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     polylines = parse_polylines(block)
     points = {polyline.points for polyline in polylines}
@@ -131,9 +143,9 @@ def test_mcb_3p_trip_arrows_are_rotated_long_and_clear():
         ((12.452, -0.506), (13.733, 0.712), (14.207, -0.712), (12.452, -0.506)),
     )
     shafts = (
-        ((-1.27, 0.0), (2.54, 1.27)),
-        ((6.35, 0.0), (10.16, 1.27)),
-        ((13.97, 0.0), (17.78, 1.27)),
+        ((-1.27, 0.0), (1.27, 1.27)),
+        ((6.35, 0.0), (8.89, 1.27)),
+        ((13.97, 0.0), (16.51, 1.27)),
     )
 
     for arrowhead, shaft in zip(arrowheads, shafts):
@@ -141,7 +153,7 @@ def test_mcb_3p_trip_arrows_are_rotated_long_and_clear():
         assert shaft in points
         assert arrowhead[1][0] != pytest.approx(arrowhead[2][0])
         assert min(y for _, y in arrowhead) - (-1.27) > 0.5
-        assert shaft[1][0] - shaft[0][0] == pytest.approx(3.81)
+        assert shaft[1][0] - shaft[0][0] == pytest.approx(2.54)
 
 
 def test_mcb_3p_coupling_marks_are_one_short_solid_line_per_gap():
