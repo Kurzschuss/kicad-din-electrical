@@ -85,18 +85,30 @@ class ProjectOSUserManagementChangeTraceEmitter:
         return before.get(row[id_field]), row
 
     @staticmethod
-    def _command_context(event: dict[str, Any]) -> dict[str, str | None] | None:
+    def _command_context(event: dict[str, Any]) -> dict[str, Any] | None:
         raw = event.get("command_context")
         if raw is None:
             return None
         if not isinstance(raw, dict):
             raise ValueError("command_context must be an object")
         causation_id = raw.get("causation_id")
+        related_command_id = raw.get("related_command_id")
+        history_action = str(raw.get("history_action", "command")).strip().lower()
+        if history_action not in {"command", "undo", "redo"}:
+            raise ValueError(f"unsupported history_action: {history_action}")
+        if history_action in {"undo", "redo"} and related_command_id is None:
+            raise ValueError(f"{history_action} requires related_command_id")
+        if history_action == "command" and related_command_id is not None:
+            raise ValueError("command history_action must not define related_command_id")
         return {
             "command_id": _uuid(raw.get("command_id"), "command_id"),
             "actor_user_id": _uuid(raw.get("actor_user_id"), "actor_user_id"),
             "correlation_id": _uuid(raw.get("correlation_id"), "correlation_id"),
             "causation_id": _uuid(causation_id, "causation_id") if causation_id is not None else None,
+            "history_action": history_action,
+            "related_command_id": (
+                _uuid(related_command_id, "related_command_id") if related_command_id is not None else None
+            ),
         }
 
     def _change_context(
@@ -169,6 +181,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
             correlation_id = self.correlation_id
             causation_id = self._last_message_by_correlation.get(correlation_id)
             actor_source = "domain"
+            history_action = "command"
+            related_command_id = None
         else:
             if command_context["command_id"] != command_id:
                 raise ValueError("command_context command_id does not match change event")
@@ -176,12 +190,16 @@ class ProjectOSUserManagementChangeTraceEmitter:
             correlation_id = str(command_context["correlation_id"])
             causation_id = command_context["causation_id"] or self._last_message_by_correlation.get(correlation_id)
             actor_source = "command_context"
+            history_action = str(command_context["history_action"])
+            related_command_id = command_context["related_command_id"]
 
         payload = {
             "command_id": command_id,
             "operation": operation,
             "actor_user_id": actor_user_id,
             "actor_source": actor_source,
+            "history_action": history_action,
+            "related_command_id": related_command_id,
             "reference": reference,
             "dirty": bool(event.get("dirty")),
             "domain": domain_payload,
@@ -219,6 +237,8 @@ class ProjectOSUserManagementChangeTraceEmitter:
                 reference=reference,
                 recorded_at=message.timestamp,
                 reversible=reversible,
+                history_action=history_action,
+                related_command_id=related_command_id,
                 before_values=before_values,
                 after_values=after_values,
                 message_id=message.message_id,
