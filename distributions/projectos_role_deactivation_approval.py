@@ -1,17 +1,19 @@
 """Freigabegesteuerte Wirksamkeit von Projektfunktions-Beendigungen.
 
-Kritische Aktivierungs-Beendigungen wirken fail-closed. Eine separat beendete
-Rollenzuweisung bleibt davon unabhängig und beendet ihre Rechtewirkung zeitabhängig.
+Kritische Aktivierungs-Beendigungen wirken fail-closed. Administrative
+Rollenzuweisungs-Beendigungen werden separat über ihren eigenen Approval-Vertrag
+wirksam und dürfen nicht roh als bereits beendet interpretiert werden.
 """
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
 from .projectos_role_approval import ProjectOSRoleActionApproval, ProjectOSRoleActionApprovalEvaluator, ProjectOSRoleActionApprovalRequest
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
+from .projectos_role_assignment_termination_approval import ProjectOSApprovedRoleAssignmentTerminationEvaluator
 from .projectos_role_deactivation import ProjectOSProjectRoleDeactivation, ProjectOSProjectRoleLifecycleEvaluator
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
@@ -28,6 +30,7 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         approval_requests: Iterable[ProjectOSRoleActionApprovalRequest] | None = None,
         approvals: Iterable[ProjectOSRoleActionApproval] | None = None,
+        role_risk_class_map: Mapping[str, str] | None = None,
     ) -> None:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
@@ -35,6 +38,11 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
         self.role_terminations = tuple(role_terminations or ())
         self.approval_requests = tuple(approval_requests or ())
         self.approvals = tuple(approvals or ())
+        self.role_risk_class_map = {
+            str(role).strip(): str(risk).strip().lower()
+            for role, risk in (role_risk_class_map or {}).items()
+            if str(role).strip()
+        }
         deactivation_ids = {item.deactivation_id for item in self.deactivations}
         seen_targets: set[str] = set()
         for request in self.approval_requests:
@@ -69,6 +77,23 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
             raise ValueError("deactivation risk_class does not match approval request")
         return ProjectOSRoleActionApprovalEvaluator(self.approvals).evaluate(request)
 
+    def _termination_state(
+        self,
+        *,
+        project_id: str,
+        user: ProjectOSUserProfile,
+        scope: str,
+        at: datetime,
+    ) -> dict[str, Any]:
+        evaluator = ProjectOSApprovedRoleAssignmentTerminationEvaluator(
+            roles=self.roles,
+            terminations=self.role_terminations,
+            approval_requests=self.approval_requests,
+            approvals=self.approvals,
+            risk_class_map=self.role_risk_class_map,
+        )
+        return evaluator.state(project_id=project_id, user=user, scope=scope, at=at)
+
     def state(
         self,
         *,
@@ -96,17 +121,32 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
                     pending_post_reviews.append(item.deactivation_id)
             else:
                 blocked_deactivations.append({"deactivation": item.as_dict(), "approval": approval})
+
+        termination_state = self._termination_state(
+            project_id=project_id,
+            user=user,
+            scope=scope,
+            at=current,
+        )
+        effective_termination_ids = {
+            item["termination_id"] for item in termination_state["effective_terminations"]
+        }
+        effective_terminations = [
+            item for item in self.role_terminations
+            if item.termination_id in effective_termination_ids
+        ]
         lifecycle = ProjectOSProjectRoleLifecycleEvaluator(
             roles=self.roles,
             activations=self.activations,
             deactivations=effective_deactivations,
-            role_terminations=self.role_terminations,
+            role_terminations=effective_terminations,
         )
         state = lifecycle.state(project_id=project_id, user=user, scope=scope, at=current)
         state.update({
             "approval_states": approval_states,
             "blocked_deactivations": blocked_deactivations,
             "pending_post_reviews": pending_post_reviews,
+            "role_assignment_termination_approvals": termination_state,
             "risk_class": risk_class,
             "read_only": True,
         })
@@ -129,11 +169,19 @@ class ProjectOSApprovedRoleDeactivationEvaluator:
             for item in state["approval_states"] if item["approval"]["effective"]
         }
         effective_deactivations = [item for item in self.deactivations if item.deactivation_id in effective_deactivation_ids]
+        effective_termination_ids = {
+            item["termination_id"]
+            for item in state["role_assignment_termination_approvals"]["effective_terminations"]
+        }
+        effective_terminations = [
+            item for item in self.role_terminations
+            if item.termination_id in effective_termination_ids
+        ]
         return ProjectOSProjectRoleLifecycleEvaluator(
             roles=self.roles,
             activations=self.activations,
             deactivations=effective_deactivations,
-            role_terminations=self.role_terminations,
+            role_terminations=effective_terminations,
         ).permission_assignments(
             project_id=project_id,
             user=user,
