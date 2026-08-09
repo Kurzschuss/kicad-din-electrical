@@ -5,6 +5,7 @@ import pytest
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_user_management_change_service import ProjectOSUserManagementChangeService
 from .projectos_user_management_change_trace import ProjectOSUserManagementChangeTraceEmitter
+from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 
 
 def _service():
@@ -47,6 +48,7 @@ def test_successful_changes_emit_correlated_bus_and_audit_chain():
     assert weight_trace.reference == first.user_id
     assert weight_trace.actor_user_id == first.user_id
     assert weight_trace.message.payload["domain"]["weight"] == 350
+    assert weight_trace.message.payload["actor_source"] == "domain"
 
     role_trace = emitter.traces[3]
     assert role_trace.reference == role.role_assignment_id
@@ -64,6 +66,84 @@ def test_successful_changes_emit_correlated_bus_and_audit_chain():
         assert trace.audit_entry["correlation_id"] == correlation_id
         assert trace.audit_entry["reference"] == trace.reference
         assert trace.audit_entry["action"] == trace.operation
+
+
+def test_explicit_command_context_overrides_derived_actor_and_correlation():
+    manager, emitter, service, default_correlation_id = _service()
+    administrator = service.create_user("Administrator")
+    target = service.create_user("Zielbenutzer")
+    correlation_id = str(uuid4())
+    context = ProjectOSUserManagementCommandContext(
+        actor_user_id=administrator.user_id,
+        correlation_id=correlation_id,
+    )
+
+    service.change_user_weight(target.user_id, 425, command_context=context)
+    first_context_message = emitter.messages[-1]
+    first_context_trace = emitter.traces[-1]
+
+    assignment = service.command_assign_permission(
+        user_id=target.user_id,
+        permission="project.release",
+        source_type="direct",
+        effect="allow",
+        source_reference="admin:test",
+        command_context=context,
+    )
+    second_context_message = emitter.messages[-1]
+    second_context_trace = emitter.traces[-1]
+
+    assert default_correlation_id != correlation_id
+    assert first_context_trace.reference == target.user_id
+    assert first_context_trace.actor_user_id == administrator.user_id
+    assert first_context_message.correlation_id == correlation_id
+    assert first_context_message.causation_id is None
+    assert first_context_message.payload["actor_source"] == "command_context"
+    assert first_context_trace.audit_entry["correlation_id"] == correlation_id
+    assert first_context_trace.audit_entry["value"] == administrator.user_id
+
+    assert second_context_trace.reference == assignment.assignment_id
+    assert second_context_trace.actor_user_id == administrator.user_id
+    assert second_context_message.correlation_id == correlation_id
+    assert second_context_message.causation_id == first_context_message.message_id
+    assert second_context_trace.audit_entry["correlation_id"] == correlation_id
+
+
+def test_explicit_command_context_can_set_initial_causation_id():
+    manager, emitter, service, _ = _service()
+    administrator = service.create_user("Administrator")
+    target = service.create_user("Zielbenutzer")
+    correlation_id = str(uuid4())
+    causation_id = str(uuid4())
+    context = ProjectOSUserManagementCommandContext(
+        actor_user_id=administrator.user_id,
+        correlation_id=correlation_id,
+        causation_id=causation_id,
+    )
+
+    service.change_user_weight(target.user_id, 510, command_context=context)
+
+    trace = emitter.traces[-1]
+    assert trace.message.correlation_id == correlation_id
+    assert trace.message.causation_id == causation_id
+    assert trace.audit_entry["causation_id"] == causation_id
+
+
+def test_command_context_rejects_invalid_identifiers_before_mutation():
+    manager, emitter, service, _ = _service()
+    user = service.create_user("Benutzer")
+    before = manager.user_management.as_dict()
+    trace_count = len(emitter.traces)
+
+    with pytest.raises(ValueError, match="actor_user_id must be a UUID"):
+        ProjectOSUserManagementCommandContext(
+            actor_user_id="administrator",
+            correlation_id=str(uuid4()),
+        )
+
+    assert manager.user_management.as_dict() == before
+    assert len(emitter.traces) == trace_count
+    assert user.user_id == manager.user_management.users[0].user_id
 
 
 def test_failed_command_emits_no_message_or_audit_and_keeps_trace_snapshot_clean():
