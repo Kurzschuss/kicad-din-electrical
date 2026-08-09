@@ -150,7 +150,7 @@ def test_missing_permission_undo_right_denies_without_side_effects():
     trace_count = len(runtime.emitter.traces)
     history_count = len(runtime.emitter.command_history.all())
 
-    with pytest.raises(PermissionError, match="undo:permission_revoked \(not_granted\)"):
+    with pytest.raises(PermissionError, match=r"undo:permission_revoked \(not_granted\)"):
         runtime.undo_redo.undo_latest(actor_user_id=actor.user_id)
 
     assert manager.user_management.as_dict() == before
