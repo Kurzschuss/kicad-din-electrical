@@ -9,6 +9,9 @@ from .projectos_project_memory import ProjectOSProjectMemory
 from .projectos_role_post_review_trace import ProjectOSRolePostReviewTrace
 from .z_cockpit_diagnostics_worklist import ZCockpitDiagnosticsWorklistView
 from .z_cockpit_project_correlation import ZCockpitProjectCorrelationView
+from .z_cockpit_user_management_command_diagnostics import (
+    ZCockpitUserManagementCommandDiagnosticsView,
+)
 from .z_cockpit_user_management_consistency import ZCockpitUserManagementConsistencyView
 from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersistenceView
 
@@ -16,11 +19,21 @@ from .z_cockpit_user_management_persistence import ZCockpitUserManagementPersist
 class ZCockpitProjectLeadOverview:
     """Bündelt Projektzustand, Recovery, Persistenz, Konsistenz und Diagnose rein lesend."""
 
-    def __init__(self, manager: DinEditorProjectManager, messages: Iterable[ProjectOSMessageEnvelope] | None = None, memory: ProjectOSProjectMemory | None = None, post_review_traces: Iterable[ProjectOSRolePostReviewTrace] | None = None) -> None:
+    def __init__(
+        self,
+        manager: DinEditorProjectManager,
+        messages: Iterable[ProjectOSMessageEnvelope] | None = None,
+        memory: ProjectOSProjectMemory | None = None,
+        post_review_traces: Iterable[ProjectOSRolePostReviewTrace] | None = None,
+        user_management_runtime=None,
+    ) -> None:
         self.manager = manager
         self._messages = tuple(messages or ())
         self._memory = memory
         self._post_review_traces = tuple(post_review_traces or ())
+        self._user_management_runtime = user_management_runtime
+        if user_management_runtime is not None and user_management_runtime.manager is not manager:
+            raise ValueError("user management runtime is not bound to this project manager")
         self._correlation_view = ZCockpitProjectCorrelationView(manager, messages=self._messages, memory=memory)
 
     def state(self, *, correlation_id: str | None = None) -> dict[str, Any]:
@@ -29,6 +42,25 @@ class ZCockpitProjectLeadOverview:
         audit = correlation["audit"]
         persistence = ZCockpitUserManagementPersistenceView(self.manager).state()
         user_consistency = ZCockpitUserManagementConsistencyView(self.manager).state()
+
+        command_diagnostics = {
+            "available": False,
+            "traffic_light": "green",
+            "attention_required": False,
+            "can_undo": False,
+            "can_redo": False,
+            "last_decision": None,
+            "required_permission": None,
+            "authorization_evidence_count": 0,
+            "read_only": True,
+            "persisted": False,
+            "note": "Keine produktive Benutzerverwaltungs-Runtime für Command-Diagnostik gebunden.",
+        }
+        if self._user_management_runtime is not None:
+            command_diagnostics = ZCockpitUserManagementCommandDiagnosticsView(
+                self._user_management_runtime
+            ).state()
+            command_diagnostics["available"] = True
 
         diagnostics = {
             "available": self._memory is not None,
@@ -42,7 +74,11 @@ class ZCockpitProjectLeadOverview:
         if self._memory is not None:
             message_ids = {m.message_id for m in self._messages if m.project_id == self.manager.project_id}
             correlation_ids = {m.correlation_id for m in self._messages if m.project_id == self.manager.project_id}
-            worklist = ZCockpitDiagnosticsWorklistView(self._memory, known_message_ids=message_ids, known_correlation_ids=correlation_ids).state(correlation_id=correlation_id, role="project_lead")
+            worklist = ZCockpitDiagnosticsWorklistView(
+                self._memory,
+                known_message_ids=message_ids,
+                known_correlation_ids=correlation_ids,
+            ).state(correlation_id=correlation_id, role="project_lead")
             diagnostics = {
                 "available": True,
                 "traffic_light": worklist["traffic_light"],
@@ -54,7 +90,12 @@ class ZCockpitProjectLeadOverview:
                 "note": worklist["note"],
             }
 
-        review_states = [trace.post_review_state for trace in self._post_review_traces if trace.post_review_state.get("request", {}).get("project_id") == self.manager.project_id and (correlation_id is None or trace.correlation_id == correlation_id)]
+        review_states = [
+            trace.post_review_state
+            for trace in self._post_review_traces
+            if trace.post_review_state.get("request", {}).get("project_id") == self.manager.project_id
+            and (correlation_id is None or trace.correlation_id == correlation_id)
+        ]
         post_reviews = {
             "open_count": sum(1 for item in review_states if item.get("status") == "pending"),
             "confirmed_count": sum(1 for item in review_states if item.get("status") == "completed_confirmed"),
@@ -67,10 +108,18 @@ class ZCockpitProjectLeadOverview:
         recovery_attention = bool(recovery.get("available") and recovery.get("valid") is False)
         migration_attention = bool(persistence["migration_pending"])
         post_review_red = post_reviews["open_count"] > 0 or post_reviews["escalated_count"] > 0
+        command_attention = bool(command_diagnostics["attention_required"])
 
         if diagnostics["traffic_light"] == "red" or post_review_red or user_consistency["traffic_light"] == "red":
             traffic_light = "red"
-        elif diagnostics["traffic_light"] == "yellow" or user_consistency["traffic_light"] == "yellow" or audit_attention or recovery_attention or migration_attention:
+        elif (
+            diagnostics["traffic_light"] == "yellow"
+            or user_consistency["traffic_light"] == "yellow"
+            or audit_attention
+            or recovery_attention
+            or migration_attention
+            or command_attention
+        ):
             traffic_light = "yellow"
         else:
             traffic_light = "green"
@@ -96,6 +145,10 @@ class ZCockpitProjectLeadOverview:
             attention_reasons.append("Vorhandene Recovery ist nicht verwendbar.")
         if migration_attention:
             attention_reasons.append(f"Projektbundle benötigt Migration auf Version {persistence['migration_target_version']}.")
+        if command_attention:
+            attention_reasons.append(
+                "Der letzte Benutzerverwaltungs-Command wurde durch die Autorisierung abgewiesen."
+            )
 
         return {
             "project": correlation["project"],
@@ -112,6 +165,10 @@ class ZCockpitProjectLeadOverview:
                 "user_management_consistency_issue_count": user_consistency["issue_count"],
                 "user_management_consistency_red_count": user_consistency["red_count"],
                 "user_management_consistency_yellow_count": user_consistency["yellow_count"],
+                "user_management_command_last_decision": command_diagnostics["last_decision"],
+                "user_management_command_can_undo": command_diagnostics["can_undo"],
+                "user_management_command_can_redo": command_diagnostics["can_redo"],
+                "user_management_authorization_evidence_count": command_diagnostics["authorization_evidence_count"],
                 "post_review_open_count": post_reviews["open_count"],
                 "post_review_confirmed_count": post_reviews["confirmed_count"],
                 "post_review_escalated_count": post_reviews["escalated_count"],
@@ -124,6 +181,7 @@ class ZCockpitProjectLeadOverview:
             },
             "diagnostics": diagnostics,
             "user_management_consistency": user_consistency,
+            "user_management_commands": command_diagnostics,
             "post_reviews": post_reviews,
             "persistence": persistence,
             "audit": audit,
