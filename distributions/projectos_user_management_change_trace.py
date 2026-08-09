@@ -1,10 +1,4 @@
-"""Korrelierter Bus-/Audit-Nachweis erfolgreicher Benutzerverwaltungsänderungen.
-
-Der Adapter ist als on_change-Hook für ProjectOSUserManagementChangeService gedacht.
-Er entscheidet keine Fachmutation selbst, sondern beschreibt ausschließlich den bereits
-atomar übernommenen Zustand. Fehlgeschlagene Commands rufen den Hook nicht auf und
-erzeugen damit weder Bus- noch Audit-Nachweis.
-"""
+"""Korrelierter Bus-/Audit-Nachweis erfolgreicher Benutzerverwaltungsänderungen."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,10 +7,7 @@ from uuid import UUID, uuid4
 
 from .din_editor_sync_log import DinSyncLog
 from .projectos_message_envelope import ProjectOSMessageEnvelope
-from .projectos_user_management_command_history import (
-    ProjectOSUserManagementCommandHistory,
-    ProjectOSUserManagementCommandRecord,
-)
+from .projectos_user_management_command_history import ProjectOSUserManagementCommandHistory, ProjectOSUserManagementCommandRecord
 
 
 def _uuid(value: str, field_name: str) -> str:
@@ -37,28 +28,16 @@ class ProjectOSUserManagementChangeTrace:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "command_id": self.command_id,
-            "operation": self.operation,
-            "actor_user_id": self.actor_user_id,
-            "reference": self.reference,
-            "message": self.message.as_dict(),
-            "audit_entry": dict(self.audit_entry),
+            "command_id": self.command_id, "operation": self.operation,
+            "actor_user_id": self.actor_user_id, "reference": self.reference,
+            "message": self.message.as_dict(), "audit_entry": dict(self.audit_entry),
             "read_only_evidence": True,
         }
 
 
 class ProjectOSUserManagementChangeTraceEmitter:
-    """Callable Hook, der erfolgreiche Änderungen korreliert auf Bus/Audit abbildet."""
-
-    def __init__(
-        self,
-        manager,
-        *,
-        audit_log: DinSyncLog | None = None,
-        correlation_id: str | None = None,
-        causation_id: str | None = None,
-        command_history: ProjectOSUserManagementCommandHistory | None = None,
-    ) -> None:
+    def __init__(self, manager, *, audit_log: DinSyncLog | None = None, correlation_id: str | None = None,
+                 causation_id: str | None = None, command_history: ProjectOSUserManagementCommandHistory | None = None) -> None:
         self.manager = manager
         self._uses_manager_audit_log = audit_log is None
         self.audit_log = audit_log or manager.sync_log
@@ -78,13 +57,10 @@ class ProjectOSUserManagementChangeTraceEmitter:
         current_generation = self.manager.user_management_runtime_generation
         if current_generation == self._runtime_generation:
             return
-        self.command_history.clear()
-        self.messages.clear()
-        self.traces.clear()
+        self.command_history.clear(); self.messages.clear(); self.traces.clear()
         self._previous_state = self.manager.user_management.as_dict()
         self._last_message_by_correlation.clear()
-        self.correlation_id = str(uuid4())
-        self.causation_id = None
+        self.correlation_id = str(uuid4()); self.causation_id = None
         if self._uses_manager_audit_log:
             self.audit_log = self.manager.sync_log
         self._runtime_generation = current_generation
@@ -101,19 +77,13 @@ class ProjectOSUserManagementChangeTraceEmitter:
     @staticmethod
     def _command_context(event: dict[str, Any]) -> dict[str, Any] | None:
         raw = event.get("command_context")
-        if raw is None:
-            return None
-        if not isinstance(raw, dict):
-            raise ValueError("command_context must be an object")
-        causation_id = raw.get("causation_id")
-        related_command_id = raw.get("related_command_id")
+        if raw is None: return None
+        if not isinstance(raw, dict): raise ValueError("command_context must be an object")
+        causation_id = raw.get("causation_id"); related_command_id = raw.get("related_command_id")
         history_action = str(raw.get("history_action", "command")).strip().lower()
-        if history_action not in {"command", "undo", "redo"}:
-            raise ValueError(f"unsupported history_action: {history_action}")
-        if history_action in {"undo", "redo"} and related_command_id is None:
-            raise ValueError(f"{history_action} requires related_command_id")
-        if history_action == "command" and related_command_id is not None:
-            raise ValueError("command history_action must not define related_command_id")
+        if history_action not in {"command", "undo", "redo"}: raise ValueError(f"unsupported history_action: {history_action}")
+        if history_action in {"undo", "redo"} and related_command_id is None: raise ValueError(f"{history_action} requires related_command_id")
+        if history_action == "command" and related_command_id is not None: raise ValueError("command history_action must not define related_command_id")
         return {
             "command_id": _uuid(raw.get("command_id"), "command_id"),
             "actor_user_id": _uuid(raw.get("actor_user_id"), "actor_user_id"),
@@ -124,126 +94,72 @@ class ProjectOSUserManagementChangeTraceEmitter:
         }
 
     def _change_context(self, operation: str) -> tuple[str, str | None, dict[str, Any] | None, dict[str, Any]]:
-        current = self.manager.user_management.as_dict()
-        previous = self._previous_state
+        current = self.manager.user_management.as_dict(); previous = self._previous_state
         mapping = {
-            "user_created": ("users", "user_id"),
-            "user_weight_changed": ("users", "user_id"),
-            "permission_assigned": ("permission_assignments", "assignment_id"),
-            "permission_regranted": ("permission_assignments", "assignment_id"),
+            "user_created": ("users", "user_id"), "user_weight_changed": ("users", "user_id"),
+            "user_deactivated": ("user_deactivations", "deactivation_id"),
+            "permission_assigned": ("permission_assignments", "assignment_id"), "permission_regranted": ("permission_assignments", "assignment_id"),
             "permission_revoked": ("permission_revocations", "revocation_id"),
-            "project_role_assigned": ("project_roles", "role_assignment_id"),
-            "project_role_reassigned": ("project_roles", "role_assignment_id"),
+            "project_role_assigned": ("project_roles", "role_assignment_id"), "project_role_reassigned": ("project_roles", "role_assignment_id"),
             "project_role_assignment_terminated": ("role_assignment_terminations", "termination_id"),
-            "project_role_activated": ("activations", "activation_id"),
-            "project_role_deactivated": ("deactivations", "deactivation_id"),
-            "approval_requested": ("approval_requests", "action_id"),
-            "approval_recorded": ("approvals", "approval_id"),
+            "project_role_activated": ("activations", "activation_id"), "project_role_deactivated": ("deactivations", "deactivation_id"),
+            "approval_requested": ("approval_requests", "action_id"), "approval_recorded": ("approvals", "approval_id"),
             "post_review_completed": ("post_reviews", "review_id"),
         }
-        if operation not in mapping:
-            raise ValueError(f"unsupported user management operation: {operation}")
+        if operation not in mapping: raise ValueError(f"unsupported user management operation: {operation}")
         collection, id_field = mapping[operation]
         previous_row, row = self._changed_rows(previous.get(collection, []), current.get(collection, []), id_field)
         reference = str(row[id_field])
-        if operation in {"user_created", "user_weight_changed"}:
-            actor = row["user_id"]
-        elif operation == "permission_assigned":
-            actor = row.get("delegated_by_user_id") or row["user_id"]
-        elif operation == "permission_regranted":
-            actor = row.get("metadata", {}).get("regranted_by_user_id") or row.get("delegated_by_user_id") or row["user_id"]
-        elif operation == "permission_revoked":
-            actor = row["revoked_by_user_id"]
-        elif operation in {"project_role_assigned", "project_role_reassigned"}:
-            actor = row.get("assigned_by_user_id") or row["user_id"]
-        elif operation == "project_role_assignment_terminated":
-            actor = row["ended_by_user_id"]
-        elif operation in {"project_role_activated", "project_role_deactivated"}:
-            actor = row.get("triggered_by_user_id") or row["user_id"]
-        elif operation == "approval_requested":
-            actor = row["requested_by_user_id"]
-        elif operation == "approval_recorded":
-            actor = row["approver_user_id"]
-        else:
-            actor = row["reviewer_user_id"]
+        if operation in {"user_created", "user_weight_changed"}: actor = row["user_id"]
+        elif operation == "user_deactivated": actor = row["deactivated_by_user_id"]
+        elif operation == "permission_assigned": actor = row.get("delegated_by_user_id") or row["user_id"]
+        elif operation == "permission_regranted": actor = row.get("metadata", {}).get("regranted_by_user_id") or row.get("delegated_by_user_id") or row["user_id"]
+        elif operation == "permission_revoked": actor = row["revoked_by_user_id"]
+        elif operation in {"project_role_assigned", "project_role_reassigned"}: actor = row.get("assigned_by_user_id") or row["user_id"]
+        elif operation == "project_role_assignment_terminated": actor = row["ended_by_user_id"]
+        elif operation in {"project_role_activated", "project_role_deactivated"}: actor = row.get("triggered_by_user_id") or row["user_id"]
+        elif operation == "approval_requested": actor = row["requested_by_user_id"]
+        elif operation == "approval_recorded": actor = row["approver_user_id"]
+        else: actor = row["reviewer_user_id"]
         return reference, actor, previous_row, row
 
     @staticmethod
-    def _history_values(
-        operation: str,
-        history_action: str,
-        previous_row: dict[str, Any] | None,
-        row: dict[str, Any],
-    ) -> tuple[bool, dict[str, Any], dict[str, Any]]:
-        if operation == "user_weight_changed" and previous_row is not None:
-            return True, {"weight": previous_row["weight"]}, {"weight": row["weight"]}
-        if operation in {"permission_assigned", "permission_regranted"}:
-            return True, {}, {"assignment_id": row["assignment_id"]}
-        if operation == "permission_revoked" and history_action == "undo":
-            return True, {"assignment_id": row["assignment_id"]}, {"revocation_id": row["revocation_id"]}
+    def _history_values(operation: str, history_action: str, previous_row: dict[str, Any] | None, row: dict[str, Any]) -> tuple[bool, dict[str, Any], dict[str, Any]]:
+        if operation == "user_weight_changed" and previous_row is not None: return True, {"weight": previous_row["weight"]}, {"weight": row["weight"]}
+        if operation in {"permission_assigned", "permission_regranted"}: return True, {}, {"assignment_id": row["assignment_id"]}
+        if operation == "permission_revoked" and history_action == "undo": return True, {"assignment_id": row["assignment_id"]}, {"revocation_id": row["revocation_id"]}
         return False, {}, {}
 
     def __call__(self, event: dict[str, Any]) -> None:
-        command_id = _uuid(event.get("command_id"), "command_id")
-        operation = str(event.get("operation", "")).strip()
+        command_id = _uuid(event.get("command_id"), "command_id"); operation = str(event.get("operation", "")).strip()
         project_id = _uuid(str(event.get("project_id")), "project_id")
-        if project_id != self.manager.project_id:
-            raise ValueError("change event belongs to another project")
+        if project_id != self.manager.project_id: raise ValueError("change event belongs to another project")
         reference, derived_actor_user_id, previous_domain_payload, domain_payload = self._change_context(operation)
         command_context = self._command_context(event)
         if command_context is None:
-            actor_user_id = derived_actor_user_id
-            correlation_id = self.correlation_id
-            causation_id = self._last_message_by_correlation.get(correlation_id)
-            actor_source = "domain"
-            history_action = "command"
-            related_command_id = None
+            actor_user_id = derived_actor_user_id; correlation_id = self.correlation_id
+            causation_id = self._last_message_by_correlation.get(correlation_id); actor_source = "domain"
+            history_action = "command"; related_command_id = None
         else:
-            if command_context["command_id"] != command_id:
-                raise ValueError("command_context command_id does not match change event")
-            actor_user_id = command_context["actor_user_id"]
-            correlation_id = str(command_context["correlation_id"])
+            if command_context["command_id"] != command_id: raise ValueError("command_context command_id does not match change event")
+            actor_user_id = command_context["actor_user_id"]; correlation_id = str(command_context["correlation_id"])
             causation_id = command_context["causation_id"] or self._last_message_by_correlation.get(correlation_id)
-            actor_source = "command_context"
-            history_action = str(command_context["history_action"])
-            related_command_id = command_context["related_command_id"]
-        payload = {
-            "command_id": command_id,
-            "operation": operation,
-            "actor_user_id": actor_user_id,
-            "actor_source": actor_source,
-            "history_action": history_action,
-            "related_command_id": related_command_id,
-            "reference": reference,
-            "dirty": bool(event.get("dirty")),
-            "domain": domain_payload,
-        }
-        message = ProjectOSMessageEnvelope(
-            message_type="event", name=f"projectos.user_management.{operation}", project_id=project_id,
-            correlation_id=correlation_id, causation_id=causation_id, payload=payload,
-        )
-        audit_entry = self.audit_log.record(
-            reference=reference, source="projectos_user_management", value=actor_user_id or "system",
-            action=operation, project_id=project_id, command_id=command_id,
-            correlation_id=correlation_id, causation_id=causation_id or message.message_id,
-        )
-        reversible, before_values, after_values = self._history_values(
-            operation, history_action, previous_domain_payload, domain_payload
-        )
-        self.command_history.append(ProjectOSUserManagementCommandRecord(
-            command_id=command_id, project_id=project_id, operation=operation, actor_user_id=actor_user_id,
-            correlation_id=correlation_id, causation_id=causation_id, reference=reference,
-            recorded_at=message.timestamp, reversible=reversible, history_action=history_action,
-            related_command_id=related_command_id, before_values=before_values, after_values=after_values,
-            message_id=message.message_id, audit_reference=audit_entry.get("reference"),
-        ))
-        trace = ProjectOSUserManagementChangeTrace(
-            message=message, audit_entry=audit_entry, command_id=command_id,
-            operation=operation, actor_user_id=actor_user_id, reference=reference,
-        )
-        self.messages.append(message)
-        self.traces.append(trace)
-        self._last_message_by_correlation[correlation_id] = message.message_id
-        if correlation_id == self.correlation_id:
-            self.causation_id = message.message_id
+            actor_source = "command_context"; history_action = str(command_context["history_action"]); related_command_id = command_context["related_command_id"]
+        payload = {"command_id": command_id, "operation": operation, "actor_user_id": actor_user_id, "actor_source": actor_source,
+                   "history_action": history_action, "related_command_id": related_command_id, "reference": reference,
+                   "dirty": bool(event.get("dirty")), "domain": domain_payload}
+        message = ProjectOSMessageEnvelope(message_type="event", name=f"projectos.user_management.{operation}", project_id=project_id,
+                                           correlation_id=correlation_id, causation_id=causation_id, payload=payload)
+        audit_entry = self.audit_log.record(reference=reference, source="projectos_user_management", value=actor_user_id or "system",
+                                            action=operation, project_id=project_id, command_id=command_id,
+                                            correlation_id=correlation_id, causation_id=causation_id or message.message_id)
+        reversible, before_values, after_values = self._history_values(operation, history_action, previous_domain_payload, domain_payload)
+        self.command_history.append(ProjectOSUserManagementCommandRecord(command_id=command_id, project_id=project_id, operation=operation,
+            actor_user_id=actor_user_id, correlation_id=correlation_id, causation_id=causation_id, reference=reference,
+            recorded_at=message.timestamp, reversible=reversible, history_action=history_action, related_command_id=related_command_id,
+            before_values=before_values, after_values=after_values, message_id=message.message_id, audit_reference=audit_entry.get("reference")))
+        trace = ProjectOSUserManagementChangeTrace(message=message, audit_entry=audit_entry, command_id=command_id,
+                                                   operation=operation, actor_user_id=actor_user_id, reference=reference)
+        self.messages.append(message); self.traces.append(trace); self._last_message_by_correlation[correlation_id] = message.message_id
+        if correlation_id == self.correlation_id: self.causation_id = message.message_id
         self._previous_state = self.manager.user_management.as_dict()
