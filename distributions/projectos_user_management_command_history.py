@@ -2,7 +2,7 @@
 
 Die Historie ist keine fachliche Wahrheit und wird nicht in Bundle v4 persistiert. Sie
 referenziert erfolgreiche Commands und deren Nachweise, ohne Audit oder Domainzustand zu
-verändern. Undo/Redo wird auf dieser Basis später als neue Fachänderung ausgeführt.
+verändern. Undo/Redo wird auf dieser Basis als neue Fachänderung ausgeführt.
 """
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any, Mapping
 from uuid import UUID
+
+_HISTORY_ACTIONS = {"command", "undo", "redo"}
 
 
 def _uuid(value: str, field_name: str) -> str:
@@ -47,6 +49,8 @@ class ProjectOSUserManagementCommandRecord:
     reference: str
     recorded_at: str
     reversible: bool
+    history_action: str = "command"
+    related_command_id: str | None = None
     before_values: Mapping[str, Any] = field(default_factory=dict)
     after_values: Mapping[str, Any] = field(default_factory=dict)
     message_id: str | None = None
@@ -55,10 +59,13 @@ class ProjectOSUserManagementCommandRecord:
     def __post_init__(self) -> None:
         operation = str(self.operation).strip()
         reference = str(self.reference).strip()
+        history_action = str(self.history_action).strip().lower()
         if not operation:
             raise ValueError("operation must not be empty")
         if not reference:
             raise ValueError("reference must not be empty")
+        if history_action not in _HISTORY_ACTIONS:
+            raise ValueError(f"unsupported history_action: {history_action}")
         object.__setattr__(self, "command_id", _uuid(self.command_id, "command_id"))
         object.__setattr__(self, "project_id", _uuid(self.project_id, "project_id"))
         object.__setattr__(self, "correlation_id", _uuid(self.correlation_id, "correlation_id"))
@@ -68,10 +75,19 @@ class ProjectOSUserManagementCommandRecord:
             object.__setattr__(self, "causation_id", _uuid(self.causation_id, "causation_id"))
         if self.message_id is not None:
             object.__setattr__(self, "message_id", _uuid(self.message_id, "message_id"))
+        related_command_id = self.related_command_id
+        if history_action in {"undo", "redo"}:
+            if related_command_id is None:
+                raise ValueError(f"{history_action} requires related_command_id")
+            related_command_id = _uuid(related_command_id, "related_command_id")
+        elif related_command_id is not None:
+            raise ValueError("command history_action must not define related_command_id")
         object.__setattr__(self, "operation", operation)
         object.__setattr__(self, "reference", reference)
         object.__setattr__(self, "recorded_at", _timestamp(self.recorded_at))
         object.__setattr__(self, "reversible", bool(self.reversible))
+        object.__setattr__(self, "history_action", history_action)
+        object.__setattr__(self, "related_command_id", related_command_id)
         object.__setattr__(self, "before_values", _freeze(self.before_values))
         object.__setattr__(self, "after_values", _freeze(self.after_values))
         if self.audit_reference is not None:
@@ -88,6 +104,8 @@ class ProjectOSUserManagementCommandRecord:
             "reference": self.reference,
             "recorded_at": self.recorded_at,
             "reversible": self.reversible,
+            "history_action": self.history_action,
+            "related_command_id": self.related_command_id,
             "before_values": dict(self.before_values),
             "after_values": dict(self.after_values),
             "message_id": self.message_id,
@@ -98,7 +116,7 @@ class ProjectOSUserManagementCommandRecord:
 
 
 class ProjectOSUserManagementCommandHistory:
-    """Append-only Laufzeithistorie; Lesen verändert weder Historie noch Domainzustand."""
+    """Append-only Laufzeithistorie mit linearer, fail-closed Undo-/Redo-Sicht."""
 
     def __init__(self) -> None:
         self._records: list[ProjectOSUserManagementCommandRecord] = []
@@ -107,6 +125,8 @@ class ProjectOSUserManagementCommandHistory:
     def append(self, record: ProjectOSUserManagementCommandRecord) -> ProjectOSUserManagementCommandRecord:
         if record.command_id in self._command_ids:
             raise ValueError("command_id already recorded")
+        if record.related_command_id is not None and record.related_command_id not in self._command_ids:
+            raise ValueError("related_command_id is not present in command history")
         self._records.append(record)
         self._command_ids.add(record.command_id)
         return record
@@ -121,6 +141,20 @@ class ProjectOSUserManagementCommandHistory:
     def latest(self) -> ProjectOSUserManagementCommandRecord | None:
         return self._records[-1] if self._records else None
 
+    def undo_candidate(self) -> ProjectOSUserManagementCommandRecord | None:
+        latest = self.latest()
+        if latest is None:
+            return None
+        if latest.history_action not in {"command", "redo"}:
+            return None
+        return latest if latest.reversible else None
+
+    def redo_candidate(self) -> ProjectOSUserManagementCommandRecord | None:
+        latest = self.latest()
+        if latest is None or latest.history_action != "undo" or not latest.reversible:
+            return None
+        return latest
+
     def state(self) -> dict[str, Any]:
         latest = self.latest()
         return {
@@ -128,6 +162,8 @@ class ProjectOSUserManagementCommandHistory:
             "latest_command_id": latest.command_id if latest is not None else None,
             "latest_operation": latest.operation if latest is not None else None,
             "latest_reversible": latest.reversible if latest is not None else False,
+            "can_undo": self.undo_candidate() is not None,
+            "can_redo": self.redo_candidate() is not None,
             "persisted": False,
             "read_only": True,
         }
