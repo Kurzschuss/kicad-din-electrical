@@ -2,6 +2,7 @@
 
 Die Benutzergewichtung ist sichtbar und validiert, beeinflusst aber noch keine
 Rechteentscheidung. Explizite DENY-Regeln haben Vorrang vor ALLOW-Regeln.
+Rechtewiderrufe beenden die Wirksamkeit einer Zuweisung, ohne sie historisch zu löschen.
 """
 from __future__ import annotations
 
@@ -9,6 +10,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Iterable
 from uuid import UUID, uuid4
+
+from .projectos_permission_revocation import ProjectOSPermissionRevocation
 
 _ALLOWED_SOURCES = {
     "role",
@@ -156,8 +159,13 @@ class ProjectOSPermissionAssignment:
 class ProjectOSAuthorizationEvaluator:
     """Ermittelt effektive Rechte samt Herkunft ohne den Eingabestand zu verändern."""
 
-    def __init__(self, assignments: Iterable[ProjectOSPermissionAssignment] | None = None) -> None:
+    def __init__(
+        self,
+        assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
+        revocations: Iterable[ProjectOSPermissionRevocation] | None = None,
+    ) -> None:
         self._assignments = tuple(assignments or ())
+        self._revocations = tuple(revocations or ())
 
     def evaluate(
         self,
@@ -176,7 +184,18 @@ class ProjectOSAuthorizationEvaluator:
             and item.permission == permission
             and item.scope == scope
         ]
-        active = [item for item in candidates if item.is_active(current)]
+        revocation_by_assignment = {
+            item.assignment_id: item
+            for item in self._revocations
+            if item.user_id == user.user_id
+            and item.scope == scope
+            and item.is_effective(current)
+        }
+        revoked = [item for item in candidates if item.assignment_id in revocation_by_assignment]
+        active = [
+            item for item in candidates
+            if item.is_active(current) and item.assignment_id not in revocation_by_assignment
+        ]
         inactive = [item for item in candidates if item not in active]
         denies = [item for item in active if item.effect == "deny"]
         allows = [item for item in active if item.effect == "allow"]
@@ -192,6 +211,14 @@ class ProjectOSAuthorizationEvaluator:
             "effective_sources": [item.as_dict() for item in (denies or allows)],
             "active_assignments": [item.as_dict() for item in active],
             "inactive_assignments": [item.as_dict() for item in inactive],
+            "revoked_assignments": [
+                {
+                    "assignment": item.as_dict(),
+                    "revocation": revocation_by_assignment[item.assignment_id].as_dict(),
+                }
+                for item in revoked
+            ],
+            "revocation_count": len(revoked),
             "deny_precedence": True,
             "weight_used_for_decision": False,
             "read_only": True,
@@ -207,13 +234,14 @@ class ProjectOSAuthorizationEvaluator:
         at: datetime | None = None,
     ) -> dict[str, Any]:
         baseline = self.evaluate(user, permission, scope=scope, at=at)
-        simulated = ProjectOSAuthorizationEvaluator(self._assignments + tuple(hypothetical_assignments or ())).evaluate(
-            user, permission, scope=scope, at=at
-        )
+        simulated = ProjectOSAuthorizationEvaluator(
+            self._assignments + tuple(hypothetical_assignments or ()),
+            self._revocations,
+        ).evaluate(user, permission, scope=scope, at=at)
         return {
             "baseline": baseline,
             "simulated": simulated,
             "decision_changed": baseline["decision"] != simulated["decision"],
             "read_only": True,
-            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen.",
+            "note": "Die Simulation verändert weder Benutzer noch gespeicherte Rechtezuweisungen oder Widerrufe.",
         }
