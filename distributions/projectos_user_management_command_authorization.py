@@ -4,7 +4,7 @@ Der Autorisierer verändert keinen Fachzustand. Er bewertet den expliziten Comma
 gegen persistierte Rechtezuweisungen und optional gegen Rechte aus wirksam aktivierten,
 freigegebenen Projektfunktionen. Vier-Augen-Wirksamkeit wird dabei nicht nachgebaut,
 sondern über die bestehenden Approval-Evaluatoren übernommen. Explizite Rechtewiderrufe
-beenden die Wirksamkeit persistierter Zuweisungen zeitabhängig.
+und Rollenzuweisungs-Beendigungen beenden ihre Rechtewirkung zeitabhängig.
 """
 from __future__ import annotations
 
@@ -12,11 +12,7 @@ from datetime import datetime
 from typing import Any, Iterable, Mapping
 
 from .projectos_approved_role_activation import ProjectOSApprovedRoleActivationEvaluator
-from .projectos_authorization import (
-    ProjectOSAuthorizationEvaluator,
-    ProjectOSPermissionAssignment,
-    ProjectOSUserProfile,
-)
+from .projectos_authorization import ProjectOSAuthorizationEvaluator, ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_deactivation_approval import ProjectOSApprovedRoleDeactivationEvaluator
 from .projectos_user_management_command_context import ProjectOSUserManagementCommandContext
 
@@ -45,13 +41,9 @@ class ProjectOSUserManagementCommandAuthorization:
         if not self.command_permission_map:
             raise ValueError("command_permission_map must not be empty")
         self.role_permission_map = {
-            str(role).strip(): tuple(
-                dict.fromkeys(
-                    str(permission).strip()
-                    for permission in permissions
-                    if str(permission).strip()
-                )
-            )
+            str(role).strip(): tuple(dict.fromkeys(
+                str(permission).strip() for permission in permissions if str(permission).strip()
+            ))
             for role, permissions in (role_permission_map or {}).items()
             if str(role).strip()
         }
@@ -62,10 +54,7 @@ class ProjectOSUserManagementCommandAuthorization:
         }
 
     @staticmethod
-    def policy_key(
-        operation: str,
-        command_context: ProjectOSUserManagementCommandContext | None,
-    ) -> str:
+    def policy_key(operation: str, command_context: ProjectOSUserManagementCommandContext | None) -> str:
         operation_name = str(operation).strip()
         if not operation_name:
             raise ValueError("operation must not be empty")
@@ -74,10 +63,7 @@ class ProjectOSUserManagementCommandAuthorization:
         return f"{command_context.history_action}:{operation_name}"
 
     def _actor(self, actor_user_id: str) -> ProjectOSUserProfile | None:
-        matches = [
-            user for user in self.manager.user_management.users
-            if user.user_id == actor_user_id
-        ]
+        matches = [user for user in self.manager.user_management.users if user.user_id == actor_user_id]
         return matches[0] if len(matches) == 1 else None
 
     @staticmethod
@@ -105,27 +91,16 @@ class ProjectOSUserManagementCommandAuthorization:
             return True
         if len(matching_deactivations) != 1:
             raise ValueError("multiple deactivations for one activation are ambiguous")
-
         deactivation = matching_deactivations[0]
         target = self._deactivation_target(deactivation.deactivation_id)
         requests = tuple(
             item for item in state.approval_requests
-            if item.action_type == "deactivation"
-            and item.target_reference == target
+            if item.action_type == "deactivation" and item.target_reference == target
         )
         action_ids = {item.action_id for item in requests}
-        approvals = tuple(
-            item for item in state.approvals
-            if item.action_id in action_ids
-        )
-        roles = tuple(
-            item for item in state.project_roles
-            if item.role_assignment_id == role_assignment_id
-        )
-        activations = tuple(
-            item for item in state.activations
-            if item.activation_id == activation_id
-        )
+        approvals = tuple(item for item in state.approvals if item.action_id in action_ids)
+        roles = tuple(item for item in state.project_roles if item.role_assignment_id == role_assignment_id)
+        activations = tuple(item for item in state.activations if item.activation_id == activation_id)
         evaluator = ProjectOSApprovedRoleDeactivationEvaluator(
             roles=roles,
             activations=activations,
@@ -140,10 +115,7 @@ class ProjectOSUserManagementCommandAuthorization:
             at=at,
             risk_class=risk_class,
         )
-        return any(
-            item["role_assignment_id"] == role_assignment_id
-            for item in lifecycle["effective_roles"]
-        )
+        return any(item["role_assignment_id"] == role_assignment_id for item in lifecycle["effective_roles"])
 
     def _role_assignments(
         self,
@@ -157,6 +129,7 @@ class ProjectOSUserManagementCommandAuthorization:
         activation_evaluator = ProjectOSApprovedRoleActivationEvaluator(
             roles=state.project_roles,
             activations=state.activations,
+            role_terminations=state.role_assignment_terminations,
             approval_requests=state.approval_requests,
             approvals=state.approvals,
             risk_class_map=self.role_risk_class_map,
@@ -195,43 +168,22 @@ class ProjectOSUserManagementCommandAuthorization:
         required_permission = self.command_permission_map.get(key)
         if command_context is None:
             return {
-                "operation": str(operation).strip(),
-                "policy_key": key,
-                "required_permission": required_permission,
-                "actor_user_id": None,
-                "scope": self.scope,
-                "decision": "missing_command_context",
-                "allowed": False,
-                "deny_precedence": True,
-                "weight_used_for_decision": False,
-                "read_only": True,
+                "operation": str(operation).strip(), "policy_key": key, "required_permission": required_permission,
+                "actor_user_id": None, "scope": self.scope, "decision": "missing_command_context", "allowed": False,
+                "deny_precedence": True, "weight_used_for_decision": False, "read_only": True,
             }
         actor = self._actor(command_context.actor_user_id)
         if actor is None:
             return {
-                "operation": str(operation).strip(),
-                "policy_key": key,
-                "required_permission": required_permission,
-                "actor_user_id": command_context.actor_user_id,
-                "scope": self.scope,
-                "decision": "unknown_actor",
-                "allowed": False,
-                "deny_precedence": True,
-                "weight_used_for_decision": False,
-                "read_only": True,
+                "operation": str(operation).strip(), "policy_key": key, "required_permission": required_permission,
+                "actor_user_id": command_context.actor_user_id, "scope": self.scope, "decision": "unknown_actor",
+                "allowed": False, "deny_precedence": True, "weight_used_for_decision": False, "read_only": True,
             }
         if required_permission is None:
             return {
-                "operation": str(operation).strip(),
-                "policy_key": key,
-                "required_permission": None,
-                "actor_user_id": actor.user_id,
-                "scope": self.scope,
-                "decision": "policy_not_configured",
-                "allowed": False,
-                "deny_precedence": True,
-                "weight_used_for_decision": False,
-                "read_only": True,
+                "operation": str(operation).strip(), "policy_key": key, "required_permission": None,
+                "actor_user_id": actor.user_id, "scope": self.scope, "decision": "policy_not_configured",
+                "allowed": False, "deny_precedence": True, "weight_used_for_decision": False, "read_only": True,
             }
 
         state = self.manager.user_management
@@ -240,12 +192,7 @@ class ProjectOSUserManagementCommandAuthorization:
         authorization = ProjectOSAuthorizationEvaluator(
             direct_assignments + role_assignments,
             state.permission_revocations,
-        ).evaluate(
-            actor,
-            required_permission,
-            scope=self.scope,
-            at=at,
-        )
+        ).evaluate(actor, required_permission, scope=self.scope, at=at)
         return {
             "operation": str(operation).strip(),
             "history_action": command_context.history_action,
