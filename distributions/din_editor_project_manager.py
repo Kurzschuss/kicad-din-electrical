@@ -95,11 +95,20 @@ class DinEditorProjectManager:
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
 
-    def set_user_management(self, state: ProjectOSUserManagementState) -> None:
+    def _commit_user_management_change(self, state: ProjectOSUserManagementState) -> None:
+        """Interner Commit-Pfad für bereits vollständig validierte Fachänderungen."""
         if state.project_id != self.project_id:
             raise ValueError("user management belongs to another project")
         self.user_management = state
         self._refresh_dirty()
+
+    def set_user_management(self, state: ProjectOSUserManagementState) -> None:
+        """Kompatibilitätspfad für explizite Zustandssetzung und Tests.
+
+        Reguläre fachliche Änderungen müssen über ProjectOSUserManagementChangeService
+        laufen, damit Atomarität sowie Audit-/Bus-Hooks nicht umgangen werden.
+        """
+        self._commit_user_management_change(state)
 
     def sync_actions(self, view_model) -> DinEditorSyncActions:
         sync_service = getattr(view_model, "sync_service", None)
