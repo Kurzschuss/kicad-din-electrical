@@ -1,7 +1,8 @@
 """Explizite Aktivierung projektbezogener Benutzerfunktionen.
 
 Zuweisung und Aktivierung sind getrennt. Eine Projektfunktion wirkt erst dann auf
-Berechtigungen, wenn eine passende, aktuell gültige Aktivierung vorliegt.
+Berechtigungen, wenn eine passende, aktuell gültige und nicht beendete Zuweisung sowie
+eine passende Aktivierung vorliegt.
 """
 from __future__ import annotations
 
@@ -11,6 +12,7 @@ from typing import Any, Iterable
 from uuid import UUID, uuid4
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_project_roles import ProjectOSUserProjectRole, ProjectOSUserProjectRoleRegistry
 
 _ALLOWED_REASONS = {
@@ -117,9 +119,11 @@ class ProjectOSProjectRoleActivationRegistry:
         self,
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
         activations: Iterable[ProjectOSProjectRoleActivation] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
     ) -> None:
         self.roles = tuple(roles or ())
         self.activations = tuple(activations or ())
+        self.role_terminations = tuple(role_terminations or ())
         activation_ids = [item.activation_id for item in self.activations]
         if len(activation_ids) != len(set(activation_ids)):
             raise ValueError("activation_id already exists")
@@ -139,7 +143,7 @@ class ProjectOSProjectRoleActivationRegistry:
         current = at or datetime.now(timezone.utc)
         if current.tzinfo is None:
             raise ValueError("activation evaluation time must include timezone")
-        role_registry = ProjectOSUserProjectRoleRegistry(self.roles)
+        role_registry = ProjectOSUserProjectRoleRegistry(self.roles, self.role_terminations)
         role_state = role_registry.state(project_id=project_id, user=user, scope=scope, at=current)
         candidate_role_ids = {item["role_assignment_id"] for item in role_state["active_roles"]}
         matching = [
@@ -150,7 +154,7 @@ class ProjectOSProjectRoleActivationRegistry:
             and item.role_assignment_id in candidate_role_ids
         ]
         active = [item for item in matching if item.is_active(current)]
-        inactive = [item for item in matching if item not in active]
+        inactive = [item for item in self.activations if item.project_id == role_state["project_id"] and item.user_id == user.user_id and item.scope == scope and item not in active]
         active_role_ids = {item.role_assignment_id for item in active}
         activated_roles = [
             item for item in role_state["active_roles"]
@@ -168,6 +172,7 @@ class ProjectOSProjectRoleActivationRegistry:
             "activated_roles": activated_roles,
             "assigned_not_activated_roles": assigned_not_activated,
             "inactive_assigned_roles": role_state["inactive_roles"],
+            "terminated_assigned_roles": role_state["terminated_roles"],
             "active_activations": [item.as_dict() for item in active],
             "inactive_activations": [item.as_dict() for item in inactive],
             "read_only": True,
