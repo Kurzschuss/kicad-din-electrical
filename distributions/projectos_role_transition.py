@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Iterable
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
+from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 from .projectos_user_project_roles import ProjectOSUserProjectRole, ProjectOSUserProjectRoleRegistry
 from .z_cockpit_authorization import ZCockpitAuthorizationView
 
@@ -18,12 +19,14 @@ class ProjectOSProjectRoleTransitionSimulator:
         project_id: str,
         user: ProjectOSUserProfile,
         roles: Iterable[ProjectOSUserProjectRole] | None = None,
+        role_terminations: Iterable[ProjectOSProjectRoleAssignmentTermination] | None = None,
         base_assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
         permission_map: dict[str, Iterable[str]] | None = None,
     ) -> None:
         self.project_id = project_id
         self.user = user
         self.roles = tuple(roles or ())
+        self.role_terminations = tuple(role_terminations or ())
         self.base_assignments = tuple(base_assignments or ())
         self.permission_map = {key: tuple(values) for key, values in (permission_map or {}).items()}
 
@@ -37,22 +40,18 @@ class ProjectOSProjectRoleTransitionSimulator:
         at: datetime | None = None,
     ) -> dict[str, Any]:
         remove_ids = set(remove_role_assignment_ids or ())
-        simulated_roles = tuple(role for role in self.roles if role.role_assignment_id not in remove_ids) + tuple(add_roles or ())
-        baseline_registry = ProjectOSUserProjectRoleRegistry(self.roles)
-        simulated_registry = ProjectOSUserProjectRoleRegistry(simulated_roles)
+        additions = tuple(add_roles or ())
+        simulated_roles = tuple(role for role in self.roles if role.role_assignment_id not in remove_ids) + additions
+        simulated_terminations = tuple(
+            item for item in self.role_terminations if item.role_assignment_id not in remove_ids
+        )
+        baseline_registry = ProjectOSUserProjectRoleRegistry(self.roles, self.role_terminations)
+        simulated_registry = ProjectOSUserProjectRoleRegistry(simulated_roles, simulated_terminations)
         baseline_derived = baseline_registry.permission_assignments(
-            project_id=self.project_id,
-            user=self.user,
-            permission_map=self.permission_map,
-            scope=scope,
-            at=at,
+            project_id=self.project_id, user=self.user, permission_map=self.permission_map, scope=scope, at=at
         )
         simulated_derived = simulated_registry.permission_assignments(
-            project_id=self.project_id,
-            user=self.user,
-            permission_map=self.permission_map,
-            scope=scope,
-            at=at,
+            project_id=self.project_id, user=self.user, permission_map=self.permission_map, scope=scope, at=at
         )
         permission_set = set(permissions or ())
         permission_set.update(item.permission for item in self.base_assignments + baseline_derived + simulated_derived if item.user_id == self.user.user_id and item.scope == scope)
@@ -77,9 +76,9 @@ class ProjectOSProjectRoleTransitionSimulator:
             "baseline_roles": baseline_registry.state(project_id=self.project_id, user=self.user, scope=scope, at=at),
             "simulated_roles": simulated_registry.state(project_id=self.project_id, user=self.user, scope=scope, at=at),
             "removed_role_assignment_ids": sorted(remove_ids),
-            "added_role_assignment_ids": [role.role_assignment_id for role in tuple(add_roles or ())],
+            "added_role_assignment_ids": [role.role_assignment_id for role in additions],
             "permission_impacts": impacts,
             "changed_permission_count": sum(1 for item in impacts if item["decision_changed"]),
             "read_only": True,
-            "note": "Die Funktionswechsel-Simulation verändert keine gespeicherten Benutzerfunktionen oder Rechtezuweisungen.",
+            "note": "Die Funktionswechsel-Simulation verändert keine gespeicherten Benutzerfunktionen, Beendigungen oder Rechtezuweisungen.",
         }
