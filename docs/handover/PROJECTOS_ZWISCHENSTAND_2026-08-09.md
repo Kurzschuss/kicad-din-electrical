@@ -39,47 +39,97 @@ Bundle v4 speichert `session`, `sync_log`, stabile `project_id` und `user_manage
 
 Enge fachliche Commands existieren für Rechte, Projektrollen, Aktivierung, Rückgabe, Freigabeanforderung, Freigabeentscheidung und Nachprüfung. Projekt, Benutzer und Scope werden aus dem bestehenden Zustand abgeleitet; unbekannte Referenzen werden vor Commit abgewiesen.
 
-## Audit-/Bus-/Korrelationsanbindung – zuletzt umgesetzt
+## Audit-/Bus-/Korrelationsanbindung
 
-Neu vorhanden sind `ProjectOSUserManagementChangeTrace` und `ProjectOSUserManagementChangeTraceEmitter`.
-
-Der Emitter wird als `on_change`-Hook des Change-Service verwendet. Er erzeugt keine Mutation und keine zweite fachliche Wahrheit, sondern beschreibt ausschließlich bereits erfolgreich übernommene Änderungen als ProjectOS-Busnachricht und Audit-Eintrag.
+`ProjectOSUserManagementChangeTrace` und `ProjectOSUserManagementChangeTraceEmitter` bilden ausschließlich bereits erfolgreich übernommene Änderungen als ProjectOS-Busnachricht und Audit-Eintrag ab. Sie erzeugen keine Fachmutation und keine zweite Wahrheit.
 
 Regeln:
 
 - jede erfolgreiche Benutzerverwaltungsänderung erzeugt genau einen Bus-Nachweis und genau einen Audit-Eintrag;
-- alle Änderungen eines Emitter-Vorgangs tragen dieselbe `correlation_id`;
-- Folgeschritte bilden eine echte `causation_id`-Kette über die vorherige `message_id`;
-- der Nachweis führt `operation`, `actor_user_id`, fachliche `reference`, Dirty-State und das bereits persistierte Domainobjekt;
-- Projektrollen verwenden `assigned_by_user_id` als Akteur, sofern vorhanden;
-- Aktivierungen/Rückgaben verwenden `triggered_by_user_id`, sofern vorhanden;
-- Freigabeanforderung, Freigabeentscheidung und Nachprüfung verwenden jeweils Anforderer, Freigeber bzw. Prüfer als Akteur;
-- Delegationen verwenden `delegated_by_user_id`, sofern vorhanden;
-- bei fehlgeschlagenen Commands wird der Hook nicht aufgerufen und es entsteht weder Bus- noch Audit-Nachweis;
-- der Emitter hält einen read-only vorherigen Snapshot, um die tatsächlich geänderte Fachreferenz aus dem Delta zu bestimmen; dadurch wird z. B. eine Gewichtsänderung eines nicht-letzten Benutzers korrekt zugeordnet.
+- fehlgeschlagene Commands rufen den Hook nicht auf und erzeugen keinen Nachweis;
+- der Nachweis führt `operation`, `actor_user_id`, fachliche `reference`, Dirty-State und das bereits übernommene Domainobjekt;
+- fachlich im Domainobjekt vorhandene Akteure werden weiterhin genutzt;
+- der Emitter hält einen read-only vorherigen Snapshot, um die tatsächlich geänderte Fachreferenz aus dem Delta zu bestimmen.
 
-Commits dieses Blocks:
+## Expliziter Benutzerverwaltungs-Command-Kontext – umgesetzt
 
-- `f2592de3` feat(projectos): Benutzerverwaltungsänderungen an Audit und Bus anbinden
-- `2f45cbe3` fix(projectos): Änderungsreferenz aus Snapshot-Differenz bestimmen
-- `40d332d0` test(projectos): korrelierte Benutzerverwaltungsänderungen absichern
+Neu ist `ProjectOSUserManagementCommandContext` als nicht persistierter Ausführungskontext mit:
+
+- `actor_user_id`;
+- `correlation_id`;
+- optionaler `causation_id`.
+
+Alle relevanten Operationen des `ProjectOSUserManagementChangeService` akzeptieren optional diesen Kontext und reichen ihn bis zum Audit-/Bus-Hook durch.
+
+Der explizite Kontext hat Vorrang vor einer Akteursableitung aus dem geänderten Domainobjekt. Dadurch wird zum Beispiel bei einer Gewichtsänderung durch einen Administrator nicht mehr fälschlich der geänderte Benutzer als Akteur ausgewiesen. Gleiches gilt für direkte Rechtezuweisungen ohne Delegationsakteur.
+
+Korrelationsketten werden im Emitter getrennt pro `correlation_id` geführt. Unterschiedliche fachliche Vorgänge werden dadurch nicht versehentlich über eine globale Kausalkette miteinander verknüpft. Innerhalb derselben Korrelation wird die `causation_id` weiterhin über die vorherige `message_id` fortgesetzt.
+
+Commits:
+
+- `8396f871` feat(projectos): expliziten Benutzerverwaltungs-Command-Kontext einführen
+- `d2ed7c66` feat(projectos): Command-Kontext bis zum Änderungsereignis durchreichen
+- `d5a74317` feat(projectos): expliziten Akteur und Korrelation im Trace verwenden
+- `32e0bd6b` test(projectos): expliziten Command-Kontext und Korrelationsketten absichern
+
+## Direkte Zustandssetzung weiter zurückgedrängt – umgesetzt
+
+Der reguläre Benutzerverwaltungs-Command-Pfad verwendet den öffentlichen `DinEditorProjectManager.set_user_management()`-Setter nicht mehr.
+
+Der Manager besitzt jetzt `_commit_user_management_change()` als internen Commit-Pfad für bereits vollständig validierte Kandidaten. Der öffentliche Setter bleibt vorerst als Kompatibilitäts-/expliziter Zustandssetzungspfad erhalten, darf aber von Produktionsmodulen nicht für normale Fachänderungen verwendet werden.
+
+Ein Guard-Test durchsucht die Produktionsmodule in `distributions` und schlägt fehl, sobald dort erneut ein direkter Aufruf von `.set_user_management(` eingeführt wird.
+
+Commits:
+
+- `d450c452` refactor(projectos): Benutzerverwaltungs-Commit im Manager kapseln
+- `13f2a6db` refactor(projectos): öffentlichen User-Management-Setter im Command-Pfad vermeiden
+- `2d88800d` test(projectos): öffentliche User-Management-Setter im Produktionspfad sperren
+
+## Command-Historie und Undo/Redo – Strategie beschlossen
+
+Die Entwurfsentscheidung `docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` legt den Vertrag fest.
+
+Grundregeln:
+
+- Audit und Bus bleiben append-only und werden durch Undo/Redo niemals gelöscht oder rückwirkend verändert;
+- eine Benutzerverwaltungs-Command-Historie ist read-only Laufzeitmetadaten und keine zweite fachliche Wahrheit;
+- Undo/Redo darf keinen historischen `ProjectOSUserManagementState` blind zurückkopieren;
+- Undo und Redo sind neue fachliche Commands mit neuer `command_id`, neuer `correlation_id`, normaler Validierung und neuer Audit-/Bus-Spur;
+- der ursprüngliche Command bleibt unverändert nachweisbar und wird explizit referenziert;
+- Reversibilität ist fail-closed und muss je Operation fachlich begründet sein;
+- `user_weight_changed` ist der erste vollständig reversible Referenzfall;
+- Freigabeentscheidungen und Nachprüfungen sind historische Tatsachen und nicht reversibel;
+- die erste Undo-/Redo-Historie bleibt bewusst laufzeitbezogen und wird nicht in Bundle v4 persistiert.
+
+Commit:
+
+- `cb1126ce` docs(projectos): Command-Historie und Undo-Redo-Vertrag festlegen
 
 ## Tests / letzter bestätigter Stand
 
-Die vollständige `ProjectOS complete test suite`, Run #239, ist für Commit `40d332d0229fe178ca7411f517b5e4a18f21f157` erfolgreich.
+Bestätigte vollständige Läufe:
 
-PR #159 bleibt der integrierte ProjectOS-Umsetzungsbranch.
+- Run #244 für Commit `32e0bd6b73cd689d8e2e49945f24001a19fdac34`: erfolgreich;
+- Run #247 für Commit `2d88800dcfda7eb9ae50eb947a1291c3e010e527`: erfolgreich;
+- Run #248 für Commit `cb1126cef76c7fc3ccdc0dd3e047981da66da4fa`: erfolgreich.
+
+Die Läufe umfassen Repository-Health-Check, vollständige Pytest-Suite, Z_-Qualitätsprofil, KiCad-Bibliotheksprüfungen und Z_Cockpit-Generierung.
+
+PR #159 bleibt bewusst Draft und der integrierte ProjectOS-Umsetzungsbranch.
 
 ## Unmittelbar nächster Umsetzungsschritt
 
-Als Nächstes die Audit-/Bus-Anbindung in die Command-Nutzung selbst weiter härten:
+Die ersten drei Punkte des vorherigen Handover-Blocks sind erledigt. Als Nächstes wird die beschlossene Undo-/Redo-Architektur implementiert:
 
-1. expliziten Command-Kontext mit Akteur/Korrelation für Fälle ergänzen, in denen der Akteur nicht aus dem Domainobjekt ableitbar ist (z. B. direkte Rechtezuweisung oder Benutzergewichtung durch Administrator);
-2. direkte `set_user_management()`-Nutzung außerhalb von Load/Recover/Discard und Tests weiter zurückdrängen;
-3. Benutzerverwaltungs-Command-Historie und Undo/Redo-Strategie definieren, ohne Audit-Historie rückwirkend zu löschen;
-4. Undo/Redo als neue fachliche Änderung mit eigener Korrelation/Auditspur modellieren;
-5. danach Command-Rechte selbst über den vorhandenen Autorisierungs-/Vier-Augen-Vertrag absichern.
+1. pro Benutzerverwaltungs-Command eine stabile `command_id` ergänzen;
+2. read-only `ProjectOSUserManagementCommandHistory` für erfolgreiche Commands einführen;
+3. `user_weight_changed` als ersten reversiblen Referenzfall mit Vorher-/Nachherwert erfassen;
+4. Undo der Gewichtsänderung als neue fachliche Änderung mit eigener `command_id`, eigener `correlation_id` und neuer Audit-/Bus-Spur umsetzen;
+5. Redo analog als neue fachliche Änderung umsetzen;
+6. Reversibilität anschließend nur für Operationen erweitern, für die eine explizite fachliche Gegenoperation vorhanden ist;
+7. danach normale Commands sowie Undo/Redo über den vorhandenen Autorisierungs-/Vier-Augen-Vertrag absichern.
 
 ## Starttext für einen neuen Chat
 
-> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne Stand ist ProjectOS complete test suite Run #239. `ProjectOSUserManagementChangeService` besitzt atomare fachliche Commands. Neu ist `ProjectOSUserManagementChangeTraceEmitter`: erfolgreiche Benutzerverwaltungsänderungen erzeugen korrelierte Bus-/Audit-Nachweise mit Fachreferenz, Akteur und Kausalkette; fehlgeschlagene Commands erzeugen nichts. Fahre mit explizitem Command-Kontext für nicht eindeutig ableitbare Akteure und anschließend Undo/Redo-/Command-Historienstrategie fort. Alles auf Deutsch. Architekturregeln, Benutzergewichtung, DENY-Vorrang, Rechteherkunft und Korrelationskette nicht verlieren.
+> Wir setzen die Entwicklung von `kicad-din-electrical / ProjectOS` fort. Lies zuerst `docs/handover/PROJECTOS_ZWISCHENSTAND_2026-08-09.md` auf Branch `test/load-failure-preserves-state` und prüfe PR #159. Der letzte vollständig grüne dokumentierte Stand ist ProjectOS complete test suite Run #248. Expliziter Benutzerverwaltungs-Command-Kontext mit Akteur/Korrelation/Kausalität ist umgesetzt, der normale Command-Pfad umgeht den öffentlichen `set_user_management()`-Setter nicht mehr, und `EE-PROJECTOS-0001_Command_Historie_Undo_Redo.md` beschließt Undo/Redo als neue kompensierende Fachänderungen statt Snapshot-Rollback. Fahre mit `command_id`, read-only Command-Historie und `user_weight_changed` als erstem reversiblen Referenzfall fort. Alles auf Deutsch. Architecture Freeze 1.0, Single Source of Truth, DENY-Vorrang, Benutzergewichtung ohne Autorisierungswirkung, Rechteherkunft und append-only Audit-/Bus-Historie nicht verletzen.
