@@ -40,7 +40,7 @@ Undo/Redo darf `ProjectOSUserManagementState` nicht durch einen historischen Ges
 
 Ein Undo erzeugt stattdessen einen **neuen fachlichen Command**, der die Wirkung eines früheren reversiblen Commands kompensiert. Dieser neue Command:
 
-- läuft erneut durch Validierung und später durch Autorisierung;
+- läuft erneut durch Validierung und Autorisierung;
 - besitzt eine neue `command_id`;
 - besitzt eine neue `correlation_id`;
 - referenziert den ursprünglichen Command als Undo-Ziel;
@@ -53,23 +53,24 @@ Redo ist analog ein neuer fachlicher Command, der die kompensierte Wirkung erneu
 
 Nicht jede Benutzerverwaltungsoperation ist automatisch reversibel.
 
-Eine Operation darf nur dann als `reversible=true` markiert werden, wenn eine fachlich zulässige Gegenoperation existiert und vollständig validiert werden kann. Fehlt eine solche Gegenoperation, wird Undo abgewiesen.
+Eine Operation darf nur dann als `reversible=true` markiert werden, wenn sowohl eine fachlich zulässige Gegenoperation für Undo als auch ein fachlich definierter Wiederherstellungspfad für Redo existieren und vollständig validiert werden können. Fehlt einer der beiden Wege, wird Undo/Redo fail-closed nicht angeboten.
 
-Erste Reversibilitätsmatrix:
+Aktuelle Reversibilitätsmatrix:
 
 | Operation | Status | Begründung / Gegenoperation |
 |---|---|---|
-| `user_weight_changed` | reversibel | neuer Gewichtsänderungs-Command auf den vorherigen Wert |
-| `user_created` | vorerst nicht reversibel | Löschen eines Benutzers wäre keine zulässige historische Kompensation; Archivierungs-/Deaktivierungsmodell fehlt |
-| `permission_assigned` | vorerst nicht reversibel | benötigt explizites fachliches `permission_revoked`/Beendigungsmodell statt Löschen |
-| `project_role_assigned` | vorerst nicht reversibel | benötigt explizite Rollenbeendigung/Entziehung statt Löschen |
-| `project_role_activated` | bedingt kompensierbar | fachlich über eine neue Deaktivierung, sobald Undo-Command-Vertrag dafür definiert ist |
-| `project_role_deactivated` | vorerst nicht reversibel | Reaktivierung muss als neue Aktivierung erfolgen und benötigt eigenen Vertrag |
+| `user_weight_changed` | reversibel | neuer Gewichtsänderungs-Command auf den vorherigen bzw. erneuten Wert |
+| `user_created` | nicht reversibel | Löschen eines Benutzers wäre keine zulässige historische Kompensation; Archivierungs-/Deaktivierungsmodell fehlt |
+| `permission_assigned` | nicht reversibel | Widerruf ist jetzt modelliert und könnte eine Wirkung beenden; für vollständiges Undo/Redo fehlt aber ein expliziter Regrant-Vertrag mit neuer Zuweisungsidentität |
+| `permission_revoked` | nicht reversibel | Widerruf ist historische Tatsache; Wiedererteilung muss als neuer fachlicher Vorgang erfolgen |
+| `project_role_assigned` | nicht reversibel | benötigt explizite Rollenbeendigung/Entziehung statt Löschen |
+| `project_role_activated` | bedingt kompensierbar | fachlich über eine neue Deaktivierung denkbar, aber Redo-/Reaktivierungsvertrag ist noch nicht definiert |
+| `project_role_deactivated` | nicht reversibel | Reaktivierung muss als neue Aktivierung erfolgen und benötigt eigenen Vertrag |
 | `approval_requested` | nicht reversibel | historische Anforderung darf nicht verschwinden |
 | `approval_recorded` | nicht reversibel | Freigabeentscheidung ist historische Tatsache |
 | `post_review_completed` | nicht reversibel | Nachprüfung ist historische Tatsache |
 
-Die Matrix wird nur durch explizite fachliche Gegenoperationen erweitert.
+Die Matrix wird nur durch explizite fachliche Gegen- und Wiederherstellungsoperationen erweitert.
 
 ### 4. Linearer Undo-/Redo-Vertrag
 
@@ -110,6 +111,14 @@ Audit-/Bus-Nachweise bleiben wie bisher über den vorhandenen Projekt-/Sync-Kont
 
 Eine spätere persistente Command-Historie benötigt eine eigene versionierte Persistenzentscheidung und darf nicht implizit in `ProjectOSUserManagementState` eingeschoben werden.
 
+### 8. Rechtewiderruf ist Lifecycle, nicht Löschen
+
+`ProjectOSPermissionRevocation` beendet die Wirksamkeit einer bestehenden `ProjectOSPermissionAssignment` ab einem expliziten Zeitpunkt. Die ursprüngliche Zuweisung bleibt vollständig erhalten und referenzierbar.
+
+Der Widerruf ist damit eine fachliche Lifecycle-Tatsache mit eigener Identität, Projekt, Benutzer, Scope, Akteur, Zeitpunkt, Grund und optionaler Quellreferenz. Er darf nicht durch Undo aus dem Zustand entfernt werden.
+
+Diese Gegenoperation reicht allein noch nicht aus, um `permission_assigned` als vollständig reversibel zu markieren: Ein späteres Redo müsste eine **neue** Rechtezuweisung erzeugen, statt den historischen Widerruf zu löschen oder dieselbe `assignment_id` wiederzubeleben. Dieser Regrant-Vertrag ist noch nicht beschlossen und bleibt daher fail-closed.
+
 ## Umsetzungsreihenfolge
 
 1. `command_id` in den Benutzerverwaltungs-Command-Kontext aufnehmen.
@@ -117,14 +126,15 @@ Eine spätere persistente Command-Historie benötigt eine eigene versionierte Pe
 3. Zunächst `user_weight_changed` als vollständig reversiblen Referenzfall implementieren.
 4. `undo_user_weight_change` als neuen fachlichen Command mit neuer Korrelation/Auditspur umsetzen.
 5. Redo analog als neuen fachlichen Command umsetzen.
-6. Danach Reversibilitätsmatrix nur mit vorhandenen expliziten Gegenoperationen erweitern.
-7. Anschließend Undo/Redo und normale Benutzerverwaltungs-Commands über den Autorisierungs-/Vier-Augen-Vertrag absichern.
+6. Reversibilitätsmatrix nur mit vorhandenen expliziten Gegen- **und Wiederherstellungsoperationen** erweitern.
+7. Undo/Redo und normale Benutzerverwaltungs-Commands über den Autorisierungs-/Vier-Augen-Vertrag absichern.
+8. Rechtewiderruf als eigenen Lifecycle modellieren; `permission_assigned` bleibt bis zu einem expliziten Regrant-Vertrag nicht reversibel.
 
 ## Nicht erlaubt
 
 - Audit-Einträge löschen oder umschreiben;
 - Bus-Nachweise rückwirkend entfernen;
 - einen kompletten historischen `ProjectOSUserManagementState` blind zurückkopieren;
-- Freigaben, Nachprüfungen oder Lifecycle-Ereignisse durch Entfernen aus Tupeln "ungeschehen" machen;
+- Rechtezuweisungen, Rechtewiderrufe, Freigaben, Nachprüfungen oder Lifecycle-Ereignisse durch Entfernen aus Tupeln "ungeschehen" machen;
 - nicht reversible Commands beim Undo still überspringen;
 - Undo/Redo ohne neue fachliche Identität und neue Auditspur durchführen.
