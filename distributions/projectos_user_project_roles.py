@@ -9,12 +9,7 @@ from uuid import UUID, uuid4
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_assignment_termination import ProjectOSProjectRoleAssignmentTermination
 
-_ALLOWED_PROJECT_ROLES = {
-    "project_lead",
-    "deputy",
-    "trusted_person",
-    "successor",
-}
+_ALLOWED_PROJECT_ROLES = {"project_lead", "deputy", "trusted_person", "successor"}
 
 
 def _uuid(value: str, field_name: str) -> str:
@@ -137,24 +132,15 @@ class ProjectOSUserProjectRoleRegistry:
         current = at or datetime.now(timezone.utc)
         if current.tzinfo is None:
             raise ValueError("role evaluation time must include timezone")
-        candidates = [
-            item for item in self._roles
-            if item.project_id == project and item.user_id == user.user_id and item.scope == scope
-        ]
+        candidates = [item for item in self._roles if item.project_id == project and item.user_id == user.user_id and item.scope == scope]
         effective_terminations = {
             item.role_assignment_id: item
             for item in self._terminations
-            if item.project_id == project
-            and item.user_id == user.user_id
-            and item.scope == scope
-            and item.is_effective(current)
+            if item.project_id == project and item.user_id == user.user_id and item.scope == scope and item.is_effective(current)
         }
         terminated = [item for item in candidates if item.role_assignment_id in effective_terminations]
-        active = [
-            item for item in candidates
-            if item.is_active(current) and item.role_assignment_id not in effective_terminations
-        ]
-        inactive = [item for item in candidates if item not in active]
+        active = [item for item in candidates if item.is_active(current) and item.role_assignment_id not in effective_terminations]
+        inactive = [item for item in candidates if item not in active and item not in terminated]
         return {
             "project_id": project,
             "user": user.as_dict(),
@@ -163,10 +149,7 @@ class ProjectOSUserProjectRoleRegistry:
             "active_roles": [item.as_dict() for item in active],
             "inactive_roles": [item.as_dict() for item in inactive],
             "terminated_roles": [
-                {
-                    "role": item.as_dict(),
-                    "termination": effective_terminations[item.role_assignment_id].as_dict(),
-                }
+                {"role": item.as_dict(), "termination": effective_terminations[item.role_assignment_id].as_dict()}
                 for item in terminated
             ],
             "termination_count": len(terminated),
@@ -187,23 +170,21 @@ class ProjectOSUserProjectRoleRegistry:
         assignments: list[ProjectOSPermissionAssignment] = []
         for role in state["active_roles"]:
             for permission in permission_map.get(role["role_type"], ()):
-                assignments.append(
-                    ProjectOSPermissionAssignment(
-                        user_id=user.user_id,
-                        permission=str(permission),
-                        source_type="role",
-                        effect="allow",
-                        scope=scope,
-                        risk_class=risk_class,
-                        valid_from=role["valid_from"],
-                        valid_until=role["valid_until"],
-                        source_reference=f"project_role:{role['role_type']}:{role['role_assignment_id']}",
-                        metadata={
-                            "project_id": state["project_id"],
-                            "project_role": role["role_type"],
-                            "role_assignment_id": role["role_assignment_id"],
-                            "assigned_by_user_id": role["assigned_by_user_id"],
-                        },
-                    )
-                )
+                assignments.append(ProjectOSPermissionAssignment(
+                    user_id=user.user_id,
+                    permission=str(permission),
+                    source_type="role",
+                    effect="allow",
+                    scope=scope,
+                    risk_class=risk_class,
+                    valid_from=role["valid_from"],
+                    valid_until=role["valid_until"],
+                    source_reference=f"project_role:{role['role_type']}:{role['role_assignment_id']}",
+                    metadata={
+                        "project_id": state["project_id"],
+                        "project_role": role["role_type"],
+                        "role_assignment_id": role["role_assignment_id"],
+                        "assigned_by_user_id": role["assigned_by_user_id"],
+                    },
+                ))
         return tuple(assignments)
