@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from typing import Any, Callable
+from uuid import uuid4
 
 from .projectos_authorization import ProjectOSPermissionAssignment, ProjectOSUserProfile
 from .projectos_role_activation import ProjectOSProjectRoleActivation
@@ -27,6 +28,7 @@ class ProjectOSUserManagementChangeService:
     def __init__(self, manager, *, on_change: ChangeHook | None = None) -> None:
         self.manager = manager
         self.on_change = on_change
+        self._completed_command_ids: set[str] = set()
 
     @property
     def state(self) -> ProjectOSUserManagementState:
@@ -39,6 +41,10 @@ class ProjectOSUserManagementChangeService:
         command_context: ProjectOSUserManagementCommandContext | None = None,
         **changes: Any,
     ) -> ProjectOSUserManagementState:
+        command_id = command_context.command_id if command_context is not None else str(uuid4())
+        if command_id in self._completed_command_ids:
+            raise ValueError("command_id already used")
+
         current = self.state
         data = {
             "project_id": current.project_id,
@@ -55,6 +61,7 @@ class ProjectOSUserManagementChangeService:
         candidate = ProjectOSUserManagementState(**data)
         self.manager._commit_user_management_change(candidate)
         event = {
+            "command_id": command_id,
             "operation": operation,
             "project_id": candidate.project_id,
             "dirty": self.manager.has_unsaved_changes,
@@ -64,6 +71,7 @@ class ProjectOSUserManagementChangeService:
             event["command_context"] = command_context.as_dict()
         if self.on_change is not None:
             self.on_change(dict(event))
+        self._completed_command_ids.add(command_id)
         return candidate
 
     def _user(self, user_id: str) -> ProjectOSUserProfile:
