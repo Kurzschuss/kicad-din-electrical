@@ -36,9 +36,9 @@ class ProjectOSUserManagementReversibilityRule:
 _DEFAULT_RULES = (
     ProjectOSUserManagementReversibilityRule("user_created", False, None, "Es existiert noch keine fachliche Benutzer-Deaktivierungs-/Löschoperation."),
     ProjectOSUserManagementReversibilityRule("user_weight_changed", True, "restore_previous_weight", "Der vorherige Gewichtungswert kann über denselben validierten Fachcommand wiederhergestellt werden."),
-    ProjectOSUserManagementReversibilityRule("permission_assigned", False, None, "Widerruf und Regrant sind explizit modelliert; die generische Undo/Redo-Kompensation ist dafür aber noch nicht beschlossen."),
-    ProjectOSUserManagementReversibilityRule("permission_revoked", False, None, "Ein Widerruf bleibt historische Tatsache und wird nicht rückwirkend entfernt."),
-    ProjectOSUserManagementReversibilityRule("permission_regranted", False, None, "Ein Regrant ist eine neue historische Rechtezuweisung mit eigener Identität; seine Kompensation ist noch nicht Teil des generischen Undo/Redo-Vertrags."),
+    ProjectOSUserManagementReversibilityRule("permission_assigned", True, "revoke_assignment", "Undo erzeugt einen neuen Widerruf; Redo erzeugt einen neuen Regrant mit neuer assignment_id."),
+    ProjectOSUserManagementReversibilityRule("permission_revoked", False, None, "Ein normaler Widerruf bleibt historische Tatsache. Nur ein als Undo erzeugter History-Eintrag kann den linearen Redo-Schritt tragen."),
+    ProjectOSUserManagementReversibilityRule("permission_regranted", True, "revoke_assignment", "Ein Regrant ist eine neue aktive Zuweisung und kann durch einen neuen Widerruf kompensiert werden; erneutes Redo erzeugt wieder eine neue assignment_id."),
     ProjectOSUserManagementReversibilityRule("project_role_assigned", False, None, "Beendigung und Neu-Zuweisung sind explizit modelliert; die generische Undo/Redo-Kompensation bleibt wegen des Freigabe-Lifecycles gesperrt."),
     ProjectOSUserManagementReversibilityRule("project_role_assignment_terminated", False, None, "Die Beendigung bleibt historische Tatsache und wird nicht rückwirkend entfernt."),
     ProjectOSUserManagementReversibilityRule("project_role_reassigned", False, None, "Eine Rollen-Neu-Zuweisung ist ein neuer Lifecycle-Vorgang mit eigener Identität und noch nicht generisch kompensierbar."),
