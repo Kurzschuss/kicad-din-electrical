@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -116,3 +117,15 @@ def test_permission_command_validates_user_before_commit():
         )
 
     assert manager.user_management.as_dict() == before
+
+
+def test_production_modules_do_not_use_public_user_management_setter():
+    root = Path(__file__).resolve().parent
+    offenders = []
+    for path in root.glob("*.py"):
+        if path.name.startswith("test_") or path.name == "din_editor_project_manager.py":
+            continue
+        if ".set_user_management(" in path.read_text(encoding="utf-8"):
+            offenders.append(path.name)
+
+    assert offenders == []
