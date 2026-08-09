@@ -7,10 +7,7 @@ from typing import Any
 
 from .din_editor_project_manager import DinEditorProjectManager
 from .projectos_project_bundle_v4 import CURRENT_PROJECTOS_BUNDLE_VERSION
-from .projectos_user_management_persistence import (
-    DERIVED_NOT_PERSISTED,
-    USER_MANAGEMENT_PERSISTENCE_VERSION,
-)
+from .projectos_user_management_persistence import DERIVED_NOT_PERSISTED, USER_MANAGEMENT_PERSISTENCE_VERSION
 
 
 class ZCockpitUserManagementPersistenceView:
@@ -59,6 +56,7 @@ class ZCockpitUserManagementPersistenceView:
             "permission_assignments": len(user_management.permission_assignments),
             "permission_revocations": len(user_management.permission_revocations),
             "project_roles": len(user_management.project_roles),
+            "role_assignment_terminations": len(user_management.role_assignment_terminations),
             "activations": len(user_management.activations),
             "deactivations": len(user_management.deactivations),
             "approval_requests": len(user_management.approval_requests),
@@ -78,9 +76,7 @@ class ZCockpitUserManagementPersistenceView:
             "persisted_user_management_version": persisted_user_management_version,
             "user_management_persistence_version": user_management.as_dict()["version"],
             "user_management_migration_pending": user_management_migration_pending,
-            "user_management_migration_target_version": (
-                USER_MANAGEMENT_PERSISTENCE_VERSION if user_management_migration_pending else None
-            ),
+            "user_management_migration_target_version": USER_MANAGEMENT_PERSISTENCE_VERSION if user_management_migration_pending else None,
             "has_unsaved_changes": self.manager.has_unsaved_changes,
             "persisted_counts": counts,
             "persisted_object_count": sum(counts.values()),
@@ -88,9 +84,10 @@ class ZCockpitUserManagementPersistenceView:
             "derived_not_persisted_count": len(DERIVED_NOT_PERSISTED),
             "note": (
                 "Persistiert werden ausschließlich fachliche Benutzer-, Rechte-, Rechtewiderrufs-, Rollen-, "
-                "Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten. Eine ältere Benutzerverwaltungs-"
-                "Persistenzversion bleibt lesbar und wird erst beim expliziten Speichern aktualisiert. "
-                "Evaluator-Ergebnisse, Simulationen und Z_Cockpit-Ableitungen werden reproduzierbar neu gebildet."
+                "Rollenzuweisungs-Beendigungs-, Aktivierungs-, Rückgabe-, Freigabe- und Nachprüfungsdaten. "
+                "Eine ältere Benutzerverwaltungs-Persistenzversion bleibt lesbar und wird erst beim expliziten "
+                "Speichern aktualisiert. Evaluator-Ergebnisse, Simulationen und Z_Cockpit-Ableitungen werden "
+                "reproduzierbar neu gebildet."
             ),
             "read_only": True,
         }
