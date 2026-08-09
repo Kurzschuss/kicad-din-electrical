@@ -9,6 +9,7 @@ from .projectos_authorization import (
     ProjectOSPermissionAssignment,
     ProjectOSUserProfile,
 )
+from .projectos_permission_revocation import ProjectOSPermissionRevocation
 
 _SOURCE_LABELS = {
     "role": "Rolle",
@@ -40,10 +41,12 @@ class ZCockpitAuthorizationView:
         self,
         user: ProjectOSUserProfile,
         assignments: Iterable[ProjectOSPermissionAssignment] | None = None,
+        revocations: Iterable[ProjectOSPermissionRevocation] | None = None,
     ) -> None:
         self.user = user
         self._assignments = tuple(assignments or ())
-        self._evaluator = ProjectOSAuthorizationEvaluator(self._assignments)
+        self._revocations = tuple(revocations or ())
+        self._evaluator = ProjectOSAuthorizationEvaluator(self._assignments, self._revocations)
 
     def state(
         self,
@@ -82,8 +85,8 @@ class ZCockpitAuthorizationView:
             "impact": self._impact(baseline, simulated),
             "read_only": True,
             "note": (
-                "Die Rechte-Simulation verändert keine gespeicherten Benutzer-, Rollen- oder Rechtezuweisungen. "
-                "Benutzergewichtung wird angezeigt, beeinflusst die Entscheidung aber noch nicht."
+                "Die Rechte-Simulation verändert keine gespeicherten Benutzer-, Rollen-, Rechtezuweisungs- "
+                "oder Widerrufsdaten. Benutzergewichtung wird angezeigt, beeinflusst die Entscheidung aber nicht."
             ),
         }
 
@@ -93,6 +96,13 @@ class ZCockpitAuthorizationView:
         effective_ids = {item["assignment_id"] for item in result["effective_sources"]}
         for item in active:
             item["effective"] = item["assignment_id"] in effective_ids
+        revoked = [
+            {
+                "assignment": self._source(item["assignment"], active=False),
+                "revocation": dict(item["revocation"]),
+            }
+            for item in result.get("revoked_assignments", ())
+        ]
 
         return {
             "user": result["user"],
@@ -104,6 +114,8 @@ class ZCockpitAuthorizationView:
             "allowed": result["allowed"],
             "sources": active,
             "inactive_sources": inactive,
+            "revoked_sources": revoked,
+            "revoked_source_count": len(revoked),
             "effective_source_count": len(effective_ids),
             "active_source_count": len(active),
             "inactive_source_count": len(inactive),
@@ -129,6 +141,8 @@ class ZCockpitAuthorizationView:
     @staticmethod
     def _explanation(result: dict[str, Any], active: list[dict[str, Any]]) -> str:
         if result["decision"] == "not_granted":
+            if result.get("revocation_count", 0):
+                return "Das Recht ist nicht wirksam; mindestens eine passende Rechtezuweisung wurde fachlich widerrufen."
             if result["inactive_assignments"]:
                 return "Das Recht ist derzeit nicht wirksam; vorhandene Zuweisungen sind außerhalb ihres Gültigkeitszeitraums."
             return "Für dieses Recht und diesen Gültigkeitsbereich liegt keine wirksame Zuweisung vor."
