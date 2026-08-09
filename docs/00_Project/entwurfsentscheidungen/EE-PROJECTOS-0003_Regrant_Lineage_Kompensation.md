@@ -71,7 +71,7 @@ Die Lineage liegt in den bereits persistierten `metadata` der neuen `ProjectOSPe
 
 ## Identitätswechselndes Undo/Redo von Rechtezuweisungen
 
-`permission_assigned` und `permission_regranted` sind jetzt explizit kompensierbar.
+`permission_assigned` und `permission_regranted` sind explizit kompensierbar.
 
 ### Undo
 
@@ -100,11 +100,34 @@ Mehrere Undo-/Redo-Zyklen bilden daher eine lineare Kette neuer Zuweisungs- und 
 
 ## Rollen bleiben außerhalb des generischen synchronen Undo/Redo
 
-Obwohl Beendigung und Neu-Zuweisung vorhanden sind, wird `project_role_assigned` **nicht** automatisch reversibel geschaltet.
+Obwohl Beendigung und Neu-Zuweisung vorhanden sind, wird `project_role_assigned` **nicht** generisch reversibel geschaltet.
 
 Grund: Bei High-/Critical-Rollen kann die Beendigung eine zweite Freigabe und ggf. einen Notfall-/Nachprüfungs-Lifecycle benötigen. Ein generischer synchroner `undo_latest()`-Aufruf darf keinen mehrstufigen Approval-Vorgang vortäuschen oder halb abgeschlossen hinterlassen.
 
-Der nächste Schritt ist deshalb Simulation First: ein read-only Rollen-Kompensationsplan, der vorab Autorisierung, Risikoklasse, Vier-Augen-Bedarf, Synchronität und erwarteten Rechteverlust bewertet.
+### Beschlossener Simulation-First-Vertrag
+
+`ProjectOSRoleCompensationPlanner` und `ZCockpitRoleCompensationPlanView` bewerten ausschließlich read-only:
+
+- ob der Akteur `project.user_management.role.terminate` besitzt;
+- die konfigurierte Risikoklasse aus `role_risk_class_map`;
+- den Vier-Augen-Bedarf;
+- vorhandene Termination-/Approval-/Notfall-Nachprüfungszustände;
+- ob eine Kompensation synchron möglich, bereits abgeschlossen oder mehrstufig ist;
+- welche aktuell wirksamen rollenabgeleiteten Rechte durch die Ziel-Beendigung verloren gehen bzw. verloren gegangen sind;
+- ob nach einer wirksamen Beendigung eine Neu-Zuweisung mit neuer `role_assignment_id` möglich ist.
+
+Der Planner erzeugt **keine** Beendigung, keinen Approval-Auftrag, keine Nachprüfung und keine Neu-Zuweisung. Er erzeugt auch keine Audit-/Bus-/History-Nebenwirkung.
+
+Für fehlende Risikokonfiguration wird die Rechteauswirkung nicht durch ein implizites `low` approximiert; die Impact-Auswertung wird als unvollständig und die Planung fail-closed ausgewiesen.
+
+### Konsequenz
+
+- Low/Medium kann als normaler, autorisierter Termination-Command synchron ausführbar sein.
+- High/Critical bleibt ein expliziter mehrstufiger Lifecycle und wird nicht in generisches synchrones Undo/Redo aufgenommen.
+- Eine bereits approval-wirksame Beendigung kann als abgeschlossen und für eine spätere Neu-Zuweisung geeignet diagnostiziert werden.
+- Eine ausstehende/abgelehnte/nicht konfigurierte Beendigung bleibt sichtbar, ohne Rechte vorzeitig zu entziehen.
+
+Diese Entscheidung wurde durch die vollständige ProjectOS-Suite Run #378 bestätigt.
 
 ## Nicht erlaubt
 
@@ -112,4 +135,5 @@ Der nächste Schritt ist deshalb Simulation First: ein read-only Rollen-Kompensa
 - Widerrufe oder Beendigungen für Redo löschen;
 - Lineage als separaten konkurrierenden Persistenzbestand führen;
 - High-/Critical-Rollen-Neu-Zuweisung auf einer nur angelegten, aber nicht approval-wirksamen Beendigung aufbauen;
-- Rollen-Undo synchron anbieten, solange der Approval-Lifecycle nicht vollständig als Kompensationsplan bewertet ist.
+- Rollen-Undo synchron anbieten, nur weil Beendigung und Neu-Zuweisung als einzelne Commands existieren;
+- im Planner Fachzustand, Audit, Bus oder Command-History mutieren.
