@@ -8,7 +8,7 @@ Geltungsbereich: ProjectOS-Benutzerverwaltung auf dem integrierten PR-#159-Branc
 
 `ProjectOSUserManagementChangeService` übernimmt Benutzerverwaltungsänderungen atomar. Erfolgreiche Änderungen können über `ProjectOSUserManagementChangeTraceEmitter` als Bus-/Audit-Nachweis mit `project_id`, Akteur, `correlation_id` und `causation_id` beschrieben werden.
 
-Der allgemeine `DinEditorHistory` arbeitet mit technischen Zustands-Snapshots. Dieses Verfahren darf nicht ungeprüft auf die ProjectOS-Benutzerverwaltung übertragen werden. Benutzerverwaltung enthält fachlich historische Tatsachen wie Rollenaktivierungen, Beendigungen, Freigabeentscheidungen und Nachprüfungen. Ein technisches Zurücksetzen eines Snapshots könnte solche Tatsachen aus dem aktuellen Domainzustand entfernen, obwohl ihre Auditspur bestehen bleibt.
+Der allgemeine `DinEditorHistory` arbeitet mit technischen Zustands-Snapshots. Dieses Verfahren darf nicht ungeprüft auf die ProjectOS-Benutzerverwaltung übertragen werden. Benutzerverwaltung enthält fachlich historische Tatsachen wie Rechtezuweisungen, Rechtewiderrufe, Rollenzuweisungen, Rollenzuweisungs-Beendigungen, Rollenaktivierungen, Aktivierungs-Beendigungen, Freigabeentscheidungen und Nachprüfungen. Ein technisches Zurücksetzen eines Snapshots könnte solche Tatsachen aus dem aktuellen Domainzustand entfernen, obwohl ihre Auditspur bestehen bleibt.
 
 ## Entscheidung
 
@@ -61,11 +61,12 @@ Aktuelle Reversibilitätsmatrix:
 |---|---|---|
 | `user_weight_changed` | reversibel | neuer Gewichtsänderungs-Command auf den vorherigen bzw. erneuten Wert |
 | `user_created` | nicht reversibel | Löschen eines Benutzers wäre keine zulässige historische Kompensation; Archivierungs-/Deaktivierungsmodell fehlt |
-| `permission_assigned` | nicht reversibel | Widerruf ist jetzt modelliert und könnte eine Wirkung beenden; für vollständiges Undo/Redo fehlt aber ein expliziter Regrant-Vertrag mit neuer Zuweisungsidentität |
+| `permission_assigned` | nicht reversibel | Widerruf ist modelliert und könnte eine Wirkung beenden; für vollständiges Undo/Redo fehlt aber ein expliziter Regrant-Vertrag mit neuer Zuweisungsidentität |
 | `permission_revoked` | nicht reversibel | Widerruf ist historische Tatsache; Wiedererteilung muss als neuer fachlicher Vorgang erfolgen |
-| `project_role_assigned` | nicht reversibel | benötigt explizite Rollenbeendigung/Entziehung statt Löschen |
-| `project_role_activated` | bedingt kompensierbar | fachlich über eine neue Deaktivierung denkbar, aber Redo-/Reaktivierungsvertrag ist noch nicht definiert |
-| `project_role_deactivated` | nicht reversibel | Reaktivierung muss als neue Aktivierung erfolgen und benötigt eigenen Vertrag |
+| `project_role_assigned` | nicht reversibel | Rollenzuweisungs-Beendigung ist modelliert; für vollständiges Undo/Redo fehlt aber ein expliziter Neu-Zuweisungs-/Redo-Vertrag mit neuer Identität |
+| `project_role_assignment_terminated` | nicht reversibel | Beendigung ist historische Tatsache; eine spätere erneute Zuweisung ist ein neuer fachlicher Vorgang |
+| `project_role_activated` | nicht reversibel | eine Deaktivierung beendet die Aktivierung historisch; ein Redo müsste als neue Aktivierung mit neuer Identität und ggf. neuer Freigabe erfolgen |
+| `project_role_deactivated` | nicht reversibel | Reaktivierung muss als neue Aktivierung erfolgen und benötigt einen eigenen Vertrag |
 | `approval_requested` | nicht reversibel | historische Anforderung darf nicht verschwinden |
 | `approval_recorded` | nicht reversibel | Freigabeentscheidung ist historische Tatsache |
 | `post_review_completed` | nicht reversibel | Nachprüfung ist historische Tatsache |
@@ -119,6 +120,22 @@ Der Widerruf ist damit eine fachliche Lifecycle-Tatsache mit eigener Identität,
 
 Diese Gegenoperation reicht allein noch nicht aus, um `permission_assigned` als vollständig reversibel zu markieren: Ein späteres Redo müsste eine **neue** Rechtezuweisung erzeugen, statt den historischen Widerruf zu löschen oder dieselbe `assignment_id` wiederzubeleben. Dieser Regrant-Vertrag ist noch nicht beschlossen und bleibt daher fail-closed.
 
+### 9. Rollenzuweisungs-Beendigung ist eigener Lifecycle
+
+`ProjectOSProjectRoleAssignmentTermination` beendet die Wirksamkeit einer bestehenden `ProjectOSUserProjectRole` ab einem expliziten Zeitpunkt. Die historische Rollenzuweisung und vorhandene Aktivierungs-/Freigabenachweise bleiben erhalten.
+
+Die Beendigung der **Rollenzuweisung** ist ausdrücklich nicht identisch mit `ProjectOSProjectRoleDeactivation`, das ausschließlich eine konkrete **Aktivierung** beendet. Beide Lifecycle-Ebenen bleiben getrennt:
+
+- Aktivierungs-Deaktivierung beschreibt die Rückgabe/Beendigung eines konkreten Aktivierungszustands und behält ihre vorhandene Vier-Augen-Wirksamkeit;
+- Rollenzuweisungs-Beendigung beschreibt das administrative Ende der zugrunde liegenden Projektfunktion selbst und läuft als eigener autorisierter Command `project_role_assignment_terminated`;
+- ab `ended_at` erzeugt die zugrunde liegende Zuweisung keine direkten oder aktivierungsabgeleiteten Rollenrechte mehr;
+- eine vorhandene historische Aktivierung oder Freigabe wird dadurch nicht gelöscht oder umgeschrieben;
+- neue Aktivierungen einer bereits zur Beendigung festgelegten Zuweisung werden fail-closed abgewiesen.
+
+Die administrative Beendigung benötigt das explizite Command-Recht `project.user_management.role.terminate`. Ob High-/Critical-Rollenzuweisungs-Beendigungen zusätzlich einen eigenen Vier-Augen-Vertrag benötigen, ist **noch nicht beschlossen** und darf nicht implizit aus der Aktivierungs-Deaktivierungsfreigabe abgeleitet werden. Diese Risikofrage ist ein eigener nächster Architekturpunkt.
+
+Wie beim Rechtewiderruf reicht die Gegenoperation noch nicht für Undo/Redo: Ein Redo von `project_role_assigned` müsste eine **neue Rollenzuweisung mit neuer `role_assignment_id`** erzeugen; die historische Beendigung darf nicht entfernt und die alte Zuweisung nicht wiederbelebt werden.
+
 ## Umsetzungsreihenfolge
 
 1. `command_id` in den Benutzerverwaltungs-Command-Kontext aufnehmen.
@@ -129,12 +146,14 @@ Diese Gegenoperation reicht allein noch nicht aus, um `permission_assigned` als 
 6. Reversibilitätsmatrix nur mit vorhandenen expliziten Gegen- **und Wiederherstellungsoperationen** erweitern.
 7. Undo/Redo und normale Benutzerverwaltungs-Commands über den Autorisierungs-/Vier-Augen-Vertrag absichern.
 8. Rechtewiderruf als eigenen Lifecycle modellieren; `permission_assigned` bleibt bis zu einem expliziten Regrant-Vertrag nicht reversibel.
+9. Rollenzuweisungs-Beendigung als eigenen Lifecycle modellieren; `project_role_assigned` bleibt bis zu einem expliziten Neu-Zuweisungs-/Redo-Vertrag nicht reversibel.
+10. Für High-/Critical-Rollenzuweisungs-Beendigungen einen eigenen Risikound Freigabevertrag entscheiden, bevor deren Sicherheitsniveau ausgeweitet wird.
 
 ## Nicht erlaubt
 
 - Audit-Einträge löschen oder umschreiben;
 - Bus-Nachweise rückwirkend entfernen;
 - einen kompletten historischen `ProjectOSUserManagementState` blind zurückkopieren;
-- Rechtezuweisungen, Rechtewiderrufe, Freigaben, Nachprüfungen oder Lifecycle-Ereignisse durch Entfernen aus Tupeln "ungeschehen" machen;
+- Rechtezuweisungen, Rechtewiderrufe, Rollenzuweisungen, Rollenzuweisungs-Beendigungen, Freigaben, Nachprüfungen oder andere Lifecycle-Ereignisse durch Entfernen aus Tupeln "ungeschehen" machen;
 - nicht reversible Commands beim Undo still überspringen;
 - Undo/Redo ohne neue fachliche Identität und neue Auditspur durchführen.
