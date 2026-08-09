@@ -1,22 +1,23 @@
-"""Project manager for combined DIN layout and synchronization history."""
+"""Project manager for combined DIN layout, synchronization history and ProjectOS state."""
 from copy import deepcopy
 from pathlib import Path
 from uuid import UUID, uuid4
+
 from .din_editor_change_service import DinEditorChangeService
 from .din_editor_history import DinEditorHistory
-from .din_editor_project_bundle import (
-    load_project_bundle,
-    load_project_bundle_details,
-    load_project_recovery,
-    load_project_recovery_details,
-    recovery_path_for,
-    recovery_status_for,
-    save_project_bundle,
-)
+from .din_editor_project_bundle import recovery_path_for
 from .din_editor_session import DinEditorSession
 from .din_editor_sync_actions import DinEditorSyncActions
 from .din_editor_sync_log import DinSyncLog
 from .din_editor_validation import validate_session, ValidationIssue
+from .projectos_project_bundle_v4 import (
+    empty_user_management,
+    load_projectos_bundle_details,
+    load_projectos_recovery_details,
+    recovery_status_for_projectos,
+    save_projectos_bundle,
+)
+from .projectos_user_management_persistence import ProjectOSUserManagementState
 
 
 def _new_project_id() -> str:
@@ -34,10 +35,14 @@ class DinEditorProjectManager:
         sync_log: DinSyncLog | None = None,
         *,
         project_id: str | None = None,
+        user_management: ProjectOSUserManagementState | None = None,
     ):
         self.session = session or DinEditorSession()
         self.sync_log = sync_log or DinSyncLog()
         self.project_id = _normalize_project_id(project_id) if project_id is not None else _new_project_id()
+        self.user_management = user_management or empty_user_management(self.project_id)
+        if self.user_management.project_id != self.project_id:
+            raise ValueError("user management belongs to another project")
         self.project_identity_migration_pending = False
         self.history = DinEditorHistory(self.session, self.sync_log)
         self.path: Path | None = None
@@ -47,16 +52,29 @@ class DinEditorProjectManager:
         self.change_service = self._build_change_service()
 
     def _snapshot(self) -> dict:
-        return {"components": deepcopy(self.session.components), "sync_log": deepcopy(self.sync_log.entries)}
+        return {
+            "components": deepcopy(self.session.components),
+            "sync_log": deepcopy(self.sync_log.entries),
+            "user_management": deepcopy(self.user_management.as_dict()),
+        }
 
     @staticmethod
-    def _snapshot_for(session: DinEditorSession, sync_log: DinSyncLog) -> dict:
-        return {"components": deepcopy(session.components), "sync_log": deepcopy(sync_log.entries)}
+    def _snapshot_for(
+        session: DinEditorSession,
+        sync_log: DinSyncLog,
+        user_management: ProjectOSUserManagementState,
+    ) -> dict:
+        return {
+            "components": deepcopy(session.components),
+            "sync_log": deepcopy(sync_log.entries),
+            "user_management": deepcopy(user_management.as_dict()),
+        }
 
     def _prepare_project_state(
         self,
         session: DinEditorSession,
         sync_log: DinSyncLog,
+        user_management: ProjectOSUserManagementState,
     ) -> tuple[DinEditorHistory, DinEditorChangeService, dict]:
         history = DinEditorHistory(session, sync_log)
         change_service = DinEditorChangeService(
@@ -64,7 +82,7 @@ class DinEditorProjectManager:
             history,
             on_change=self._refresh_dirty,
         )
-        saved_state = self._snapshot_for(session, sync_log)
+        saved_state = self._snapshot_for(session, sync_log, user_management)
         return history, change_service, saved_state
 
     def _refresh_dirty(self) -> None:
@@ -76,6 +94,12 @@ class DinEditorProjectManager:
 
     def _build_change_service(self) -> DinEditorChangeService:
         return DinEditorChangeService(self.session, self.history, on_change=self._refresh_dirty)
+
+    def set_user_management(self, state: ProjectOSUserManagementState) -> None:
+        if state.project_id != self.project_id:
+            raise ValueError("user management belongs to another project")
+        self.user_management = state
+        self._refresh_dirty()
 
     def sync_actions(self, view_model) -> DinEditorSyncActions:
         sync_service = getattr(view_model, "sync_service", None)
@@ -117,13 +141,12 @@ class DinEditorProjectManager:
                 "metadata": {
                     "source_path": None,
                     "recovery_path": None,
-                    "captured_at": None,
                     "bundle_version": None,
-                    "session_version": None,
                     "project_id": None,
+                    "user_management_present": False,
                 },
             }
-        return recovery_status_for(target)
+        return recovery_status_for_projectos(target)
 
     def save(self, path: str | Path | None = None, *, validate: bool = True) -> Path:
         if validate:
@@ -136,12 +159,14 @@ class DinEditorProjectManager:
         _, _, saved_state = self._prepare_project_state(
             self.session,
             self.sync_log,
+            self.user_management,
         )
-        result = save_project_bundle(
+        result = save_projectos_bundle(
             self.session,
             self.sync_log,
             target,
             project_id=self.project_id,
+            user_management=self.user_management,
         )
         self.path = result
         self._saved_state = saved_state
@@ -154,14 +179,19 @@ class DinEditorProjectManager:
     def load(self, path: str | Path, *, discard_changes: bool = False) -> DinEditorSession:
         if self.has_unsaved_changes and not discard_changes:
             raise RuntimeError("project has unsaved changes; save or discard them before loading")
-        session, sync_log, project_id, migration_required = load_project_bundle_details(path)
-        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
+        session, sync_log, project_id, migration_required, user_management = load_projectos_bundle_details(path)
+        resolved_project_id = project_id or _new_project_id()
+        resolved_user_management = user_management or empty_user_management(resolved_project_id)
+        history, change_service, saved_state = self._prepare_project_state(
+            session, sync_log, resolved_user_management
+        )
         self.session = session
         self.sync_log = sync_log
+        self.user_management = resolved_user_management
         self.history = history
         self.change_service = change_service
         self.path = Path(path)
-        self.project_id = project_id or _new_project_id()
+        self.project_id = resolved_project_id
         self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = None
@@ -174,14 +204,19 @@ class DinEditorProjectManager:
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("project path is not set")
-        session, sync_log, project_id, migration_required = load_project_recovery_details(target)
-        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
+        session, sync_log, project_id, migration_required, user_management = load_projectos_recovery_details(target)
+        resolved_project_id = project_id or _new_project_id()
+        resolved_user_management = user_management or empty_user_management(resolved_project_id)
+        history, change_service, saved_state = self._prepare_project_state(
+            session, sync_log, resolved_user_management
+        )
         self.session = session
         self.sync_log = sync_log
+        self.user_management = resolved_user_management
         self.history = history
         self.change_service = change_service
         self.path = target
-        self.project_id = project_id or _new_project_id()
+        self.project_id = resolved_project_id
         self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = recovery_path_for(target)
@@ -193,13 +228,18 @@ class DinEditorProjectManager:
             raise RuntimeError("project has unsaved changes; save or discard them before creating a new project")
         session = DinEditorSession()
         sync_log = DinSyncLog()
-        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
+        project_id = _new_project_id()
+        user_management = empty_user_management(project_id)
+        history, change_service, saved_state = self._prepare_project_state(
+            session, sync_log, user_management
+        )
         self.session = session
         self.sync_log = sync_log
+        self.user_management = user_management
         self.history = history
         self.change_service = change_service
         self.path = None
-        self.project_id = _new_project_id()
+        self.project_id = project_id
         self.project_identity_migration_pending = False
         self._saved_state = saved_state
         self._recovered_from = None
@@ -212,13 +252,18 @@ class DinEditorProjectManager:
         if self.path is None:
             self.new_project(discard_changes=True)
             return
-        session, sync_log, project_id, migration_required = load_project_bundle_details(self.path)
-        history, change_service, saved_state = self._prepare_project_state(session, sync_log)
+        session, sync_log, project_id, migration_required, user_management = load_projectos_bundle_details(self.path)
+        resolved_project_id = project_id or _new_project_id()
+        resolved_user_management = user_management or empty_user_management(resolved_project_id)
+        history, change_service, saved_state = self._prepare_project_state(
+            session, sync_log, resolved_user_management
+        )
         self.session = session
         self.sync_log = sync_log
+        self.user_management = resolved_user_management
         self.history = history
         self.change_service = change_service
-        self.project_id = project_id or _new_project_id()
+        self.project_id = resolved_project_id
         self.project_identity_migration_pending = migration_required
         self._saved_state = saved_state
         self._recovered_from = None
@@ -240,4 +285,5 @@ class DinEditorProjectManager:
             "history": self.history.state(),
             "session": self.session.state(),
             "sync_log_entries": len(self.sync_log.entries),
+            "user_management": self.user_management.as_dict(),
         }
