@@ -58,49 +58,62 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.causation_id = _uuid(causation_id, "causation_id") if causation_id is not None else None
         self.messages: list[ProjectOSMessageEnvelope] = []
         self.traces: list[ProjectOSUserManagementChangeTrace] = []
+        self._previous_state = manager.user_management.as_dict()
 
-    def _latest_context(self, operation: str) -> tuple[str, str | None, dict[str, Any]]:
-        state = self.manager.user_management
-        if operation == "user_created":
-            item = state.users[-1]
-            return item.user_id, item.user_id, item.as_dict()
-        if operation == "user_weight_changed":
-            item = state.users[-1]
-            return item.user_id, item.user_id, item.as_dict()
-        if operation == "permission_assigned":
-            item = state.permission_assignments[-1]
-            actor = item.delegated_by_user_id or item.user_id
-            return item.assignment_id, actor, item.as_dict()
-        if operation == "project_role_assigned":
-            item = state.project_roles[-1]
-            actor = item.assigned_by_user_id or item.user_id
-            return item.role_assignment_id, actor, item.as_dict()
-        if operation == "project_role_activated":
-            item = state.activations[-1]
-            actor = item.triggered_by_user_id or item.user_id
-            return item.activation_id, actor, item.as_dict()
-        if operation == "project_role_deactivated":
-            item = state.deactivations[-1]
-            actor = item.triggered_by_user_id or item.user_id
-            return item.deactivation_id, actor, item.as_dict()
-        if operation == "approval_requested":
-            item = state.approval_requests[-1]
-            return item.action_id, item.requested_by_user_id, item.as_dict()
-        if operation == "approval_recorded":
-            item = state.approvals[-1]
-            return item.approval_id, item.approver_user_id, item.as_dict()
-        if operation == "post_review_completed":
-            item = state.post_reviews[-1]
-            return item.review_id, item.reviewer_user_id, item.as_dict()
-        raise ValueError(f"unsupported user management operation: {operation}")
+    @staticmethod
+    def _changed_row(previous: list[dict[str, Any]], current: list[dict[str, Any]], id_field: str) -> dict[str, Any]:
+        before = {item[id_field]: item for item in previous}
+        changed = [item for item in current if before.get(item[id_field]) != item]
+        if len(changed) != 1:
+            raise ValueError(f"expected exactly one changed {id_field}")
+        return changed[0]
+
+    def _change_context(self, operation: str) -> tuple[str, str | None, dict[str, Any]]:
+        current = self.manager.user_management.as_dict()
+        previous = self._previous_state
+
+        mapping = {
+            "user_created": ("users", "user_id"),
+            "user_weight_changed": ("users", "user_id"),
+            "permission_assigned": ("permission_assignments", "assignment_id"),
+            "project_role_assigned": ("project_roles", "role_assignment_id"),
+            "project_role_activated": ("activations", "activation_id"),
+            "project_role_deactivated": ("deactivations", "deactivation_id"),
+            "approval_requested": ("approval_requests", "action_id"),
+            "approval_recorded": ("approvals", "approval_id"),
+            "post_review_completed": ("post_reviews", "review_id"),
+        }
+        if operation not in mapping:
+            raise ValueError(f"unsupported user management operation: {operation}")
+
+        collection, id_field = mapping[operation]
+        row = self._changed_row(previous.get(collection, []), current.get(collection, []), id_field)
+        reference = str(row[id_field])
+
+        if operation in {"user_created", "user_weight_changed"}:
+            actor = row["user_id"]
+        elif operation == "permission_assigned":
+            actor = row.get("delegated_by_user_id") or row["user_id"]
+        elif operation == "project_role_assigned":
+            actor = row.get("assigned_by_user_id") or row["user_id"]
+        elif operation in {"project_role_activated", "project_role_deactivated"}:
+            actor = row.get("triggered_by_user_id") or row["user_id"]
+        elif operation == "approval_requested":
+            actor = row["requested_by_user_id"]
+        elif operation == "approval_recorded":
+            actor = row["approver_user_id"]
+        else:
+            actor = row["reviewer_user_id"]
+
+        return reference, actor, row
 
     def __call__(self, event: dict[str, Any]) -> None:
         operation = str(event.get("operation", "")).strip()
         project_id = _uuid(str(event.get("project_id")), "project_id")
         if project_id != self.manager.project_id:
             raise ValueError("change event belongs to another project")
-        reference, actor_user_id, domain_payload = self._latest_context(operation)
 
+        reference, actor_user_id, domain_payload = self._change_context(operation)
         payload = {
             "operation": operation,
             "actor_user_id": actor_user_id,
@@ -135,3 +148,4 @@ class ProjectOSUserManagementChangeTraceEmitter:
         self.messages.append(message)
         self.traces.append(trace)
         self.causation_id = message.message_id
+        self._previous_state = self.manager.user_management.as_dict()
