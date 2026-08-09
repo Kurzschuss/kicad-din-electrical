@@ -138,8 +138,10 @@ class ProjectOSUserManagementChangeTraceEmitter:
             "user_created": ("users", "user_id"),
             "user_weight_changed": ("users", "user_id"),
             "permission_assigned": ("permission_assignments", "assignment_id"),
+            "permission_regranted": ("permission_assignments", "assignment_id"),
             "permission_revoked": ("permission_revocations", "revocation_id"),
             "project_role_assigned": ("project_roles", "role_assignment_id"),
+            "project_role_reassigned": ("project_roles", "role_assignment_id"),
             "project_role_assignment_terminated": ("role_assignment_terminations", "termination_id"),
             "project_role_activated": ("activations", "activation_id"),
             "project_role_deactivated": ("deactivations", "deactivation_id"),
@@ -157,9 +159,11 @@ class ProjectOSUserManagementChangeTraceEmitter:
             actor = row["user_id"]
         elif operation == "permission_assigned":
             actor = row.get("delegated_by_user_id") or row["user_id"]
+        elif operation == "permission_regranted":
+            actor = row.get("metadata", {}).get("regranted_by_user_id") or row.get("delegated_by_user_id") or row["user_id"]
         elif operation == "permission_revoked":
             actor = row["revoked_by_user_id"]
-        elif operation == "project_role_assigned":
+        elif operation in {"project_role_assigned", "project_role_reassigned"}:
             actor = row.get("assigned_by_user_id") or row["user_id"]
         elif operation == "project_role_assignment_terminated":
             actor = row["ended_by_user_id"]
