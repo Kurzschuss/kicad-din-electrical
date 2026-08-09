@@ -128,11 +128,16 @@ Die Beendigung der **Rollenzuweisung** ist ausdrücklich nicht identisch mit `Pr
 
 - Aktivierungs-Deaktivierung beschreibt die Rückgabe/Beendigung eines konkreten Aktivierungszustands und behält ihre vorhandene Vier-Augen-Wirksamkeit;
 - Rollenzuweisungs-Beendigung beschreibt das administrative Ende der zugrunde liegenden Projektfunktion selbst und läuft als eigener autorisierter Command `project_role_assignment_terminated`;
-- ab `ended_at` erzeugt die zugrunde liegende Zuweisung keine direkten oder aktivierungsabgeleiteten Rollenrechte mehr;
 - eine vorhandene historische Aktivierung oder Freigabe wird dadurch nicht gelöscht oder umgeschrieben;
 - neue Aktivierungen einer bereits zur Beendigung festgelegten Zuweisung werden fail-closed abgewiesen.
 
-Die administrative Beendigung benötigt das explizite Command-Recht `project.user_management.role.terminate`. Ob High-/Critical-Rollenzuweisungs-Beendigungen zusätzlich einen eigenen Vier-Augen-Vertrag benötigen, ist **noch nicht beschlossen** und darf nicht implizit aus der Aktivierungs-Deaktivierungsfreigabe abgeleitet werden. Diese Risikofrage ist ein eigener nächster Architekturpunkt.
+Die administrative Beendigung benötigt das explizite Command-Recht `project.user_management.role.terminate`.
+
+Die zuvor offene High-/Critical-Risikofrage ist inzwischen separat beschlossen und umgesetzt. Maßgeblich ist:
+
+`docs/00_Project/entwurfsentscheidungen/EE-PROJECTOS-0002_Rollenzuweisungsbeendigung_Vier_Augen.md`
+
+Dort ist festgelegt, dass High/Critical-Zuweisungsbeendigungen den vorhandenen Approval-Vertrag mit Action-Typ `role_assignment_termination` verwenden, fehlende Risikokonfiguration fail-closed ist und Rechtewirkung erst nach wirksamer fremder Freigabe endet. Low/Medium benötigen keine zweite Person; Notfallwirkung bleibt nachprüfungspflichtig.
 
 Wie beim Rechtewiderruf reicht die Gegenoperation noch nicht für Undo/Redo: Ein Redo von `project_role_assigned` müsste eine **neue Rollenzuweisung mit neuer `role_assignment_id`** erzeugen; die historische Beendigung darf nicht entfernt und die alte Zuweisung nicht wiederbelebt werden.
 
@@ -147,7 +152,8 @@ Wie beim Rechtewiderruf reicht die Gegenoperation noch nicht für Undo/Redo: Ein
 7. Undo/Redo und normale Benutzerverwaltungs-Commands über den Autorisierungs-/Vier-Augen-Vertrag absichern.
 8. Rechtewiderruf als eigenen Lifecycle modellieren; `permission_assigned` bleibt bis zu einem expliziten Regrant-Vertrag nicht reversibel.
 9. Rollenzuweisungs-Beendigung als eigenen Lifecycle modellieren; `project_role_assigned` bleibt bis zu einem expliziten Neu-Zuweisungs-/Redo-Vertrag nicht reversibel.
-10. Für High-/Critical-Rollenzuweisungs-Beendigungen einen eigenen Risikound Freigabevertrag entscheiden, bevor deren Sicherheitsniveau ausgeweitet wird.
+10. High-/Critical-Rollenzuweisungs-Beendigungen über den vorhandenen Approval-Vertrag fail-closed absichern (beschlossen in EE-PROJECTOS-0002).
+11. Regrant und Rollen-Neu-Zuweisung ausschließlich mit neuen fachlichen Identitäten definieren, bevor die Reversibilitätsmatrix erweitert wird.
 
 ## Nicht erlaubt
 
