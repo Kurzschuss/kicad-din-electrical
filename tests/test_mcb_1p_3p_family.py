@@ -158,19 +158,21 @@ def test_mcb_3p_trip_arrows_are_shorter_and_touch_each_switch_contact():
         assert min(y for _, y in arrowhead) - (-1.27) > 0.5
 
 
-def test_mcb_3p_coupling_marks_are_one_short_solid_line_per_gap():
+def test_mcb_3p_coupling_marks_are_longer_solid_line_per_gap():
     block = symbol_blocks(MCB_PATH.read_text(encoding="utf-8"))["MCB_3P"]
     points = {polyline.points for polyline in parse_polylines(block)}
 
-    assert ((6.985, -1.27), (8.255, -1.27)) in points
-    assert ((14.605, -1.27), (15.875, -1.27)) in points
+    assert ((5.715, -1.27), (7.62, -1.27)) in points
+    assert ((13.335, -1.27), (15.24, -1.27)) in points
     coupling_marks = [
         polyline for polyline in parse_polylines(block)
         if len(polyline.points) == 2
         and all(y == pytest.approx(-1.27) for _, y in polyline.points)
-        and abs(polyline.points[1][0] - polyline.points[0][0]) == pytest.approx(1.27)
+        and abs(polyline.points[1][0] - polyline.points[0][0]) == pytest.approx(1.905)
     ]
     assert len(coupling_marks) == 2
+    assert 8.89 - 7.62 == pytest.approx(1.27)
+    assert 16.51 - 15.24 == pytest.approx(1.27)
     assert "(type dash)" not in block
 
 
