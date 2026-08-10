@@ -6,6 +6,12 @@ from .development_navigator import (
     development_navigator_html,
     recommended_work,
 )
+from .diagnostics_page import (
+    DiagnosticEntry,
+    DiagnosticsSnapshot,
+    collect_diagnostics,
+    diagnostics_page_html,
+)
 from .footprint_preview import (
     FootprintAssignment,
     footprint_assignment,
@@ -48,6 +54,8 @@ from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_previe
 __all__ = [
     "DEFAULT_PAGES",
     "DashboardTask",
+    "DiagnosticEntry",
+    "DiagnosticsSnapshot",
     "FootprintAssignment",
     "LibraryQualityResult",
     "LibrarySymbol",
@@ -62,11 +70,13 @@ __all__ = [
     "SymbolLibrary",
     "SymbolPreview",
     "blocked_tasks",
+    "collect_diagnostics",
     "collect_manufacturers",
     "collect_project_status",
     "collect_security_status",
     "collect_symbol_libraries",
     "development_navigator_html",
+    "diagnostics_page_html",
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
