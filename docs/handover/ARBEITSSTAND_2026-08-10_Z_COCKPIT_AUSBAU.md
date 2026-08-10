@@ -68,7 +68,7 @@ Detaildokumentation: `docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md`.
 
 ## 3D-Vorschauen und Modellabdeckung – umgesetzt
 
-Die Geräte- und Bibliotheksansicht wertet jetzt vorhandene KiCad-3D-Modellreferenzen und technische F.Fab-Hüllgeometrie aus.
+Die Geräte- und Bibliotheksansicht wertet vorhandene KiCad-3D-Modellreferenzen und technische F.Fab-Hüllgeometrie aus.
 
 Verbindliche Statuswerte:
 
@@ -94,16 +94,36 @@ Die Startseite zeigt getrennte Kennzahlen für echte 3D-Modelle und technische 3
 
 Der Windows-Starter aktualisiert die 3D-Vorschauen vor dem Öffnen des Cockpits. CI und Release prüfen die deterministischen Vorschauen mit `python tools/generate_3d_previews.py --check`.
 
+## Direkte KiCad-Editoraufrufe – umgesetzt
+
+Geräte- und Bibliotheksinspektor erhalten lokale Aktionen, ohne ihre bestehende Arbeitslogik oder Scrollstruktur umzubauen:
+
+- `Symbol-Editor öffnen`;
+- `Footprint direkt öffnen`, wenn ein Repository-Footprint vorhanden ist.
+
+Die HTML-Datei startet keine Executables. Sie verwendet ausschließlich das lokale URI-Schema `kicad-z:`. `tools/windows/open_z_cockpit.bat` registriert dieses Schema unter `HKCU`, also nur für den aktuellen Benutzer und ohne Administratorrechte.
+
+Der Handler `tools/windows/open_kicad_from_cockpit.ps1` akzeptiert nur validierte technische IDs. Dateipfade werden nicht aus der URL übernommen, sondern ausschließlich aus festen Repositorypfaden konstruiert.
+
+Footprints werden über den KiCad-Frame `fpedit` direkt mit der zugehörigen `.kicad_mod`-Datei geöffnet.
+
+Für Symbole gibt es upstream derzeit keinen stabilen öffentlichen CLI-Aufruf, der eine konkrete `Bibliothek:Symbol`-ID direkt selektiert. Der Handler prüft deshalb Bibliothek und Top-Level-Symbol, kopiert die technische Referenz in die Zwischenablage und öffnet den Symbol Editor über den KiCad-Manager-Hotkey `Ctrl+L`.
+
+Detaildokumentation:
+
+```text
+docs/03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md
+```
+
 ## Projektmodell
 
-`benutzerverwaltung`, `whitelist_verwaltung`, `issue_fehlermeldung` und `3d_vorschauen` stehen in `project_state.yaml` auf `done`.
+`benutzerverwaltung`, `whitelist_verwaltung`, `issue_fehlermeldung`, `3d_vorschauen` und `kicad_editoraufrufe` stehen in `project_state.yaml` auf `done`.
 
 Damit ist aktuell keine normale `planned`- oder `in_progress`-Aufgabe im zentralen Projektmodell offen. Der Entwicklungsnavigator zeigt entsprechend `Keine ausführbare Aufgabe offen.`
 
 ## Separat offen
 
-Nach Abschluss der 3D-Vorschauen bleiben als technische Folgepunkte:
+Nach Abschluss der KiCad-Editoraufrufe bleibt als nächster technischer Folgepunkt:
 
-- direkte KiCad-Editoraufrufe;
 - Persistenzanbindung der Laufzeitdiagnosen;
 - GitHub-Ruleset-Aktivierung (`blocked`, separate gemeinsame Freigabe erforderlich).
