@@ -1,10 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
   <title>Z_RCD: RCD</title>
   <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
-  <rect x="74.28" y="32.28" width="91.44" height="91.44" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="43.80" y1="62.76" x2="74.28" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="196.20" y1="62.76" x2="165.72" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="43.80" y1="93.24" x2="74.28" y2="93.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="196.20" y1="93.24" x2="165.72" y2="93.24" stroke="currentColor" stroke-width="2"/>
+  <rect x="97.15" y="78.00" width="60.92" height="15.23" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="127.62" y="78.00" width="7.62" height="15.23" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="173.31" y="70.38" width="45.69" height="30.46" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="180.92" y="32.31" width="30.46" height="15.23" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="51.46" y="70.38" width="15.23" height="15.23" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="104.77,32.31 104.77,39.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="89.54,47.54 104.77,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.77,70.38 104.77,123.69" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="150.46,32.31 150.46,39.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="135.23,47.54 150.46,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="150.46,70.38 150.46,123.69" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="81.92,62.77 165.69,62.77" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="158.08,85.62 173.31,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="180.92,78.00 180.92,93.23" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="173.31,78.00 188.54,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="173.31,93.23 188.54,93.23" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="188.54,93.23 196.15,78.00 196.15,93.23 188.54,93.23" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="203.77,78.00 211.38,85.62 203.77,93.23" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="196.15,32.31 196.15,47.54" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="188.54,39.92 203.77,39.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="196.15,47.54 196.15,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="21.00,39.92 36.23,39.92" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="28.62,39.92 28.62,55.15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="43.85,47.54 51.46,47.54" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="51.46,39.92 59.08,55.15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="59.08,55.15 59.08,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="59.08,85.62 59.08,108.46 150.46,108.46" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="43.85,47.54 43.85,39.92 89.54,39.92 89.54,47.54" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="104.77" y1="17.08" x2="104.77" y2="32.31" stroke="currentColor" stroke-width="2"/>
+  <line x1="104.77" y1="138.92" x2="104.77" y2="123.69" stroke="currentColor" stroke-width="2"/>
+  <line x1="150.46" y1="17.08" x2="150.46" y2="32.31" stroke="currentColor" stroke-width="2"/>
+  <line x1="150.46" y1="138.92" x2="150.46" y2="123.69" stroke="currentColor" stroke-width="2"/>
   <text x="120" y="164" text-anchor="middle" font-size="12">RCD</text>
 </svg>

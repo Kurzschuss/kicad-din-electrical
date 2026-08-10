@@ -2,11 +2,28 @@
 
 ## Zweck
 
-`Z_RCD:RCD` ist der herstellerneutrale Referenzbaustein für einen Fehlerstrom-Schutzschalter im Projekt.
+`Z_RCD:RCD` ist der herstellerneutrale Referenzbaustein für einen 2-poligen Fehlerstrom-Schutzschalter (RCD/FI) im Projekt.
 
 KiCad bleibt der Standard. Projektspezifische Eigenschaften sind deshalb konsequent mit `Z_` gekennzeichnet.
 
-## Referenzdaten
+Die elektrische Symbolgeometrie bildet die gemeinsame Funktion der Gerätefamilie ab. Die konkreten Bemessungswerte der einzelnen Gerätevarianten liegen datengetrieben im Gerätekatalog.
+
+## Symbolgeometrie
+
+Die Funktionsdarstellung enthält:
+
+- zwei mechanisch gekoppelte Schaltkontakte für L und N;
+- Prüfschaltung mit Kennzeichnung `T`;
+- Summenstromerfassung über beide aktiven Leiter;
+- Auslöse-/Bewertungsblock `IΔ >`;
+- mechanisch gekoppelte Prüftaste;
+- vertikale Anschlussführung mit `1/2` für L und `3/4` für N.
+
+Die Darstellung orientiert sich an der im Projekt freigegebenen FI/RCD-Vorlage und bleibt herstellerneutral.
+
+## Referenzdaten des Symbols
+
+Die im Bibliothekssymbol hinterlegten Z_-Eigenschaften bilden weiterhin eine repräsentative Referenzvariante ab:
 
 | Merkmal | Wert |
 |---|---:|
@@ -14,9 +31,30 @@ KiCad bleibt der Standard. Projektspezifische Eigenschaften sind deshalb konsequ
 | Bemessungsstrom | 40 A |
 | Bemessungsdifferenzstrom | 30 mA |
 | RCD-Typ | A |
+| Bemessungskurzschlussstrom | 6 kA |
+| Schließ- und Abschaltvermögen | 1,5 kA |
 | Prüftaste | vorhanden |
 | Footprint Policy | optional |
 | Empfohlener Footprint | `Z_DIN_Module_36mm:Z_DIN_Module_36mm` |
+
+## Gerätefamilie
+
+Die parametrische Serie liegt unter:
+
+```text
+data/device_series/generic/rcd-2p-template-series.yaml
+```
+
+Sie erzeugt 64 herstellerneutrale Gerätevarianten aus der vollständigen Kombination von:
+
+- Bemessungsstrom: 16 A, 25 A, 40 A, 63 A;
+- Bemessungsdifferenzstrom: 10 mA, 30 mA, 300 mA, 500 mA;
+- RCD-Typ: A, F;
+- Bemessungskurzschlussstrom: 6 kA, 10 kA.
+
+Das Schließ- und Abschaltvermögen beträgt für alle Varianten 1,5 kA.
+
+Die erzeugten Einzelgeräte verwenden gemeinsam `Z_RCD:RCD` und werden unter `data/devices/generated/generic.rcd-2p-template-series/` abgelegt.
 
 ## Anschlüsse
 

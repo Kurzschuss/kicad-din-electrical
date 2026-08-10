@@ -19,9 +19,11 @@ REQUIRED_FIELDS = {
     "function_group", "symbol", "footprint_policy",
 }
 ALLOWED_FIELDS = REQUIRED_FIELDS | {
-    "description", "poles", "rated_current_a", "trip_curve",
-    "breaking_capacity_ka", "modules", "footprint", "datasheet",
-    "source_status", "name_de", "name_en", "abbreviation",
+    "description", "poles", "rated_current_a", "residual_current_ma",
+    "rcd_type", "trip_curve", "breaking_capacity_ka",
+    "rated_short_circuit_current_ka", "making_breaking_capacity_ka",
+    "modules", "footprint", "datasheet", "source_status", "name_de",
+    "name_en", "abbreviation",
 }
 POLICIES = {"required", "optional", "none"}
 SOURCE_STATES = {"template", "verified", "unverified"}
@@ -105,6 +107,10 @@ def validate_device(
     ):
         errors.append("abbreviation muss ein etabliertes großgeschriebenes Fachkürzel sein")
 
+    rcd_type = data.get("rcd_type")
+    if rcd_type is not None and (not isinstance(rcd_type, str) or not rcd_type.strip()):
+        errors.append("rcd_type muss ein nichtleerer Text sein")
+
     family = data.get("function_group")
     if isinstance(family, str) and allowed_families is not None and family not in allowed_families:
         errors.append(f"Unbekannte Gerätefamilie: {family}")
@@ -135,9 +141,18 @@ def validate_device(
     value = data.get("poles")
     if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
         errors.append("poles muss eine positive ganze Zahl sein")
-    for field in ("rated_current_a", "breaking_capacity_ka", "modules"):
+    for field in (
+        "rated_current_a",
+        "residual_current_ma",
+        "breaking_capacity_ka",
+        "rated_short_circuit_current_ka",
+        "making_breaking_capacity_ka",
+        "modules",
+    ):
         value = data.get(field)
-        if value is not None and (not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0):
+        if value is not None and (
+            not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0
+        ):
             errors.append(f"{field} muss eine positive Zahl sein")
     return errors
 
