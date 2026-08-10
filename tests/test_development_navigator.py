@@ -11,7 +11,7 @@ def test_user_management_is_recommended_as_next_executable_task():
     task = recommended_work(state)
     assert task is not None
     assert task.task_id == "benutzerverwaltung"
-    assert task.title_de == "Benutzerverwaltung im Z_Cockpit integrieren"
+    assert task.task_title_de == "Benutzerverwaltung im Z_Cockpit integrieren"
 
 
 def test_projectvalidator_is_marked_done():
