@@ -48,15 +48,18 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="bibliotheken"' in navigation
     assert 'data-page="hersteller"' in navigation
     assert 'data-page="diagnose"' in navigation
+    assert 'data-page="dokumentation"' in navigation
     assert "Bibliotheken" in navigation
     assert "Hersteller" in navigation
     assert "Qualität" in navigation
     assert "Diagnose" in navigation
+    assert "Dokumentation" in navigation
     assert "Sicherheit" in navigation
     assert 'data-page="bibliotheken" title="Symbole, Footprints und Modelle">Bibliotheken</button>' in navigation
     assert 'data-page="hersteller" title="Hersteller, Serien und Katalogzuordnungen">Hersteller</button>' in navigation
     assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
     assert 'data-page="diagnose" title="Fehler, Warnungen und Prüfdetails">Diagnose</button>' in navigation
+    assert 'data-page="dokumentation" title="Projekt- und Entwicklerdokumentation">Dokumentation</button>' in navigation
 
 
 def test_project_status_cards_distinguish_present_and_prepared_components():
@@ -78,7 +81,7 @@ def test_implemented_pages_are_not_generated_as_placeholders():
     assert 'id="page-hersteller"' not in placeholders
     assert 'id="page-qualitaet"' not in placeholders
     assert 'id="page-diagnose"' not in placeholders
-    assert 'id="page-dokumentation"' in placeholders
+    assert 'id="page-dokumentation"' not in placeholders
     assert 'id="page-einstellungen"' in placeholders
 
 
@@ -129,6 +132,15 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'class="diagnostic-inspector"' in html
     assert "Arbeitsliste aus ProjectOS-Projektvalidator und repositoryweiter Projektanalyse" in html
     assert "Laufzeit-Wissensgraphdiagnosen" in html
+    assert 'id="page-dokumentation"' in html
+    assert html.count('id="page-dokumentation"') == 1
+    assert 'id="documentation-overview"' in html
+    assert 'id="documentation-filter-search"' in html
+    assert 'id="documentation-filter-category"' in html
+    assert 'class="documentation-inspector"' in html
+    assert "Durchsuchbarer Index der vorhandenen Markdown-Dokumentation" in html
+    assert "keine zweite Dokumentationsdatenbank" in html
+    assert "docs/README.md" in html
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
