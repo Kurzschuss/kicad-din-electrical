@@ -18,10 +18,10 @@ def test_implemented_core_pages_are_registered() -> None:
     assert page_by_id("qualitaet").implemented is True
     assert page_by_id("diagnose").implemented is True
     assert page_by_id("sicherheit").implemented is True
+    assert page_by_id("dokumentation").implemented is True
 
 
 def test_remaining_planned_core_pages_are_registered() -> None:
-    assert page_by_id("dokumentation").implemented is False
     assert page_by_id("einstellungen").implemented is False
 
 
