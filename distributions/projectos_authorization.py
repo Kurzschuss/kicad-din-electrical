@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import re
 from typing import Any, Iterable
 from uuid import UUID, uuid4
 
@@ -14,6 +15,7 @@ from .projectos_user_reactivation import ProjectOSUserReactivation
 _ALLOWED_SOURCES = {"role", "direct", "delegation", "deny", "exception", "whitelist", "blacklist"}
 _ALLOWED_EFFECTS = {"allow", "deny"}
 _ALLOWED_RISK_CLASSES = {"low", "medium", "high", "critical"}
+_GITHUB_LOGIN_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$")
 
 
 def _uuid(value: str, field_name: str) -> str:
@@ -35,12 +37,24 @@ def _timestamp(value: str | None, field_name: str) -> str | None:
     return parsed.astimezone(timezone.utc).isoformat()
 
 
+def _github_login(value: str | None) -> str | None:
+    if value is None:
+        return None
+    login = str(value).strip()
+    if not login:
+        return None
+    if len(login) > 39 or not _GITHUB_LOGIN_RE.fullmatch(login):
+        raise ValueError("github_login must be a valid GitHub login")
+    return login
+
+
 @dataclass(frozen=True)
 class ProjectOSUserProfile:
     display_name: str
     weight: int = 100
     user_id: str = field(default_factory=lambda: str(uuid4()))
     roles: tuple[str, ...] = field(default_factory=tuple)
+    github_login: str | None = None
 
     def __post_init__(self) -> None:
         name = str(self.display_name).strip()
@@ -54,6 +68,7 @@ class ProjectOSUserProfile:
         object.__setattr__(self, "weight", weight)
         object.__setattr__(self, "user_id", _uuid(self.user_id, "user_id"))
         object.__setattr__(self, "roles", roles)
+        object.__setattr__(self, "github_login", _github_login(self.github_login))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -61,6 +76,7 @@ class ProjectOSUserProfile:
             "display_name": self.display_name,
             "weight": self.weight,
             "roles": list(self.roles),
+            "github_login": self.github_login,
             "weight_affects_authorization": False,
         }
 
