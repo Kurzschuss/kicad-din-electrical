@@ -40,10 +40,13 @@ def test_security_table_contains_all_states_and_details():
     assert "Fehlt" in html
 
 
-def test_security_page_warns_that_ruleset_is_not_confirmed_active():
+def test_security_page_uses_library_style_heading_and_warns_about_ruleset():
     html = security_page_html(sample_items())
     assert 'id="page-sicherheit"' in html
-    assert "Sicherheit" in html
+    assert '<h2 class="cockpit-page-title">Sicherheit ' in html
+    assert 'class="cockpit-page-description"' in html
+    assert "Lokal prüfbare Schutzmechanismen" in html
     assert "nicht als bestätigt dargestellt" in html
     assert "bedeutet nicht" in html
     assert "bereits aktiviert" in html
+    assert "<h2>Sicherheit</h2><p>" not in html

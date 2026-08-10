@@ -40,7 +40,9 @@ def test_settings_page_contains_read_only_project_values_and_local_ui_controls()
     )
 
     assert 'id="page-einstellungen"' in html
-    assert "Projektwerte werden aus den vorhandenen Repository-Quellen gelesen" in html
+    assert 'class="cockpit-page-title"' in html
+    assert 'class="cockpit-page-description"' in html
+    assert "Projektwerte aus Repository-Quellen" in html
     assert "KiCad DIN Electrical Suite" in html
     assert "project_state.yaml" in html
     assert "data/devices/" in html
@@ -54,6 +56,26 @@ def test_settings_page_contains_read_only_project_values_and_local_ui_controls()
     assert 'id="settings-reset"' in html
     assert "Browser localStorage" in html
     assert "Diese Optionen ändern keine Repositorydateien" in html
+
+
+def test_settings_page_normalizes_explanatory_second_lines_to_library_heading_pattern():
+    html = settings_page_html(
+        CockpitSettingsSnapshot(
+            project_name="projekt",
+            display_name="Projekt",
+            language="de",
+            phase="Entwicklung",
+            target_release="1.0",
+        )
+    )
+
+    assert '.cockpit-page-title{margin:0 0 .85rem' in html
+    assert '.cockpit-page-title small{font-size:.62em' in html
+    assert '#page-sicherheit .security-table-wrap{margin-top:0}' in html
+    assert "function compactPageHeadings()" in html
+    assert 'document.querySelectorAll(".page")' in html
+    assert 'small.className="cockpit-page-description"' in html
+    assert "description.remove()" in html
 
 
 def test_settings_page_persists_only_browser_preferences():
