@@ -17,6 +17,7 @@ class CockpitSettingsSnapshot:
     device_catalog_path: str = "data/devices/"
     symbol_library_path: str = "symbols/"
     footprint_library_path: str = "footprints/"
+    three_d_model_path: str = "3dmodels/Z_3DModell.3dshapes/"
     documentation_path: str = "docs/"
     cockpit_output_path: str = "docs/site/z-cockpit.html"
     python_requirement: str = ">=3.11"
@@ -58,6 +59,7 @@ def settings_page_html(snapshot: CockpitSettingsSnapshot | None = None) -> str:
             _row("Gerätekatalog", item.device_catalog_path, code=True),
             _row("Symbolbibliotheken", item.symbol_library_path, code=True),
             _row("Footprintbibliotheken", item.footprint_library_path, code=True),
+            _row("3D-Modelle", item.three_d_model_path, code=True),
             _row("Dokumentation", item.documentation_path, code=True),
             _row("Z_Cockpit-Ausgabe", item.cockpit_output_path, code=True),
         )
