@@ -87,7 +87,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'class="library-page-title"' in html
     assert 'id="library-filter-name"' in html
     assert 'id="library-filter-preview"' in html
-    assert 'class="library-card"' in html
+    assert 'class="library-card library-inline-detail"' in html
     assert 'class="library-table"' in html
     assert "Gerätezuordnungen" in html
     assert "Vorschaupaare" in html
