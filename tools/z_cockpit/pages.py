@@ -15,6 +15,7 @@ class PageSpec:
 
 DEFAULT_PAGES: tuple[PageSpec, ...] = (
     PageSpec("start", "Start", "Projektstatus und wichtige Kennzahlen", True),
+    PageSpec("projekt", "Projekt", "ProjectOS-Projektdatei erstellen und aktives Projekt verwalten", True),
     PageSpec("geraete", "Geräte", "Gerätekatalog mit Filtern und Eigenschaften", True),
     PageSpec("bibliotheken", "Bibliotheken", "Symbole, Footprints und Modelle", True),
     PageSpec("hersteller", "Hersteller", "Hersteller, Serien und Katalogzuordnungen", True),
