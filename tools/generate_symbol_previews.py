@@ -244,7 +244,7 @@ def render_svg(
     source_texts = texts or []
     project = _preview_projector(rectangles, pins, source_polylines)
     is_mcb = library == "Z_MCB"
-    is_rcd = library == "Z_RCD" and symbol == "RCD"
+    is_rcd = library == "Z_RCD" and symbol in {"RCD", "RCD_4P"}
     stroke_width = "3" if is_mcb else "2"
     pin_linecap = ' stroke-linecap="round"' if is_mcb else ""
     shapes: list[str] = []
