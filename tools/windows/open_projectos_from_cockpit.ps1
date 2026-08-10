@@ -24,7 +24,8 @@ function Assert-ProjectName([string]$Value) {
     $name = if ($null -eq $Value) { '' } else { $Value.Trim() }
     if (-not $name) { throw 'Projektname darf nicht leer sein.' }
     if ($name.Length -gt 80) { throw 'Projektname darf höchstens 80 Zeichen enthalten.' }
-    if ($name -match '[\\/:*?"<>|]' -or $name.ToCharArray() | Where-Object { [int]$_ -lt 32 }) {
+    $hasControlCharacter = @($name.ToCharArray() | Where-Object { [int]$_ -lt 32 }).Count -gt 0
+    if ($name -match '[\\/:*?"<>|]' -or $hasControlCharacter) {
         throw 'Projektname enthält unzulässige Dateinamenzeichen.'
     }
     return $name
