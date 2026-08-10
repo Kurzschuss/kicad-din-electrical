@@ -19,6 +19,7 @@ def test_implemented_core_pages_are_registered() -> None:
     assert page_by_id("diagnose").implemented is True
     assert page_by_id("benutzer").implemented is True
     assert page_by_id("berechtigungen").implemented is True
+    assert page_by_id("fehlerbericht").implemented is True
     assert page_by_id("sicherheit").implemented is True
     assert page_by_id("dokumentation").implemented is True
     assert page_by_id("einstellungen").implemented is True
