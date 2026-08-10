@@ -5,17 +5,19 @@ from html import escape
 import json
 from typing import Any
 
-from .quality_engine import LibraryQualityResult, evaluate_libraries
+from .project_analysis import ProjectAnalysisResult, analyze_project
 
 _SEVERITY_LABELS = {"error": "Fehler", "warning": "Warnung"}
 _SEVERITY_ORDER = {"error": 0, "warning": 1}
-
-_LIBRARY_ACTIONS = {
-    "device_mapping": "Gerätezuordnung im technischen Gerätekatalog prüfen oder bewusst als nicht zugeordnet dokumentieren.",
-    "footprint_exists": "Footprint-Zuordnung und referenzierte Footprintdatei prüfen; fehlende Datei ergänzen oder Zuordnung korrigieren.",
-    "symbol_preview": "Symbolvorschauen mit dem vorgesehenen Generator neu erzeugen und den Generatorstand prüfen.",
-    "footprint_preview": "Footprintvorschau bzw. Footprint-Geometrie prüfen und anschließend die Vorschau neu erzeugen.",
-    "complete_preview_pair": "Symbol- und Footprintvorschau gemeinsam prüfen, bis ein vollständiges Vorschaupaar vorhanden ist.",
+_ANALYSIS_AREAS = {
+    "device_id_missing": "Gerätekatalog",
+    "device_id_duplicate": "Gerätekatalog",
+    "symbol_reference_missing": "Gerätekatalog",
+    "symbol_reference_unknown": "Gerätekatalog",
+    "footprint_missing": "Bibliotheken",
+    "symbol_preview_missing": "Vorschauen",
+    "footprint_preview_missing": "Vorschauen",
+    "symbol_unused": "Bibliotheken",
 }
 
 
@@ -36,8 +38,8 @@ class DiagnosticsSnapshot:
     entries: tuple[DiagnosticEntry, ...]
     project_checks_total: int
     project_checks_passed: int
-    library_checks_total: int
-    library_checks_passed: int
+    analysis_checks_total: int
+    analysis_checks_passed: int
 
     @property
     def error_count(self) -> int:
@@ -75,14 +77,14 @@ def _project_action(item: Any) -> str:
 def collect_diagnostics(
     *,
     project_report: Any | None = None,
-    library_results: tuple[LibraryQualityResult, ...] | None = None,
+    analysis_result: ProjectAnalysisResult | None = None,
 ) -> DiagnosticsSnapshot:
-    """Führt vorhandene ProjectOS- und Bibliotheksbefunde read-only zusammen."""
+    """Führt Projektvalidator und repositoryweite Projektanalyse read-only zusammen."""
     if project_report is None:
         from tools.project_validator import validate_project
 
         project_report = validate_project()
-    libraries = evaluate_libraries() if library_results is None else library_results
+    analysis = analyze_project() if analysis_result is None else analysis_result
 
     entries: list[DiagnosticEntry] = []
     for item in project_report.checks:
@@ -101,22 +103,18 @@ def collect_diagnostics(
             )
         )
 
-    for library in libraries:
-        for issue in library.issues:
-            entries.append(
-                DiagnosticEntry(
-                    severity=issue.severity,
-                    source="Bibliotheksqualität",
-                    code=f"LIB-{issue.check_id}",
-                    area=library.library_name,
-                    reference=issue.symbol_reference,
-                    message_de=issue.message_de,
-                    action_de=_LIBRARY_ACTIONS.get(
-                        issue.check_id,
-                        "Bibliotheksbefund prüfen und über die zuständige Datenquelle oder den zuständigen Generator korrigieren.",
-                    ),
-                )
+    for finding in analysis.findings:
+        entries.append(
+            DiagnosticEntry(
+                severity=finding.severity,
+                source="Projektanalyse",
+                code=f"ANL-{finding.check_id}",
+                area=_ANALYSIS_AREAS.get(finding.check_id, "Projektanalyse"),
+                reference=finding.reference,
+                message_de=finding.message_de,
+                action_de=finding.recommendation_de,
             )
+        )
 
     entries.sort(
         key=lambda item: (
@@ -127,12 +125,13 @@ def collect_diagnostics(
             item.code.casefold(),
         )
     )
+    analysis_failures = analysis.warning_count + analysis.error_count
     return DiagnosticsSnapshot(
         entries=tuple(entries),
         project_checks_total=project_report.checks_total,
         project_checks_passed=project_report.checks_passed,
-        library_checks_total=sum(item.checks_total for item in libraries),
-        library_checks_passed=sum(item.checks_passed for item in libraries),
+        analysis_checks_total=analysis.checks_total,
+        analysis_checks_passed=max(0, analysis.checks_total - analysis_failures),
     )
 
 
@@ -194,20 +193,17 @@ def diagnostics_page_html(snapshot: DiagnosticsSnapshot | None = None) -> str:
         )
         templates.append(_entry_template(item, index))
 
-    if rows:
-        table_rows = "".join(rows)
-    else:
-        table_rows = (
-            '<tr class="diagnostic-empty-row"><td colspan="6">'
-            'Keine Fehler oder Warnungen aus den eingebundenen Repository-Prüfungen.</td></tr>'
-        )
+    table_rows = "".join(rows) if rows else (
+        '<tr class="diagnostic-empty-row"><td colspan="6">'
+        'Keine Fehler oder Warnungen aus den eingebundenen Repository-Prüfungen.</td></tr>'
+    )
 
     status_label = {"ok": "OK", "warning": "Warnungen", "error": "Fehler"}[state.status]
     info_payload = escape(
         json.dumps(
             {
                 "project_checks": [state.project_checks_passed, state.project_checks_total],
-                "library_checks": [state.library_checks_passed, state.library_checks_total],
+                "analysis_checks": [state.analysis_checks_passed, state.analysis_checks_total],
             },
             ensure_ascii=False,
         ),
@@ -248,7 +244,7 @@ def diagnostics_page_html(snapshot: DiagnosticsSnapshot | None = None) -> str:
         f'<section class="page" id="page-diagnose" data-check-counts="{info_payload}">'
         '<div class="diagnostic-workspace"><div class="diagnostic-main">'
         '<h2 class="diagnostic-title">Diagnose</h2>'
-        '<p class="diagnostic-subtitle">Arbeitsliste aus ProjectOS-Projektvalidator und Bibliotheks-Quality-Engine.</p>'
+        '<p class="diagnostic-subtitle">Arbeitsliste aus ProjectOS-Projektvalidator und repositoryweiter Projektanalyse.</p>'
         '<div class="diagnostic-readonly-note"><strong>Read-only:</strong> Die Diagnose zeigt vorhandene Befunde und führt keine automatische Reparatur aus. Laufzeit-Wissensgraphdiagnosen werden erst angezeigt, wenn eine persistierte Projektinstanz angebunden ist.</div>'
         '<div class="diagnostic-summary">'
         f'<div class="card">Gesamtstatus<strong>{status_label}</strong></div>'
@@ -265,7 +261,7 @@ def diagnostics_page_html(snapshot: DiagnosticsSnapshot | None = None) -> str:
         '<div class="diagnostic-table-wrap"><table class="diagnostic-table" id="diagnostic-overview">'
         '<thead><tr><th>Status</th><th>Quelle</th><th>Code</th><th>Bereich</th><th>Referenz</th><th>Befund</th></tr></thead>'
         f'<tbody>{table_rows}</tbody></table></div>'
-        f'<p class="diagnostic-result-count" id="diagnostic-result-count">{state.issue_count} Befund(e) · Bibliotheksprüfungen {state.library_checks_passed}/{state.library_checks_total}</p>'
+        f'<p class="diagnostic-result-count" id="diagnostic-result-count">{state.issue_count} Befund(e) · Projektanalyse {state.analysis_checks_passed}/{state.analysis_checks_total}</p>'
         '</div><section class="diagnostic-inspector"><h2>Details</h2>'
         '<div id="diagnostic-inspector-content"><p>Befund auswählen.</p></div></section>'
         f'{"".join(templates)}</div></section>'
