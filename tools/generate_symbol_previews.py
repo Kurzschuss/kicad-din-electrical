@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Erzeugt reproduzierbare SVG-Vorschauen aus KiCad-Symbolbibliotheken.
 
-Unterstützt Rechtecke, Polylinien und Pins. Bei Bibliotheken mit mehreren
+Unterstützt Rechtecke, Polylinien, Texte und Pins. Bei Bibliotheken mit mehreren
 Top-Level-Symbolen wird jede Vorschau ausschließlich aus dem zugehörigen
 Symbolblock erzeugt. Die Vorschaugeometrie wird automatisch mit Sicherheitsrand
 in die feste SVG-Fläche eingepasst. Die Quelldateien werden nicht verändert.
@@ -22,6 +22,7 @@ SYMBOL_ROOT = REPO_ROOT / "symbols"
 OUTPUT_ROOT = REPO_ROOT / "docs" / "site" / "symbol-previews"
 
 TOP_LEVEL_SYMBOL_RE = re.compile(r'^  \(symbol "([^"]+)"', re.MULTILINE)
+RECTANGLE_START_RE = re.compile(r'\(rectangle\b')
 RECTANGLE_RE = re.compile(
     r'\(rectangle\s+\(start\s+(-?[\d.]+)\s+(-?[\d.]+)\)\s+'
     r'\(end\s+(-?[\d.]+)\s+(-?[\d.]+)\)'
@@ -31,8 +32,12 @@ PIN_RE = re.compile(
     r'\(length\s+(-?[\d.]+)\)'
 )
 PIN_NUMBER_RE = re.compile(r'\(number\s+"([^"]*)"')
+PIN_NAME_RE = re.compile(r'\(name\s+"([^"]*)"')
 POLYLINE_START_RE = re.compile(r'\(polyline\b')
 POINT_RE = re.compile(r'\(xy\s+(-?[\d.]+)\s+(-?[\d.]+)\)')
+TEXT_RE = re.compile(
+    r'\(text\s+"([^"]*)"\s+\(at\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\)'
+)
 
 PREVIEW_CENTER_X = 120.0
 PREVIEW_CENTER_Y = 78.0
@@ -47,6 +52,7 @@ class Rectangle:
     y1: float
     x2: float
     y2: float
+    filled: bool = False
 
 
 @dataclass(frozen=True)
@@ -61,6 +67,15 @@ class Pin:
 class Polyline:
     points: tuple[tuple[float, float], ...]
     filled: bool = False
+    dashed: bool = False
+
+
+@dataclass(frozen=True)
+class Text:
+    value: str
+    x: float
+    y: float
+    angle: float
 
 
 def _balanced_expression(text: str, start: int) -> str:
@@ -102,7 +117,23 @@ def symbol_names(text: str) -> list[str]:
 
 
 def parse_rectangles(text: str) -> list[Rectangle]:
-    return [Rectangle(*(float(value) for value in match)) for match in RECTANGLE_RE.findall(text)]
+    result: list[Rectangle] = []
+    for match in RECTANGLE_START_RE.finditer(text):
+        block = _balanced_expression(text, match.start())
+        coordinates = RECTANGLE_RE.search(block)
+        if coordinates is None:
+            continue
+        x1, y1, x2, y2 = (float(value) for value in coordinates.groups())
+        result.append(
+            Rectangle(
+                x1=x1,
+                y1=y1,
+                x2=x2,
+                y2=y2,
+                filled="(fill (type outline))" in block,
+            )
+        )
+    return result
 
 
 def parse_pins(text: str) -> list[Pin]:
@@ -113,6 +144,10 @@ def parse_pin_numbers(text: str) -> list[str]:
     return PIN_NUMBER_RE.findall(text)
 
 
+def parse_pin_names(text: str) -> list[str]:
+    return PIN_NAME_RE.findall(text)
+
+
 def parse_polylines(text: str) -> list[Polyline]:
     result: list[Polyline] = []
     for match in POLYLINE_START_RE.finditer(text):
@@ -120,8 +155,21 @@ def parse_polylines(text: str) -> list[Polyline]:
         points = tuple((float(x), float(y)) for x, y in POINT_RE.findall(block))
         if len(points) < 2:
             continue
-        result.append(Polyline(points=points, filled="(fill (type outline))" in block))
+        result.append(
+            Polyline(
+                points=points,
+                filled="(fill (type outline))" in block,
+                dashed="(type dash)" in block,
+            )
+        )
     return result
+
+
+def parse_texts(text: str) -> list[Text]:
+    return [
+        Text(value, float(x), float(y), float(angle))
+        for value, x, y, angle in TEXT_RE.findall(text)
+    ]
 
 
 def _pin_endpoint(pin: Pin) -> tuple[float, float]:
@@ -187,29 +235,44 @@ def render_svg(
     pins: list[Pin],
     polylines: list[Polyline] | None = None,
     pin_numbers: list[str] | None = None,
+    pin_names: list[str] | None = None,
+    texts: list[Text] | None = None,
 ) -> str:
     source_polylines = polylines or []
     numbers = pin_numbers or []
+    names = pin_names or []
+    source_texts = texts or []
     project = _preview_projector(rectangles, pins, source_polylines)
     is_mcb = library == "Z_MCB"
+    is_rcd = library == "Z_RCD" and symbol == "RCD"
     stroke_width = "3" if is_mcb else "2"
     pin_linecap = ' stroke-linecap="round"' if is_mcb else ""
     shapes: list[str] = []
     for item in rectangles:
         x1, y1 = project(item.x1, item.y1)
         x2, y2 = project(item.x2, item.y2)
+        fill = "currentColor" if is_rcd and item.filled else "none"
         shapes.append(
             f'<rect x="{min(x1, x2):.2f}" y="{min(y1, y2):.2f}" '
             f'width="{abs(x2-x1):.2f}" height="{abs(y2-y1):.2f}" '
-            f'fill="none" stroke="currentColor" stroke-width="{stroke_width}"/>'
+            f'fill="{fill}" stroke="currentColor" stroke-width="{stroke_width}"/>'
         )
     for item in source_polylines:
         points = " ".join(f"{x:.2f},{y:.2f}" for x, y in (project(x, y) for x, y in item.points))
         tag = "polygon" if item.filled else "polyline"
         fill = "currentColor" if item.filled else "none"
+        dash = ' stroke-dasharray="8 6"' if is_rcd and item.dashed else ""
         shapes.append(
-            f'<{tag} points="{points}" fill="{fill}" stroke="currentColor" stroke-width="{stroke_width}" '
+            f'<{tag} points="{points}" fill="{fill}" stroke="currentColor" stroke-width="{stroke_width}"{dash} '
             'stroke-linejoin="round" stroke-linecap="round"/>'
+        )
+    for item in source_texts:
+        if not is_rcd:
+            continue
+        x, y = project(item.x, item.y)
+        shapes.append(
+            f'<text x="{x:.2f}" y="{y + 5.0:.2f}" text-anchor="middle" '
+            f'font-size="15" font-weight="600">{escape(item.value)}</text>'
         )
     for index, item in enumerate(pins):
         x1, y1 = project(item.x, item.y)
@@ -224,6 +287,17 @@ def render_svg(
                 f'<text x="{x1 - 11.0:.2f}" y="{y1 + 5.0:.2f}" text-anchor="middle" '
                 f'font-size="16" font-weight="600">{escape(numbers[index])}</text>'
             )
+        if is_rcd and index < len(numbers) and numbers[index]:
+            label_y = y1 + 10.0 if item.y > 0 else y1 + 14.0
+            shapes.append(
+                f'<text x="{x1 - 9.0:.2f}" y="{label_y:.2f}" text-anchor="middle" '
+                f'font-size="15" font-weight="600">{escape(numbers[index])}</text>'
+            )
+            if index < len(names) and names[index] not in {"", "~"}:
+                shapes.append(
+                    f'<text x="{x1 + 10.0:.2f}" y="{label_y:.2f}" text-anchor="middle" '
+                    f'font-size="15" font-weight="600">{escape(names[index])}</text>'
+                )
 
     if not shapes:
         shapes.append('<text x="120" y="78" text-anchor="middle" font-size="13">Keine unterstützte Grafik</text>')
@@ -252,6 +326,8 @@ def generated_files(symbol_root: Path = SYMBOL_ROOT) -> dict[Path, str]:
                 parse_pins(block),
                 parse_polylines(block),
                 parse_pin_numbers(block),
+                parse_pin_names(block),
+                parse_texts(block),
             )
     return files
 
