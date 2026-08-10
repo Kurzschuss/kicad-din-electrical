@@ -22,6 +22,7 @@ DEFAULT_PAGES: tuple[PageSpec, ...] = (
     PageSpec("diagnose", "Diagnose", "Fehler, Warnungen und Prüfdetails", True),
     PageSpec("benutzer", "Benutzer", "ProjectOS-Benutzer, Rollen, Rechte und Lifecycle", True),
     PageSpec("berechtigungen", "Berechtigungen", "ProjectOS-Whitelist, Blacklist, Ausnahmen und Entwicklerfreigaben", True),
+    PageSpec("fehlerbericht", "Fehler melden", "Strukturierter Fehlerbericht und GitHub-Issue-Vorbereitung", True),
     PageSpec("sicherheit", "Sicherheit", "Repository-, Versions- und Freigabestatus", True),
     PageSpec("dokumentation", "Dokumentation", "Projekt- und Entwicklerdokumentation", True),
     PageSpec("einstellungen", "Einstellungen", "Sprache, Pfade und Entwickleroptionen", True),
