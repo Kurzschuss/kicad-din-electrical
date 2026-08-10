@@ -31,7 +31,8 @@
         {"id": "sicherheitsseite", "title_de": "Sicherheitsseite sichtbar anbinden", "state": "done"},
         {"id": "herstellerseite", "title_de": "Hersteller- und Serienübersicht umsetzen", "state": "done"},
         {"id": "diagnoseseite", "title_de": "Diagnose-Arbeitsliste umsetzen", "state": "done"},
-        {"id": "dokumentationsseite", "title_de": "Dokumentationsbrowser umsetzen", "state": "done"}
+        {"id": "dokumentationsseite", "title_de": "Dokumentationsbrowser umsetzen", "state": "done"},
+        {"id": "einstellungsseite", "title_de": "Einstellungen und lokale Oberflächenoptionen umsetzen", "state": "done"}
       ]
     },
     {

@@ -58,13 +58,10 @@ Aktuell umgesetzt:
 - Qualität;
 - Diagnose;
 - Sicherheit;
-- Dokumentation.
-
-Registriert, aber noch nicht umgesetzt:
-
+- Dokumentation;
 - Einstellungen.
 
-Die Seitenregistrierung ist die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
+Damit sind alle aktuell registrierten Kernseiten des Z_Cockpits umgesetzt. Die Seitenregistrierung bleibt die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
 
 ## Geräteansicht
 
@@ -154,6 +151,28 @@ Aus jeder vorhandenen Datei werden Titel, Bereich, Repositorypfad, Zeilenanzahl,
 
 Damit bleiben die Markdown-Dateien selbst Single Source of Truth. Neue Dokumente erscheinen beim nächsten Erzeugen des Z_Cockpits automatisch im Browser, ohne dass sie zusätzlich in einer Cockpit-Liste gepflegt werden müssen.
 
+## Einstellungen
+
+Die Einstellungsseite trennt strikt zwischen Projektkonfiguration und lokaler Benutzeroberfläche.
+
+**Projektwerte sind read-only** und werden aus bestehenden Quellen dargestellt. Dazu gehören unter anderem:
+
+- Projektname, Projektsprache, Entwicklungsphase und Zielrelease aus `project_state.yaml`;
+- Pfade zu Gerätekatalog, Symbolbibliotheken, Footprints und Dokumentation;
+- Ausgabepfad des Z_Cockpits;
+- Python-Mindestversion und Generatoraufruf als Entwicklerhinweis.
+
+Das statische Z_Cockpit schreibt diese Werte nicht zurück in das Repository. Dadurch entsteht keine zweite Konfigurationsquelle.
+
+**Lokale Oberflächenoptionen** werden ausschließlich im Browser unter dem Schlüssel `z-cockpit.settings.v1` gespeichert:
+
+- Erscheinungsbild: Systemeinstellung, hell oder dunkel;
+- Tabellendichte: Standard oder kompakt;
+- optional zuletzt geöffneten Cockpit-Bereich wiederherstellen;
+- Entwicklerdetails ein- oder ausblenden.
+
+Diese lokalen Optionen verwenden Browser-`localStorage` und verändern keine Projektdateien. Über `Lokale Einstellungen zurücksetzen` kann der gespeicherte Zustand vollständig entfernt werden. Falls `localStorage` nicht verfügbar ist, werden die Einstellungen für die laufende Seite angewendet, aber nicht dauerhaft gespeichert.
+
 ## Projektstatus und Qualität
 
 Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
@@ -165,7 +184,7 @@ Die Qualitätsseite verbindet zwei Ebenen:
 
 Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
 
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose- und Dokumentationsansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose-, Dokumentations- und Einstellungsansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Prüfung
 
@@ -185,6 +204,8 @@ Die automatisierten Tests prüfen unter anderem:
 - Diagnosefilter, Detailinspektor und HTML-Escaping;
 - automatische Markdown-Erfassung für den Dokumentationsbrowser;
 - Dokumentationssuche, Bereichsfilter, Direktlinks und HTML-Escaping;
+- read-only Projektwerte der Einstellungsseite;
+- lokale Browseroptionen, `localStorage`-Schlüssel und Reset-Funktion;
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
@@ -195,15 +216,12 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 ## Aktueller Entwicklungsstand
 
-Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts-, Diagnose-, Sicherheits- und Dokumentationsansicht.
+Die lokale HTML-Anwendung besitzt alle derzeit registrierten Kernseiten: Start, Geräte, Bibliotheken, Hersteller, Qualität, Diagnose, Sicherheit, Dokumentation und Einstellungen.
 
-Weiterer fachlicher Ausbau ist noch offen bei:
+Weiterer fachlicher Ausbau ist außerhalb dieser Kernseiten noch offen bei:
 
-- Einstellungen;
 - 3D-Vorschauen;
 - direkten KiCad-Editoraufrufen;
 - Persistenzanbindung für Laufzeitdiagnosen.
-
-Für die noch nicht umgesetzte Cockpit-Seite `Einstellungen` ist aktuell keine verbindliche Unterstruktur festgelegt.
 
 Der aktuelle visuell freigegebene Bibliotheksstand ist zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert.

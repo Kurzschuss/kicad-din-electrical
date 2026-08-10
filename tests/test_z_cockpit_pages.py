@@ -19,10 +19,11 @@ def test_implemented_core_pages_are_registered() -> None:
     assert page_by_id("diagnose").implemented is True
     assert page_by_id("sicherheit").implemented is True
     assert page_by_id("dokumentation").implemented is True
+    assert page_by_id("einstellungen").implemented is True
 
 
-def test_remaining_planned_core_pages_are_registered() -> None:
-    assert page_by_id("einstellungen").implemented is False
+def test_all_registered_core_pages_are_implemented() -> None:
+    assert all(page.implemented for page in DEFAULT_PAGES)
 
 
 def test_unknown_page_is_rejected() -> None:
