@@ -45,6 +45,17 @@ next_z_cockpit_expansion:
   ui_heading_reference: Bibliotheken
   ui_heading_rule: "Seitentitel und kurze Erklaerung in Klammern in derselben Zeile"
   completed:
+    - id: projektdatei_workflow
+      title_de: ProjectOS-Projektdatei im Z_Cockpit erstellen und automatisch laden
+      implementation: tools/z_cockpit/project_page.py
+      cli: tools/projectos_project_cli.py
+      protocol_registration: tools/windows/register_z_project_protocol.ps1
+      protocol_handler: tools/windows/open_projectos_from_cockpit.ps1
+      documentation: docs/03_Developer/Z_COCKPIT_PROJEKTDATEI.md
+      protocol: projectos-z
+      active_state: build/Z_COCKPIT_ACTIVE_PROJECT.json
+      project_bundle_version: 4
+      arbitrary_browser_path_input: false
     - id: benutzerverwaltung
       title_de: Benutzerverwaltung im Z_Cockpit integrieren
       implementation: tools/z_cockpit/user_management_page.py
@@ -104,6 +115,19 @@ next_z_cockpit_expansion:
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
+  project_file_workflow:
+    domain_creator: distributions.din_editor_project_manager.DinEditorProjectManager
+    bundle_version: 4
+    browser_protocol: projectos-z
+    browser_passes_project_name_only: true
+    browser_passes_file_path: false
+    path_selection: native_windows_save_dialog
+    protocol_registry_scope: current_user
+    active_state: build/Z_COCKPIT_ACTIVE_PROJECT.json
+    active_state_versioned: false
+    active_project_revalidated_on_start: true
+    invalid_active_project_is_nonblocking: true
+    blocked_in_simulation: true
   whitelist_separation:
     projectos_user_permissions: distributions/projectos_user_management_persistence.py
     repository_developer_whitelist: config/authorized_developers.json
@@ -154,11 +178,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 545
-  last_successful_commit: 5c10dc82611c27e7a6cd496a797058a19cf16ccf
+  last_successful_run_number: 551
+  last_successful_commit: 1dd7a3d7ec36e1acbe21194e28c9de8bde0d559c
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Testuser, aktive ProjectOS-Identitaet und lokaler Simulationsmodus auf PR #199 mit CI #545 erfolgreich geprueft. Die Simulation schreibt keine ProjectOS-Daten, nutzt fuer reale Benutzer die vorhandene Rechteauswertung und blockiert lokale kicad-z-Editoraufrufe."
+  note: "ProjectOS-Projektdatei-Workflow auf PR #200 mit CI #551 erfolgreich geprueft. 811 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Der Browser uebergibt nur den Projektnamen; der Zielpfad wird ausschliesslich im nativen Windows-Speicherdialog gewaehlt."

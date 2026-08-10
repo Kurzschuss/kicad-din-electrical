@@ -62,6 +62,7 @@ from .project_dashboard import (
     project_progress_html,
 )
 from .project_model import ProjectState, load_project_state
+from .project_page import project_page_html
 from .project_status import StatusItem, collect_project_status
 from .quality_engine import (
     LibraryQualityResult,
@@ -120,13 +121,14 @@ def load_user_management_bundle(path, *, at=None):
 
 
 def user_management_page_html(snapshot: UserManagementSnapshot | None = None) -> str:
-    """Rendert Benutzer-, Berechtigungs-, Simulations- und Fehlerbericht-Seite."""
+    """Rendert Projekt-, Benutzer-, Berechtigungs-, Simulations- und Fehlerbericht-Seite."""
     users = collect_user_management() if snapshot is None else snapshot
     permissions = _active_permissions_snapshot
     if permissions is None or permissions.source_label != users.source_label:
         permissions = collect_permissions()
     return (
-        _user_management_page_html(users)
+        project_page_html(users)
+        + _user_management_page_html(users)
         + user_simulation_html(users)
         + permissions_page_html(permissions)
         + issue_report_page_html()
@@ -218,6 +220,7 @@ __all__ = [
     "parse_symbol_reference",
     "permissions_page_html",
     "progress_bar_html",
+    "project_page_html",
     "project_progress_html",
     "recommended_work",
     "security_page_html",
