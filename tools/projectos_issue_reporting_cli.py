@@ -5,12 +5,14 @@ import argparse
 from dataclasses import asdict
 import json
 from pathlib import Path
+import re
 
 from tools.projectos_issue_reporting import (
     duplicate_summary,
     evaluate_auto_report_gate,
     read_report,
     report_fingerprint,
+    report_title,
     submit_auto_report,
 )
 from tools.projectos_project_cli import read_active_project
@@ -30,6 +32,11 @@ def _json(payload) -> int:
     return 0
 
 
+def _reference(report: str) -> str:
+    match = re.search(r"(?mi)^-\s*Technische Referenz:\s*(.+?)\s*$", report)
+    return match.group(1).strip() if match else ""
+
+
 def _gate(args: argparse.Namespace) -> int:
     return _json(asdict(evaluate_auto_report_gate(_project_path(args.project))))
 
@@ -37,7 +44,11 @@ def _gate(args: argparse.Namespace) -> int:
 def _duplicate(args: argparse.Namespace) -> int:
     report = read_report(args.report_file)
     fingerprint = report_fingerprint(report)
-    payload = asdict(duplicate_summary(fingerprint))
+    payload = asdict(duplicate_summary(
+        fingerprint,
+        title=report_title(report),
+        reference=_reference(report),
+    ))
     payload["fingerprint"] = fingerprint
     return _json(payload)
 
