@@ -1,98 +1,104 @@
-# Z_Cockpit – Berechtigungen und Whitelists
+# Z_Cockpit – Berechtigungen, White-/Blacklist und Zugriffsbereiche
 
-Die Z_Cockpit-Seite `Berechtigungen` führt vorhandene ProjectOS-Berechtigungszuweisungen und die Repository-Entwickler-Whitelist sichtbar zusammen, ohne Sicherheitskonzepte zu vermischen.
+Stand: 10. August 2026
 
-## Grundsatz
+Die Seite `Berechtigungen` verbindet die vorhandene ProjectOS-Autorisierung mit einer vertrauenswürdigen Verwaltung von White-/Blacklist-Regeln. Die Repository-Entwickler-Whitelist und tatsächliche Datei-/GitHub-Rechte bleiben davon getrennte Schutzebenen.
 
-Es gibt weiterhin getrennte Schutzebenen:
+## Drei getrennte Schutzebenen
 
-1. **ProjectOS-Benutzerberechtigungen** aus `ProjectOSUserManagementState`;
-2. **Repository-Entwickler-Whitelist** aus `config/authorized_developers.json`;
-3. **Speicher-/Git-Zugriff** auf eine ProjectOS-Projektdatei.
+1. **ProjectOS-Rechte** aus `ProjectOSUserManagementState` regeln fachliche Aktionen.
+2. **Repository-Entwickler-Whitelist** `config/authorized_developers.json` regelt den speziellen Bootstrap/Entwicklerkontext des Quell-Repositories.
+3. **Datei-/GitHub-Zugriff** bestimmt, wer eine vertrauliche ProjectOS-Projektdatei tatsächlich herunterladen oder lesen kann.
 
-Die Repository-Datei wird nicht in ProjectOS importiert. ProjectOS-Berechtigungen werden umgekehrt nicht in die Repository-Whitelist geschrieben. Die Dateisichtbarkeit eines Projektbundles kann nicht durch interne ProjectOS-Rechte ersetzt werden.
+Keine dieser Ebenen wird durch eine andere ersetzt.
 
-## ProjectOS-Berechtigungen
+## White- und Blacklist
 
-Die Seite wertet vorhandene `ProjectOSPermissionAssignment`-Objekte aus. Sichtbar sind unter anderem Benutzer, technische ID, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus und effektive Rechteherkunft.
+ProjectOS verwendet vorhandene `ProjectOSPermissionAssignment`-Objekte:
 
-Unterstützte Quellen bleiben Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist. Die ProjectOS-Autorisierung ist maßgeblich; ein wirksames DENY hat Vorrang vor erlaubenden Quellen.
+- `source_type=whitelist`, `effect=allow` für eine Whitelist-Regel;
+- `source_type=blacklist`, `effect=deny` für eine Blacklist-Regel.
 
-Die Cockpit-Seite verwendet den bestehenden `ProjectOSAuthorizationEvaluator` und implementiert keine zweite Rechteauswertung.
+Ein wirksames DENY/Blacklist hat Vorrang vor erlaubenden Quellen. Widerrufe, Benutzer-Lifecycle und Gültigkeitszeiten werden weiterhin vom vorhandenen `ProjectOSAuthorizationEvaluator` ausgewertet.
 
-## Reservierte Projektdateirechte
+Im Z_Cockpit können jetzt Benutzer, Recht, Zugriffsbereich, Liste und Risikoklasse ausgewählt und eine Regel über den vertrauenswürdigen lokalen Governance-Pfad angelegt werden. Aktive White-/Blacklist-Zuweisungen können mit Begründung widerrufen werden. Das JavaScript schreibt nicht selbst in das Projektbundle.
 
-Für den ProjectOS-Projektdatei-Workflow sind folgende Berechtigungs-IDs verbindlich vorgesehen:
+## Vertrauenswürdiger Schreibpfad
 
 ```text
-project.file.read
-project.file.write
-project.file.share
-project.file.admin
+projectos-z://governance
+ -> tools/windows/open_projectos_from_cockpit.ps1
+ -> tools/projectos_governance_cli.py
+ -> tools/projectos_governance.py
+ -> ProjectOSUserManagementChangeService
+ -> DinEditorProjectManager.save(...)
 ```
 
-Bedeutung:
+Vor Änderungen werden Repositoryzustand, tatsächlicher `gh`-Benutzer, dessen eindeutige ProjectOS-Zuordnung und das erforderliche Verwaltungsrecht erneut geprüft.
 
-- `project.file.read`: Projektdatei in einer vertrauenswürdigen ProjectOS-Laufzeit öffnen/lesen;
-- `project.file.write`: fachliche Änderungen speichern;
-- `project.file.share`: Freigaben beziehungsweise Weitergabe verwalten;
-- `project.file.admin`: Dateirechte und Schutzkontext verwalten.
+Für Benutzeränderungen ist `project.user.manage`, für White-/Blacklist und Rechteänderungen `project.permission.manage` erforderlich. Eine lokale Cockpit-Identität oder Simulation reicht nicht aus.
 
-Die Seite `Projekt` zeigt diese vier Entscheidungen je Benutzer als eigene Zugriffsmatrix an. Nicht vorhandene Grants werden als `Nicht erteilt` dargestellt. Ein deaktivierter Benutzer wird fail-closed behandelt.
+## Rechtekatalog
 
-Diese Rechte wirken **innerhalb ProjectOS**. Sie können eine Datei nicht vor einem Benutzer verbergen, der bereits auf Dateisystem- oder GitHub-Ebene Zugriff darauf hat.
+Der Governance-Katalog enthält:
 
-## Dateisichtbarkeit und GitHub
+```text
+project.file.read          Projektdatei lesen
+project.file.write         Projektdatei ändern
+project.file.share         Projekt teilen/freigeben
+project.file.admin         Projektzugriff verwalten
+project.user.manage        Benutzer verwalten
+project.permission.manage  Rechte/White-/Blacklist verwalten
+cockpit.view               Cockpit-Bereich sehen
+cockpit.edit               Cockpit-Bereich bearbeiten
+github.issue.prepare       GitHub-Fehlerbericht vorbereiten
+github.issue.auto_submit   GitHub-Fehlerbericht automatisch senden
+```
 
-GitHub besitzt innerhalb eines einzelnen Repositories keine vertraulichen Leserechte nur für ausgewählte Dateien. Deshalb gilt:
+Fehlende Grants gelten als `Nicht erteilt`; sie werden nicht implizit erlaubt.
 
-- vertrauliche ProjectOS-Teamdateien werden in einem **separaten privaten Projekt-Repository** gespeichert;
-- die GitHub-Mitglieder-/Teamrechte dieses Projekt-Repositories bestimmen, wer die Datei herunterladen kann;
-- Benutzer mit reinem Lesebedarf erhalten dort nur Leserechte;
-- Benutzer, die Änderungen hochladen dürfen, benötigen eine Schreibrolle;
-- verpflichtende Review-/PR-Regeln benötigen zusätzlich serverseitigen Branch-/Ruleset-Schutz.
+## Zugriffsbereiche
 
-`CODEOWNERS` oder ProjectOS-Rechte allein machen eine Datei im selben Repository nicht unsichtbar.
+Berechtigungen können projektweit oder für Cockpit-Bereiche vergeben werden. Vorgesehene Scopes sind unter anderem:
+
+```text
+project
+page:start
+page:projekt
+page:geraete
+page:bibliotheken
+page:hersteller
+page:qualitaet
+page:diagnose
+page:sicherheit
+page:dokumentation
+page:einstellungen
+page:benutzer
+page:berechtigungen
+page:fehlerbericht
+```
+
+Die Benutzerverwaltung zeigt je Benutzer eine Matrix der effektiven Projekt-Rechte sowie `cockpit.view`/`cockpit.edit` je Bereich.
+
+## Was „sehen dürfen“ technisch bedeutet
+
+Die Matrix beschreibt die **ProjectOS-Policy**. Das statische HTML selbst ist keine sichere Daten-Redaktion: Wer bereits das Projektbundle oder das generierte HTML lesen kann, kann lokale Inhalte grundsätzlich untersuchen. Vertrauliche Projekte müssen deshalb zusätzlich in einem separaten privaten Projekt-Repository oder geschützten lokalen Speicher liegen.
+
+Eine spätere authentifizierte ProjectOS-Laufzeit kann dieselben `cockpit.view/edit`-Scopes für echte serverseitige Sicht-/Bearbeitungsgates verwenden; dafür wird keine zweite Rechtequelle benötigt.
 
 ## Repository-Entwickler-Whitelist
 
-Die Datei
+`config/authorized_developers.json` bleibt separat. Sie wird insbesondere beim einmaligen Erstadministrator-Bootstrap eines leeren Projekts berücksichtigt. Sie ist weder die ProjectOS-Benutzer-Whitelist noch die Mitgliederliste eines privaten Projekt-Repositories.
 
-```text
-config/authorized_developers.json
-```
+## Audit und Widerruf
 
-bleibt die einzige Repository-Quelle für freigegebene GitHub-Entwickler des allgemeinen Quell-Repositories. Diese Liste ist ausdrücklich nicht die ProjectOS-Benutzer-Whitelist und nicht die Zugriffsliste eines separaten privaten Projekt-Repositories.
+Rechteänderungen werden über den bestehenden ProjectOS-Change-Service und die vorhandene Persistenz geschrieben. Widerrufe erzeugen eigene fachliche Revocation-Objekte mit Akteur, Zeitpunkt, Grund und Quellenreferenz. Die effektive Entscheidung bleibt reproduzierbar.
 
-## Schreibende Änderungen
+## Sicherheitsgrenzen
 
-Die statische HTML-Seite ist bewusst read-only. ProjectOS-Berechtigungsänderungen dürfen nicht direkt aus JavaScript in eine Schattenkopie geschrieben werden.
-
-Für echte Änderungen sind die bestehenden ProjectOS-Pfade vorgesehen:
-
-- `ProjectOSUserManagementChangeService.command_assign_permission(...)`;
-- `ProjectOSUserManagementChangeService.command_revoke_permission(...)`;
-- `ProjectOSUserManagementCommandAuthorization` für fail-closed Autorisierung;
-- vorhandene Command-, Audit- und Persistenzmechanismen.
-
-Die lokale Cockpit-Identitätsauswahl und der Simulationsmodus sind keine Authentifizierung und dürfen deshalb keine echten Datei- oder Berechtigungsänderungen freischalten.
-
-## ProjectOS-Projektbundle anbinden
-
-Ein echtes ProjectOS-v4-Projektbundle kann beim Erzeugen des Cockpits angegeben werden:
-
-```text
-python -m tools.generate_z_cockpit --project-bundle <projektdatei>
-```
-
-Benutzer-, Berechtigungs- und Projektseite verwenden denselben Bundle-Datenpfad. Ohne Projektbundle werden keine Beispielbenutzer oder Beispielberechtigungen erfunden.
-
-## Nicht Teil der statischen Oberfläche
-
-Nicht durch das statische Cockpit selbst durchgeführt werden:
-
-- Authentifizierung eines Benutzers;
-- Umgehung von GitHub-/Dateisystemrechten;
-- direktes Schreiben von Berechtigungen aus JavaScript;
-- serverseitige GitHub-Ruleset-Aktivierung;
-- Speicherung von Zugangstokens im Cockpit.
+- Kein Recht wird aus Browser-`localStorage` abgeleitet.
+- Simulation kann keine echte Regel schreiben.
+- Blacklist/DENY bleibt vorrangig.
+- GitHub-/Dateisystemrechte bleiben für tatsächliche Dateisichtbarkeit maßgeblich.
+- GitHub-Tokens werden nicht in ProjectOS-Berechtigungsdaten gespeichert.
+- Der separat blockierte GitHub-Ruleset wird durch diese Verwaltung nicht aktiviert.
