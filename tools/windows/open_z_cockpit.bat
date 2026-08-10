@@ -10,6 +10,16 @@ rem Repositoryzustand fuer den Fehlerbericht erfassen. Ein gesperrter Zustand
 rem blockiert nur die GitHub-Vorbereitung, nicht das lokale Z_Cockpit.
 %PYTHON_CMD% -m tools.check_repository_version >nul 2>&1
 
+rem Technische 3D-Vorschauen aus dem aktuellen Footprint-/Modellstand erzeugen.
+%PYTHON_CMD% -m tools.generate_3d_previews
+if errorlevel 1 (
+    echo.
+    echo FEHLER: 3D-Vorschauen konnten nicht erzeugt werden.
+    echo.
+    pause
+    exit /b 1
+)
+
 %PYTHON_CMD% -m tools.generate_z_cockpit
 if errorlevel 1 (
     echo.

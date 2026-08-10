@@ -37,6 +37,9 @@ jobs:
       - name: Tests ausführen
         run: python -m pytest -q
 
+      - name: 3D-Vorschauen prüfen
+        run: python tools/generate_3d_previews.py --check
+
       - name: Projektkonsistenz prüfen
         run: python -m tools.project_validator --json-output build/Z_PROJECT_VALIDATION.json
 

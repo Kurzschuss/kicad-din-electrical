@@ -35,7 +35,8 @@
         {"id": "einstellungsseite", "title_de": "Einstellungen und lokale Oberflächenoptionen umsetzen", "state": "done"},
         {"id": "benutzerverwaltung", "title_de": "Benutzerverwaltung im Z_Cockpit integrieren", "state": "done"},
         {"id": "whitelist_verwaltung", "title_de": "Whitelist- und Berechtigungsverwaltung integrieren", "state": "done"},
-        {"id": "issue_fehlermeldung", "title_de": "Issue- und Fehlermeldungsworkflow integrieren", "state": "done"}
+        {"id": "issue_fehlermeldung", "title_de": "Issue- und Fehlermeldungsworkflow integrieren", "state": "done"},
+        {"id": "3d_vorschauen", "title_de": "3D-Vorschauen und Modellabdeckung anbinden", "state": "done"}
       ]
     },
     {

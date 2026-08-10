@@ -25,6 +25,7 @@ def test_collect_settings_uses_project_state_as_source_of_truth():
     assert settings.target_release == "2.0"
     assert settings.project_state_path == "project_state.yaml"
     assert settings.device_catalog_path == "data/devices/"
+    assert settings.three_d_model_path == "3dmodels/Z_3DModell.3dshapes/"
     assert settings.cockpit_output_path == "docs/site/z-cockpit.html"
 
 
@@ -48,6 +49,7 @@ def test_settings_page_contains_read_only_project_values_and_local_ui_controls()
     assert "data/devices/" in html
     assert "symbols/" in html
     assert "footprints/" in html
+    assert "3dmodels/Z_3DModell.3dshapes/" in html
     assert "docs/site/z-cockpit.html" in html
     assert 'id="setting-theme"' in html
     assert 'id="setting-density"' in html

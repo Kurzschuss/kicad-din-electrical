@@ -27,6 +27,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Z_Cockpit Benutzerverwaltung](03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md)
 - [Z_Cockpit Berechtigungen und Whitelists](03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md)
 - [Z_Cockpit Issue- und Fehlermeldung](03_Developer/Z_COCKPIT_FEHLERMELDUNG.md)
+- [Z_Cockpit 3D-Vorschauen und Modellabdeckung](03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md)
 - [ProjectOS-Ausbau: Benutzer, Whitelist und Fehlermeldungen](projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md)
 
 ## Bibliotheksreferenz und Werkzeuge
@@ -65,11 +66,13 @@ Der festgelegte dreistufige Z_Cockpit-Ausbau ist vollständig umgesetzt:
 - Whitelist- und Berechtigungsverwaltung;
 - Issue- und Fehlermeldungsworkflow.
 
+Zusätzlich sind die **3D-Vorschauen und die Modellabdeckung** angebunden. Das Cockpit unterscheidet echte KiCad-3D-Modelle von technischen Hüllkörperansichten aus vorhandener `F.Fab`-Geometrie. Hüllkörper werden nicht als echte Modelle gezählt und fehlende Produktgeometrien werden nicht erfunden.
+
 Der Bereich `Fehler melden` erzeugt einen lokalen, überprüfbaren Markdown-Bericht und kann bei zulässigem Repositoryzustand das offizielle GitHub-Issue-Formular vorbereiten. Das Issue wird nicht automatisch abgesendet.
 
 ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Benutzer-/Berechtigungsbestände, Tokens, Schlüssel und Zugangsdaten werden nicht automatisch in Fehlerberichte übernommen.
 
-Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Als technische Folgepunkte bleiben direkte KiCad-Editoraufrufe und die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
 
 Weitere ältere Roadmap-Punkte werden in den jeweiligen Fach- und Übergabedokumenten fortgeführt.
 

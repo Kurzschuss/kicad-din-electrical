@@ -25,7 +25,18 @@ def write_mapping(root: Path, content: str) -> None:
 def write_footprint(root: Path, name: str) -> None:
     path = root / "footprints" / f"{name}.pretty" / f"{name}.kicad_mod"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f'(footprint "{name}")', encoding="utf-8")
+    path.write_text(
+        f'''(footprint "{name}" (version 20240108)
+  (fp_rect
+    (start -9 -45)
+    (end 9 45)
+    (stroke (width 0.1) (type default))
+    (fill none)
+    (layer "F.Fab")
+  )
+)''',
+        encoding="utf-8",
+    )
 
 
 def write_preview(root: Path, folder: str, *parts: str) -> None:
@@ -55,6 +66,7 @@ def test_collects_library_symbol_device_footprint_and_preview_status(tmp_path: P
     write_footprint(tmp_path, "Z_DIN_Module_18mm")
     write_preview(tmp_path, "symbol-previews", "Z_Test", "A.svg")
     write_preview(tmp_path, "footprint-previews", "Z_DIN_Module_18mm.svg")
+    write_preview(tmp_path, "3d-previews", "Z_DIN_Module_18mm.svg")
     devices = [
         {"id": "device.a1", "symbol": "Z_Test:A"},
         {"id": "device.a2", "symbol": "Z_Test:A"},
@@ -69,6 +81,8 @@ def test_collects_library_symbol_device_footprint_and_preview_status(tmp_path: P
     assert library.device_count == 2
     assert library.footprint_count == 1
     assert library.complete_preview_count == 1
+    assert library.three_d_model_count == 0
+    assert library.three_d_preview_count == 1
 
     symbol_a = library.symbols[0]
     assert symbol_a.reference == "Z_Test:A"
@@ -78,6 +92,9 @@ def test_collects_library_symbol_device_footprint_and_preview_status(tmp_path: P
     assert symbol_a.footprint_name == "Z_DIN_Module_18mm"
     assert symbol_a.footprint_available is True
     assert symbol_a.footprint_preview_available is True
+    assert symbol_a.three_d_model_available is False
+    assert symbol_a.three_d_preview_available is True
+    assert symbol_a.three_d_preview_status == "Hüllkörper"
 
     symbol_b = library.symbols[1]
     assert symbol_b.device_count == 0
@@ -85,6 +102,8 @@ def test_collects_library_symbol_device_footprint_and_preview_status(tmp_path: P
     assert symbol_b.footprint_name is None
     assert symbol_b.footprint_available is False
     assert symbol_b.footprint_preview_available is False
+    assert symbol_b.three_d_preview_available is False
+    assert symbol_b.three_d_preview_status == "Nicht zugeordnet"
 
 
 def test_collects_libraries_in_stable_name_order(tmp_path: Path):

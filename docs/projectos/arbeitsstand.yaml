@@ -65,6 +65,15 @@ next_z_cockpit_expansion:
       repository_check: "python -m tools.check_repository_version"
       repository_result: build/VERSIONSPRUEFUNG.json
       automatic_issue_submission: false
+    - id: 3d_vorschauen
+      title_de: 3D-Vorschauen und Modellabdeckung anbinden
+      implementation: tools/z_cockpit/three_d_preview.py
+      generator: tools/generate_3d_previews.py
+      documentation: docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md
+      model_root: 3dmodels/Z_3DModell.3dshapes
+      generated_previews: docs/site/3d-previews
+      fake_product_geometry: false
+      hull_preview_counts_as_model: false
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
@@ -79,18 +88,28 @@ next_z_cockpit_expansion:
     excludes_authenticated_github_user: true
     excludes_tokens_keys_credentials: true
     explicit_preview_confirmation: true
+  three_d_preview_policy:
+    real_model_requires_kicad_model_reference_and_repository_file: true
+    technical_hull_source: F.Fab
+    technical_hull_is_not_real_model: true
+    external_model_download: false
   ruleset_status: blocked_separate_approval
+
+remaining_technical_followups:
+  - direct_kicad_editor_calls
+  - runtime_diagnostics_persistence
+  - github_ruleset_activation_blocked
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
 initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 532
-  last_successful_commit: cc7dc1e5a5f13c41a1e7bdfd2187dda5bf06c1d5
+  last_successful_run_number: 536
+  last_successful_commit: 00a170a9785532d511e67c0eebe43d214870de38
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Fehlerbericht-Implementierung auf PR #195 mit CI #532 erfolgreich geprueft: 779 Tests, Projektvalidator 10/10, KiCad-Validator 0 Fehler und Z_Cockpit-Erzeugung erfolgreich. Diese Aktualisierung dokumentiert nur das bereits gruene Ergebnis."
+  note: "3D-Vorschauen und Modellabdeckung auf PR #196 mit CI #536 erfolgreich geprueft; 3D-Generatorcheck, Python-Syntax, KiCad-Pruefungen, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Echte Modelle und technische F.Fab-Huellkoerper bleiben getrennte Statuswerte."

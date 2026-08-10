@@ -18,6 +18,9 @@ def test_cockpit_uses_catalog_devices():
     assert all(isinstance(item["symbol_preview_available"], bool) for item in devices)
     assert all("footprint_preview_status" in item for item in devices)
     assert all(isinstance(item["footprint_preview_available"], bool) for item in devices)
+    assert all("three_d_preview_status" in item for item in devices)
+    assert all(isinstance(item["three_d_preview_available"], bool) for item in devices)
+    assert all(isinstance(item["model"], bool) for item in devices)
 
 
 def test_generic_manufacturer_is_shown_in_german():
@@ -30,6 +33,13 @@ def test_generic_manufacturer_is_shown_in_german():
     assert device["symbol_preview_available"] is True
     assert device["footprint"]
     assert device["footprint_preview_status"] in {"Kontur", "Platzhalter", "Fehlt", "Nicht zugeordnet"}
+    assert device["three_d_preview_status"] in {
+        "Modell",
+        "Modellreferenz fehlt",
+        "Hüllkörper",
+        "Fehlt",
+        "Nicht zugeordnet",
+    }
 
 
 def test_summary_uses_real_catalog_values():
@@ -39,6 +49,8 @@ def test_summary_uses_real_catalog_values():
     assert summary["families"] >= 1
     assert summary["manufacturers"] >= 1
     assert 0 <= summary["checked"] <= summary["devices"]
+    assert 0 <= summary["models"] <= summary["devices"]
+    assert 0 <= summary["three_d_previews"] <= summary["devices"]
 
 
 def test_navigation_is_generated_from_registered_pages():
@@ -97,6 +109,8 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Projektstatus" in html
     assert "Gerätefamilien" in html
     assert "Geprüfte Geräte" in html
+    assert "3D-Modelle" in html
+    assert "3D-Vorschauen" in html
     assert "Fortschritt bis Version 1.0" in html
     assert "Gesamtfortschritt" in html
     assert "Bibliotheken" in html
@@ -105,6 +119,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'class="library-page-title"' in html
     assert 'id="library-filter-name"' in html
     assert 'id="library-filter-preview"' in html
+    assert 'id="library-filter-three-d"' in html
     assert 'class="library-card library-inline-detail"' in html
     assert 'class="library-table"' in html
     assert "Gerätezuordnungen" in html
@@ -189,6 +204,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'id="settings-reset"' in html
     assert "Projektwerte aus Repository-Quellen" in html
     assert "Diese Optionen ändern keine Repositorydateien" in html
+    assert "3dmodels/Z_3DModell.3dshapes/" in html
     assert "z-cockpit.settings.v1" in html
     assert 'class="cockpit-page-title"' in html
     assert 'class="cockpit-page-description"' in html
@@ -221,13 +237,18 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert '\"symbol_preview_url\": \"symbol-previews/Z_MCB/MCB.svg\"' in html
     assert '\"symbol_preview_available\": true' in html
     assert '\"footprint_preview_status\"' in html
+    assert '\"three_d_preview_status\"' in html
+    assert '\"three_d_preview_available\"' in html
     assert 'id="symbol-preview"' in html
     assert 'id="footprint-preview"' in html
+    assert 'id="three-d-preview"' in html
     assert 'alt="Symbolvorschau ${item.symbol}"' in html
     assert 'alt="Footprintvorschau ${item.footprint}"' in html
+    assert 'alt="3D-Vorschau ${item.footprint}"' in html
     assert "Für dieses Symbol ist keine Vorschau verfügbar." in html
     assert "Für diesen Footprint ist keine Vorschau verfügbar." in html
     assert "Footprint vorhanden, aber noch ohne darstellbare Geometrie." in html
     assert "Technische SVG-Schnellansicht" in html
-    assert "Datenquellen: Gerätekatalog, project_state.yaml und ProjectOS-Benutzerverwaltung" in html
+    assert "Technische Hüllkörper-Vorschau" in html
+    assert "Datenquellen: Gerätekatalog, KiCad-Bibliotheken, 3D-Modellreferenzen, project_state.yaml und ProjectOS" in html
     assert "Z_Cockpit 1.1" in html

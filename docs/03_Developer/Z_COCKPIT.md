@@ -30,17 +30,19 @@ Ohne Projektbundle werden weder Benutzer noch ProjectOS-Berechtigungen erfunden.
 tools\windows\open_z_cockpit.bat
 ```
 
-Der Windows-Starter führt vor der Cockpit-Erzeugung zusätzlich die vorhandene Repositoryprüfung für den Fehlerbericht aus:
+Der Windows-Starter führt vor der Cockpit-Erzeugung die vorhandene Repositoryprüfung für den Fehlerbericht und die Erzeugung der technischen 3D-Vorschauen aus:
 
 ```text
 python -m tools.check_repository_version
+python -m tools.generate_3d_previews
 ```
 
-Ein gesperrter Repositoryzustand blockiert nur die GitHub-Issue-Vorbereitung; das lokale Z_Cockpit und lokale Fehlerberichte bleiben nutzbar.
+Ein gesperrter Repositoryzustand blockiert nur die GitHub-Issue-Vorbereitung; das lokale Z_Cockpit und lokale Fehlerberichte bleiben nutzbar. Ein Fehler beim 3D-Vorschaugenerator verhindert dagegen das Öffnen einer potenziell inkonsistenten lokalen Cockpit-Ansicht.
 
 Alternativ:
 
 ```powershell
+.\.venv\Scripts\python.exe -m tools.generate_3d_previews
 .\.venv\Scripts\python.exe -m tools.generate_z_cockpit
 ```
 
@@ -83,6 +85,8 @@ Wichtige Quellen sind:
 
 - Gerätekatalog unter `data/devices/`;
 - KiCad-Symbol- und Footprintbibliotheken;
+- KiCad-`model`-Referenzen in den Footprints;
+- Repository-3D-Modelle unter `3dmodels/Z_3DModell.3dshapes/`;
 - `project_state.yaml`;
 - ProjectOS-Projektvalidator und Projektanalyse;
 - vorhandene Markdown-Dokumentation;
@@ -94,9 +98,54 @@ Wichtige Quellen sind:
 
 Die Geräteansicht bietet Filter für Gerätefamilie, Hersteller, Polzahl, Charakteristik, Nennstrom und Status. Technische Geräte-ID, Symbol, Footprint und Vorschauen bleiben sichtbar.
 
+Der rechte Eigenschaftenbereich zeigt jetzt drei getrennte Vorschauen:
+
+1. Symbol;
+2. Footprint;
+3. 3D.
+
+Für 3D wird der tatsächliche Modell-/Vorschaustatus angezeigt. Eine technische F.Fab-Hüllkörperansicht wird ausdrücklich nicht als echtes 3D-Modell gezählt.
+
 ## Bibliotheken
 
 Die Bibliotheksansicht ist tabellenbasiert. Bibliotheksdetails werden direkt unter der ausgewählten Bibliothek geöffnet. Rechts bleibt der Symbolinspektor fest stehen; nur lange Geräte-ID-Listen scrollen separat.
+
+Die bestehende Bedienlogik bleibt unverändert. Ergänzt sind lediglich 3D-Status und -Abdeckung:
+
+- Anzahl echter 3D-Modelle;
+- Anzahl verfügbarer 3D-Vorschauen;
+- Filter `3D-Vorschauen`;
+- 3D-Status je Symbol;
+- technische 3D-Vorschau im rechten Inspektor.
+
+## 3D-Vorschauen
+
+Die 3D-Anbindung unterscheidet folgende Zustände:
+
+- `Modell`: auflösbare KiCad-`model`-Referenz und vorhandene Repositorydatei;
+- `Modellreferenz fehlt`: Referenz vorhanden, Datei fehlt oder ist nicht auflösbar;
+- `Hüllkörper`: technische isometrische Vorschau aus bereits vorhandener `F.Fab`-Rechteckgeometrie, aber kein echtes Modell;
+- `Fehlt`: keine 3D-Modell- und keine verwertbare F.Fab-Geometrie;
+- `Nicht zugeordnet`: kein Footprint zugeordnet.
+
+Der Generator lautet:
+
+```text
+python -m tools.generate_3d_previews
+python -m tools.generate_3d_previews --check
+```
+
+Ausgabe:
+
+```text
+docs/site/3d-previews/
+```
+
+Es werden keine fehlenden Produktgehäuse, STEP-Modelle oder Herstellerdaten erfunden. Die vollständige technische Beschreibung steht unter:
+
+```text
+docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md
+```
 
 ## Hersteller
 
@@ -109,7 +158,7 @@ Die Qualitätsseite verbindet:
 - ProjectOS-Projektkonsistenz aus `tools.project_validator`;
 - Bibliotheksgesundheit aus der Quality Engine.
 
-Der Projektvalidator liefert die stabilen Prüfungen `PRJ-001` bis `PRJ-010`.
+Der Projektvalidator liefert weiterhin die stabilen Prüfungen `PRJ-001` bis `PRJ-010`. Die Aktualität der 3D-Vorschauen wird zusätzlich als eigener CI-/Release-Generatorcheck geprüft, ohne die bestehenden stabilen PRJ-IDs umzunummerieren.
 
 ## Diagnose
 
@@ -129,27 +178,17 @@ docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
 
 ## Berechtigungen
 
-Die Berechtigungsseite trennt zwei Sicherheitsquellen strikt:
+Die Berechtigungsseite trennt zwei Sicherheitsquellen strikt.
 
-### ProjectOS-Benutzerberechtigungen
+Aus `ProjectOSUserManagementState` werden vorhandene Rechtezuweisungen mit den Quellen Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist ausgewertet. Sichtbar sind Benutzer, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus sowie die effektive Autorisierungsentscheidung. Ein wirksames DENY/Blacklist bleibt vorrangig.
 
-Aus `ProjectOSUserManagementState` werden vorhandene Rechtezuweisungen mit den Quellen Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist ausgewertet.
-
-Sichtbar sind Benutzer, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus sowie die effektive Autorisierungsentscheidung. Ein wirksames DENY/Blacklist bleibt vorrangig.
-
-### Repository-Entwickler-Whitelist
-
-Die getrennte Repositoryquelle bleibt:
+Die getrennte Repositoryquelle für Entwicklerfreigaben bleibt:
 
 ```text
 config/authorized_developers.json
 ```
 
-Das Cockpit zeigt Schema, Anzahl und GitHub-Benutzernamen, importiert diese Liste aber nicht in ProjectOS.
-
-### Schreibgrenze
-
-Das statische Cockpit schreibt keine Berechtigungen. ProjectOS-Änderungen müssen über `ProjectOSUserManagementChangeService` und die fail-closed `ProjectOSUserManagementCommandAuthorization` laufen. Repository-Whitelist-Änderungen erfolgen als versionierte Repository-Änderung mit anschließender Validator-/CI-Prüfung.
+Das statische Cockpit schreibt keine Berechtigungen. ProjectOS-Änderungen müssen über `ProjectOSUserManagementChangeService` und die fail-closed `ProjectOSUserManagementCommandAuthorization` laufen.
 
 Technische Details:
 
@@ -161,24 +200,11 @@ docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
 
 Der Bereich `Fehler melden` erzeugt einen strukturierten Markdown-Bericht und bereitet bei zulässigem Repositoryzustand ein GitHub-Issue vor.
 
-Der Benutzer erfasst Kategorie, Kurztitel, optionale technische Referenz, Beschreibung, Reproduktionsschritte sowie erwartetes und tatsächliches Verhalten. Optional werden ergänzt:
+Der Benutzer erfasst Kategorie, Kurztitel, optionale technische Referenz, Beschreibung, Reproduktionsschritte sowie erwartetes und tatsächliches Verhalten. Optional werden Projekt-/ProjectOS-Stand, Diagnose, Sicherheitsstatus und Repositoryprüfung ergänzt.
 
-- Projektname, Zielrelease, ProjectOS- und Z_Cockpit-Version;
-- Diagnosezusammenfassung mit relevanten `PRJ-*`-/Analysebefunden;
-- Repository-Sicherheitsstatus;
-- Ergebnis der expliziten Repositoryprüfung.
-
-Die Seite selbst führt keinen Netzwerkzugriff aus. Sie liest ausschließlich ein vorhandenes `build/VERSIONSPRUEFUNG.json`. Der lokale Bericht kann unabhängig vom Repositorystatus kopiert oder als `z-cockpit-fehlerbericht.md` gespeichert werden.
-
-Die GitHub-Vorbereitung ist nur freigeschaltet, wenn die Repositoryprüfung einen zulässigen Zustand bestätigt, Kurztitel und Beschreibung vorhanden sind und der Benutzer die sichtbare Vorschau ausdrücklich geprüft hat. Anschließend wird der Bericht kopiert und das offizielle Issue-Formular geöffnet. Das Issue wird nicht automatisch angelegt oder abgesendet.
+Die Seite selbst führt keinen Netzwerkzugriff aus. Der lokale Bericht kann unabhängig vom Repositorystatus kopiert oder als `z-cockpit-fehlerbericht.md` gespeichert werden. Das GitHub-Issue wird nicht automatisch angelegt oder abgesendet.
 
 Nicht automatisch aufgenommen werden Benutzer-/Berechtigungsbestände, authentifizierte GitHub-Benutzernamen, Tokens, Passwörter, Schlüssel, Zugangsdaten oder ungeprüfte Dateiinhalte.
-
-Issue Form:
-
-```text
-.github/ISSUE_TEMPLATE/bug_report.yml
-```
 
 Technische Details:
 
@@ -196,7 +222,7 @@ Der Dokumentationsbrowser indexiert vorhandene Markdown-Dateien aus dem Reposito
 
 ## Einstellungen
 
-Projektwerte werden read-only aus Repositoryquellen angezeigt. Lokale Oberflächenoptionen wie Theme, Tabellendichte und letzte Seite werden ausschließlich im Browser unter `z-cockpit.settings.v1` gespeichert.
+Projektwerte werden read-only aus Repositoryquellen angezeigt. Unter `Pfade` ist jetzt auch `3dmodels/Z_3DModell.3dshapes/` sichtbar. Lokale Oberflächenoptionen wie Theme, Tabellendichte und letzte Seite werden ausschließlich im Browser unter `z-cockpit.settings.v1` gespeichert.
 
 ## Prüfung
 
@@ -204,6 +230,9 @@ Die Tests prüfen unter anderem:
 
 - zentrale Seitenregistrierung und eindeutige Seiten-IDs;
 - Gerätekatalog- und Bibliotheksintegration;
+- Symbol-, Footprint- und 3D-Vorschauzustände;
+- Trennung von echtem 3D-Modell und technischem Hüllkörper;
+- sichere Auflösung von `KICAD_Z_3DMODEL_DIR`-Referenzen;
 - Herstelleraggregation;
 - Projektvalidator/Qualität;
 - Diagnoseansicht;
@@ -218,21 +247,21 @@ Die Tests prüfen unter anderem:
 - einheitliche Seitenköpfe;
 - Entwicklungsnavigator und Projektstatus.
 
-GitHub Actions erzeugt das Cockpit bei der vollständigen ProjectOS-Prüfkette und führt zusätzlich den Projektvalidator aus.
+GitHub Actions prüft die generierten 3D-Vorschauen, erzeugt das Cockpit in der vollständigen ProjectOS-Prüfkette und führt zusätzlich den Projektvalidator aus.
 
 ## Aktueller Entwicklungsstand
 
-Der festgelegte dreistufige Ausbau ist abgeschlossen:
+Abgeschlossen sind insbesondere:
 
 1. Benutzerverwaltung;
 2. Whitelist- und Berechtigungsverwaltung;
-3. Issue- und Fehlermeldungsworkflow.
+3. Issue- und Fehlermeldungsworkflow;
+4. 3D-Vorschauen und Modellabdeckung.
 
 Im zentralen `project_state.yaml` ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der Entwicklungsnavigator meldet entsprechend `Keine ausführbare Aufgabe offen.`
 
 Separat offen bleiben weiterhin:
 
-- 3D-Vorschauen;
 - direkte KiCad-Editoraufrufe;
 - Persistenzanbindung der Laufzeit-Wissensgraphdiagnosen;
 - serverseitige GitHub-Ruleset-Aktivierung nach separater Freigabe.
