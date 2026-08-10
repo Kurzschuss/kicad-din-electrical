@@ -6,9 +6,10 @@ Eine automatische Meldung ist nur zulässig, wenn
 - dieser eindeutig einem aktiven ProjectOS-Benutzer zugeordnet ist und
 - ``github.issue.auto_submit`` effektiv erlaubt ist.
 
-Vor dem Schreiben wird nach einer stabilen Fehler-Fingerprint-Markierung gesucht.
-Ein Treffer erzeugt kein zweites Issue, sondern eine nachvollziehbare
-Wiederholungsmeldung am bestehenden Issue.
+Vor dem Schreiben wird zuerst nach der stabilen ProjectOS-Fingerprint-Markierung
+und danach konservativ nach bereits manuell angelegten Issues mit identischem
+Titel plus technischer Referenz gesucht. Ein Treffer erzeugt kein zweites Issue,
+sondern eine nachvollziehbare Wiederholungsmeldung am bestehenden Issue.
 """
 from __future__ import annotations
 
@@ -74,6 +75,7 @@ class DuplicateSummary:
     original_reporter: str = ""
     reporters: tuple[str, ...] = ()
     report_count: int = 0
+    match_type: str = ""
 
 
 @dataclass(frozen=True)
@@ -195,16 +197,19 @@ def report_title(report: str) -> str:
     return value[:180]
 
 
+def _normalized(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value).casefold()).strip()
+
+
 def report_fingerprint(report: str) -> str:
-    title = re.sub(r"\s+", " ", report_title(report).casefold()).strip()
-    category = re.sub(r"\s+", " ", _field(report, "Kategorie").casefold()).strip()
-    reference = re.sub(r"\s+", " ", _field(report, "Technische Referenz").casefold()).strip()
+    title = _normalized(report_title(report))
+    category = _normalized(_field(report, "Kategorie"))
+    reference = _normalized(_field(report, "Technische Referenz"))
     canonical = "\n".join((category, reference, title))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _issue_rows(fingerprint: str, runner: CommandRunner) -> list[dict]:
-    query = f"z-report fingerprint={fingerprint}"
+def _list_issues(query: str, runner: CommandRunner) -> list[dict]:
     data = _run_json(runner, [
         "gh", "issue", "list", "--repo", OFFICIAL_REPOSITORY,
         "--state", "all", "--search", query,
@@ -212,12 +217,58 @@ def _issue_rows(fingerprint: str, runner: CommandRunner) -> list[dict]:
     ])
     if not isinstance(data, list):
         raise RuntimeError("GitHub-Issue-Suche lieferte kein Array")
+    return [item for item in data if isinstance(item, dict)]
+
+
+def _issue_rows(
+    fingerprint: str,
+    runner: CommandRunner,
+    *,
+    title: str = "",
+    reference: str = "",
+) -> tuple[list[dict], str]:
     marker = f"z-report fingerprint={fingerprint}"
-    return [item for item in data if isinstance(item, dict) and marker in str(item.get("body", ""))]
+    marked = [
+        item for item in _list_issues(marker, runner)
+        if marker in str(item.get("body", ""))
+    ]
+    if marked:
+        return marked, "fingerprint"
+
+    # Bereits manuell angelegte Issues besitzen noch keinen ProjectOS-Marker.
+    # Deshalb erfolgt eine konservative zweite Suche: Titel muss normalisiert exakt
+    # übereinstimmen; eine vorhandene technische Referenz muss zusätzlich im Titel
+    # oder Body vorkommen. So wird ein ähnlicher Fehler nicht vorschnell zusammengelegt.
+    normalized_title = _normalized(title)
+    if not normalized_title:
+        return [], ""
+    manual_candidates = _list_issues(f'"{title[:180]}" in:title', runner)
+    normalized_reference = _normalized(reference)
+    manual: list[dict] = []
+    for item in manual_candidates:
+        if _normalized(str(item.get("title", ""))) != normalized_title:
+            continue
+        if normalized_reference:
+            haystack = _normalized(f"{item.get('title', '')} {item.get('body', '')}")
+            if normalized_reference not in haystack:
+                continue
+        manual.append(item)
+    return manual, "manual_title_reference" if manual else ""
 
 
-def duplicate_summary(fingerprint: str, *, runner: CommandRunner = run_command) -> DuplicateSummary:
-    rows = _issue_rows(fingerprint, runner)
+def duplicate_summary(
+    fingerprint: str,
+    *,
+    title: str = "",
+    reference: str = "",
+    runner: CommandRunner = run_command,
+) -> DuplicateSummary:
+    rows, match_type = _issue_rows(
+        fingerprint,
+        runner,
+        title=title,
+        reference=reference,
+    )
     if not rows:
         return DuplicateSummary(found=False)
     rows.sort(key=lambda item: int(item.get("number", 0)))
@@ -248,6 +299,7 @@ def duplicate_summary(fingerprint: str, *, runner: CommandRunner = run_command) 
         original_reporter=original_reporter,
         reporters=reporters,
         report_count=1 + len(duplicate_reporters),
+        match_type=match_type,
     )
 
 
@@ -271,7 +323,13 @@ def submit_auto_report(
     report = read_report(report_path)
     fingerprint = report_fingerprint(report)
     title = report_title(report)
-    duplicate = duplicate_summary(fingerprint, runner=runner)
+    reference = _field(report, "Technische Referenz")
+    duplicate = duplicate_summary(
+        fingerprint,
+        title=title,
+        reference=reference,
+        runner=runner,
+    )
     login = gate.authenticated_github_user
     timestamp = datetime.now(timezone.utc).isoformat()
 
@@ -280,7 +338,8 @@ def submit_auto_report(
             f"Erneut automatisch gemeldet durch ProjectOS von **{login}**.\n\n"
             f"- Fingerprint: `{fingerprint}`\n"
             f"- Zeitpunkt (UTC): `{timestamp}`\n"
-            f"- ProjectOS-Benutzer: `{gate.project_user.user_id}`\n\n"
+            f"- ProjectOS-Benutzer: `{gate.project_user.user_id}`\n"
+            f"- Dublettenabgleich: `{duplicate.match_type or 'fingerprint'}`\n\n"
             f"<!-- z-duplicate-report fingerprint={fingerprint} reporter={login} -->"
         )
         result = runner([
