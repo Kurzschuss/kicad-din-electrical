@@ -37,6 +37,9 @@ jobs:
       - name: Tests ausführen
         run: python -m pytest -q
 
+      - name: Projektkonsistenz prüfen
+        run: python -m tools.project_validator --json-output build/Z_PROJECT_VALIDATION.json
+
       - name: Distributionen bauen
         run: python -m build
 
