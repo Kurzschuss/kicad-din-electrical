@@ -275,11 +275,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 558
-  last_successful_commit: 07ddf54d0f1aa213954e9b85f06a6cd889e09a5c
+  last_successful_run_number: 570
+  last_successful_commit: bc2e3dbb4b10a4cf86ee117a4da5f21524049448
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Zugriffs-/Reporting-Governance auf PR #202 mit CI #558 erfolgreich geprueft. 824 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Nach Dokumentations- und Sicherheitsnachschaerfungen muss der finale PR-Head nochmals vollstaendig gruen sein."
+  note: "Zugriffs-/Reporting-Governance auf PR #202 mit CI #570 erfolgreich geprueft. 825 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Manuelle Issue-Dubletten, sichere dynamische Cockpit-Texte und vollstaendige Governance-Dokumentation sind enthalten; der finale Dokumentations-Head muss nochmals gruen sein."
