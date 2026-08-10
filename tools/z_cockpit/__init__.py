@@ -94,6 +94,7 @@ from .user_management_page import (
     load_user_management_bundle as _load_user_management_bundle,
     user_management_page_html as _user_management_page_html,
 )
+from .user_management_scroll_fix import user_management_scroll_fix_html
 from .user_simulation import (
     CockpitIdentityView,
     TEST_USER_ID,
@@ -134,6 +135,7 @@ def user_management_page_html(snapshot: UserManagementSnapshot | None = None) ->
         + permissions_page_html(permissions)
         + issue_report_page_html()
         + governance_controls_html(users, permissions)
+        + user_management_scroll_fix_html()
     )
 
 
@@ -234,5 +236,6 @@ __all__ = [
     "symbol_preview",
     "three_d_preview_assignment",
     "user_management_page_html",
+    "user_management_scroll_fix_html",
     "user_simulation_html",
 ]
