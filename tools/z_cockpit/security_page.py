@@ -43,9 +43,8 @@ def security_page_html(items: tuple[SecurityItem, ...] | None = None) -> str:
     table = security_table_html(items)
     return (
         '<section class="page" id="page-sicherheit">'
-        '<h2>Sicherheit</h2>'
-        '<p>Übersicht der lokal prüfbaren Schutzmechanismen. '
-        'Laufzeit- und GitHub-Zustände werden nicht als bestätigt dargestellt.</p>'
+        '<h2 class="cockpit-page-title">Sicherheit '
+        '<small class="cockpit-page-description">(Lokal prüfbare Schutzmechanismen; Laufzeit- und GitHub-Zustände werden nicht als bestätigt dargestellt.)</small></h2>'
         f'{table}'
         '<aside class="security-notice">'
         '<strong>Wichtig:</strong> Eine vorhandene Ruleset-Vorlage bedeutet nicht, '
