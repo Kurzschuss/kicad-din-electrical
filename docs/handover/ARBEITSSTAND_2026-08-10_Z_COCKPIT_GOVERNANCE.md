@@ -85,7 +85,16 @@ tools/check_repository_version.py
 
 ## Prüfstand
 
-PR #202: erster vollständiger Lauf CI #558 grün mit 824 Tests sowie Python-Syntax, KiCad-, 3D-, Projektvalidator- und Z_Cockpit-Prüfungen. Nach den anschließenden Sicherheits-/Dubletten-/Dokumentationsnachschärfungen muss der finale PR-Head erneut vollständig grün sein.
+PR #202 wurde nach Sicherheits-, Dubletten- und Dokumentationsnachschärfungen mit vollständiger CI #570 geprüft:
+
+- 825 Tests erfolgreich;
+- Python-Syntax erfolgreich;
+- KiCad-Validierung ohne Fehler;
+- Symbol-/3D-/Gerätegeneratoren erfolgreich;
+- ProjectOS-Projektvalidator 10/10;
+- Z_Cockpit-Erzeugung erfolgreich.
+
+Der reine finale Dokumentations-Head muss vor dem Merge nochmals vollständig grün sein.
 
 ## Unverändert
 
