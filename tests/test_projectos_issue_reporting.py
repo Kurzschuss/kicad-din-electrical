@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import replace
 import json
-from pathlib import Path
 import subprocess
 
 import pytest
@@ -114,6 +113,46 @@ def test_duplicate_summary_reports_original_and_repeat_reporters():
     assert result.issue_number == 42
     assert result.report_count == 3
     assert result.reporters == ("Uwe", "Anna")
+    assert result.match_type == "fingerprint"
+
+
+def test_duplicate_summary_recognizes_manual_issue_by_exact_title_and_reference():
+    fingerprint = "b" * 64
+    title = "Diagnose zeigt falschen Zustand"
+    calls = []
+
+    def runner(args):
+        calls.append(args)
+        if args[:3] == ["gh", "issue", "list"]:
+            query = args[args.index("--search") + 1]
+            if query.startswith("z-report fingerprint="):
+                return cp(args, out="[]")
+            assert "in:title" in query
+            return cp(args, out=json.dumps([{
+                "number": 55,
+                "title": title,
+                "state": "OPEN",
+                "author": {"login": "ManualReporter"},
+                "createdAt": "2026-08-09T00:00:00Z",
+                "url": "https://github.com/Kurzschuss/kicad-din-electrical/issues/55",
+                "body": "Bereits manuell gemeldet. Technische Referenz: PRJ-010",
+            }]))
+        if args[:3] == ["gh", "issue", "view"]:
+            return cp(args, out=json.dumps({"comments": []}))
+        raise AssertionError(args)
+
+    result = duplicate_summary(
+        fingerprint,
+        title=title,
+        reference="PRJ-010",
+        runner=runner,
+    )
+    assert result.found is True
+    assert result.issue_number == 55
+    assert result.original_reporter == "ManualReporter"
+    assert result.report_count == 1
+    assert result.match_type == "manual_title_reference"
+    assert len([call for call in calls if call[:3] == ["gh", "issue", "list"]]) == 2
 
 
 def test_auto_submit_uses_existing_issue_instead_of_creating_duplicate(tmp_path, monkeypatch):
