@@ -120,11 +120,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 537
-  last_successful_commit: 930a2f6b3bb810b98147a1e93f7a8d0533d2b8c5
-  result: pending_kicad_editor_links_final_head
+  last_successful_run_number: 539
+  last_successful_commit: a47893e519f588e8ea4f7593ad93bae2e727c48a
+  result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Direkte KiCad-Editoraufrufe sind implementiert; finale CI-Pruefung des Editorlink-Branches steht vor dem Merge aus. Footprints werden ueber fpedit direkt geoeffnet; Symbole oeffnen den Symbol-Editor und uebergeben die gepruefte technische Referenz ueber die Zwischenablage."
+  note: "Direkte KiCad-Editoraufrufe auf PR #197 mit CI #539 erfolgreich geprueft; alle Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Footprints werden ueber fpedit direkt geoeffnet; Symbole oeffnen den Symbol-Editor und uebergeben die gepruefte technische Referenz ueber die Zwischenablage."
