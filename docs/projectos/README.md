@@ -12,6 +12,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 - Z_Cockpit-Whitelist-/Berechtigungsverwaltung: umgesetzt
 - Z_Cockpit-Issue-/Fehlermeldungsworkflow: umgesetzt
 - Z_Cockpit-3D-Vorschauen und Modellabdeckung: umgesetzt
+- direkte KiCad-Editoraufrufe aus dem Z_Cockpit: umgesetzt
 - Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -73,7 +74,7 @@ Technische Dokumentation:
 
 ## 3D-Vorschauen und Modellabdeckung
 
-ProjectOS unterstützt native 3D-Artefakte bereits als optionale KiCad-Quellen (`.step`, `.stp`, `.wrl`). Das Z_Cockpit bindet diesen Bestand jetzt sichtbar an.
+ProjectOS unterstützt native 3D-Artefakte bereits als optionale KiCad-Quellen (`.step`, `.stp`, `.wrl`). Das Z_Cockpit bindet diesen Bestand sichtbar an.
 
 Single Source of Truth bleiben die KiCad-Footprints und ihre `model`-Referenzen sowie Repositorydateien unter:
 
@@ -81,14 +82,7 @@ Single Source of Truth bleiben die KiCad-Footprints und ihre `model`-Referenzen 
 3dmodels/Z_3DModell.3dshapes/
 ```
 
-Der Vorschaupfad unterscheidet strikt:
-
-- echtes Modell: KiCad-`model`-Referenz plus vorhandene Repositorydatei;
-- fehlende Modellreferenzdatei;
-- technischen Hüllkörper aus bereits vorhandener `F.Fab`-Kontur;
-- vollständig fehlende 3D-/Hüllgeometrie.
-
-Ein F.Fab-Hüllkörper wird niemals als echtes 3D-Modell gezählt. Der Generator erzeugt keine vermuteten Produktgehäuse und lädt keine Herstellerdateien nach.
+Der Vorschaupfad unterscheidet strikt zwischen echtem Modell, fehlender Modellreferenzdatei, technischem Hüllkörper aus vorhandener `F.Fab`-Kontur und vollständig fehlender 3D-/Hüllgeometrie. Ein F.Fab-Hüllkörper wird niemals als echtes 3D-Modell gezählt. Der Generator erzeugt keine vermuteten Produktgehäuse und lädt keine Herstellerdateien nach.
 
 Generator und Prüfung:
 
@@ -101,6 +95,20 @@ Technische Dokumentation:
 
 - `docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md`;
 - `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md`.
+
+## Direkte KiCad-Editoraufrufe
+
+Das Z_Cockpit stellt im vorhandenen Geräte- und Bibliotheksinspektor lokale Aktionen für Symbol und Footprint bereit. Die statische HTML-Datei führt dabei keine Prozesse selbst aus.
+
+Unter Windows registriert `tools/windows/open_z_cockpit.bat` das lokale URI-Schema `kicad-z:` ausschließlich im aktuellen Benutzerprofil. Der Handler akzeptiert nur validierte Repository-IDs und konstruiert alle Dateipfade selbst aus festen Repositorypfaden; frei übergebene lokale Pfade oder Shell-Befehle sind nicht zulässig.
+
+Zugeordnete `.kicad_mod`-Dateien werden direkt mit dem KiCad Footprint Editor geöffnet. Für Symbole wird die vorhandene `Bibliothek:Symbol`-Referenz geprüft, in die Zwischenablage gelegt und der KiCad Symbol Editor über den Manager geöffnet, weil keine instabile interne Schnittstelle für eine erzwungene Symbolselektion verwendet wird.
+
+Technische Dokumentation:
+
+- `docs/03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md`;
+- `tools/windows/register_z_kicad_protocol.ps1`;
+- `tools/windows/open_kicad_from_cockpit.ps1`.
 
 ## Improvement-System
 
@@ -128,6 +136,6 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 ## Nächster Schritt
 
-Benutzerverwaltung, Whitelist/Berechtigungen, Issue/Fehlermeldung und 3D-Vorschauen sind abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe.
+Benutzerverwaltung, Whitelist/Berechtigungen, Issue/Fehlermeldung, 3D-Vorschauen und direkte KiCad-Editoraufrufe sind abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe.
 
-Als technische Folgepunkte bleiben direkte KiCad-Editoraufrufe und die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Als technischer Folgepunkt bleibt die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.

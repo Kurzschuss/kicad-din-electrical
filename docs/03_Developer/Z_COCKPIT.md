@@ -30,7 +30,9 @@ Ohne Projektbundle werden weder Benutzer noch ProjectOS-Berechtigungen erfunden.
 tools\windows\open_z_cockpit.bat
 ```
 
-Der Windows-Starter führt vor der Cockpit-Erzeugung die vorhandene Repositoryprüfung für den Fehlerbericht und die Erzeugung der technischen 3D-Vorschauen aus:
+Der Windows-Starter registriert zuerst das lokale `kicad-z:`-Protokoll im aktuellen Benutzerprofil. Damit können die expliziten Editorlinks aus Geräte- und Bibliotheksansicht an den geprüften lokalen Handler übergeben werden. Ein Fehler bei dieser Registrierung blockiert das Cockpit nicht.
+
+Anschließend führt der Starter die vorhandene Repositoryprüfung für den Fehlerbericht und die Erzeugung der technischen 3D-Vorschauen aus:
 
 ```text
 python -m tools.check_repository_version
@@ -45,6 +47,8 @@ Alternativ:
 .\.venv\Scripts\python.exe -m tools.generate_3d_previews
 .\.venv\Scripts\python.exe -m tools.generate_z_cockpit
 ```
+
+Beim direkten manuellen Öffnen der HTML-Datei kann der Browser das lokale `kicad-z:`-Protokoll nicht verwenden, wenn es zuvor noch nicht registriert wurde.
 
 ## Zentrale Seitenregistrierung
 
@@ -98,7 +102,7 @@ Wichtige Quellen sind:
 
 Die Geräteansicht bietet Filter für Gerätefamilie, Hersteller, Polzahl, Charakteristik, Nennstrom und Status. Technische Geräte-ID, Symbol, Footprint und Vorschauen bleiben sichtbar.
 
-Der rechte Eigenschaftenbereich zeigt jetzt drei getrennte Vorschauen:
+Der rechte Eigenschaftenbereich zeigt drei getrennte Vorschauen:
 
 1. Symbol;
 2. Footprint;
@@ -106,17 +110,22 @@ Der rechte Eigenschaftenbereich zeigt jetzt drei getrennte Vorschauen:
 
 Für 3D wird der tatsächliche Modell-/Vorschaustatus angezeigt. Eine technische F.Fab-Hüllkörperansicht wird ausdrücklich nicht als echtes 3D-Modell gezählt.
 
+Nach Auswahl eines Geräts erscheinen zusätzlich lokale KiCad-Aktionen im bestehenden Eigenschaftenbereich. `Symbol-Editor öffnen` startet den KiCad Symbol Editor; `Footprint direkt öffnen` ist nur für tatsächlich zugeordnete Repository-Footprints aktiv.
+
 ## Bibliotheken
 
 Die Bibliotheksansicht ist tabellenbasiert. Bibliotheksdetails werden direkt unter der ausgewählten Bibliothek geöffnet. Rechts bleibt der Symbolinspektor fest stehen; nur lange Geräte-ID-Listen scrollen separat.
 
-Die bestehende Bedienlogik bleibt unverändert. Ergänzt sind lediglich 3D-Status und -Abdeckung:
+Die bestehende Bedienlogik bleibt unverändert. Ergänzt sind:
 
 - Anzahl echter 3D-Modelle;
 - Anzahl verfügbarer 3D-Vorschauen;
 - Filter `3D-Vorschauen`;
 - 3D-Status je Symbol;
-- technische 3D-Vorschau im rechten Inspektor.
+- technische 3D-Vorschau im rechten Inspektor;
+- lokale Aktionen `Symbol-Editor öffnen` und, bei Zuordnung, `Footprint direkt öffnen`.
+
+Die Editorlinks werden in den bestehenden rechten Inspektor eingefügt. Der Geräte-ID-Bereich behält sein separates Scrollverhalten.
 
 ## 3D-Vorschauen
 
@@ -145,6 +154,28 @@ Es werden keine fehlenden Produktgehäuse, STEP-Modelle oder Herstellerdaten erf
 
 ```text
 docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md
+```
+
+## Direkte KiCad-Editoraufrufe
+
+Die statische HTML-Datei führt keine Programme unmittelbar aus. Sie erzeugt ausschließlich Links mit dem lokalen URI-Schema `kicad-z:`. Der Windows-Starter registriert dieses Schema unter `HKCU`, ohne Administratorrechte.
+
+Der Handler akzeptiert nur validierte technische Repository-IDs. Beliebige Dateipfade und frei übergebene Shell-Befehle werden nicht akzeptiert.
+
+Für Footprints wird der feste Repositorypfad
+
+```text
+footprints/<Footprint>.pretty/<Footprint>.kicad_mod
+```
+
+gebildet und mit dem KiCad Footprint Editor geöffnet.
+
+Für Symbole wird `Bibliothek:Symbol` gegen die vorhandene `.kicad_sym`-Datei geprüft. Da KiCad derzeit keinen stabilen öffentlichen CLI-Aufruf zur direkten Auswahl genau dieser Symbol-ID anbietet, wird die geprüfte Referenz in die Zwischenablage gelegt und der Symbol Editor über den KiCad-Manager geöffnet.
+
+Technische Details:
+
+```text
+docs/03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md
 ```
 
 ## Hersteller
@@ -200,7 +231,7 @@ docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
 
 Der Bereich `Fehler melden` erzeugt einen strukturierten Markdown-Bericht und bereitet bei zulässigem Repositoryzustand ein GitHub-Issue vor.
 
-Der Benutzer erfasst Kategorie, Kurztitel, optionale technische Referenz, Beschreibung, Reproduktionsschritte sowie erwartetes und tatsächliches Verhalten. Optional werden Projekt-/ProjectOS-Stand, Diagnose, Sicherheitsstatus und Repositoryprüfung ergänzt.
+Der Benutzer erfasst Kategorie, Kurztitel, optionale technische Referenz, Beschreibung und Reproduktionsschritte sowie erwartetes und tatsächliches Verhalten. Optional werden Projekt-/ProjectOS-Stand, Diagnose, Sicherheitsstatus und Repositoryprüfung ergänzt.
 
 Die Seite selbst führt keinen Netzwerkzugriff aus. Der lokale Bericht kann unabhängig vom Repositorystatus kopiert oder als `z-cockpit-fehlerbericht.md` gespeichert werden. Das GitHub-Issue wird nicht automatisch angelegt oder abgesendet.
 
@@ -222,7 +253,7 @@ Der Dokumentationsbrowser indexiert vorhandene Markdown-Dateien aus dem Reposito
 
 ## Einstellungen
 
-Projektwerte werden read-only aus Repositoryquellen angezeigt. Unter `Pfade` ist jetzt auch `3dmodels/Z_3DModell.3dshapes/` sichtbar. Lokale Oberflächenoptionen wie Theme, Tabellendichte und letzte Seite werden ausschließlich im Browser unter `z-cockpit.settings.v1` gespeichert.
+Projektwerte werden read-only aus Repositoryquellen angezeigt. Unter `Pfade` ist auch `3dmodels/Z_3DModell.3dshapes/` sichtbar. Lokale Oberflächenoptionen wie Theme, Tabellendichte und letzte Seite werden ausschließlich im Browser unter `z-cockpit.settings.v1` gespeichert.
 
 ## Prüfung
 
@@ -233,6 +264,9 @@ Die Tests prüfen unter anderem:
 - Symbol-, Footprint- und 3D-Vorschauzustände;
 - Trennung von echtem 3D-Modell und technischem Hüllkörper;
 - sichere Auflösung von `KICAD_Z_3DMODEL_DIR`-Referenzen;
+- lokale KiCad-Editorlinks in Geräte- und Bibliotheksinspektor;
+- HKCU-only Registrierung des `kicad-z:`-Protokolls;
+- Repository-ID-Validierung und feste Pfadauflösung des lokalen Handlers;
 - Herstelleraggregation;
 - Projektvalidator/Qualität;
 - Diagnoseansicht;
@@ -247,7 +281,7 @@ Die Tests prüfen unter anderem:
 - einheitliche Seitenköpfe;
 - Entwicklungsnavigator und Projektstatus.
 
-GitHub Actions prüft die generierten 3D-Vorschauen, erzeugt das Cockpit in der vollständigen ProjectOS-Prüfkette und führt zusätzlich den Projektvalidator aus.
+GitHub Actions prüft die generierten 3D-Vorschauen, erzeugt das Cockpit in der vollständigen ProjectOS-Prüfkette und führt zusätzlich den Projektvalidator aus. Die Windows-spezifische Protokoll- und Handlerlogik wird durch plattformunabhängige Struktur-/Sicherheitsprüfungen abgedeckt.
 
 ## Aktueller Entwicklungsstand
 
@@ -256,12 +290,12 @@ Abgeschlossen sind insbesondere:
 1. Benutzerverwaltung;
 2. Whitelist- und Berechtigungsverwaltung;
 3. Issue- und Fehlermeldungsworkflow;
-4. 3D-Vorschauen und Modellabdeckung.
+4. 3D-Vorschauen und Modellabdeckung;
+5. direkte KiCad-Editoraufrufe.
 
 Im zentralen `project_state.yaml` ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der Entwicklungsnavigator meldet entsprechend `Keine ausführbare Aufgabe offen.`
 
 Separat offen bleiben weiterhin:
 
-- direkte KiCad-Editoraufrufe;
 - Persistenzanbindung der Laufzeit-Wissensgraphdiagnosen;
 - serverseitige GitHub-Ruleset-Aktivierung nach separater Freigabe.

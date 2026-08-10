@@ -6,6 +6,15 @@ title Z_Cockpit erzeugen und oeffnen
 set "PYTHON_CMD=python"
 if exist ".venv\Scripts\python.exe" set "PYTHON_CMD=.venv\Scripts\python.exe"
 
+rem Lokales URI-Protokoll fuer die expliziten KiCad-Editoraufrufe registrieren.
+rem Die Registrierung erfolgt nur im aktuellen Benutzerprofil (HKCU) und benoetigt
+rem keine Administratorrechte. Bei Fehlern bleibt das Cockpit selbst nutzbar.
+powershell -NoProfile -ExecutionPolicy Bypass -File "tools\windows\register_z_kicad_protocol.ps1" -RepositoryRoot "%CD%" >nul 2>&1
+if errorlevel 1 (
+    echo HINWEIS: KiCad-Editorlinks konnten nicht registriert werden.
+    echo Das Z_Cockpit wird trotzdem geoeffnet.
+)
+
 rem Repositoryzustand fuer den Fehlerbericht erfassen. Ein gesperrter Zustand
 rem blockiert nur die GitHub-Vorbereitung, nicht das lokale Z_Cockpit.
 %PYTHON_CMD% -m tools.check_repository_version >nul 2>&1

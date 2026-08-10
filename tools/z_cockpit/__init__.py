@@ -17,6 +17,7 @@ from .documentation_page import (
     collect_documentation,
     documentation_page_html,
 )
+from .editor_links import editor_links_html
 from .footprint_preview import (
     FootprintAssignment,
     footprint_assignment,
@@ -70,7 +71,11 @@ from .quality_engine import (
 )
 from .security_page import security_page_html, security_state_label, security_table_html
 from .security_status import SecurityItem, collect_security_status
-from .settings_page import CockpitSettingsSnapshot, collect_settings, settings_page_html
+from .settings_page import (
+    CockpitSettingsSnapshot,
+    collect_settings,
+    settings_page_html as _settings_page_html,
+)
 from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_preview
 from .three_d_preview import ThreeDPreviewAssignment, three_d_preview_assignment
 from .user_management_page import (
@@ -111,6 +116,11 @@ def user_management_page_html(snapshot: UserManagementSnapshot | None = None) ->
         + permissions_page_html(permissions)
         + issue_report_page_html()
     )
+
+
+def settings_page_html(snapshot: CockpitSettingsSnapshot | None = None) -> str:
+    """Rendert Einstellungen und die seitenübergreifenden lokalen KiCad-Editorlinks."""
+    return _settings_page_html(snapshot) + editor_links_html()
 
 
 __all__ = [
@@ -156,6 +166,7 @@ __all__ = [
     "development_navigator_html",
     "diagnostics_page_html",
     "documentation_page_html",
+    "editor_links_html",
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
