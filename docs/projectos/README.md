@@ -8,6 +8,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 - Sprint 001 – ProjectOS Foundation: abgeschlossen
 - Sprint 002 – Core Object Model: abgeschlossen
 - weitere ProjectOS-Implementierungsbausteine und Z_Cockpit-Kernseiten: umgesetzt
+- Z_Cockpit-Benutzerverwaltung: umgesetzt
 - Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -23,15 +24,16 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 
 ## Benutzerverwaltung
 
-Rollen, Berechtigungen, Ausnahmerechte, Whitelist, Blacklist und Benutzer-Lifecycle besitzen bereits technische ProjectOS-Grundlagen. Der nächste Z_Cockpit-Ausbau integriert diese vorhandenen Bausteine in eine zentrale Benutzerverwaltung, ohne eine parallele Datenquelle einzuführen.
+Rollen, Berechtigungen, Ausnahmerechte, Whitelist, Blacklist und Benutzer-Lifecycle besitzen technische ProjectOS-Grundlagen. Die Z_Cockpit-Benutzerverwaltung bindet diese vorhandenen Modelle jetzt read-only an, ohne eine parallele Datenquelle einzuführen.
 
-Die geplante Reihenfolge lautet:
+Die Benutzerseite zeigt Benutzer-ID, Anzeigename, Lifecycle-Status, Rollen, effektive Rechte und Rechteherkunft. Ohne ProjectOS-Projektbundle werden keine Benutzer erfunden. Ein vorhandenes v4-Bundle kann explizit über `python -m tools.generate_z_cockpit --project-bundle <projektdatei>` angebunden werden.
 
-1. Benutzerverwaltung;
-2. Whitelist- und Berechtigungsverwaltung;
-3. Issue- und Fehlermeldungsworkflow.
+Die verbleibende Reihenfolge lautet:
 
-Die vollständige Planung steht in [Z_Cockpit – nächster Ausbau: Benutzer, Whitelist und Fehlermeldungen](Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md).
+1. Whitelist- und Berechtigungsverwaltung;
+2. Issue- und Fehlermeldungsworkflow.
+
+Die vollständige Planung steht in [Z_Cockpit – Ausbau: Benutzer, Whitelist und Fehlermeldungen](Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md). Die technische Benutzerseiten-Dokumentation liegt unter `docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md`.
 
 ## Improvement-System
 
@@ -59,4 +61,4 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 ## Nächster Schritt
 
-Benutzerverwaltung im Z_Cockpit auf Basis der vorhandenen ProjectOS-Benutzer-, Persistenz- und Autorisierungsbausteine integrieren. Danach folgen Whitelist-/Berechtigungsverwaltung und Issue-/Fehlermeldungsworkflow.
+Whitelist- und Berechtigungsverwaltung integrieren. Dabei bleiben ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist strikt getrennt. Danach folgt der Issue-/Fehlermeldungsworkflow.
