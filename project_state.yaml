@@ -29,6 +29,7 @@
         {"id": "navigation", "title_de": "Navigation und Startseite", "state": "done"},
         {"id": "projektstatus", "title_de": "Projektstatus-Karten", "state": "done"},
         {"id": "projektdatei_workflow", "title_de": "ProjectOS-Projektdatei im Z_Cockpit erstellen und automatisch laden", "state": "done"},
+        {"id": "projektdatei_zugriffsschutz", "title_de": "ProjectOS-Projektdateien nach Schutzklasse und Dateirechten absichern", "state": "done"},
         {"id": "sicherheitsseite", "title_de": "Sicherheitsseite sichtbar anbinden", "state": "done"},
         {"id": "herstellerseite", "title_de": "Hersteller- und Serienübersicht umsetzen", "state": "done"},
         {"id": "diagnoseseite", "title_de": "Diagnose-Arbeitsliste umsetzen", "state": "done"},
