@@ -21,26 +21,30 @@ _STATE_PRIORITY = {"in_progress": 0, "planned": 1}
 def recommended_work(state: ProjectState) -> NavigatorRecommendation | None:
     """Ermittelt die nächste tatsächlich ausführbare Arbeit.
 
-    Blockierte Aufgaben werden bewusst nicht empfohlen. Innerhalb gleicher
-    Priorität wird zuerst der weniger weit fortgeschrittene Meilenstein gewählt.
+    Blockierte Aufgaben werden bewusst nicht empfohlen. Zuerst zählt der
+    Arbeitsstatus, danach der weniger weit fortgeschrittene Meilenstein. Bei
+    Gleichstand gilt die deklarierte Reihenfolge aus ``project_state.yaml``.
+    Dadurch kann das Projektmodell eine bewusst festgelegte Arbeitsreihenfolge
+    ausdrücken, ohne sie durch alphabetische Titelreihenfolge zu verlieren.
     """
-    candidates: list[tuple[int, int, str, MilestoneState, object]] = []
-    for milestone in state.milestones:
-        for task in milestone.tasks:
+    candidates: list[tuple[int, int, int, int, MilestoneState, object]] = []
+    for milestone_index, milestone in enumerate(state.milestones):
+        for task_index, task in enumerate(milestone.tasks):
             if task.state not in _STATE_PRIORITY:
                 continue
             candidates.append(
                 (
                     _STATE_PRIORITY[task.state],
                     milestone.progress_percent,
-                    task.title_de.casefold(),
+                    milestone_index,
+                    task_index,
                     milestone,
                     task,
                 )
             )
     if not candidates:
         return None
-    _, _, _, milestone, task = min(candidates)
+    _, _, _, _, milestone, task = min(candidates)
     return NavigatorRecommendation(
         milestone_id=milestone.milestone_id,
         milestone_title_de=milestone.title_de,
