@@ -34,6 +34,11 @@ def _symbol_table(library: SymbolLibrary) -> str:
     for symbol in library.symbols:
         footprint = symbol.footprint_name if symbol.footprint_name else "Nicht zugeordnet"
         preview_url = f"symbol-previews/{library.name}/{symbol.name}.svg"
+        three_d_url = (
+            f"3d-previews/{symbol.footprint_name}.svg"
+            if symbol.footprint_name and symbol.three_d_preview_available
+            else ""
+        )
         device_ids = json.dumps(symbol.device_ids, ensure_ascii=False)
         rows.append(
             f'<tr class="library-symbol-row" tabindex="0" '
@@ -43,18 +48,23 @@ def _symbol_table(library: SymbolLibrary) -> str:
             f'data-device-ids="{escape(device_ids)}" '
             f'data-footprint="{escape(footprint)}" '
             f'data-preview-available="{_yes_no(symbol.symbol_preview_available)}" '
-            f'data-preview-url="{escape(preview_url)}">'
+            f'data-preview-url="{escape(preview_url)}" '
+            f'data-three-d-model="{_yes_no(symbol.three_d_model_available)}" '
+            f'data-three-d-status="{escape(symbol.three_d_preview_status)}" '
+            f'data-three-d-preview-available="{_yes_no(symbol.three_d_preview_available)}" '
+            f'data-three-d-preview-url="{escape(three_d_url)}">'
             f'<th scope="row"><code>{escape(symbol.reference)}</code></th>'
             f'<td>{symbol.device_count}</td><td>{escape(footprint)}</td>'
             f'<td>{_state(symbol.symbol_preview_available)}</td>'
-            f'<td>{_state(symbol.footprint_preview_available)}</td></tr>'
+            f'<td>{_state(symbol.footprint_preview_available)}</td>'
+            f'<td>{escape(symbol.three_d_preview_status)}</td></tr>'
         )
     if not rows:
         return '<p class="library-empty">Diese Bibliothek enthält derzeit keine Top-Level-Symbole.</p>'
     return (
         '<div class="library-symbol-table-wrap"><table class="library-table">'
         '<thead><tr><th>Symbol</th><th>Geräte</th><th>Footprint</th>'
-        '<th>Symbolvorschau</th><th>Footprintvorschau</th></tr></thead>'
+        '<th>Symbolvorschau</th><th>Footprintvorschau</th><th>3D</th></tr></thead>'
         f'<tbody>{"".join(rows)}</tbody></table></div>'
     )
 
@@ -69,6 +79,8 @@ def _inline_details(library: SymbolLibrary, preview_state: str) -> str:
         f'<div class="library-property"><dt>Footprints</dt><dd>{library.footprint_count}</dd></div>'
         f'<div class="library-property"><dt>Vorschaupaare</dt><dd>{library.complete_preview_count}</dd></div>'
         f'<div class="library-property"><dt>Vorschau-Status</dt><dd>{preview_state}</dd></div>'
+        f'<div class="library-property"><dt>3D-Modelle</dt><dd>{library.three_d_model_count}</dd></div>'
+        f'<div class="library-property"><dt>3D-Vorschauen</dt><dd>{library.three_d_preview_count}</dd></div>'
         '</dl>'
         '<h3 class="library-inline-title">Symbole</h3>'
         f'{_symbol_table(library)}'
@@ -83,27 +95,32 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
     total_devices = sum(library.device_count for library in items)
     total_footprints = sum(library.footprint_count for library in items)
     total_complete = sum(library.complete_preview_count for library in items)
+    total_models = sum(library.three_d_model_count for library in items)
+    total_three_d = sum(library.three_d_preview_count for library in items)
 
     overview_rows: list[str] = []
     for index, library in enumerate(items):
         has_symbols = library.symbol_count > 0
         has_devices = library.device_count > 0
         has_footprints = library.footprint_count > 0
+        has_three_d = library.three_d_preview_count > 0
         preview_state = _preview_state(library)
         detail_id = f"library-detail-{index}"
         overview_rows.append(
             f'<tr class="library-row" data-library="{escape(library.name)}" '
             f'data-symbols="{_yes_no(has_symbols)}" data-devices="{_yes_no(has_devices)}" '
             f'data-footprints="{_yes_no(has_footprints)}" data-preview="{preview_state}" '
+            f'data-three-d="{_yes_no(has_three_d)}" '
             f'data-detail-template="{detail_id}" tabindex="0" aria-expanded="false" '
             f'aria-controls="{detail_id}">'
             f'<td><strong>{escape(library.name)}</strong>'
             '<span class="library-expand-indicator" aria-hidden="true">▸</span></td>'
             f'<td>{library.symbol_count}</td><td>{library.device_count}</td>'
             f'<td>{library.footprint_count}</td><td>{library.complete_preview_count}</td>'
-            f'<td>{preview_state}</td></tr>'
+            f'<td>{preview_state}</td><td>{library.three_d_model_count}</td>'
+            f'<td>{library.three_d_preview_count}</td></tr>'
             f'<tr class="library-detail-row" id="{detail_id}" hidden>'
-            f'<td colspan="6">{_inline_details(library, preview_state)}</td></tr>'
+            f'<td colspan="8">{_inline_details(library, preview_state)}</td></tr>'
         )
 
     library_names = tuple(sorted((library.name for library in items), key=str.casefold))
@@ -132,10 +149,10 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '.library-page-title{margin:0 0 .85rem;flex:0 0 auto}'
         '.library-page-title small{font-size:.62em;font-weight:400;opacity:.75}'
         '.library-main>h3{margin-top:0;flex:0 0 auto}'
-        '.library-filters{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));'
+        '.library-filters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));'
         'gap:.6rem;margin-bottom:.8rem;flex:0 0 auto}'
         '.library-overview-wrap{flex:1 1 auto;min-height:0;overflow:auto;border:1px solid #8886}'
-        '.library-overview-table{border-collapse:collapse;width:100%;min-width:820px}'
+        '.library-overview-table{border-collapse:collapse;width:100%;min-width:980px}'
         '.library-overview-table th,.library-overview-table td{padding:.55rem .65rem;'
         'border-bottom:1px solid #8884;text-align:left;white-space:nowrap}'
         '.library-overview-table thead th{position:sticky;top:0;background:Canvas;z-index:1}'
@@ -146,7 +163,7 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '.library-row.selected .library-expand-indicator{transform:rotate(90deg)}'
         '.library-detail-row>td{padding:0;white-space:normal;background:#88800008}'
         '.library-inline-detail{margin:.65rem;padding:.85rem}'
-        '.library-properties{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));'
+        '.library-properties{display:grid;grid-template-columns:repeat(8,minmax(100px,1fr));'
         'gap:.55rem .8rem;margin:0 0 .8rem}'
         '.library-property dt{font-size:.78rem;opacity:.72;margin:0 0 .15rem}'
         '.library-property dd{margin:0;font-weight:600}'
@@ -160,13 +177,14 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '.library-symbol-row{cursor:pointer}'
         '.library-symbol-row:hover{background:#2878c812}'
         '.library-symbol-row.selected{background:#2878c81f;font-weight:700}'
-        '.library-inspector-properties{display:grid;grid-template-columns:1fr 1.35fr;gap:.45rem .7rem;margin:0 0 1rem}'
+        '.library-inspector-properties{display:grid;grid-template-columns:1fr 1.35fr;gap:.45rem .7rem;margin:0 0 .75rem}'
         '.library-inspector-properties dt{font-weight:700}'
         '.library-inspector-properties dd{margin:0;min-width:0;overflow-wrap:anywhere}'
-        '.library-inspector-preview{min-height:190px;display:grid;place-items:center;'
-        'border:1px dashed #8888;border-radius:.35rem;padding:.8rem;text-align:center}'
-        '.library-inspector-preview img{display:block;width:100%;max-width:300px;height:auto}'
-        '.library-device-id-section{min-height:0;flex:1 1 auto;display:flex;flex-direction:column;margin-top:1rem}'
+        '.library-inspector-preview{min-height:135px;display:grid;place-items:center;'
+        'border:1px dashed #8888;border-radius:.35rem;padding:.65rem;text-align:center}'
+        '.library-inspector-preview img{display:block;width:100%;max-width:280px;max-height:165px;height:auto}'
+        '.library-inspector-preview-title{margin:.55rem 0 .4rem}'
+        '.library-device-id-section{min-height:0;flex:1 1 auto;display:flex;flex-direction:column;margin-top:.8rem}'
         '.library-device-id-section>h3{flex:0 0 auto;margin:.2rem 0 .55rem}'
         '.library-device-id-scroll{min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;'
         'scrollbar-gutter:stable;padding-right:.25rem}'
@@ -186,7 +204,7 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '<div class="library-list-scroll"><div class="library-workspace">'
         '<div class="library-main">'
         '<h2 class="library-page-title">Bibliotheken '
-        '<small>(Übersicht aus Symbolbibliotheken, Gerätekatalog, Footprint-Zuordnung und erzeugten Vorschauen.)</small></h2>'
+        '<small>(Übersicht aus Symbolbibliotheken, Gerätekatalog, Footprint-Zuordnung sowie Symbol-, Footprint- und 3D-Vorschauen.)</small></h2>'
         '<h3>Bibliotheksliste</h3>'
         '<div class="library-filters">'
         f'<label>Bibliothek ({len(items)})<select id="library-filter-name"><option value="">Alle</option>'
@@ -199,12 +217,14 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '<option>Ja</option><option>Nein</option></select></label>'
         f'<label>Vorschauen ({total_complete})<select id="library-filter-preview"><option value="">Alle</option>'
         f'{_select_options(preview_states)}</select></label>'
+        f'<label>3D-Vorschauen ({total_three_d})<select id="library-filter-three-d"><option value="">Alle</option>'
+        '<option>Ja</option><option>Nein</option></select></label>'
         '</div>'
         '<div class="library-overview-wrap"><table class="library-overview-table" id="library-overview">'
         '<thead><tr><th>Bibliothek</th><th>Symbole</th><th>Gerätezuordnungen</th>'
-        '<th>Footprints</th><th>Vorschaupaare</th><th>Vorschau-Status</th></tr></thead>'
+        '<th>Footprints</th><th>Vorschaupaare</th><th>Vorschau-Status</th><th>3D-Modelle</th><th>3D-Vorschauen</th></tr></thead>'
         f'<tbody>{"".join(overview_rows)}</tbody></table></div>'
-        f'<p class="library-result-count" id="library-result-count">{len(items)} Bibliothek(en)</p>'
+        f'<p class="library-result-count" id="library-result-count">{len(items)} Bibliothek(en) · {total_models} echte 3D-Modell(e)</p>'
         '</div>'
         '<section class="library-inspector"><h2>Eigenschaften</h2>'
         '<div id="library-symbol-inspector"><p>Bibliothek öffnen und ein Symbol auswählen.</p></div></section>'
@@ -221,23 +241,28 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         'symbols:[document.getElementById("library-filter-symbols"),"symbols"],'
         'devices:[document.getElementById("library-filter-devices"),"devices"],'
         'footprints:[document.getElementById("library-filter-footprints"),"footprints"],'
-        'preview:[document.getElementById("library-filter-preview"),"preview"]};'
+        'preview:[document.getElementById("library-filter-preview"),"preview"],'
+        'threeD:[document.getElementById("library-filter-three-d"),"threeD"]};'
         'let selected=null;let selectedSymbol=null;'
         'function resetInspector(){symbolRows.forEach(row=>row.classList.remove("selected"));selectedSymbol=null;'
         'inspector.innerHTML="<p>Bibliothek öffnen und ein Symbol auswählen.</p>";}'
         'function addProperty(dl,label,value,useCode=false){const dt=document.createElement("dt");dt.textContent=label;'
         'const dd=document.createElement("dd");if(useCode){const code=document.createElement("code");'
         'code.textContent=value;dd.appendChild(code);}else{dd.textContent=value;}dl.append(dt,dd);}'
+        'function previewBlock(titleText,available,url,altText,missingText){const title=document.createElement("h3");'
+        'title.className="library-inspector-preview-title";title.textContent=titleText;const preview=document.createElement("div");'
+        'preview.className="library-inspector-preview";if(available){const image=document.createElement("img");image.src=url;image.alt=altText;preview.appendChild(image);}else{preview.textContent=missingText;}return [title,preview];}'
         'function selectSymbol(row){symbolRows.forEach(item=>item.classList.remove("selected"));row.classList.add("selected");'
         'selectedSymbol=row;inspector.innerHTML="";const fixed=document.createElement("div");fixed.className="library-inspector-fixed";'
         'const dl=document.createElement("dl");dl.className="library-inspector-properties";'
         'addProperty(dl,"Bibliothek",row.dataset.library,true);addProperty(dl,"Symbol",row.dataset.symbol,true);'
         'addProperty(dl,"Geräte",row.dataset.deviceCount);addProperty(dl,"Footprint",row.dataset.footprint);'
-        'fixed.appendChild(dl);const previewTitle=document.createElement("h3");previewTitle.textContent="Symbolvorschau";'
-        'fixed.appendChild(previewTitle);const preview=document.createElement("div");preview.className="library-inspector-preview";'
-        'if(row.dataset.previewAvailable==="Ja"){const image=document.createElement("img");image.src=row.dataset.previewUrl;'
-        'image.alt=`Symbolvorschau ${row.dataset.symbol}`;preview.appendChild(image);}else{preview.textContent="Für dieses Symbol ist keine Vorschau verfügbar.";}'
-        'fixed.appendChild(preview);inspector.appendChild(fixed);const idsSection=document.createElement("section");'
+        'addProperty(dl,"3D-Status",row.dataset.threeDStatus);fixed.appendChild(dl);'
+        'const symbolPreview=previewBlock("Symbolvorschau",row.dataset.previewAvailable==="Ja",row.dataset.previewUrl,`Symbolvorschau ${row.dataset.symbol}`,"Für dieses Symbol ist keine Vorschau verfügbar.");fixed.append(...symbolPreview);'
+        'let threeDMissing="Kein 3D-Modell und keine technische Hüllkörper-Vorschau verfügbar.";'
+        'if(row.dataset.threeDStatus==="Modellreferenz fehlt")threeDMissing="Eine 3D-Modellreferenz ist eingetragen, kann aber nicht auf eine vorhandene Repository-Datei aufgelöst werden.";'
+        'const threeDPreview=previewBlock("3D-Vorschau",row.dataset.threeDPreviewAvailable==="Ja",row.dataset.threeDPreviewUrl,`3D-Vorschau ${row.dataset.footprint}`,threeDMissing);fixed.append(...threeDPreview);'
+        'inspector.appendChild(fixed);const idsSection=document.createElement("section");'
         'idsSection.className="library-device-id-section";const idsTitle=document.createElement("h3");idsTitle.textContent="Geräte-IDs";'
         'idsSection.appendChild(idsTitle);const idsScroll=document.createElement("div");idsScroll.className="library-device-id-scroll";'
         'const ids=JSON.parse(row.dataset.deviceIds||"[]");if(!ids.length){const empty=document.createElement("p");'
@@ -255,7 +280,7 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         'if(first)selectSymbol(first);}}'
         'function applyFilters(){let visible=0;rows.forEach(row=>{const show=Object.values(filters).every('
         '([select,key])=>!select.value||row.dataset[key]===select.value);row.hidden=!show;if(show)visible+=1;});'
-        'count.textContent=`${visible} Bibliothek(en)`;if(selected&&selected.hidden)clearSelection();}'
+        f'count.textContent=`${{visible}} Bibliothek(en) · {total_models} echte 3D-Modell(e)`;if(selected&&selected.hidden)clearSelection();}}'
         'Object.values(filters).forEach(([select])=>select.addEventListener("change",applyFilters));'
         'rows.forEach(row=>{row.addEventListener("click",()=>toggleSelection(row));'
         'row.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){'
