@@ -49,6 +49,7 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="hersteller"' in navigation
     assert 'data-page="diagnose"' in navigation
     assert 'data-page="benutzer"' in navigation
+    assert 'data-page="berechtigungen"' in navigation
     assert 'data-page="dokumentation"' in navigation
     assert 'data-page="einstellungen"' in navigation
     assert "Bibliotheken" in navigation
@@ -56,6 +57,7 @@ def test_navigation_is_generated_from_registered_pages():
     assert "Qualität" in navigation
     assert "Diagnose" in navigation
     assert "Benutzer" in navigation
+    assert "Berechtigungen" in navigation
     assert "Dokumentation" in navigation
     assert "Einstellungen" in navigation
     assert "Sicherheit" in navigation
@@ -65,6 +67,7 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
     assert 'data-page="diagnose" title="Fehler, Warnungen und Prüfdetails">Diagnose</button>' in navigation
     assert 'data-page="benutzer" title="ProjectOS-Benutzer, Rollen, Rechte und Lifecycle">Benutzer</button>' in navigation
+    assert 'data-page="berechtigungen" title="ProjectOS-Whitelist, Blacklist, Ausnahmen und Entwicklerfreigaben">Berechtigungen</button>' in navigation
     assert 'data-page="dokumentation" title="Projekt- und Entwicklerdokumentation">Dokumentation</button>' in navigation
     assert 'data-page="einstellungen" title="Sprache, Pfade und Entwickleroptionen">Einstellungen</button>' in navigation
 
@@ -142,6 +145,18 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'class="user-management-inspector"' in html
     assert "Keine ProjectOS-Benutzer geladen" in html
     assert "--project-bundle" in html
+    assert 'id="page-berechtigungen"' in html
+    assert html.count('id="page-berechtigungen"') == 1
+    assert 'id="permissions-overview"' in html
+    assert 'id="permissions-filter-search"' in html
+    assert 'id="permissions-filter-user"' in html
+    assert 'id="permissions-filter-source"' in html
+    assert 'id="permissions-filter-effect"' in html
+    assert 'id="permissions-filter-status"' in html
+    assert "Repository-Entwickler-Whitelist" in html
+    assert "config/authorized_developers.json" in html
+    assert "ProjectOSUserManagementChangeService" in html
+    assert "Das statische Cockpit schreibt keine Rechte" in html
     assert 'id="page-dokumentation"' in html
     assert html.count('id="page-dokumentation"') == 1
     assert 'id="documentation-overview"' in html
@@ -169,7 +184,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Nächste Aufgaben" in html
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
-    assert "Whitelist- und Berechtigungsverwaltung integrieren" in html
+    assert "Issue- und Fehlermeldungsworkflow integrieren" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
