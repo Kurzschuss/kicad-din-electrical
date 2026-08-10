@@ -6,8 +6,9 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 
 - Architecture Freeze 1.0: beschlossen
 - Sprint 001 – ProjectOS Foundation: abgeschlossen
-- Sprint 002 – Core Object Model: AP-0011 bis AP-0016 abgeschlossen, Konsistenzreview ausstehend
-- Dokumentationsstand gesichert am 6. August 2026
+- Sprint 002 – Core Object Model: abgeschlossen
+- weitere ProjectOS-Implementierungsbausteine und Z_Cockpit-Kernseiten: umgesetzt
+- Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
 
@@ -22,7 +23,15 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 
 ## Benutzerverwaltung
 
-Vorgesehen sind Rollen, Berechtigungen, Ausnahmerechte, Whitelist, Blacklist, Projektleiter, Stellvertretung, Vertrauensperson und Nachfolger.
+Rollen, Berechtigungen, Ausnahmerechte, Whitelist, Blacklist und Benutzer-Lifecycle besitzen bereits technische ProjectOS-Grundlagen. Der nächste Z_Cockpit-Ausbau integriert diese vorhandenen Bausteine in eine zentrale Benutzerverwaltung, ohne eine parallele Datenquelle einzuführen.
+
+Die geplante Reihenfolge lautet:
+
+1. Benutzerverwaltung;
+2. Whitelist- und Berechtigungsverwaltung;
+3. Issue- und Fehlermeldungsworkflow.
+
+Die vollständige Planung steht in [Z_Cockpit – nächster Ausbau: Benutzer, Whitelist und Fehlermeldungen](Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md).
 
 ## Improvement-System
 
@@ -44,9 +53,10 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 - [Sprint 001 – ProjectOS Foundation](sprint-001-projectos-foundation.md)
 - [Sprint 002 – Core Object Model](sprint-002-core-object-model.md)
 - [AP-0016 – Persistenzmodell, Offline-Datenspeicher und Migrationen](AP-0016-persistenz-offline-speicher-migrationen.md)
+- [Z_Cockpit – Benutzer, Whitelist und Fehlermeldungen](Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md)
 - [Maschinenlesbarer Arbeitsstand](arbeitsstand.yaml)
 - [Architekturentscheidungen](../adr/)
 
 ## Nächster Schritt
 
-Konsistenzreview für Sprint 002 und Festlegung der ersten konkreten Implementierungstechnologien.
+Benutzerverwaltung im Z_Cockpit auf Basis der vorhandenen ProjectOS-Benutzer-, Persistenz- und Autorisierungsbausteine integrieren. Danach folgen Whitelist-/Berechtigungsverwaltung und Issue-/Fehlermeldungsworkflow.
