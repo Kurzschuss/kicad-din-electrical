@@ -41,7 +41,7 @@ sprints:
     completion_note: "Rekursive Sicherheitsalarmkette beendet; neue Sicherheitsfaelle verwenden projectos.security_events."
 
 next_z_cockpit_expansion:
-  status: in_progress
+  status: completed
   ui_heading_reference: Bibliotheken
   ui_heading_rule: "Seitentitel und kurze Erklaerung in Klammern in derselben Zeile"
   completed:
@@ -57,9 +57,15 @@ next_z_cockpit_expansion:
       projectos_source: ProjectOSUserManagementState.permission_assignments
       repository_developer_whitelist: config/authorized_developers.json
       static_html_write_access: false
-  order:
     - id: issue_fehlermeldung
       title_de: Issue- und Fehlermeldungsworkflow integrieren
+      implementation: tools/z_cockpit/issue_report_page.py
+      documentation: docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md
+      issue_form: .github/ISSUE_TEMPLATE/bug_report.yml
+      repository_check: "python -m tools.check_repository_version"
+      repository_result: build/VERSIONSPRUEFUNG.json
+      automatic_issue_submission: false
+  order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
   whitelist_separation:
@@ -68,6 +74,11 @@ next_z_cockpit_expansion:
   permission_write_path:
     service: distributions/projectos_user_management_change_service.py
     authorization: distributions/projectos_user_management_command_authorization.py
+  issue_report_privacy:
+    excludes_user_management_dump: true
+    excludes_authenticated_github_user: true
+    excludes_tokens_keys_credentials: true
+    explicit_preview_confirmation: true
   ruleset_status: blocked_separate_approval
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
@@ -75,11 +86,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 528
-  last_successful_commit: 363afd393c4e4bdab189ef4155b01595e94daa3a
+  last_successful_run_number: 530
+  last_successful_commit: 4b23fe4dd6ce71337f004ed081223b24c87d9e1c
   result: pending_final_head
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Benutzer- und Whitelist-/Berechtigungsverwaltung sind umgesetzt; der Issue-/Fehlermeldungsworkflow ist der naechste geplante Z_Cockpit-Ausbau. CI-Ergebnis wird nach Merge aktualisiert."
+  note: "Benutzerverwaltung, Whitelist-/Berechtigungsverwaltung und Issue-/Fehlermeldungsworkflow sind umgesetzt. Fuer den aktuellen Fehlerbericht-Branch steht die abschliessende CI-Pruefung noch aus."
