@@ -63,6 +63,24 @@ Aktuell umgesetzt:
 
 Damit sind alle aktuell registrierten Kernseiten des Z_Cockpits umgesetzt. Die Seitenregistrierung bleibt die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
 
+## Einheitliche Seitenköpfe
+
+Die Bibliotheksansicht ist die visuelle Referenz für den oberen Bereich einer Cockpit-Seite.
+
+Verbindliches Muster:
+
+```text
+Seitentitel (kurze Erklärung zum Menüpunkt)
+```
+
+Die Erklärung steht in kleinerer, zurückhaltender Schrift in derselben Überschriftszeile. Eine zusätzliche zweite Erklärungszeile unmittelbar unter dem ersten Seitentitel soll vermieden werden.
+
+`Einstellungen` und `Sicherheit` verwenden dieses Muster direkt in ihrem Seitenmarkup. Für bestehende Seiten, die noch einen erklärenden Absatz direkt hinter der ersten `h2`-Überschrift liefern, normalisiert das erzeugte Z_Cockpit diese Darstellung auf dasselbe Muster. Damit werden Start, Qualität, Hersteller, Diagnose und Dokumentation ebenfalls einheitlich dargestellt.
+
+`Geräte` und `Bibliotheken` werden strukturell nicht umgebaut, da ihr oberer Arbeitsbereich bereits dem freigegebenen Bedienkonzept entspricht.
+
+Die Sicherheitsseite erhält zusätzlich keinen separaten oberen Tabellenabstand mehr, damit der sichtbare Inhalt auf derselben Höhe beginnt wie in der Bibliotheksansicht.
+
 ## Geräteansicht
 
 Die Geräteansicht ist tabellenbasiert und enthält:
@@ -83,7 +101,7 @@ Der obere Bereich enthält keine separaten Summary-Kacheln mehr. Die Gesamtwerte
 
 Fest im oberen Bereich bleiben:
 
-- Überschrift und Kurzbeschreibung;
+- Überschrift mit Kurzbeschreibung in Klammern;
 - `Bibliotheksliste`;
 - Filter.
 
@@ -186,6 +204,29 @@ Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generat
 
 Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose-, Dokumentations- und Einstellungsansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
+## Nächste Ausbaustufe
+
+Nach Abschluss der aktuellen Kernseiten ist die nächste verbindliche Reihenfolge im zentralen Projektmodell als `planned` hinterlegt:
+
+1. `benutzerverwaltung` – Benutzerverwaltung im Z_Cockpit integrieren;
+2. `whitelist_verwaltung` – Whitelist- und Berechtigungsverwaltung integrieren;
+3. `issue_fehlermeldung` – Issue- und Fehlermeldungsworkflow integrieren.
+
+Die vollständige fachliche Spezifikation liegt unter:
+
+```text
+docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
+```
+
+Wichtig ist die Trennung zweier Whitelist-Konzepte:
+
+- ProjectOS-Benutzer-Whitelist als Teil des Berechtigungsmodells;
+- Repository-Entwickler-Whitelist aus `config/authorized_developers.json`.
+
+Die geplante Benutzerverwaltung verwendet die bereits vorhandenen ProjectOS-Benutzer-, Persistenz-, Autorisierungs- und Lifecycle-Bausteine. Es wird keine zweite Benutzerdatenbank im Cockpit eingeführt.
+
+Der geplante Issue-/Fehlermeldungsworkflow soll Diagnosedaten reproduzierbar zusammenstellen, vor externer Weitergabe sichtbar machen und passende GitHub-Issue-Vorlagen vorbereiten. Zugangstokens, Schlüssel und unnötige personenbezogene Daten dürfen nicht automatisch in Fehlerberichte aufgenommen werden.
+
 ## Prüfung
 
 Die automatisierten Tests prüfen unter anderem:
@@ -206,6 +247,7 @@ Die automatisierten Tests prüfen unter anderem:
 - Dokumentationssuche, Bereichsfilter, Direktlinks und HTML-Escaping;
 - read-only Projektwerte der Einstellungsseite;
 - lokale Browseroptionen, `localStorage`-Schlüssel und Reset-Funktion;
+- einheitliche kompakte Seitenköpfe nach Bibliotheksmuster;
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
@@ -218,10 +260,17 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 Die lokale HTML-Anwendung besitzt alle derzeit registrierten Kernseiten: Start, Geräte, Bibliotheken, Hersteller, Qualität, Diagnose, Sicherheit, Dokumentation und Einstellungen.
 
-Weiterer fachlicher Ausbau ist außerhalb dieser Kernseiten noch offen bei:
+Als nächste fachliche Arbeiten sind jetzt ausdrücklich geplant:
+
+- Benutzerverwaltung;
+- Whitelist-/Berechtigungsverwaltung;
+- Issue-/Fehlermeldungsworkflow.
+
+Separat offen bleiben:
 
 - 3D-Vorschauen;
-- direkten KiCad-Editoraufrufen;
-- Persistenzanbindung für Laufzeitdiagnosen.
+- direkte KiCad-Editoraufrufe;
+- Persistenzanbindung für Laufzeitdiagnosen;
+- serverseitige GitHub-Ruleset-Aktivierung nach separater Freigabe.
 
-Der aktuelle visuell freigegebene Bibliotheksstand ist zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert.
+Der visuell freigegebene Bibliotheksstand ist unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert. Die aktuelle Kopfzeilenvereinheitlichung und die nächste Ausbaureihenfolge sind zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md` gesichert.
