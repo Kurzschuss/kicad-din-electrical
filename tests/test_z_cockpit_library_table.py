@@ -43,7 +43,7 @@ def test_library_page_uses_excel_like_filterable_overview_table():
     assert '<details class="library-card"' not in html
 
 
-def test_library_page_moves_summary_counts_into_filter_labels_and_keeps_details():
+def test_library_page_moves_summary_counts_into_filter_labels_and_uses_inline_details():
     html = library_page_html((_library(),))
 
     assert '#page-bibliotheken.active{position:absolute;inset:0;display:flex;flex-direction:column;' in html
@@ -57,11 +57,16 @@ def test_library_page_moves_summary_counts_into_filter_labels_and_keeps_details(
     assert 'Footprints (1)<select id="library-filter-footprints"' in html
     assert 'Vorschauen (1)<select id="library-filter-preview"' in html
     assert 'class="library-workspace"' in html
-    assert '<h2>Bibliotheksdetails</h2>' in html
-    assert 'id="library-detail-0"' in html
+    assert 'class="library-details"' not in html
+    assert '<h2>Bibliotheksdetails</h2>' not in html
+    assert 'class="library-detail-row" id="library-detail-0" hidden' in html
+    assert 'class="library-card library-inline-detail"' in html
+    assert '<td colspan="6">' in html
+    assert 'aria-expanded="false"' in html
     assert '<code>Z_Test:TEST</code>' in html
     assert 'generic.test.b16' in html
     assert 'row.dataset.detailTemplate' in html
+    assert 'toggleSelection(row)' in html
 
 
 def test_library_page_compacts_device_page_top_spacing():

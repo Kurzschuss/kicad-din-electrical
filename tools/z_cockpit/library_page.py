@@ -51,8 +51,25 @@ def _symbol_table(library: SymbolLibrary) -> str:
     )
 
 
+def _inline_details(library: SymbolLibrary, preview_state: str) -> str:
+    return (
+        '<div class="library-card library-inline-detail">'
+        '<dl class="library-properties">'
+        f'<div class="library-property"><dt>Bibliothek</dt><dd><code>{escape(library.name)}</code></dd></div>'
+        f'<div class="library-property"><dt>Symbole</dt><dd>{library.symbol_count}</dd></div>'
+        f'<div class="library-property"><dt>Gerätezuordnungen</dt><dd>{library.device_count}</dd></div>'
+        f'<div class="library-property"><dt>Footprints</dt><dd>{library.footprint_count}</dd></div>'
+        f'<div class="library-property"><dt>Vorschaupaare</dt><dd>{library.complete_preview_count}</dd></div>'
+        f'<div class="library-property"><dt>Vorschau-Status</dt><dd>{preview_state}</dd></div>'
+        '</dl>'
+        '<h3 class="library-inline-title">Symbole</h3>'
+        f'{_symbol_table(library)}'
+        '</div>'
+    )
+
+
 def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str:
-    """Rendert die Bibliotheken als filterbare Tabellenansicht mit Detailbereich."""
+    """Rendert Bibliotheken als filterbare Tabelle mit aufklappbaren Detailzeilen."""
     items = collect_symbol_libraries() if libraries is None else libraries
     total_symbols = sum(library.symbol_count for library in items)
     total_devices = sum(library.device_count for library in items)
@@ -60,36 +77,25 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
     total_complete = sum(library.complete_preview_count for library in items)
 
     overview_rows: list[str] = []
-    detail_templates: list[str] = []
     for index, library in enumerate(items):
         has_symbols = library.symbol_count > 0
         has_devices = library.device_count > 0
         has_footprints = library.footprint_count > 0
         preview_state = _preview_state(library)
-        template_id = f"library-detail-{index}"
+        detail_id = f"library-detail-{index}"
         overview_rows.append(
             f'<tr class="library-row" data-library="{escape(library.name)}" '
             f'data-symbols="{_yes_no(has_symbols)}" data-devices="{_yes_no(has_devices)}" '
             f'data-footprints="{_yes_no(has_footprints)}" data-preview="{preview_state}" '
-            f'data-detail-template="{template_id}">'
-            f'<td><strong>{escape(library.name)}</strong></td>'
+            f'data-detail-template="{detail_id}" tabindex="0" aria-expanded="false" '
+            f'aria-controls="{detail_id}">'
+            f'<td><strong>{escape(library.name)}</strong>'
+            '<span class="library-expand-indicator" aria-hidden="true">▸</span></td>'
             f'<td>{library.symbol_count}</td><td>{library.device_count}</td>'
             f'<td>{library.footprint_count}</td><td>{library.complete_preview_count}</td>'
             f'<td>{preview_state}</td></tr>'
-        )
-        detail_templates.append(
-            f'<template id="{template_id}">'
-            '<dl class="library-properties">'
-            f'<dt>Bibliothek</dt><dd><code>{escape(library.name)}</code></dd>'
-            f'<dt>Symbole</dt><dd>{library.symbol_count}</dd>'
-            f'<dt>Gerätezuordnungen</dt><dd>{library.device_count}</dd>'
-            f'<dt>Footprints</dt><dd>{library.footprint_count}</dd>'
-            f'<dt>Vorschaupaare</dt><dd>{library.complete_preview_count}</dd>'
-            f'<dt>Vorschau-Status</dt><dd>{preview_state}</dd>'
-            '</dl>'
-            '<h3>Symbole</h3>'
-            f'{_symbol_table(library)}'
-            '</template>'
+            f'<tr class="library-detail-row" id="{detail_id}" hidden>'
+            f'<td colspan="6">{_inline_details(library, preview_state)}</td></tr>'
         )
 
     library_names = tuple(sorted((library.name for library in items), key=str.casefold))
@@ -107,16 +113,13 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '#page-bibliotheken.active{position:absolute;inset:0;display:flex;flex-direction:column;'
         'min-height:0;overflow:hidden;padding:0}'
         '.library-list-scroll{flex:1 1 auto;min-height:0;overflow:hidden;scrollbar-gutter:stable}'
-        '.library-workspace{display:grid;grid-template-columns:minmax(0,1fr) 430px;'
-        'height:100%;min-height:0;overflow:hidden}'
-        '.library-main,.library-details{min-width:0;min-height:0;padding:1rem}'
+        '.library-workspace{height:100%;min-height:0;overflow:hidden}'
+        '.library-main{min-width:0;min-height:0;padding:1rem}'
         '.library-main{display:flex;flex-direction:column;overflow:hidden}'
-        '.library-details{overflow:auto;border-left:1px solid #8886}'
+        '.library-main{height:100%}'
         '.library-page-title{margin:0 0 .85rem;flex:0 0 auto}'
         '.library-page-title small{font-size:.62em;font-weight:400;opacity:.75}'
-        '.library-main>h3,.library-details>h2{margin-top:0}'
-        '.library-main>h3{flex:0 0 auto}'
-        '.library-details>.library-card{margin:0;padding:.85rem}'
+        '.library-main>h3{margin-top:0;flex:0 0 auto}'
         '.library-filters{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));'
         'gap:.6rem;margin-bottom:.8rem;flex:0 0 auto}'
         '.library-overview-wrap{flex:1 1 auto;min-height:0;overflow:auto;border:1px solid #8886}'
@@ -127,18 +130,26 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '.library-row{cursor:pointer}'
         '.library-row:hover{background:#2878c812}'
         '.library-row.selected{background:#2878c81f;font-weight:700}'
-        '.library-result-count{margin:.65rem 0 0;font-size:.9rem;opacity:.8;flex:0 0 auto}'
-        '.library-properties{margin-top:0}'
-        '.library-symbol-table-wrap{overflow:auto;border:1px solid #8886;border-radius:.35rem}'
-        '.library-symbol-table-wrap .library-table{border-collapse:collapse;width:100%;min-width:780px}'
+        '.library-expand-indicator{display:inline-block;margin-left:.45rem;transition:transform .12s ease}'
+        '.library-row.selected .library-expand-indicator{transform:rotate(90deg)}'
+        '.library-detail-row>td{padding:0;white-space:normal;background:#88800008}'
+        '.library-inline-detail{margin:.65rem;padding:.85rem}'
+        '.library-properties{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));'
+        'gap:.55rem .8rem;margin:0 0 .8rem}'
+        '.library-property dt{font-size:.78rem;opacity:.72;margin:0 0 .15rem}'
+        '.library-property dd{margin:0;font-weight:600}'
+        '.library-inline-title{margin:.2rem 0 .55rem}'
+        '.library-symbol-table-wrap{overflow-x:auto;overflow-y:visible;border:1px solid #8886;border-radius:.35rem}'
+        '.library-symbol-table-wrap .library-table{border-collapse:collapse;width:100%;min-width:760px}'
         '.library-symbol-table-wrap .library-table th,.library-symbol-table-wrap .library-table td{padding:.5rem .6rem;'
         'border-bottom:1px solid #8884;text-align:left;white-space:nowrap}'
         '.library-symbol-table-wrap .library-table thead th{position:sticky;top:0;background:Canvas}'
         '.library-symbol-table-wrap .library-table th[scope="row"]{position:static;background:transparent}'
         '.library-empty{padding:1rem;border:1px dashed #8888;text-align:center}'
-        '@media(max-width:1050px){.library-workspace{grid-template-columns:1fr}'
-        '.library-details{border-left:0;border-top:1px solid #8886}'
-        '.library-filters{grid-template-columns:repeat(2,minmax(120px,1fr))}}'
+        '.library-result-count{margin:.65rem 0 0;font-size:.9rem;opacity:.8;flex:0 0 auto}'
+        '@media(max-width:1050px){'
+        '.library-filters{grid-template-columns:repeat(2,minmax(120px,1fr))}'
+        '.library-properties{grid-template-columns:repeat(2,minmax(120px,1fr))}}'
         '</style>'
         '<section class="page" id="page-bibliotheken">'
         '<div class="library-list-scroll"><div class="library-workspace">'
@@ -163,16 +174,11 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         '<th>Footprints</th><th>Vorschaupaare</th><th>Vorschau-Status</th></tr></thead>'
         f'<tbody>{"".join(overview_rows)}</tbody></table></div>'
         f'<p class="library-result-count" id="library-result-count">{len(items)} Bibliothek(en)</p>'
-        '</div>'
-        '<section class="library-details"><h2>Bibliotheksdetails</h2>'
-        '<div class="library-card"><div id="library-detail-content">'
-        '<p>Bitte eine Bibliothek auswählen.</p></div></div>'
-        f'{"".join(detail_templates)}</section></div></div>'
+        '</div></div></div>'
         '</section>'
         '<script type="text/javascript">'
         '(()=>{'
         'const rows=[...document.querySelectorAll("#library-overview .library-row")];'
-        'const detail=document.getElementById("library-detail-content");'
         'const count=document.getElementById("library-result-count");'
         'const filters={'
         'library:[document.getElementById("library-filter-name"),"library"],'
@@ -181,15 +187,20 @@ def library_page_html(libraries: tuple[SymbolLibrary, ...] | None = None) -> str
         'footprints:[document.getElementById("library-filter-footprints"),"footprints"],'
         'preview:[document.getElementById("library-filter-preview"),"preview"]};'
         'let selected=null;'
-        'function clearSelection(){rows.forEach(row=>row.classList.remove("selected"));selected=null;'
-        'detail.innerHTML="<p>Bitte eine Bibliothek auswählen.</p>";}'
+        'function detailRow(row){return document.getElementById(row.dataset.detailTemplate);}'
+        'function clearSelection(){rows.forEach(row=>{row.classList.remove("selected");'
+        'row.setAttribute("aria-expanded","false");const detail=detailRow(row);if(detail)detail.hidden=true;});'
+        'selected=null;}'
+        'function toggleSelection(row){const wasSelected=selected===row;clearSelection();if(wasSelected)return;'
+        'row.classList.add("selected");row.setAttribute("aria-expanded","true");selected=row;'
+        'const detail=detailRow(row);if(detail)detail.hidden=false;}'
         'function applyFilters(){let visible=0;rows.forEach(row=>{const show=Object.values(filters).every('
         '([select,key])=>!select.value||row.dataset[key]===select.value);row.hidden=!show;if(show)visible+=1;});'
         'count.textContent=`${visible} Bibliothek(en)`;if(selected&&selected.hidden)clearSelection();}'
         'Object.values(filters).forEach(([select])=>select.addEventListener("change",applyFilters));'
-        'rows.forEach(row=>row.addEventListener("click",()=>{rows.forEach(item=>item.classList.remove("selected"));'
-        'row.classList.add("selected");selected=row;const template=document.getElementById(row.dataset.detailTemplate);'
-        'detail.innerHTML=template?template.innerHTML:"<p>Keine Detaildaten verfügbar.</p>";}));'
+        'rows.forEach(row=>{row.addEventListener("click",()=>toggleSelection(row));'
+        'row.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){'
+        'event.preventDefault();toggleSelection(row);}});});'
         'applyFilters();'
         '})();'
         '</script>'
