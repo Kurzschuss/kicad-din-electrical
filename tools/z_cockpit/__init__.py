@@ -23,6 +23,7 @@ from .footprint_preview import (
     footprint_assignment,
     load_footprint_mapping,
 )
+from .governance_controls import governance_controls_html
 from .issue_report_page import (
     IssueReportSnapshot,
     RepositoryReportState,
@@ -121,7 +122,7 @@ def load_user_management_bundle(path, *, at=None):
 
 
 def user_management_page_html(snapshot: UserManagementSnapshot | None = None) -> str:
-    """Rendert Projekt-, Benutzer-, Berechtigungs-, Simulations- und Fehlerbericht-Seite."""
+    """Rendert Projekt-, Benutzer-, Berechtigungs-, Simulations-, Governance- und Fehlerbericht-Seite."""
     users = collect_user_management() if snapshot is None else snapshot
     permissions = _active_permissions_snapshot
     if permissions is None or permissions.source_label != users.source_label:
@@ -132,6 +133,7 @@ def user_management_page_html(snapshot: UserManagementSnapshot | None = None) ->
         + user_simulation_html(users)
         + permissions_page_html(permissions)
         + issue_report_page_html()
+        + governance_controls_html(users, permissions)
     )
 
 
@@ -202,6 +204,7 @@ __all__ = [
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
+    "governance_controls_html",
     "issue_report_page_html",
     "library_health_page_html",
     "library_page_html",
