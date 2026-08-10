@@ -41,6 +41,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
 - [Bibliotheks-Qualitätsbericht](04_Reference/QUALITY_REPORT.md)
+- [Z_-Gerätepakete: Fortschrittsübersicht](04_Reference/Z_PACKAGE_PROGRESS.md)
 - [Z_DIN_Control](04_Reference/Z_DIN_Control.md)
 - [Z_DIN_Module_18mm](04_Reference/Z_DIN_Module_18mm.md)
 
@@ -50,7 +51,10 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Manifest](00_Project/MANIFESTO.md)
 - [Projektprinzipien](00_Project/PRINCIPLES.md)
 - [Qualitätshandbuch für Bibliothekspakete](00_Project/LIBRARY_GUIDELINES.md)
+- [Verbindliche Symbol-Designrichtlinie](00_Project/SYMBOL_STYLE_GUIDE.md)
 - [EE-WERKZEUG-0001: Tabellenoberfläche für Z_Cockpit](00_Project/entwurfsentscheidungen/EE-WERKZEUG-0001_Z_Cockpit_Tabellenoberflaeche.md)
+
+Das Qualitätshandbuch ist vollständig als verbindlicher Paket- und Freigabestandard ausgearbeitet. Es verbindet Symbol-, Footprint-, Gerätekatalog-, 3D-, Dokumentations-, Test- und Reifegradregeln. `Geprüft` und `Praxisgetestet` sind durch die Paketfortschrittsprüfung an nachweisbare Mindestbedingungen gebunden.
 
 ## Planung und Nachvollziehbarkeit
 
@@ -72,14 +76,14 @@ Zusätzlich sind die **3D-Vorschauen und die Modellabdeckung** angebunden. Das C
 
 Die **direkten KiCad-Editoraufrufe** sind ebenfalls angebunden. Unter Windows registriert der Cockpit-Starter das lokale `kicad-z:`-Protokoll im aktuellen Benutzerprofil. Zugeordnete Footprints können direkt im Footprint Editor geöffnet werden; beim Symbolaufruf wird der KiCad Symbol Editor geöffnet und die geprüfte technische Symbolreferenz in die Zwischenablage gelegt.
 
-Die **Laufzeit-Wissensgraphdiagnosen** können jetzt aus `build/PROJECTOS_RUNTIME_MEMORY.json` reproduzierbar in die Diagnose-Seite eingebunden werden. Persistiert werden nur Wissensknoten, Beziehungen und technische Message-/Correlation-Referenzen; Diagnoseergebnisse selbst werden bei jeder Cockpit-Erzeugung neu berechnet. Die lokale Laufzeitdatei liegt unter `build/` und wird nicht versioniert.
+Die **Laufzeit-Wissensgraphdiagnosen** können aus `build/PROJECTOS_RUNTIME_MEMORY.json` reproduzierbar in die Diagnose-Seite eingebunden werden. Persistiert werden nur Wissensknoten, Beziehungen und technische Message-/Correlation-Referenzen; Diagnoseergebnisse selbst werden bei jeder Cockpit-Erzeugung neu berechnet. Die lokale Laufzeitdatei liegt unter `build/` und wird nicht versioniert.
 
-Der Bereich `Fehler melden` erzeugt einen lokalen, überprüfbaren Markdown-Bericht und kann bei zulässigem Repositoryzustand das offizielle GitHub-Issue-Formular vorbereiten. Das Issue wird nicht automatisch abgesendet.
+Der Bereich `Fehler melden` bietet weiterhin einen lokalen/manuellen, überprüfbaren Markdown-Bericht. Zusätzlich ist eine berechtigungsgesteuerte automatische GitHub-Meldung vorhanden. Sie wird nur nach erneuter Prüfung von offiziellem/aktuellem Repositorystand, tatsächlicher `gh`-Authentifizierung, eindeutiger ProjectOS-Benutzerzuordnung, effektivem Recht `github.issue.auto_submit`, Berichtsvorschau und Dublettenstatus ausgeführt. Bekannte Fehler erzeugen kein zweites Issue, sondern werden am vorhandenen Issue als Wiederholungsmeldung nachvollziehbar ergänzt.
 
-ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Benutzer-/Berechtigungsbestände, Tokens, Schlüssel und Zugangsdaten werden nicht automatisch in Fehlerberichte übernommen.
+ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Benutzer-/Berechtigungsbestände, Tokens, Schlüssel und Zugangsdaten werden nicht automatisch in normale Fehlerberichte übernommen.
 
-Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Die bisher dokumentierten technischen Z_Cockpit-Folgepunkte 3D-Vorschau, KiCad-Editoraufrufe und Laufzeitdiagnose-Persistenz sind abgeschlossen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene ausdrückliche Freigabe.
 
-Weitere ältere Roadmap-Punkte werden in den jeweiligen Fach- und Übergabedokumenten fortgeführt.
+In der langfristigen Projekt-Roadmap ist das Qualitätshandbuch jetzt abgeschlossen. Der nächste normale, nicht gesperrte Roadmap-Punkt ist die Ergänzung weiterer verständlicher Screenshots; danach folgen schrittweise dokumentierte Beispielprojekte.
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.
