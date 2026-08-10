@@ -56,11 +56,11 @@ Aktuell umgesetzt:
 - Bibliotheken;
 - Hersteller;
 - Qualität;
+- Diagnose;
 - Sicherheit.
 
 Registriert, aber noch nicht umgesetzt:
 
-- Diagnose;
 - Dokumentation;
 - Einstellungen.
 
@@ -126,6 +126,19 @@ Der linke Bereich enthält eine filterbare Herstellertabelle mit Filtern für He
 
 Die bestehenden ProjectOS-Domänenmodelle `Manufacturer`, `ProductSeries` und `ManufacturerProduct` bleiben davon getrennt. Die Cockpit-Seite liest ausschließlich den bestehenden Gerätekatalog; spätere persistierte Herstellerverwaltung kann auf diesen Domainobjekten aufbauen, ohne die Katalogauswertung zu duplizieren.
 
+## Diagnoseansicht
+
+Die Diagnose-Seite ist eine read-only Arbeitsliste für bereits erkannte Repositorybefunde. Sie führt keine automatische Reparatur aus.
+
+Sie verbindet zwei bestehende Prüfpfade:
+
+- den **ProjectOS-Projektvalidator** mit den stabilen `PRJ-*`-Prüfungen für Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände und Cockpit-Struktur;
+- die bereits vorhandene **repositoryweite Projektanalyse** für Geräte-IDs, Symbolreferenzen, Footprints, Symbol-/Footprintvorschauen und ungenutzte Symbole.
+
+Die Befunde werden nach Fehlern und Warnungen priorisiert und können nach Status, Quelle und Bereich gefiltert werden. Ein ausgewählter Befund zeigt rechts dauerhaft Prüfcode, Referenz, Meldung, zusätzliche Details und die vorhandene Reparaturempfehlung.
+
+Die ProjectOS-Wissensgraph-Diagnostik unter `distributions/projectos_knowledge_diagnostics.py` und `distributions/z_cockpit_diagnostics_worklist.py` bleibt ein separater Laufzeitpfad. Da das statisch erzeugte Z_Cockpit derzeit keine persistierte `ProjectOSProjectMemory`-Instanz lädt, werden dort keine Laufzeitbefunde erfunden. Eine spätere Persistenzanbindung kann diese Diagnosen ergänzen.
+
 ## Projektstatus und Qualität
 
 Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
@@ -137,7 +150,7 @@ Die Qualitätsseite verbindet zwei Ebenen:
 
 Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
 
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Die Hersteller- und Serienübersicht ist ebenfalls als abgeschlossener Cockpit-Baustein im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller- und Diagnoseansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Prüfung
 
@@ -153,6 +166,8 @@ Die automatisierten Tests prüfen unter anderem:
 - separates Scrollverhalten der Geräte-ID-Liste;
 - Hersteller-/Serienaggregation aus dem Gerätekatalog;
 - Herstellerfilter und statischen Herstellerinspektor;
+- Diagnoseaggregation aus Projektvalidator und Projektanalyse;
+- Diagnosefilter, Detailinspektor und HTML-Escaping;
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
@@ -163,15 +178,15 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 ## Aktueller Entwicklungsstand
 
-Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts- und Sicherheitsansicht.
+Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts-, Diagnose- und Sicherheitsansicht.
 
 Weiterer fachlicher Ausbau ist noch offen bei:
 
-- Diagnose;
 - Dokumentation;
 - Einstellungen;
 - 3D-Vorschauen;
-- direkten KiCad-Editoraufrufen.
+- direkten KiCad-Editoraufrufen;
+- Persistenzanbindung für Laufzeitdiagnosen.
 
 Für die noch nicht umgesetzten Cockpit-Seiten ist aktuell keine verbindliche Reihenfolge festgelegt. Sie werden deshalb nicht automatisch als nächster Entwicklungsschritt ausgewählt.
 
