@@ -32,6 +32,13 @@ def test_library_health_page_contains_summary_and_issue_details():
     assert "Footprintvorschau fehlt." in html
 
 
+def test_start_and_quality_headers_use_compact_top_spacing():
+    html = library_health_page_html(())
+    assert '#page-start>h2,#page-qualitaet>h2{margin:0 0 .25rem}' in html
+    assert '#page-start>p,#page-qualitaet>p{margin:.1rem 0 .75rem}' in html
+    assert '#page-qualitaet>.project-validation>h3{margin:.15rem 0 .25rem}' in html
+
+
 def test_library_health_page_shows_complete_state():
     result = LibraryQualityResult(
         library_name="Z_OK",
