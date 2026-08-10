@@ -14,8 +14,8 @@ Eine Familie gilt erst als vollständiges Paket, wenn Symbol, Gerätedaten, Doku
 ## Reifegrade
 
 - **Entwurf:** Paketbestandteile sind begonnen, aber noch nicht vollständig geprüft.
-- **Geprüft:** Die vorhandenen Bestandteile erfüllen die aktivierten KiCad- und `Z_`-Regeln; ein Praxisbeispiel kann noch fehlen.
-- **Praxisgetestet:** Das vollständige Paket wurde zusätzlich in einem dokumentierten Beispielprojekt praktisch geprüft.
+- **Geprüft:** Symbol, Gerätedaten, Dokumentation und Tests sind vorhanden; die aktivierten KiCad- und `Z_`-Regeln sind erfüllt oder eine dokumentierte zeitweilige Ausnahme ist freigegeben. Ein Praxisbeispiel kann noch fehlen.
+- **Praxisgetestet:** Das geprüfte Paket wurde zusätzlich in einem dokumentierten Beispielprojekt praktisch geprüft.
 
 ## Aktualisierung
 
