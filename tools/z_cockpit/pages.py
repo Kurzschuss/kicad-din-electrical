@@ -21,7 +21,7 @@ DEFAULT_PAGES: tuple[PageSpec, ...] = (
     PageSpec("qualitaet", "Qualität", "Tests, Regeln und Qualitätsberichte", True),
     PageSpec("diagnose", "Diagnose", "Fehler, Warnungen und Prüfdetails", True),
     PageSpec("sicherheit", "Sicherheit", "Repository-, Versions- und Freigabestatus", True),
-    PageSpec("dokumentation", "Dokumentation", "Projekt- und Entwicklerdokumentation"),
+    PageSpec("dokumentation", "Dokumentation", "Projekt- und Entwicklerdokumentation", True),
     PageSpec("einstellungen", "Einstellungen", "Sprache, Pfade und Entwickleroptionen"),
 )
 
