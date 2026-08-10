@@ -75,9 +75,10 @@ Die Symbolbibliotheken liegen direkt unter `symbols/`.
 - `Z_RCBO_Busbar_1P_N.kicad_sym` — 1 Symbol(e)
   - Footprintbibliothek: `Z_RCBO_Busbar_1P_N.pretty` mit 0 Footprint(s)
   - Symbol: `RCBO_Busbar_1P_N`
-- `Z_RCD.kicad_sym` — 1 Symbol(e)
+- `Z_RCD.kicad_sym` — 2 Symbol(e)
   - Footprintbibliothek: `Z_RCD.pretty` mit 0 Footprint(s)
   - Symbol: `RCD`
+  - Symbol: `RCD_4P`
 - `Z_RCD_Distribution_Bus_4P.kicad_sym` — 1 Symbol(e)
   - Footprintbibliothek: `Z_RCD_Distribution_Bus_4P.pretty` mit 0 Footprint(s)
   - Symbol: `RCD_Distribution_Bus_4P`

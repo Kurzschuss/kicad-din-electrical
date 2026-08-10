@@ -1,0 +1,18 @@
+{
+  "device_type": "Fehlerstrom-Schutzschalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.rcd",
+  "id": "generic.rcd-4p-template-series.b125-30ma-6ka",
+  "making_breaking_capacity_ka": 1.5,
+  "manufacturer": "Generic",
+  "modules": 4,
+  "part_number": "RCD-4P-B-125A-30MA-6KA",
+  "poles": 4,
+  "rated_current_a": 125,
+  "rated_short_circuit_current_ka": 6,
+  "rcd_type": "B",
+  "residual_current_ma": 30,
+  "series": "Template RCD 4P",
+  "source_status": "template",
+  "symbol": "Z_RCD:RCD_4P"
+}

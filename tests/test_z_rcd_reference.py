@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from tools.generate_symbol_previews import symbol_blocks
+
 
 RCD_SYMBOL = Path("symbols/Z_RCD.kicad_sym")
 RCD_REFERENCE = Path("docs/04_Reference/Z_RCD_REFERENCE.md")
@@ -16,10 +18,11 @@ def test_z_rcd_reference_files_exist():
 
 def test_z_rcd_is_two_pole_reference_with_four_pins():
     text = RCD_SYMBOL.read_text(encoding="utf-8")
-    assert '(property "Z_Poles" "2"' in text
-    assert text.count("(pin passive line") == 4
+    block = symbol_blocks(text)["RCD"]
+    assert '(property "Z_Poles" "2"' in block
+    assert block.count("(pin passive line") == 4
     for number in ("1", "2", "3", "4"):
-        assert f'(number "{number}"' in text
+        assert f'(number "{number}"' in block
 
 
 def test_z_rcd_metadata_matches_reference_scope():
