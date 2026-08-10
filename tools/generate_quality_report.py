@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 import argparse
 import difflib
+import re
 import sys
 
 try:
@@ -31,6 +32,13 @@ except ModuleNotFoundError:  # direkter Aufruf aus dem Repository-Hauptordner
     )
 
 REPORT_PATH = REPO_ROOT / "docs" / "04_Reference" / "QUALITY_REPORT.md"
+FOOTPRINT_PROPERTY_RE = re.compile(r'\(property\s+"Footprint"\s+"((?:\\.|[^"\\])*)"')
+
+
+def _library_has_assigned_footprint(path: Path) -> bool:
+    """True, wenn mindestens ein Hauptsymbol der Bibliothek einen Footprint trägt."""
+    text = path.read_text(encoding="utf-8")
+    return any(value.strip() for value in FOOTPRINT_PROPERTY_RE.findall(text))
 
 
 def collect_statistics(symbol_root: Path = SYMBOL_ROOT, footprint_root: Path = FOOTPRINT_ROOT) -> dict[str, object]:
@@ -58,7 +66,7 @@ def collect_statistics(symbol_root: Path = SYMBOL_ROOT, footprint_root: Path = F
             total_symbols += len(names)
             properties = symbol_properties(path)
             policies[footprint_policy(properties)] += 1
-            if properties.get("Footprint", "").strip():
+            if _library_has_assigned_footprint(path):
                 assigned_footprints += 1
             else:
                 unassigned_footprints += 1
