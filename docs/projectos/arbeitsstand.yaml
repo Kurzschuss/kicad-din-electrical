@@ -50,16 +50,24 @@ next_z_cockpit_expansion:
       implementation: tools/z_cockpit/user_management_page.py
       documentation: docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
       project_bundle_option: "python -m tools.generate_z_cockpit --project-bundle <projektdatei>"
-  order:
     - id: whitelist_verwaltung
       title_de: Whitelist- und Berechtigungsverwaltung integrieren
+      implementation: tools/z_cockpit/permissions_page.py
+      documentation: docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
+      projectos_source: ProjectOSUserManagementState.permission_assignments
+      repository_developer_whitelist: config/authorized_developers.json
+      static_html_write_access: false
+  order:
     - id: issue_fehlermeldung
       title_de: Issue- und Fehlermeldungsworkflow integrieren
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
   whitelist_separation:
-    projectos_user_whitelist: projectos/identity_persistence.py
+    projectos_user_permissions: distributions/projectos_user_management_persistence.py
     repository_developer_whitelist: config/authorized_developers.json
+  permission_write_path:
+    service: distributions/projectos_user_management_change_service.py
+    authorization: distributions/projectos_user_management_command_authorization.py
   ruleset_status: blocked_separate_approval
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
@@ -67,11 +75,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 842
-  last_successful_commit: 8d77780e7458e8fa6ee5fcc7d8134de5b548c17a
+  last_successful_run_number: 528
+  last_successful_commit: 363afd393c4e4bdab189ef4155b01595e94daa3a
   result: pending_final_head
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Benutzerverwaltung ist umgesetzt; Whitelist-/Berechtigungsverwaltung ist der naechste geplante Z_Cockpit-Ausbau. CI-Ergebnis wird nach Merge aktualisiert."
+  note: "Benutzer- und Whitelist-/Berechtigungsverwaltung sind umgesetzt; der Issue-/Fehlermeldungsworkflow ist der naechste geplante Z_Cockpit-Ausbau. CI-Ergebnis wird nach Merge aktualisiert."

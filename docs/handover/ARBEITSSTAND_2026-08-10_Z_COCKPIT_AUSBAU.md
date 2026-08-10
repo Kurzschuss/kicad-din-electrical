@@ -12,7 +12,7 @@ Menü-/Seitentitel (kurze Erklärung zum Bereich)
 
 Die Erklärung steht in kleinerer, zurückhaltender Schrift direkt in derselben Überschriftszeile. Eine zusätzliche zweite Erklärungszeile unmittelbar unter dem Seitentitel soll vermieden werden.
 
-`Einstellungen`, `Sicherheit` und die neue `Benutzerverwaltung` verwenden dieses Muster direkt. Start, Qualität, Hersteller, Diagnose und Dokumentation werden im erzeugten Cockpit ebenfalls auf dieses gemeinsame Kopfzeilenmuster normalisiert.
+`Einstellungen`, `Sicherheit`, `Benutzer` und `Berechtigungen` verwenden dieses Muster direkt. Start, Qualität, Hersteller, Diagnose und Dokumentation werden im erzeugten Cockpit ebenfalls auf dieses gemeinsame Kopfzeilenmuster normalisiert.
 
 `Geräte` und `Bibliotheken` werden strukturell nicht umgebaut. Die bereits freigegebene Bibliotheksansicht bleibt Referenz für die kompakte Kopfgestaltung.
 
@@ -31,8 +31,8 @@ Ohne neue ausdrückliche Anforderung bleiben unverändert:
 Die festgelegte Reihenfolge lautet:
 
 1. **Benutzerverwaltung – umgesetzt**
-2. **Whitelist- und Berechtigungsverwaltung – als Nächstes**
-3. **Issue- und Fehlermeldungsworkflow – danach**
+2. **Whitelist- und Berechtigungsverwaltung – umgesetzt**
+3. **Issue- und Fehlermeldungsworkflow – als Nächstes**
 
 Die vollständige fachliche Planung steht in:
 
@@ -44,18 +44,7 @@ docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
 
 Die vorhandenen ProjectOS-Bausteine für Benutzer, Rollen, Berechtigungen, Benutzer-Lifecycle und Rechteherkunft sind in eine eigene Z_Cockpit-Seite integriert. Es wurde keine zweite Benutzerdatenbank aufgebaut.
 
-Umgesetzt sind:
-
-- eigener Navigationspunkt `Benutzer`;
-- Benutzerliste mit Anzeigename und technischer Benutzer-ID;
-- Status `Aktiv` / `Deaktiviert` aus der bestehenden Lifecycle-Auswertung;
-- Profilrollen und aktive Projektrollen;
-- effektive Rechte und Rechteherkunft aus dem bestehenden Autorisierungs-Evaluator;
-- Rechtequellen wie Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist;
-- Filter nach Name/ID, Status, Rolle und Berechtigungszustand;
-- fester Detailbereich rechts;
-- Lifecycle-Historie;
-- klare read-only Trennung zu späteren schreibenden Aktionen.
+Umgesetzt sind unter anderem Benutzerliste, technische ID, Aktiv/Deaktiviert, Rollen, effektive Rechte, Rechteherkunft, Filter, fester Detailbereich und Lifecycle-Historie.
 
 Ohne ProjectOS-Projektdatei werden keine Benutzer erfunden. Für reale Projektdaten kann ein vorhandenes v4-Bundle explizit angebunden werden:
 
@@ -63,28 +52,54 @@ Ohne ProjectOS-Projektdatei werden keine Benutzer erfunden. Für reale Projektda
 python -m tools.generate_z_cockpit --project-bundle <projektdatei>
 ```
 
-Schreibende Änderungen bleiben den bestehenden autorisierten ProjectOS-Change-/Command-Services vorbehalten.
-
 Detaildokumentation:
 
 ```text
 docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
 ```
 
-## Whitelist-Verwaltung – nächster Schritt
+## Whitelist- und Berechtigungsverwaltung – umgesetzt
 
-Zwei verschiedene Whitelist-Arten müssen sichtbar getrennt bleiben:
+Es gibt jetzt einen eigenen Navigationspunkt `Berechtigungen`.
 
-- ProjectOS-Benutzer-Whitelist für einzelne Berechtigungen;
-- Repository-Entwickler-Whitelist aus `config/authorized_developers.json` für freigegebene GitHub-Benutzer.
+### ProjectOS-Berechtigungen
 
-Blacklist/DENY bleibt vorrangig. Whitelist, Blacklist und Ausnahmerechte dürfen nicht zu einer unklaren gemeinsamen Liste zusammengezogen werden.
+Die Seite zeigt vorhandene `ProjectOSPermissionAssignment`-Daten mit:
 
-Die Benutzerseite stellt Rechteherkunft bereits read-only dar. Die nächste Stufe ergänzt kontrollierte Whitelist-/Blacklist-/Ausnahmeverwaltung und die getrennte Repository-Entwickler-Whitelist.
+- Benutzer und technischer Benutzer-ID;
+- Berechtigung und Zuweisungs-ID;
+- Quelle: Rolle, direkt, Delegation, DENY, Ausnahme, Whitelist oder Blacklist;
+- Wirkung `allow` / `deny`;
+- Scope und Risikoklasse;
+- Gültigkeitszeitraum;
+- Widerrufsstatus;
+- effektiver Autorisierungsentscheidung und Rechteherkunft.
 
-## Issue-/Fehlermeldung – danach
+Ein wirksames DENY/Blacklist bleibt vorrangig. Die effektive Entscheidung kommt aus dem bestehenden `ProjectOSAuthorizationEvaluator`.
 
-Geplant ist ein strukturierter Workflow für Fehlerberichte aus dem Z_Cockpit. Relevante Diagnose- und Versionsdaten sollen automatisch vorbereitet werden, aber vor einer externen Weitergabe für den Benutzer sichtbar und kontrollierbar bleiben.
+### Repository-Entwickler-Whitelist
+
+Die Repository-Entwickler-Whitelist bleibt strikt getrennt und wird direkt aus folgender Quelle angezeigt:
+
+```text
+config/authorized_developers.json
+```
+
+Angezeigt werden Schema, Einträge und GitHub-Benutzernamen. Diese Liste wird weder in ProjectOS importiert noch als Browserkopie gepflegt.
+
+### Schreibgrenze
+
+Das statische Cockpit schreibt keine Rechte. ProjectOS-Änderungen müssen über `ProjectOSUserManagementChangeService` und die fail-closed `ProjectOSUserManagementCommandAuthorization` laufen. Repository-Whitelist-Änderungen erfolgen als versionierte Repository-Änderung mit anschließender Validator-/CI-Prüfung.
+
+Detaildokumentation:
+
+```text
+docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
+```
+
+## Issue-/Fehlermeldung – nächster Schritt
+
+Als nächstes wird ein strukturierter Workflow für Fehlerberichte aus dem Z_Cockpit umgesetzt. Relevante Diagnose- und Versionsdaten sollen automatisch vorbereitet werden, aber vor einer externen Weitergabe sichtbar und kontrollierbar bleiben.
 
 Mindestens vorgesehen:
 

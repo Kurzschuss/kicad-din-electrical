@@ -37,6 +37,15 @@ from .manufacturer_page import (
     manufacturer_page_html,
 )
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
+from .permissions_page import (
+    PermissionAssignmentView,
+    PermissionsSnapshot,
+    RepositoryDeveloperWhitelist,
+    collect_permissions,
+    load_permissions_bundle,
+    load_repository_developer_whitelist,
+    permissions_page_html,
+)
 from .project_dashboard import (
     DashboardTask,
     next_dashboard_tasks,
@@ -60,10 +69,37 @@ from .user_management_page import (
     UserManagementSnapshot,
     UserPermissionView,
     UserView,
-    collect_user_management,
-    load_user_management_bundle,
-    user_management_page_html,
+    collect_user_management as _collect_user_management,
+    load_user_management_bundle as _load_user_management_bundle,
+    user_management_page_html as _user_management_page_html,
 )
+
+_active_permissions_snapshot: PermissionsSnapshot | None = None
+
+
+def collect_user_management(state=None, *, source_label=None, at=None):
+    """Hält Benutzer- und Berechtigungsansicht auf derselben ProjectOS-Quelle."""
+    global _active_permissions_snapshot
+    users = _collect_user_management(state, source_label=source_label, at=at)
+    _active_permissions_snapshot = collect_permissions(state, source_label=source_label, at=at)
+    return users
+
+
+def load_user_management_bundle(path, *, at=None):
+    """Lädt ein Bundle einmal logisch für beide Cockpit-Sichten."""
+    global _active_permissions_snapshot
+    users = _load_user_management_bundle(path, at=at)
+    _active_permissions_snapshot = load_permissions_bundle(path, at=at)
+    return users
+
+
+def user_management_page_html(snapshot: UserManagementSnapshot | None = None) -> str:
+    """Rendert Benutzer- und Berechtigungsseite aus derselben ausgewerteten Quelle."""
+    permissions = _active_permissions_snapshot
+    if permissions is None or (snapshot is not None and permissions.source_label != snapshot.source_label):
+        permissions = collect_permissions()
+    return _user_management_page_html(snapshot) + permissions_page_html(permissions)
+
 
 __all__ = [
     "DEFAULT_PAGES",
@@ -79,8 +115,11 @@ __all__ = [
     "ManufacturerView",
     "NavigatorRecommendation",
     "PageSpec",
+    "PermissionAssignmentView",
+    "PermissionsSnapshot",
     "ProjectState",
     "QualityIssue",
+    "RepositoryDeveloperWhitelist",
     "SecurityItem",
     "StatusItem",
     "SymbolLibrary",
@@ -92,6 +131,7 @@ __all__ = [
     "collect_diagnostics",
     "collect_documentation",
     "collect_manufacturers",
+    "collect_permissions",
     "collect_project_status",
     "collect_security_status",
     "collect_settings",
@@ -106,7 +146,9 @@ __all__ = [
     "library_health_page_html",
     "library_page_html",
     "load_footprint_mapping",
+    "load_permissions_bundle",
     "load_project_state",
+    "load_repository_developer_whitelist",
     "load_user_management_bundle",
     "manufacturer_page_html",
     "next_dashboard_tasks",
@@ -114,6 +156,7 @@ __all__ = [
     "page_by_id",
     "parse_library_symbols",
     "parse_symbol_reference",
+    "permissions_page_html",
     "progress_bar_html",
     "project_progress_html",
     "recommended_work",
