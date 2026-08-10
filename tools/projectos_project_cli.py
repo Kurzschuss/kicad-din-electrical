@@ -13,6 +13,7 @@ from pathlib import Path
 import tempfile
 from typing import Any
 
+from distributions.din_editor_project_bundle import DinProjectBundleError
 from distributions.din_editor_project_manager import DinEditorProjectManager
 from distributions.projectos_project_bundle_v4 import (
     CURRENT_PROJECTOS_BUNDLE_VERSION,
@@ -119,7 +120,7 @@ def read_active_project(
         _, _, project_id, migration_required, _ = load_projectos_bundle_details(path)
         if migration_required or project_id != expected_project_id:
             return None
-    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError, DinProjectBundleError):
         return None
     return ActiveProject(name=name, path=path, project_id=expected_project_id)
 
@@ -168,7 +169,7 @@ def main() -> int:
     args = build_parser().parse_args()
     try:
         return int(args.handler(args))
-    except (OSError, ValueError, FileExistsError) as exc:
+    except (OSError, ValueError, DinProjectBundleError) as exc:
         raise SystemExit(f"FEHLER: {exc}") from exc
 
 
