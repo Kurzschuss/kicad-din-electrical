@@ -11,7 +11,9 @@ from tools.generate_device_catalog_html import collect_devices
 from tools.validate_device_catalog import REPO_ROOT
 from tools.z_cockpit import (
     DEFAULT_PAGES,
+    UserManagementSnapshot,
     collect_project_status,
+    collect_user_management,
     development_navigator_html,
     diagnostics_page_html,
     documentation_page_html,
@@ -19,12 +21,14 @@ from tools.z_cockpit import (
     library_health_page_html,
     library_page_html,
     load_project_state,
+    load_user_management_bundle,
     manufacturer_page_html,
     next_tasks_html,
     project_progress_html,
     security_page_html,
     settings_page_html,
     symbol_preview,
+    user_management_page_html,
 )
 
 OUTPUT_PATH = REPO_ROOT / "docs" / "site" / "z-cockpit.html"
@@ -107,10 +111,14 @@ def placeholder_pages_html() -> str:
     )
 
 
-def render_html(devices: list[dict[str, object]]) -> str:
+def render_html(
+    devices: list[dict[str, object]],
+    user_management: UserManagementSnapshot | None = None,
+) -> str:
     payload = json.dumps(devices, ensure_ascii=False).replace("</", "<\\/")
     summary = cockpit_summary(devices)
     project = load_project_state()
+    users = collect_user_management() if user_management is None else user_management
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Z_Cockpit</title><style>
@@ -118,20 +126,25 @@ def render_html(devices: list[dict[str, object]]) -> str:
 </style></head><body>
 <header><h1>Z_Cockpit – Bibliotheks- und Geräteübersicht</h1></header><main><aside><h2>Bereiche</h2>{navigation_html()}</aside><div class="workspace">
 <section class="page active" id="page-start"><h2>Projektstatus</h2><p>Zentrale Übersicht aus Gerätekatalog und Projektmodell.</p><div class="cards"><div class="card">Geräte<strong>{summary['devices']}</strong></div><div class="card">Gerätefamilien<strong>{summary['families']}</strong></div><div class="card">Hersteller<strong>{summary['manufacturers']}</strong></div><div class="card">Geprüfte Geräte<strong>{summary['checked']}</strong></div></div><div class="dashboard-grid"><section class="dashboard-panel"><h3>Fortschritt bis Version {project.target_release}</h3>{project_progress_html(project)}</section><section class="dashboard-panel"><h3>Nächste Aufgaben</h3>{next_tasks_html(project, limit=5)}</section></div>{development_navigator_html(project)}<section class="status-section"><h3>Projektbestandteile</h3><div class="status-grid">{project_status_html()}</div></section></section>
-<section class="page" id="page-geraete"><div class="device-layout"><div class="device-main"><h2>Geräte</h2><div class="filters"><label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label></div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div><section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview-grid"><article class="preview-card"><h3>Symbol</h3><div class="preview" id="symbol-preview">Vorschau wird nach Auswahl angezeigt.</div></article><article class="preview-card"><h3>Footprint</h3><div class="preview" id="footprint-preview">Vorschau wird nach Auswahl angezeigt.</div></article></div></section></div></section>{library_page_html()}{manufacturer_page_html()}{library_health_page_html()}{diagnostics_page_html()}{documentation_page_html()}{settings_page_html()}{security_page_html()}{placeholder_pages_html()}</div></main>
-<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog und project_state.yaml</span><span>Z_Cockpit 1.1</span></footer>
+<section class="page" id="page-geraete"><div class="device-layout"><div class="device-main"><h2>Geräte</h2><div class="filters"><label>Gerätefamilie<select id="family"><option value="">Alle</option></select></label><label>Hersteller<select id="manufacturer"><option value="">Alle</option></select></label><label>Polzahl<select id="poles"><option value="">Alle</option></select></label><label>Charakteristik<select id="curve"><option value="">Alle</option></select></label><label>Nennstrom<select id="current"><option value="">Alle</option></select></label><label>Status<select id="status"><option value="">Alle</option></select></label></div><div class="table-wrap"><table id="devices"><thead><tr><th>Name</th><th>Technische ID</th><th>Familie</th><th>Hersteller</th><th>Polzahl</th><th>Charakteristik</th><th>Nennstrom</th><th>Symbol</th><th>Footprint</th><th>3D</th><th>Status</th></tr></thead><tbody></tbody></table></div></div><section class="details"><h2>Eigenschaften</h2><dl id="properties"><dt>Auswahl</dt><dd>Bitte ein Gerät auswählen.</dd></dl><div class="preview-grid"><article class="preview-card"><h3>Symbol</h3><div class="preview" id="symbol-preview">Vorschau wird nach Auswahl angezeigt.</div></article><article class="preview-card"><h3>Footprint</h3><div class="preview" id="footprint-preview">Vorschau wird nach Auswahl angezeigt.</div></article></div></section></div></section>{library_page_html()}{manufacturer_page_html()}{library_health_page_html()}{diagnostics_page_html()}{user_management_page_html(users)}{security_page_html()}{documentation_page_html()}{settings_page_html()}{placeholder_pages_html()}</div></main>
+<footer><span id="count">{summary['devices']} Gerät(e)</span><span>Datenquellen: Gerätekatalog, project_state.yaml und ProjectOS-Benutzerverwaltung</span><span>Z_Cockpit 1.1</span></footer>
 <script>const data={payload};const fields={{family:'family',manufacturer:'manufacturer',poles:'poles',curve:'curve',current:'current',status:'status'}};function showPage(id){{document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===`page-${{id}}`));document.querySelectorAll('.page-link').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}}document.querySelectorAll('.page-link').forEach(button=>button.addEventListener('click',()=>showPage(button.dataset.page)));document.querySelector('[data-page="start"]').classList.add('active');function values(key){{return[...new Set(data.map(x=>x[key]))].sort((a,b)=>a.localeCompare(b,'de',{{numeric:true}}))}}function option(select,value){{const o=document.createElement('option');o.value=value;o.textContent=value;select.appendChild(o)}}Object.entries(fields).forEach(([id,key])=>{{const el=document.getElementById(id);values(key).forEach(v=>option(el,v));el.addEventListener('change',render)}});function mark(v){{return v?'<strong>✓</strong>':'–'}}function render(){{const tbody=document.querySelector('#devices tbody');tbody.innerHTML='';const rows=data.filter(item=>Object.entries(fields).every(([id,key])=>{{const v=document.getElementById(id).value;return!v||item[key]===v}}));rows.forEach(item=>{{const tr=document.createElement('tr');tr.innerHTML=`<td>${{item.name}}</td><td><code>${{item.id}}</code></td><td>${{item.family}}</td><td>${{item.manufacturer}}</td><td>${{item.poles}}</td><td>${{item.curve}}</td><td>${{item.current}}</td><td><code>${{item.symbol}}</code></td><td>${{item.footprint}}</td><td>${{mark(item.model)}}</td><td>${{item.status}}</td>`;tr.addEventListener('click',()=>selectRow(tr,item));tbody.appendChild(tr)}});document.getElementById('count').textContent=`${{rows.length}} Gerät(e)`}}function symbolPreviewHtml(item){{if(!item.symbol_preview_available)return `<div><strong>${{item.name}}</strong><p>Für dieses Symbol ist keine Vorschau verfügbar.</p></div>`;return `<div><img src="${{item.symbol_preview_url}}" alt="Symbolvorschau ${{item.symbol}}"><p class="preview-note">Technische SVG-Schnellansicht · ${{item.symbol}}</p></div>`}}function footprintPreviewHtml(item){{if(!item.footprint_preview_available)return `<div><strong>${{item.footprint}}</strong><p>Für diesen Footprint ist keine Vorschau verfügbar.</p><p class="preview-status">${{item.footprint_preview_status}}</p></div>`;const note=item.footprint_preview_status==='Platzhalter'?'Footprint vorhanden, aber noch ohne darstellbare Geometrie.':'Technische SVG-Schnellansicht';return `<div><img src="${{item.footprint_preview_url}}" alt="Footprintvorschau ${{item.footprint}}"><p class="preview-note">${{note}} · ${{item.footprint}}</p><p class="preview-status">${{item.footprint_preview_status}}</p></div>`}}function selectRow(tr,item){{document.querySelectorAll('#devices tbody tr').forEach(x=>x.classList.remove('selected'));tr.classList.add('selected');document.getElementById('properties').innerHTML=`<dt>Name</dt><dd>${{item.name}}</dd><dt>Technische ID</dt><dd><code>${{item.id}}</code></dd><dt>Symbol</dt><dd><code>${{item.symbol}}</code></dd><dt>Footprint</dt><dd><code>${{item.footprint}}</code></dd><dt>Familie</dt><dd>${{item.family}}</dd><dt>Nennstrom</dt><dd>${{item.current}}</dd><dt>Status</dt><dd>${{item.status}}</dd>`;document.getElementById('symbol-preview').innerHTML=symbolPreviewHtml(item);document.getElementById('footprint-preview').innerHTML=footprintPreviewHtml(item)}}render();</script></body></html>"""
 
 
-def generated_content() -> str:
-    return render_html(cockpit_devices())
+def generated_content(user_management: UserManagementSnapshot | None = None) -> str:
+    return render_html(cockpit_devices(), user_management)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="nur prüfen, ob die HTML-Datei aktuell ist")
+    parser.add_argument(
+        "--project-bundle",
+        help="optionales ProjectOS-v4-Projektbundle für die Benutzerverwaltungsansicht",
+    )
     args = parser.parse_args()
-    expected = generated_content()
+    users = load_user_management_bundle(args.project_bundle) if args.project_bundle else collect_user_management()
+    expected = generated_content(users)
     if args.check:
         actual = OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.is_file() else ""
         if actual == expected:
@@ -142,6 +155,8 @@ def main() -> int:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(expected, encoding="utf-8")
     print(f"Z_Cockpit erzeugt: {OUTPUT_PATH}")
+    if args.project_bundle:
+        print(f"ProjectOS-Benutzerquelle: {args.project_bundle}")
     return 0
 
 
