@@ -54,12 +54,12 @@ Aktuell umgesetzt:
 - Start;
 - Geräte;
 - Bibliotheken;
+- Hersteller;
 - Qualität;
 - Sicherheit.
 
 Registriert, aber noch nicht umgesetzt:
 
-- Hersteller;
 - Diagnose;
 - Dokumentation;
 - Einstellungen.
@@ -107,6 +107,25 @@ Die Eigenschaften und die Symbolvorschau bleiben fest stehen. Die Geräte-IDs li
 
 Beim Öffnen einer Bibliothek wird das erste Symbol automatisch ausgewählt. Andere Symbolzeilen können per Maus sowie Enter/Leertaste gewählt werden.
 
+## Herstelleransicht
+
+Die Herstellerseite ist eine read-only Auswertung des technischen Gerätekatalogs. Sie führt keine zweite Herstellerdatenbank ein.
+
+Aus den vorhandenen Gerätedaten werden dynamisch aggregiert:
+
+- Hersteller;
+- Produktserien;
+- Geräteanzahl je Hersteller und Serie;
+- zugeordnete Gerätefamilien;
+- Quellenstatus;
+- technische Geräte-IDs.
+
+`Generic` wird in der Oberfläche als `Herstellerneutral` angezeigt, während der originale Katalogwert im Eigenschaftenbereich sichtbar bleibt.
+
+Der linke Bereich enthält eine filterbare Herstellertabelle mit Filtern für Hersteller, Serie, Gerätefamilie und Quellenstatus. Ein ausgewählter Hersteller wird rechts in einem festen Eigenschaftenbereich dargestellt. Dort stehen die Serienübersicht sowie darunter eine separat scrollbarere Liste der zugeordneten Geräte-IDs.
+
+Die bestehenden ProjectOS-Domänenmodelle `Manufacturer`, `ProductSeries` und `ManufacturerProduct` bleiben davon getrennt. Die Cockpit-Seite liest ausschließlich den bestehenden Gerätekatalog; spätere persistierte Herstellerverwaltung kann auf diesen Domainobjekten aufbauen, ohne die Katalogauswertung zu duplizieren.
+
 ## Projektstatus und Qualität
 
 Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
@@ -118,7 +137,7 @@ Die Qualitätsseite verbindet zwei Ebenen:
 
 Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
 
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist damit erledigt. Im zentralen Projektmodell ist aktuell keine weitere ausführbare Aufgabe als `planned` oder `in_progress` hinterlegt. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Die Hersteller- und Serienübersicht ist ebenfalls als abgeschlossener Cockpit-Baustein im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Prüfung
 
@@ -132,6 +151,8 @@ Die automatisierten Tests prüfen unter anderem:
 - aufklappbare Bibliotheksdetails;
 - statischen Symbolinspektor;
 - separates Scrollverhalten der Geräte-ID-Liste;
+- Hersteller-/Serienaggregation aus dem Gerätekatalog;
+- Herstellerfilter und statischen Herstellerinspektor;
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
@@ -142,11 +163,10 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 ## Aktueller Entwicklungsstand
 
-Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Qualitäts- und Sicherheitsansicht.
+Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts- und Sicherheitsansicht.
 
 Weiterer fachlicher Ausbau ist noch offen bei:
 
-- Hersteller;
 - Diagnose;
 - Dokumentation;
 - Einstellungen;
