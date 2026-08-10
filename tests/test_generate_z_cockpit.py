@@ -46,10 +46,13 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="start"' in navigation
     assert 'data-page="geraete"' in navigation
     assert 'data-page="bibliotheken"' in navigation
+    assert 'data-page="hersteller"' in navigation
     assert "Bibliotheken" in navigation
+    assert "Hersteller" in navigation
     assert "Qualität" in navigation
     assert "Sicherheit" in navigation
     assert 'data-page="bibliotheken" title="Symbole, Footprints und Modelle">Bibliotheken</button>' in navigation
+    assert 'data-page="hersteller" title="Hersteller, Serien und Katalogzuordnungen">Hersteller</button>' in navigation
     assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
 
 
@@ -69,6 +72,7 @@ def test_implemented_pages_are_not_generated_as_placeholders():
     placeholders = placeholder_pages_html()
     assert 'id="page-sicherheit"' not in placeholders
     assert 'id="page-bibliotheken"' not in placeholders
+    assert 'id="page-hersteller"' not in placeholders
     assert 'id="page-qualitaet"' not in placeholders
     assert 'id="page-diagnose"' in placeholders
 
@@ -92,6 +96,13 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Gerätezuordnungen" in html
     assert "Vorschaupaare" in html
     assert html.count('id="page-bibliotheken"') == 1
+    assert 'id="page-hersteller"' in html
+    assert html.count('id="page-hersteller"') == 1
+    assert 'id="manufacturer-overview"' in html
+    assert 'id="manufacturer-page-filter-name"' in html
+    assert 'class="manufacturer-inspector"' in html
+    assert "Herstellerneutral" in html
+    assert "Read-only Übersicht aus dem technischen Gerätekatalog" in html
     assert 'id="page-qualitaet"' in html
     assert html.count('id="page-qualitaet"') == 1
     assert "Bibliotheksgesundheit" in html

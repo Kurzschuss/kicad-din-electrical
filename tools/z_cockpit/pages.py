@@ -17,7 +17,7 @@ DEFAULT_PAGES: tuple[PageSpec, ...] = (
     PageSpec("start", "Start", "Projektstatus und wichtige Kennzahlen", True),
     PageSpec("geraete", "Geräte", "Gerätekatalog mit Filtern und Eigenschaften", True),
     PageSpec("bibliotheken", "Bibliotheken", "Symbole, Footprints und Modelle", True),
-    PageSpec("hersteller", "Hersteller", "Hersteller und Serien verwalten"),
+    PageSpec("hersteller", "Hersteller", "Hersteller, Serien und Katalogzuordnungen", True),
     PageSpec("qualitaet", "Qualität", "Tests, Regeln und Qualitätsberichte", True),
     PageSpec("diagnose", "Diagnose", "Fehlerberichte und Protokolle"),
     PageSpec("sicherheit", "Sicherheit", "Repository-, Versions- und Freigabestatus", True),
