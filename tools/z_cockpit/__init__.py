@@ -12,6 +12,11 @@ from .diagnostics_page import (
     collect_diagnostics,
     diagnostics_page_html,
 )
+from .documentation_page import (
+    DocumentationEntry,
+    collect_documentation,
+    documentation_page_html,
+)
 from .footprint_preview import (
     FootprintAssignment,
     footprint_assignment,
@@ -56,6 +61,7 @@ __all__ = [
     "DashboardTask",
     "DiagnosticEntry",
     "DiagnosticsSnapshot",
+    "DocumentationEntry",
     "FootprintAssignment",
     "LibraryQualityResult",
     "LibrarySymbol",
@@ -71,12 +77,14 @@ __all__ = [
     "SymbolPreview",
     "blocked_tasks",
     "collect_diagnostics",
+    "collect_documentation",
     "collect_manufacturers",
     "collect_project_status",
     "collect_security_status",
     "collect_symbol_libraries",
     "development_navigator_html",
     "diagnostics_page_html",
+    "documentation_page_html",
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
