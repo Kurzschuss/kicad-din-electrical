@@ -22,6 +22,13 @@ from .footprint_preview import (
     footprint_assignment,
     load_footprint_mapping,
 )
+from .issue_report_page import (
+    IssueReportSnapshot,
+    RepositoryReportState,
+    collect_issue_report,
+    issue_report_page_html,
+    load_repository_report_state,
+)
 from .library_browser import (
     LibrarySymbol,
     SymbolLibrary,
@@ -94,11 +101,15 @@ def load_user_management_bundle(path, *, at=None):
 
 
 def user_management_page_html(snapshot: UserManagementSnapshot | None = None) -> str:
-    """Rendert Benutzer- und Berechtigungsseite aus derselben ausgewerteten Quelle."""
+    """Rendert Benutzer-, Berechtigungs- und Fehlerbericht-Seite im bestehenden Generatorpfad."""
     permissions = _active_permissions_snapshot
     if permissions is None or (snapshot is not None and permissions.source_label != snapshot.source_label):
         permissions = collect_permissions()
-    return _user_management_page_html(snapshot) + permissions_page_html(permissions)
+    return (
+        _user_management_page_html(snapshot)
+        + permissions_page_html(permissions)
+        + issue_report_page_html()
+    )
 
 
 __all__ = [
@@ -109,6 +120,7 @@ __all__ = [
     "DiagnosticsSnapshot",
     "DocumentationEntry",
     "FootprintAssignment",
+    "IssueReportSnapshot",
     "LibraryQualityResult",
     "LibrarySymbol",
     "ManufacturerSeriesView",
@@ -120,6 +132,7 @@ __all__ = [
     "ProjectState",
     "QualityIssue",
     "RepositoryDeveloperWhitelist",
+    "RepositoryReportState",
     "SecurityItem",
     "StatusItem",
     "SymbolLibrary",
@@ -130,6 +143,7 @@ __all__ = [
     "blocked_tasks",
     "collect_diagnostics",
     "collect_documentation",
+    "collect_issue_report",
     "collect_manufacturers",
     "collect_permissions",
     "collect_project_status",
@@ -143,12 +157,14 @@ __all__ = [
     "evaluate_libraries",
     "evaluate_library",
     "footprint_assignment",
+    "issue_report_page_html",
     "library_health_page_html",
     "library_page_html",
     "load_footprint_mapping",
     "load_permissions_bundle",
     "load_project_state",
     "load_repository_developer_whitelist",
+    "load_repository_report_state",
     "load_user_management_bundle",
     "manufacturer_page_html",
     "next_dashboard_tasks",
