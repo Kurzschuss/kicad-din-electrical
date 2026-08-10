@@ -83,6 +83,14 @@ next_z_cockpit_expansion:
       protocol: kicad-z
       arbitrary_path_input: false
       arbitrary_command_input: false
+    - id: runtime_diagnostics_persistence
+      title_de: Persistenzanbindung der Laufzeitdiagnosen
+      persistence: distributions/projectos_project_memory_persistence.py
+      cockpit_bridge: tools/z_cockpit/runtime_diagnostics.py
+      default_path: build/PROJECTOS_RUNTIME_MEMORY.json
+      documentation: docs/03_Developer/Z_COCKPIT_LAUFZEITDIAGNOSEN.md
+      project_memory_persistence_version: 1
+      derived_diagnostics_persisted: false
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
@@ -109,10 +117,17 @@ next_z_cockpit_expansion:
     footprint_direct_file_open: true
     symbol_reference_copied_to_clipboard: true
     symbol_editor_manager_hotkey: Ctrl+L
+  runtime_diagnostics_policy:
+    source_data_only: true
+    project_memory_persistence_version: 1
+    default_local_artifact: build/PROJECTOS_RUNTIME_MEMORY.json
+    ignored_local_artifact: true
+    missing_source_is_nonblocking: true
+    diagnostics_recomputed_on_cockpit_generation: true
+    project_bundle_v4_unchanged: true
   ruleset_status: blocked_separate_approval
 
 remaining_technical_followups:
-  - runtime_diagnostics_persistence
   - github_ruleset_activation_blocked
 
 adrs: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008]
@@ -120,11 +135,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 539
-  last_successful_commit: a47893e519f588e8ea4f7593ad93bae2e727c48a
-  result: success
+  last_successful_run_number: 540
+  last_successful_commit: 44bc9d82c2b9d9abbf3a36cd46f79f41d32860c1
+  result: pending_runtime_diagnostics_persistence_final_head
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Direkte KiCad-Editoraufrufe auf PR #197 mit CI #539 erfolgreich geprueft; alle Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Footprints werden ueber fpedit direkt geoeffnet; Symbole oeffnen den Symbol-Editor und uebergeben die gepruefte technische Referenz ueber die Zwischenablage."
+  note: "Persistenzanbindung der Laufzeitdiagnosen ist implementiert; die finale CI-Pruefung des Runtime-Diagnose-Branches steht vor dem Merge aus. Persistiert werden nur Wissensgraph-Quellen und Referenz-IDs, nicht die abgeleiteten Diagnoseergebnisse."
