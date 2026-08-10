@@ -95,6 +95,9 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'id="page-qualitaet"' in html
     assert html.count('id="page-qualitaet"') == 1
     assert "Bibliotheksgesundheit" in html
+    assert "Projektkonsistenz" in html
+    assert 'data-check="PRJ-001"' in html
+    assert 'class="cards project-validation-summary"' in html
     assert 'class="cards quality-summary"' in html
     assert 'class="quality-card"' in html
     assert 'role="progressbar"' in html
@@ -104,11 +107,9 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
-    assert "Geplant" in html
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
-    assert "Als Nächstes empfohlen" in html
-    assert "Projektanalyse und Konsistenzprüfung umsetzen" in html
+    assert "Keine ausführbare Aufgabe offen." in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html

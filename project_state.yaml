@@ -35,7 +35,7 @@
       "id": "qualitaet",
       "title_de": "Qualitätssicherung",
       "tasks": [
-        {"id": "projektvalidator", "title_de": "Projektanalyse und Konsistenzprüfung umsetzen", "state": "planned"}
+        {"id": "projektvalidator", "title_de": "Projektanalyse und Konsistenzprüfung umsetzen", "state": "done"}
       ]
     },
     {

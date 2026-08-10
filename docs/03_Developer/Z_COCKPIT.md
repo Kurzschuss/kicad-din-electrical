@@ -111,11 +111,14 @@ Beim Öffnen einer Bibliothek wird das erste Symbol automatisch ausgewählt. And
 
 Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
 
-Die Qualitäts- und Sicherheitsseiten sind sichtbar angebunden. Der im Projektmodell als nächster `planned` geführte Punkt ist derzeit:
+Die Qualitätsseite verbindet zwei Ebenen:
 
-- `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`).
+- **Projektkonsistenz** aus `tools.project_validator` mit stabilen `PRJ-*`-Prüfungen;
+- **Bibliotheksgesundheit** aus der bestehenden Quality Engine für Gerätezuordnungen, Footprints und Vorschauen.
 
-Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
+
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist damit erledigt. Im zentralen Projektmodell ist aktuell keine weitere ausführbare Aufgabe als `planned` oder `in_progress` hinterlegt. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Prüfung
 
@@ -132,9 +135,10 @@ Die automatisierten Tests prüfen unter anderem:
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
+- Projektvalidator und maschinenlesbaren Konsistenzbericht;
 - HTML-Escaping von Repositorydaten.
 
-GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und prüft die relevanten Repository-, Generator-, Qualitäts- und KiCad-Verträge.
+GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und prüft die relevanten Repository-, Generator-, Qualitäts- und KiCad-Verträge. Zusätzlich wird `build/Z_PROJECT_VALIDATION.json` als maschinenlesbarer Projektvalidator-Bericht erzeugt.
 
 ## Aktueller Entwicklungsstand
 
@@ -149,6 +153,6 @@ Weiterer fachlicher Ausbau ist noch offen bei:
 - 3D-Vorschauen;
 - direkten KiCad-Editoraufrufen.
 
-Für die noch nicht umgesetzten Cockpit-Seiten ist aktuell keine verbindliche Reihenfolge festgelegt. Der allgemeine nächste Projektpunkt wird deshalb aus `project_state.yaml` abgeleitet.
+Für die noch nicht umgesetzten Cockpit-Seiten ist aktuell keine verbindliche Reihenfolge festgelegt. Sie werden deshalb nicht automatisch als nächster Entwicklungsschritt ausgewählt.
 
 Der aktuelle visuell freigegebene Bibliotheksstand ist zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert.
