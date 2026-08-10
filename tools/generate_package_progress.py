@@ -16,6 +16,7 @@ VALID_QUALITY_STATUSES = {
     "temporarily_accepted",
 }
 VALID_LEVELS = {"Entwurf", "Geprüft", "Praxisgetestet"}
+CHECKED_REQUIRED_FIELDS = ("symbol", "device_data", "documentation", "tests")
 
 
 def _mark(value: bool) -> str:
@@ -36,13 +37,29 @@ def load_progress(path: Path = SOURCE) -> dict[str, Any]:
         if family_id in seen:
             raise ValueError(f"Duplicate package id: {family_id}")
         seen.add(family_id)
-        if family.get("quality_status") not in VALID_QUALITY_STATUSES:
+
+        quality_status = family.get("quality_status")
+        quality_level = family.get("quality_level")
+        if quality_status not in VALID_QUALITY_STATUSES:
             raise ValueError(f"Invalid quality status for {family_id}")
-        if family.get("quality_level") not in VALID_LEVELS:
+        if quality_level not in VALID_LEVELS:
             raise ValueError(f"Invalid quality level for {family_id}")
-        if family.get("quality_level") == "Praxisgetestet" and not all(
-            family.get(field) for field in ("symbol", "device_data", "documentation", "example", "tests")
-        ):
+
+        if quality_level in {"Geprüft", "Praxisgetestet"}:
+            missing = [field for field in CHECKED_REQUIRED_FIELDS if not family.get(field)]
+            if missing:
+                raise ValueError(
+                    f"Checked package is incomplete: {family_id}; missing {', '.join(missing)}"
+                )
+            references = family.get("references")
+            if not isinstance(references, list) or not references or not all(
+                isinstance(item, str) and item.strip() for item in references
+            ):
+                raise ValueError(f"Checked package lacks evidence references: {family_id}")
+            if quality_status == "needs_rework":
+                raise ValueError(f"Checked package cannot require rework: {family_id}")
+
+        if quality_level == "Praxisgetestet" and not family.get("example"):
             raise ValueError(f"Praxisgetestet package is incomplete: {family_id}")
     return payload
 
@@ -78,8 +95,8 @@ def render(payload: dict[str, Any]) -> str:
             "## Reifegrade",
             "",
             "- **Entwurf:** Paketbestandteile sind begonnen, aber noch nicht vollständig geprüft.",
-            "- **Geprüft:** Die vorhandenen Bestandteile erfüllen die aktivierten KiCad- und `Z_`-Regeln; ein Praxisbeispiel kann noch fehlen.",
-            "- **Praxisgetestet:** Das vollständige Paket wurde zusätzlich in einem dokumentierten Beispielprojekt praktisch geprüft.",
+            "- **Geprüft:** Symbol, Gerätedaten, Dokumentation und Tests sind vorhanden; die aktivierten KiCad- und `Z_`-Regeln sind erfüllt oder eine dokumentierte zeitweilige Ausnahme ist freigegeben. Ein Praxisbeispiel kann noch fehlen.",
+            "- **Praxisgetestet:** Das geprüfte Paket wurde zusätzlich in einem dokumentierten Beispielprojekt praktisch geprüft.",
             "",
             "## Aktualisierung",
             "",
