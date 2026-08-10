@@ -15,9 +15,12 @@ from pathlib import Path
 import re
 import sys
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from tools.generate_footprint_previews import FootprintRectangle, footprint_name, parse_rectangles
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 FOOTPRINT_ROOT = REPO_ROOT / "footprints"
 OUTPUT_ROOT = REPO_ROOT / "docs" / "site" / "3d-previews"
 MODEL_ROOT = REPO_ROOT / "3dmodels" / "Z_3DModell.3dshapes"
