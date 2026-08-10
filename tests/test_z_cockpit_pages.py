@@ -14,13 +14,15 @@ def test_implemented_core_pages_are_registered() -> None:
     assert page_by_id("start").implemented is True
     assert page_by_id("geraete").implemented is True
     assert page_by_id("bibliotheken").implemented is True
+    assert page_by_id("hersteller").implemented is True
     assert page_by_id("qualitaet").implemented is True
+    assert page_by_id("diagnose").implemented is True
     assert page_by_id("sicherheit").implemented is True
 
 
 def test_remaining_planned_core_pages_are_registered() -> None:
-    assert page_by_id("diagnose").label_de == "Diagnose"
-    assert page_by_id("diagnose").implemented is False
+    assert page_by_id("dokumentation").implemented is False
+    assert page_by_id("einstellungen").implemented is False
 
 
 def test_unknown_page_is_rejected() -> None:
