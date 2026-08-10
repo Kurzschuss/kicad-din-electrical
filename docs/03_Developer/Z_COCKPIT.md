@@ -57,11 +57,11 @@ Aktuell umgesetzt:
 - Hersteller;
 - Qualität;
 - Diagnose;
-- Sicherheit.
+- Sicherheit;
+- Dokumentation.
 
 Registriert, aber noch nicht umgesetzt:
 
-- Dokumentation;
 - Einstellungen.
 
 Die Seitenregistrierung ist die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
@@ -139,6 +139,21 @@ Die Befunde werden nach Fehlern und Warnungen priorisiert und können nach Statu
 
 Die ProjectOS-Wissensgraph-Diagnostik unter `distributions/projectos_knowledge_diagnostics.py` und `distributions/z_cockpit_diagnostics_worklist.py` bleibt ein separater Laufzeitpfad. Da das statisch erzeugte Z_Cockpit derzeit keine persistierte `ProjectOSProjectMemory`-Instanz lädt, werden dort keine Laufzeitbefunde erfunden. Eine spätere Persistenzanbindung kann diese Diagnosen ergänzen.
 
+## Dokumentationsansicht
+
+Die Dokumentationsseite ist ein read-only Browser für die bereits vorhandene Markdown-Dokumentation des Repositories. Sie führt keine zweite Dokumentationsdatenbank ein.
+
+Beim Erzeugen des Z_Cockpits werden automatisch erfasst:
+
+- Markdown-Dateien unter `docs/` einschließlich Projektgrundlagen, Roadmap, Benutzer-, Entwickler- und Referenzdokumentation;
+- `docs/projectos/` als eigener Bereich `ProjectOS`;
+- `docs/handover/` als eigener Bereich `Übergaben`;
+- vorhandene zentrale Markdown-Dateien im Repository-Stamm wie `README.md`, `CONTRIBUTING.md`, `SECURITY.md` und `CHANGELOG.md`.
+
+Aus jeder vorhandenen Datei werden Titel, Bereich, Repositorypfad, Zeilenanzahl, Dateigröße und eine kurze Inhaltsbeschreibung abgeleitet. Die linke Tabelle kann per Freitext und Dokumentationsbereich gefiltert werden. Ein ausgewähltes Dokument zeigt rechts die Metadaten und einen relativen Direktlink zur Originaldatei.
+
+Damit bleiben die Markdown-Dateien selbst Single Source of Truth. Neue Dokumente erscheinen beim nächsten Erzeugen des Z_Cockpits automatisch im Browser, ohne dass sie zusätzlich in einer Cockpit-Liste gepflegt werden müssen.
+
 ## Projektstatus und Qualität
 
 Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
@@ -150,7 +165,7 @@ Die Qualitätsseite verbindet zwei Ebenen:
 
 Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
 
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller- und Diagnoseansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose- und Dokumentationsansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Prüfung
 
@@ -168,6 +183,8 @@ Die automatisierten Tests prüfen unter anderem:
 - Herstellerfilter und statischen Herstellerinspektor;
 - Diagnoseaggregation aus Projektvalidator und Projektanalyse;
 - Diagnosefilter, Detailinspektor und HTML-Escaping;
+- automatische Markdown-Erfassung für den Dokumentationsbrowser;
+- Dokumentationssuche, Bereichsfilter, Direktlinks und HTML-Escaping;
 - eindeutige Seiten-IDs;
 - zentrale Seitenregistrierung;
 - Projektstatus-, Qualitäts- und Sicherheitsintegration;
@@ -178,16 +195,15 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 ## Aktueller Entwicklungsstand
 
-Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts-, Diagnose- und Sicherheitsansicht.
+Die lokale HTML-Anwendung besitzt inzwischen die grundlegende Cockpit-Struktur einschließlich Start-, Geräte-, Bibliotheks-, Hersteller-, Qualitäts-, Diagnose-, Sicherheits- und Dokumentationsansicht.
 
 Weiterer fachlicher Ausbau ist noch offen bei:
 
-- Dokumentation;
 - Einstellungen;
 - 3D-Vorschauen;
 - direkten KiCad-Editoraufrufen;
 - Persistenzanbindung für Laufzeitdiagnosen.
 
-Für die noch nicht umgesetzten Cockpit-Seiten ist aktuell keine verbindliche Reihenfolge festgelegt. Sie werden deshalb nicht automatisch als nächster Entwicklungsschritt ausgewählt.
+Für die noch nicht umgesetzte Cockpit-Seite `Einstellungen` ist aktuell keine verbindliche Unterstruktur festgelegt.
 
 Der aktuelle visuell freigegebene Bibliotheksstand ist zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert.
