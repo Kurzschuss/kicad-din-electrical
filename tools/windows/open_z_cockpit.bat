@@ -12,10 +12,12 @@ rem und benoetigt keine Administratorrechte. Bei Fehlern bleibt das Cockpit nutz
 powershell -NoProfile -ExecutionPolicy Bypass -File "tools\windows\register_z_kicad_protocol.ps1" -RepositoryRoot "%CD%" >nul 2>&1
 if errorlevel 1 (
     echo HINWEIS: KiCad-Editorlinks konnten nicht registriert werden.
+    echo Das Z_Cockpit wird trotzdem geoeffnet.
 )
 powershell -NoProfile -ExecutionPolicy Bypass -File "tools\windows\register_z_project_protocol.ps1" -RepositoryRoot "%CD%" >nul 2>&1
 if errorlevel 1 (
     echo HINWEIS: ProjectOS-Projektaktionen konnten nicht registriert werden.
+    echo Das Z_Cockpit wird trotzdem geoeffnet.
 )
 
 rem Repositoryzustand fuer den Fehlerbericht erfassen. Ein gesperrter Zustand
