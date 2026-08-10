@@ -17,8 +17,8 @@ from .projectos_user_lifecycle import ProjectOSUserLifecycleEvaluator
 from .projectos_user_reactivation import ProjectOSUserReactivation
 from .projectos_user_project_roles import ProjectOSUserProjectRole
 
-USER_MANAGEMENT_PERSISTENCE_VERSION = 4
-LEGACY_USER_MANAGEMENT_PERSISTENCE_VERSIONS = {1, 2, 3}
+USER_MANAGEMENT_PERSISTENCE_VERSION = 5
+LEGACY_USER_MANAGEMENT_PERSISTENCE_VERSIONS = {1, 2, 3, 4}
 
 DERIVED_NOT_PERSISTED = (
     "authorization_evaluations", "simulations", "z_cockpit_views", "attention_items",
@@ -55,6 +55,8 @@ class ProjectOSUserManagementState:
         self._validate_unique("termination_id", self.role_assignment_terminations); self._validate_unique("activation_id", self.activations)
         self._validate_unique("deactivation_id", self.deactivations); self._validate_unique("action_id", self.approval_requests)
         self._validate_unique("approval_id", self.approvals); self._validate_unique("review_id", self.post_reviews)
+        github_logins = [item.github_login.casefold() for item in self.users if item.github_login]
+        if len(github_logins) != len(set(github_logins)): raise ValueError("github_login already assigned to another user")
         revoked_assignment_ids = [item.assignment_id for item in self.permission_revocations]
         if len(revoked_assignment_ids) != len(set(revoked_assignment_ids)): raise ValueError("permission assignment already revoked")
         terminated_role_ids = [item.role_assignment_id for item in self.role_assignment_terminations]
@@ -139,7 +141,7 @@ class ProjectOSUserManagementState:
             value = data.get(name, [])
             if not isinstance(value, list) or any(not isinstance(item, dict) for item in value): raise ValueError(f"{name} must be a list of objects")
             return value
-        users = tuple(ProjectOSUserProfile(user_id=item["user_id"], display_name=item["display_name"], weight=item.get("weight", 100), roles=tuple(item.get("roles", ()))) for item in rows("users"))
+        users = tuple(ProjectOSUserProfile(user_id=item["user_id"], display_name=item["display_name"], weight=item.get("weight", 100), roles=tuple(item.get("roles", ())), github_login=item.get("github_login")) for item in rows("users"))
         user_deactivations = tuple(ProjectOSUserDeactivation(**item) for item in rows("user_deactivations")) if version >= 3 else ()
         user_reactivations = tuple(ProjectOSUserReactivation(**item) for item in rows("user_reactivations")) if version >= 4 else ()
         permissions = tuple(ProjectOSPermissionAssignment(**item) for item in rows("permission_assignments"))
