@@ -1,8 +1,6 @@
 # Z_Cockpit erzeugen und testen
 
-`Z_Cockpit` ist die zentrale, tabellenbasierte Bibliotheks- und Geräteübersicht der KiCad DIN Electrical Suite.
-
-Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der technische Gerätekatalog unter `data/devices/` bleibt die einzige Datenquelle für Geräte.
+`Z_Cockpit` ist die zentrale, tabellenbasierte Projekt-, Bibliotheks- und Geräteübersicht der KiCad DIN Electrical Suite.
 
 ## Erzeugen
 
@@ -10,23 +8,21 @@ Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der te
 python -m tools.generate_z_cockpit
 ```
 
-Die Ausgabe wird hier abgelegt:
+Ausgabe:
 
 ```text
 docs/site/z-cockpit.html
 ```
 
-`docs/site/z-cockpit.html` ist ein **lokal erzeugtes Arbeitsartefakt**. Die Datei wird über `.gitignore` ausgeschlossen und nicht committed.
+Die HTML-Datei ist ein lokal erzeugtes Arbeitsartefakt und wird nicht als zweite Datenquelle gepflegt.
 
-Der Modulaufruf ist verbindlich, weil der Generator gemeinsame Funktionen aus dem Python-Paket `tools` verwendet.
-
-Für die Benutzerverwaltungsansicht kann zusätzlich ein vorhandenes ProjectOS-v4-Projektbundle explizit angebunden werden:
+Für echte ProjectOS-Benutzer- und Berechtigungsdaten kann ein ProjectOS-v4-Projektbundle angebunden werden:
 
 ```text
 python -m tools.generate_z_cockpit --project-bundle <projektdatei>
 ```
 
-Ohne diese Option werden keine Benutzer erfunden; die Benutzerseite zeigt einen klaren Leerzustand.
+Ohne Projektbundle werden weder Benutzer noch ProjectOS-Berechtigungen erfunden. Repositorydaten wie die Entwickler-Whitelist bleiben trotzdem sichtbar.
 
 ## Unter Windows öffnen
 
@@ -34,30 +30,15 @@ Ohne diese Option werden keine Benutzer erfunden; die Benutzerseite zeigt einen 
 tools\windows\open_z_cockpit.bat
 ```
 
-Alternativ direkt aus PowerShell mit der Projektumgebung:
+Alternativ:
 
 ```powershell
 .\.venv\Scripts\python.exe -m tools.generate_z_cockpit
 ```
 
-Danach im Browser bei Bedarf `Strg+F5` für einen harten Reload.
+## Zentrale Seitenregistrierung
 
-## Modulare Seitenarchitektur
-
-Die zentrale Seitendefinition liegt unter:
-
-```text
-tools/z_cockpit/pages.py
-```
-
-Jede Seite besitzt:
-
-- eine stabile technische Seiten-ID;
-- eine deutsche Bezeichnung;
-- eine deutsche Kurzbeschreibung;
-- einen Status, ob die Seite bereits umgesetzt ist.
-
-Aktuell umgesetzt:
+Die Navigation wird aus `tools/z_cockpit/pages.py` erzeugt. Aktuell umgesetzt sind:
 
 - Start;
 - Geräte;
@@ -66,15 +47,16 @@ Aktuell umgesetzt:
 - Qualität;
 - Diagnose;
 - Benutzer;
+- Berechtigungen;
 - Sicherheit;
 - Dokumentation;
 - Einstellungen.
 
-Die Seitenregistrierung bleibt die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
+Neue Bereiche werden dort registriert und nicht als unabhängige Nebenoberflächen aufgebaut.
 
 ## Einheitliche Seitenköpfe
 
-Die Bibliotheksansicht ist die visuelle Referenz für den oberen Bereich einer Cockpit-Seite.
+Visuelle Referenz ist die Bibliotheksansicht.
 
 Verbindliches Muster:
 
@@ -82,230 +64,156 @@ Verbindliches Muster:
 Seitentitel (kurze Erklärung zum Menüpunkt)
 ```
 
-Die Erklärung steht in kleinerer, zurückhaltender Schrift in derselben Überschriftszeile. Eine zusätzliche zweite Erklärungszeile unmittelbar unter dem ersten Seitentitel soll vermieden werden.
+Die Erklärung steht kleiner in derselben Zeile. Eine zusätzliche Erklärungszeile direkt unter dem Titel wird vermieden. Filter-/Arbeitslisten stehen links beziehungsweise im Hauptbereich; ein fester Eigenschaftenbereich rechts wird verwendet, wenn er fachlich sinnvoll ist.
 
-`Einstellungen`, `Sicherheit` und `Benutzerverwaltung` verwenden dieses Muster direkt in ihrem Seitenmarkup. Für bestehende Seiten, die noch einen erklärenden Absatz direkt hinter der ersten `h2`-Überschrift liefern, normalisiert das erzeugte Z_Cockpit diese Darstellung auf dasselbe Muster. Damit werden Start, Qualität, Hersteller, Diagnose und Dokumentation ebenfalls einheitlich dargestellt.
+## Datenquellen
 
-`Geräte` und `Bibliotheken` werden strukturell nicht umgebaut, da ihr oberer Arbeitsbereich bereits dem freigegebenen Bedienkonzept entspricht.
+Das Cockpit führt keine zweite fachliche Datenhaltung ein.
 
-Die Sicherheitsseite erhält zusätzlich keinen separaten oberen Tabellenabstand mehr, damit der sichtbare Inhalt auf derselben Höhe beginnt wie in der Bibliotheksansicht.
+Wichtige Quellen sind:
 
-## Geräteansicht
+- Gerätekatalog unter `data/devices/`;
+- KiCad-Symbol- und Footprintbibliotheken;
+- `project_state.yaml`;
+- ProjectOS-Projektvalidator und Projektanalyse;
+- vorhandene Markdown-Dokumentation;
+- optional `ProjectOSUserManagementState` aus einem ProjectOS-v4-Projektbundle;
+- Repository-Entwickler-Whitelist unter `config/authorized_developers.json`.
 
-Die Geräteansicht ist tabellenbasiert und enthält:
+## Geräte
 
-- Filter für Gerätefamilie, Hersteller, Polzahl, Charakteristik, Nennstrom und Status;
-- technische Geräte-ID;
-- Symbol- und Footprint-Zuordnung;
-- Zeilenauswahl;
-- statischen Eigenschaftenbereich rechts;
-- Symbolvorschau;
-- Footprintvorschau bzw. technischen Vorschau-/Statushinweis.
+Die Geräteansicht bietet Filter für Gerätefamilie, Hersteller, Polzahl, Charakteristik, Nennstrom und Status. Technische Geräte-ID, Symbol, Footprint und Vorschauen bleiben sichtbar.
 
-## Bibliotheksansicht
+## Bibliotheken
 
-Die Bibliotheksansicht verwendet dieselbe tabellenorientierte Bedienlogik.
+Die Bibliotheksansicht ist tabellenbasiert. Bibliotheksdetails werden direkt unter der ausgewählten Bibliothek geöffnet. Rechts bleibt der Symbolinspektor fest stehen; nur lange Geräte-ID-Listen scrollen separat.
 
-Der obere Bereich enthält keine separaten Summary-Kacheln mehr. Die Gesamtwerte stehen in den Filterbezeichnungen.
+## Hersteller
 
-Fest im oberen Bereich bleiben:
+Die Herstellerseite aggregiert Hersteller, Serien, Gerätefamilien, Quellenstatus und technische Geräte-IDs read-only aus dem Gerätekatalog. `Generic` wird in der Oberfläche als `Herstellerneutral` dargestellt.
 
-- Überschrift mit Kurzbeschreibung in Klammern;
-- `Bibliotheksliste`;
-- Filter.
+## Qualität
 
-Nur die Bibliothekstabelle scrollt.
+Die Qualitätsseite verbindet:
 
-Ein Klick auf eine Bibliothekszeile öffnet direkt darunter den Bibliotheksdetailbereich mit Symboltabelle. Es ist immer nur eine Bibliothek gleichzeitig geöffnet.
+- ProjectOS-Projektkonsistenz aus `tools.project_validator`;
+- Bibliotheksgesundheit aus der Quality Engine.
 
-Rechts befindet sich ein dauerhaft verankerter Eigenschaftenbereich für das ausgewählte Symbol. Dort werden angezeigt:
+Der Projektvalidator liefert die stabilen Prüfungen `PRJ-001` bis `PRJ-010`.
 
-- Bibliothek;
-- Symbol;
-- Geräteanzahl;
-- Footprint;
-- Symbolvorschau;
-- Geräte-IDs.
+## Diagnose
 
-Die Eigenschaften und die Symbolvorschau bleiben fest stehen. Die Geräte-IDs liegen darunter in einem eigenen vertikal scrollbareren Bereich. Lange IDs werden umgebrochen; die Symboltabelle muss deshalb nicht wegen der Geräte-IDs horizontal erweitert werden.
+Die Diagnoseansicht bündelt repositoryweite Befunde aus Projektvalidator und Projektanalyse. Fehler und Warnungen können gefiltert werden; der rechte Bereich zeigt Prüfcode, Referenz, Details und vorhandene Reparaturempfehlung.
 
-Beim Öffnen einer Bibliothek wird das erste Symbol automatisch ausgewählt. Andere Symbolzeilen können per Maus sowie Enter/Leertaste gewählt werden.
+## Benutzer
 
-## Herstelleransicht
-
-Die Herstellerseite ist eine read-only Auswertung des technischen Gerätekatalogs. Sie führt keine zweite Herstellerdatenbank ein.
-
-Aus den vorhandenen Gerätedaten werden dynamisch aggregiert:
-
-- Hersteller;
-- Produktserien;
-- Geräteanzahl je Hersteller und Serie;
-- zugeordnete Gerätefamilien;
-- Quellenstatus;
-- technische Geräte-IDs.
-
-`Generic` wird in der Oberfläche als `Herstellerneutral` angezeigt, während der originale Katalogwert im Eigenschaftenbereich sichtbar bleibt.
-
-Der linke Bereich enthält eine filterbare Herstellertabelle mit Filtern für Hersteller, Serie, Gerätefamilie und Quellenstatus. Ein ausgewählter Hersteller wird rechts in einem festen Eigenschaftenbereich dargestellt. Dort stehen die Serienübersicht sowie darunter eine separat scrollbarere Liste der zugeordneten Geräte-IDs.
-
-Die bestehenden ProjectOS-Domänenmodelle `Manufacturer`, `ProductSeries` und `ManufacturerProduct` bleiben davon getrennt. Die Cockpit-Seite liest ausschließlich den bestehenden Gerätekatalog; spätere persistierte Herstellerverwaltung kann auf diesen Domainobjekten aufbauen, ohne die Katalogauswertung zu duplizieren.
-
-## Diagnoseansicht
-
-Die Diagnose-Seite ist eine read-only Arbeitsliste für bereits erkannte Repositorybefunde. Sie führt keine automatische Reparatur aus.
-
-Sie verbindet zwei bestehende Prüfpfade:
-
-- den **ProjectOS-Projektvalidator** mit den stabilen `PRJ-*`-Prüfungen für Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände und Cockpit-Struktur;
-- die bereits vorhandene **repositoryweite Projektanalyse** für Geräte-IDs, Symbolreferenzen, Footprints, Symbol-/Footprintvorschauen und ungenutzte Symbole.
-
-Die Befunde werden nach Fehlern und Warnungen priorisiert und können nach Status, Quelle und Bereich gefiltert werden. Ein ausgewählter Befund zeigt rechts dauerhaft Prüfcode, Referenz, Meldung, zusätzliche Details und die vorhandene Reparaturempfehlung.
-
-Die ProjectOS-Wissensgraph-Diagnostik unter `distributions/projectos_knowledge_diagnostics.py` und `distributions/z_cockpit_diagnostics_worklist.py` bleibt ein separater Laufzeitpfad. Da das statisch erzeugte Z_Cockpit derzeit keine persistierte `ProjectOSProjectMemory`-Instanz lädt, werden dort keine Laufzeitbefunde erfunden. Eine spätere Persistenzanbindung kann diese Diagnosen ergänzen.
-
-## Benutzerverwaltung
-
-Die Benutzerseite ist eine read-only Sicht auf den bestehenden `ProjectOSUserManagementState`. Sie führt keine zweite Benutzer- oder Rechtequelle ein.
+Die Benutzerseite ist eine read-only Sicht auf den bestehenden `ProjectOSUserManagementState`.
 
 Angezeigt werden:
 
 - Benutzername und technische `user_id`;
-- Status `Aktiv` oder `Deaktiviert` aus dem vorhandenen Lifecycle-Evaluator;
-- Profilrollen und aktive Projektrollen;
-- effektive Berechtigungsentscheidungen;
-- Rechteherkunft wie Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist oder Blacklist;
-- Risikoklasse, aktive Quellen und Widerrufe je Recht;
-- chronologische Lifecycle-Ereignisse.
+- Lifecycle-Status `Aktiv` / `Deaktiviert`;
+- Profil- und Projektrollen;
+- effektive Rechte;
+- Rechteherkunft;
+- Risikoklassen und Widerrufe;
+- Lifecycle-Ereignisse.
 
-Links stehen Suche und Filter nach Status, Rolle und Berechtigungszustand zur Verfügung. Rechts bleibt der Eigenschaftenbereich fest; Rechte und Lifecycle-Details besitzen eigene scrollbare Bereiche.
-
-Die Standarderzeugung ohne Projektbundle zeigt bewusst keine Beispielbenutzer. Echte Benutzerverwaltungsdaten können ausschließlich über ein explizit angegebenes ProjectOS-v4-Projektbundle geladen werden.
-
-Schreibende Benutzeraktionen werden nicht in JavaScript implementiert. Anlegen, Bearbeiten, Deaktivieren, Reaktivieren sowie spätere Rollen-/Rechteänderungen müssen über die vorhandenen autorisierten ProjectOS-Change-/Command-Services laufen.
-
-Technische Details stehen unter:
+Technische Details:
 
 ```text
 docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
 ```
 
-## Dokumentationsansicht
+## Berechtigungen
 
-Die Dokumentationsseite ist ein read-only Browser für die bereits vorhandene Markdown-Dokumentation des Repositories. Sie führt keine zweite Dokumentationsdatenbank ein.
+Die Berechtigungsseite trennt zwei Sicherheitsquellen strikt:
 
-Beim Erzeugen des Z_Cockpits werden automatisch erfasst:
+### ProjectOS-Benutzerberechtigungen
 
-- Markdown-Dateien unter `docs/` einschließlich Projektgrundlagen, Roadmap, Benutzer-, Entwickler- und Referenzdokumentation;
-- `docs/projectos/` als eigener Bereich `ProjectOS`;
-- `docs/handover/` als eigener Bereich `Übergaben`;
-- vorhandene zentrale Markdown-Dateien im Repository-Stamm wie `README.md`, `CONTRIBUTING.md`, `SECURITY.md` und `CHANGELOG.md`.
+Aus `ProjectOSUserManagementState` werden die vorhandenen Rechtezuweisungen mit folgenden Quellen ausgewertet:
 
-Aus jeder vorhandenen Datei werden Titel, Bereich, Repositorypfad, Zeilenanzahl, Dateigröße und eine kurze Inhaltsbeschreibung abgeleitet. Die linke Tabelle kann per Freitext und Dokumentationsbereich gefiltert werden. Ein ausgewähltes Dokument zeigt rechts die Metadaten und einen relativen Direktlink zur Originaldatei.
+- Rolle;
+- direkte Zuweisung;
+- Delegation;
+- DENY;
+- Ausnahme;
+- Whitelist;
+- Blacklist.
 
-Damit bleiben die Markdown-Dateien selbst Single Source of Truth. Neue Dokumente erscheinen beim nächsten Erzeugen des Z_Cockpits automatisch im Browser, ohne dass sie zusätzlich in einer Cockpit-Liste gepflegt werden müssen.
+Sichtbar sind Benutzer, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus sowie die effektive Autorisierungsentscheidung.
+
+Die effektive Entscheidung wird durch den bestehenden `ProjectOSAuthorizationEvaluator` bestimmt. Ein wirksames DENY/Blacklist bleibt vorrangig.
+
+### Repository-Entwickler-Whitelist
+
+Die getrennte Repositoryquelle bleibt:
+
+```text
+config/authorized_developers.json
+```
+
+Das Cockpit zeigt Schema, Anzahl und GitHub-Benutzernamen, importiert diese Liste aber nicht in ProjectOS.
+
+### Schreibgrenze
+
+Das statische Cockpit schreibt keine Berechtigungen. ProjectOS-Änderungen müssen über `ProjectOSUserManagementChangeService` und die fail-closed `ProjectOSUserManagementCommandAuthorization` laufen. Repository-Whitelist-Änderungen erfolgen als versionierte Repository-Änderung mit anschließender Validator-/CI-Prüfung.
+
+Technische Details:
+
+```text
+docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
+```
+
+## Sicherheit
+
+Die Sicherheitsseite zeigt Repository-, Versions-, Originalitäts-, Entwickler-Whitelist-, CODEOWNERS- und Ruleset-Status. Ein vorhandener Ruleset-Entwurf bedeutet weiterhin nicht, dass der serverseitige Ruleset aktiviert ist.
+
+## Dokumentation
+
+Der Dokumentationsbrowser indexiert vorhandene Markdown-Dateien aus dem Repository. Die Markdown-Dateien selbst bleiben Single Source of Truth.
 
 ## Einstellungen
 
-Die Einstellungsseite trennt strikt zwischen Projektkonfiguration und lokaler Benutzeroberfläche.
+Projektwerte werden read-only aus Repositoryquellen angezeigt. Lokale Oberflächenoptionen wie Theme, Tabellendichte und letzte Seite werden ausschließlich im Browser unter `z-cockpit.settings.v1` gespeichert.
 
-**Projektwerte sind read-only** und werden aus bestehenden Quellen dargestellt. Dazu gehören unter anderem:
+## Prüfung
 
-- Projektname, Projektsprache, Entwicklungsphase und Zielrelease aus `project_state.yaml`;
-- Pfade zu Gerätekatalog, Symbolbibliotheken, Footprints und Dokumentation;
-- Ausgabepfad des Z_Cockpits;
-- Python-Mindestversion und Generatoraufruf als Entwicklerhinweis.
+Die Tests prüfen unter anderem:
 
-Das statische Z_Cockpit schreibt diese Werte nicht zurück in das Repository. Dadurch entsteht keine zweite Konfigurationsquelle.
+- zentrale Seitenregistrierung und eindeutige Seiten-IDs;
+- Gerätekatalog- und Bibliotheksintegration;
+- Herstelleraggregation;
+- Projektvalidator/Qualität;
+- Diagnoseansicht;
+- Benutzeraggregation, Rollen, Lifecycle und effektive Rechte;
+- ProjectOS-Whitelist/Blacklist/Ausnahmen und Widerrufe;
+- getrennte Repository-Entwickler-Whitelist;
+- HTML-Escaping;
+- Dokumentationsbrowser;
+- lokale Einstellungen;
+- einheitliche Seitenköpfe;
+- Entwicklungsnavigator und Projektstatus.
 
-**Lokale Oberflächenoptionen** werden ausschließlich im Browser unter dem Schlüssel `z-cockpit.settings.v1` gespeichert:
+GitHub Actions erzeugt das Cockpit bei der vollständigen ProjectOS-Prüfkette und führt zusätzlich den Projektvalidator aus.
 
-- Erscheinungsbild: Systemeinstellung, hell oder dunkel;
-- Tabellendichte: Standard oder kompakt;
-- optional zuletzt geöffneten Cockpit-Bereich wiederherstellen;
-- Entwicklerdetails ein- oder ausblenden.
+## Aktueller Entwicklungsstand
 
-Diese lokalen Optionen verwenden Browser-`localStorage` und verändern keine Projektdateien. Über `Lokale Einstellungen zurücksetzen` kann der gespeicherte Zustand vollständig entfernt werden. Falls `localStorage` nicht verfügbar ist, werden die Einstellungen für die laufende Seite angewendet, aber nicht dauerhaft gespeichert.
+Benutzerverwaltung sowie Whitelist-/Berechtigungsverwaltung sind umgesetzt. Im zentralen Projektmodell ist als nächster Z_Cockpit-Ausbau geplant:
 
-## Projektstatus und Qualität
+```text
+Issue- und Fehlermeldungsworkflow integrieren
+```
 
-Die Startseite liest das zentrale Projektmodell aus `project_state.yaml` und zeigt Projektfortschritt, nächste Aufgaben und Projektbestandteile.
-
-Die Qualitätsseite verbindet zwei Ebenen:
-
-- **Projektkonsistenz** aus `tools.project_validator` mit stabilen `PRJ-*`-Prüfungen;
-- **Bibliotheksgesundheit** aus der bestehenden Quality Engine für Gerätezuordnungen, Footprints und Vorschauen.
-
-Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
-
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose-, Dokumentations-, Einstellungs- und Benutzeransicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
-
-## Nächste Ausbaustufe
-
-Von der festgelegten dreistufigen Ausbaureihenfolge ist die Benutzerverwaltung abgeschlossen. Als nächste Arbeiten stehen im zentralen Projektmodell:
-
-1. `whitelist_verwaltung` – Whitelist- und Berechtigungsverwaltung integrieren;
-2. `issue_fehlermeldung` – Issue- und Fehlermeldungsworkflow integrieren.
-
-Die vollständige fachliche Spezifikation liegt unter:
+Die fachliche Reihenfolge und Datenschutz-/Sicherheitsanforderungen dafür sind dokumentiert unter:
 
 ```text
 docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
 ```
 
-Wichtig bleibt die Trennung zweier Whitelist-Konzepte:
-
-- ProjectOS-Benutzer-Whitelist als Teil des Berechtigungsmodells;
-- Repository-Entwickler-Whitelist aus `config/authorized_developers.json`.
-
-Der geplante Issue-/Fehlermeldungsworkflow soll Diagnosedaten reproduzierbar zusammenstellen, vor externer Weitergabe sichtbar machen und passende GitHub-Issue-Vorlagen vorbereiten. Zugangstokens, Schlüssel und unnötige personenbezogene Daten dürfen nicht automatisch in Fehlerberichte aufgenommen werden.
-
-## Prüfung
-
-Die automatisierten Tests prüfen unter anderem:
-
-- Übernahme der echten Kataloggeräte;
-- deutsche Standardanzeige;
-- Gerätefilter und technische Geräte-ID;
-- Symbol- und Footprint-Zuordnung;
-- Bibliotheksfilter;
-- aufklappbare Bibliotheksdetails;
-- statischen Symbolinspektor;
-- separates Scrollverhalten der Geräte-ID-Liste;
-- Hersteller-/Serienaggregation aus dem Gerätekatalog;
-- Herstellerfilter und statischen Herstellerinspektor;
-- Diagnoseaggregation aus Projektvalidator und Projektanalyse;
-- Diagnosefilter, Detailinspektor und HTML-Escaping;
-- Benutzeraggregation aus `ProjectOSUserManagementState`;
-- Lifecycle-, Rollen- und Berechtigungsentscheidungen der Benutzerseite;
-- Benutzerfilter, festen Inspektor und HTML-Escaping;
-- leeren Benutzerzustand ohne erfundene Daten;
-- automatische Markdown-Erfassung für den Dokumentationsbrowser;
-- Dokumentationssuche, Bereichsfilter, Direktlinks und HTML-Escaping;
-- read-only Projektwerte der Einstellungsseite;
-- lokale Browseroptionen, `localStorage`-Schlüssel und Reset-Funktion;
-- einheitliche kompakte Seitenköpfe nach Bibliotheksmuster;
-- eindeutige Seiten-IDs;
-- zentrale Seitenregistrierung;
-- Projektstatus-, Qualitäts- und Sicherheitsintegration;
-- Projektvalidator und maschinenlesbaren Konsistenzbericht;
-- HTML-Escaping von Repositorydaten.
-
-GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und prüft die relevanten Repository-, Generator-, Qualitäts- und KiCad-Verträge. Zusätzlich wird `build/Z_PROJECT_VALIDATION.json` als maschinenlesbarer Projektvalidator-Bericht erzeugt.
-
-## Aktueller Entwicklungsstand
-
-Die lokale HTML-Anwendung besitzt jetzt: Start, Geräte, Bibliotheken, Hersteller, Qualität, Diagnose, Benutzer, Sicherheit, Dokumentation und Einstellungen.
-
-Als nächste fachliche Arbeiten sind geplant:
-
-- Whitelist-/Berechtigungsverwaltung;
-- Issue-/Fehlermeldungsworkflow.
-
-Separat offen bleiben:
+Separat offen bleiben weiterhin:
 
 - 3D-Vorschauen;
 - direkte KiCad-Editoraufrufe;
-- Persistenzanbindung für Laufzeitdiagnosen;
+- Persistenzanbindung der Laufzeit-Wissensgraphdiagnosen;
 - serverseitige GitHub-Ruleset-Aktivierung nach separater Freigabe.
-
-Der visuell freigegebene Bibliotheksstand ist unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert. Die Kopfzeilenvereinheitlichung und die Ausbaureihenfolge sind zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md` gesichert.
