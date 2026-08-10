@@ -48,11 +48,7 @@ Die vorhandenen ProjectOS-Bausteine für Benutzer, Rollen, Berechtigungen, Benut
 python -m tools.generate_z_cockpit --project-bundle <projektdatei>
 ```
 
-Detaildokumentation:
-
-```text
-docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
-```
+Detaildokumentation: `docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md`.
 
 ## Whitelist- und Berechtigungsverwaltung
 
@@ -60,52 +56,54 @@ Der Navigationspunkt `Berechtigungen` zeigt ProjectOS-Berechtigungszuweisungen i
 
 Die Repository-Entwickler-Whitelist aus `config/authorized_developers.json` bleibt davon strikt getrennt. Das statische Cockpit schreibt keine Rechte oder Entwicklerfreigaben.
 
-Detaildokumentation:
-
-```text
-docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
-```
+Detaildokumentation: `docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md`.
 
 ## Issue- und Fehlermeldungsworkflow
 
-Der Navigationspunkt `Fehler melden` erzeugt einen strukturierten lokalen Markdown-Bericht mit:
+Der Navigationspunkt `Fehler melden` erzeugt einen strukturierten lokalen Markdown-Bericht. Projekt-, Diagnose-, Sicherheits- und Repositoryprüfdaten können kontrolliert ergänzt werden. Die sichtbare Berichtsvorschau bleibt die Übergabegrenze; sensible Benutzer-/Berechtigungsbestände, Tokens, Passwörter, Schlüssel und ungeprüfte Dateiinhalte werden nicht automatisch übernommen.
 
-- Fehlerkategorie;
-- Kurztitel und technischer Referenz;
-- Beschreibung und Reproduktionsschritten;
-- erwartetem und tatsächlichem Verhalten;
-- optionaler Projekt-/ProjectOS-Version;
-- optionaler Diagnosezusammenfassung mit `PRJ-*`-/Analysebefunden;
-- optionalem Sicherheitsstatus;
-- optionalem Ergebnis der Repositoryprüfung.
+`GitHub-Issue vorbereiten` kopiert den geprüften Bericht und öffnet das offizielle GitHub-Issue-Formular; das Issue wird nicht automatisch abgesendet.
 
-Die sichtbare Berichtsvorschau ist die Übergabegrenze. Benutzer-/Berechtigungsbestände, authentifizierter GitHub-Benutzer, Tokens, Passwörter, Schlüssel und ungeprüfte Dateiinhalte werden nicht automatisch in den Bericht übernommen.
+Detaildokumentation: `docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md`.
 
-Der lokale Bericht kann kopiert oder als Markdown-Datei gespeichert werden. Die GitHub-Vorbereitung wird nur freigegeben, wenn `tools.check_repository_version` einen zulässigen Repositoryzustand bestätigt, Kurztitel und Beschreibung vorhanden sind und der Benutzer die Vorschau ausdrücklich geprüft hat.
+## 3D-Vorschauen und Modellabdeckung – umgesetzt
 
-`GitHub-Issue vorbereiten` kopiert den Bericht und öffnet das offizielle GitHub-Issue-Formular; das Issue wird nicht automatisch abgesendet.
+Die Geräte- und Bibliotheksansicht wertet jetzt vorhandene KiCad-3D-Modellreferenzen und technische F.Fab-Hüllgeometrie aus.
 
-Der Windows-Starter führt die Repositoryprüfung vor dem Erzeugen des Cockpits automatisch aus. Ein gesperrter Prüfzustand blockiert nur die GitHub-Vorbereitung, nicht den lokalen Bericht.
+Verbindliche Statuswerte:
 
-Technische Dateien:
+- `Modell`: echte KiCad-`model`-Referenz und vorhandene Repositorydatei;
+- `Modellreferenz fehlt`: Referenz vorhanden, Datei nicht auflösbar;
+- `Hüllkörper`: kein echtes Modell, aber technische Vorschau aus bereits vorhandener `F.Fab`-Kontur;
+- `Fehlt`: weder Modell noch verwertbare Hüllgeometrie;
+- `Nicht zugeordnet`: kein Footprint zugeordnet.
+
+Eine Hüllkörper-Vorschau zählt ausdrücklich **nicht** als echtes 3D-Modell. Es werden keine Produktgehäuse oder Herstellergeometrien erfunden.
+
+Technische Quellen und Dateien:
 
 ```text
-tools/z_cockpit/issue_report_page.py
-.github/ISSUE_TEMPLATE/bug_report.yml
-docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md
+3dmodels/Z_3DModell.3dshapes/
+tools/generate_3d_previews.py
+tools/z_cockpit/three_d_preview.py
+docs/site/3d-previews/
+docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md
 ```
+
+Die Startseite zeigt getrennte Kennzahlen für echte 3D-Modelle und technische 3D-Vorschauen. Geräte erhalten im festen rechten Bereich eine dritte Vorschaukarte. Bibliotheken erhalten 3D-Status, 3D-Filter, Abdeckungszahlen und die technische Vorschau im vorhandenen Inspektor; die freigegebene Bibliotheksarbeitslogik und der separate Geräte-ID-Scrollbereich bleiben erhalten.
+
+Der Windows-Starter aktualisiert die 3D-Vorschauen vor dem Öffnen des Cockpits. CI und Release prüfen die deterministischen Vorschauen mit `python tools/generate_3d_previews.py --check`.
 
 ## Projektmodell
 
-`benutzerverwaltung`, `whitelist_verwaltung` und `issue_fehlermeldung` stehen in `project_state.yaml` auf `done`.
+`benutzerverwaltung`, `whitelist_verwaltung`, `issue_fehlermeldung` und `3d_vorschauen` stehen in `project_state.yaml` auf `done`.
 
 Damit ist aktuell keine normale `planned`- oder `in_progress`-Aufgabe im zentralen Projektmodell offen. Der Entwicklungsnavigator zeigt entsprechend `Keine ausführbare Aufgabe offen.`
 
 ## Separat offen
 
-Unabhängig von diesem abgeschlossenen Dreierpaket bleiben weiterhin separat offen:
+Nach Abschluss der 3D-Vorschauen bleiben als technische Folgepunkte:
 
-- 3D-Vorschauen;
 - direkte KiCad-Editoraufrufe;
 - Persistenzanbindung der Laufzeitdiagnosen;
 - GitHub-Ruleset-Aktivierung (`blocked`, separate gemeinsame Freigabe erforderlich).
