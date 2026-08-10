@@ -135,11 +135,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 540
-  last_successful_commit: 44bc9d82c2b9d9abbf3a36cd46f79f41d32860c1
-  result: pending_runtime_diagnostics_persistence_final_head
+  last_successful_run_number: 542
+  last_successful_commit: 37f527a86884a9e9977dd6f11cd4ce6a439ad169
+  result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Persistenzanbindung der Laufzeitdiagnosen ist implementiert; die finale CI-Pruefung des Runtime-Diagnose-Branches steht vor dem Merge aus. Persistiert werden nur Wissensgraph-Quellen und Referenz-IDs, nicht die abgeleiteten Diagnoseergebnisse."
+  note: "Persistenzanbindung der Laufzeitdiagnosen auf PR #198 mit CI #542 erfolgreich geprueft. Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Persistiert werden nur Wissensgraph-Quellen und Referenz-IDs; abgeleitete Diagnosen werden neu berechnet."
