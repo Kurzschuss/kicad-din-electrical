@@ -115,15 +115,56 @@ Detaildokumentation:
 docs/03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md
 ```
 
+## Persistierte Laufzeitdiagnosen – umgesetzt
+
+Die bisher ausschließlich im Speicher vorhandene `ProjectOSProjectMemory` kann jetzt als lokaler, versionierter Runtime-Snapshot persistiert und vom Z_Cockpit wieder eingelesen werden.
+
+Verbindlicher Grundsatz:
+
+```text
+Quelle persistieren – Diagnose reproduzierbar neu berechnen
+```
+
+Persistiert werden:
+
+- ProjectOS-Wissensknoten;
+- typisierte Wissensbeziehungen;
+- bekannte Message-IDs;
+- bekannte Correlation-IDs;
+- Speicherzeitpunkt.
+
+Nicht persistiert werden abgeleitete Diagnoseergebnisse, Ampelzustände, Schweregrad-Zählungen oder Reparaturempfehlungen.
+
+Lokaler Standardpfad:
+
+```text
+build/PROJECTOS_RUNTIME_MEMORY.json
+```
+
+`build/` bleibt durch `.gitignore` ausgeschlossen. Fehlt die Datei, bleiben Projektvalidator und repositoryweite Projektanalyse vollständig verfügbar; die fehlende Runtimequelle ist nicht blockierend.
+
+Beim Erzeugen des Cockpits wird ein vorhandener Snapshot validiert und über die bestehende `ZCockpitDiagnosticsWorklistView` erneut analysiert. Laufzeitbefunde erscheinen als Quelle `Laufzeitdiagnose` und erhalten `RT-*`-Codes. Ein fehlerfreier persistierter Graph wird als nicht blockierender `RT-OK`-Hinweis sichtbar.
+
+Technische Dateien:
+
+```text
+distributions/projectos_project_memory_persistence.py
+tools/z_cockpit/runtime_diagnostics.py
+docs/03_Developer/Z_COCKPIT_LAUFZEITDIAGNOSEN.md
+```
+
+Die bestehende ProjectOS-Projektbundle-v4-Persistenz für Benutzerverwaltung bleibt unverändert. Der Wissensgraph-Snapshot ist bewusst ein separater lokaler Runtime-Zustand und erzwingt keine Migration vorhandener Projektdateien.
+
 ## Projektmodell
 
-`benutzerverwaltung`, `whitelist_verwaltung`, `issue_fehlermeldung`, `3d_vorschauen` und `kicad_editoraufrufe` stehen in `project_state.yaml` auf `done`.
+`benutzerverwaltung`, `whitelist_verwaltung`, `issue_fehlermeldung`, `3d_vorschauen`, `kicad_editoraufrufe` und `runtime_diagnostics_persistence` stehen in `project_state.yaml` auf `done`.
 
 Damit ist aktuell keine normale `planned`- oder `in_progress`-Aufgabe im zentralen Projektmodell offen. Der Entwicklungsnavigator zeigt entsprechend `Keine ausführbare Aufgabe offen.`
 
 ## Separat offen
 
-Nach Abschluss der KiCad-Editoraufrufe bleibt als nächster technischer Folgepunkt:
+Die bisher dokumentierten normalen Z_Cockpit-Folgepunkte sind abgeschlossen. Separat offen bleibt nur:
 
-- Persistenzanbindung der Laufzeitdiagnosen;
 - GitHub-Ruleset-Aktivierung (`blocked`, separate gemeinsame Freigabe erforderlich).
+
+Neue fachliche oder technische Arbeiten müssen künftig wieder explizit als neuer Ausbaupunkt geplant werden; der blockierte Ruleset wird nicht automatisch als nächste Aufgabe gewählt.
