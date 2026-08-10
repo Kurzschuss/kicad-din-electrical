@@ -10,7 +10,7 @@ from .diagnostics_page import (
     DiagnosticEntry,
     DiagnosticsSnapshot,
     collect_diagnostics,
-    diagnostics_page_html,
+    diagnostics_page_html as _diagnostics_page_html,
 )
 from .documentation_page import (
     DocumentationEntry,
@@ -69,6 +69,12 @@ from .quality_engine import (
     evaluate_libraries,
     evaluate_library,
 )
+from .runtime_diagnostics import (
+    DEFAULT_RUNTIME_MEMORY_PATH,
+    RuntimeDiagnosticsSnapshot,
+    collect_runtime_diagnostics,
+    merge_runtime_diagnostics,
+)
 from .security_page import security_page_html, security_state_label, security_table_html
 from .security_status import SecurityItem, collect_security_status
 from .settings_page import (
@@ -118,6 +124,15 @@ def user_management_page_html(snapshot: UserManagementSnapshot | None = None) ->
     )
 
 
+def diagnostics_page_html(
+    snapshot: DiagnosticsSnapshot | None = None,
+    runtime: RuntimeDiagnosticsSnapshot | None = None,
+) -> str:
+    """Ergänzt die Repositorydiagnose automatisch um persistierte Laufzeitbefunde."""
+    base = collect_diagnostics() if snapshot is None else snapshot
+    return _diagnostics_page_html(merge_runtime_diagnostics(base, runtime))
+
+
 def settings_page_html(snapshot: CockpitSettingsSnapshot | None = None) -> str:
     """Rendert Einstellungen und die seitenübergreifenden lokalen KiCad-Editorlinks."""
     return _settings_page_html(snapshot) + editor_links_html()
@@ -125,6 +140,7 @@ def settings_page_html(snapshot: CockpitSettingsSnapshot | None = None) -> str:
 
 __all__ = [
     "DEFAULT_PAGES",
+    "DEFAULT_RUNTIME_MEMORY_PATH",
     "CockpitSettingsSnapshot",
     "DashboardTask",
     "DiagnosticEntry",
@@ -144,6 +160,7 @@ __all__ = [
     "QualityIssue",
     "RepositoryDeveloperWhitelist",
     "RepositoryReportState",
+    "RuntimeDiagnosticsSnapshot",
     "SecurityItem",
     "StatusItem",
     "SymbolLibrary",
@@ -159,6 +176,7 @@ __all__ = [
     "collect_manufacturers",
     "collect_permissions",
     "collect_project_status",
+    "collect_runtime_diagnostics",
     "collect_security_status",
     "collect_settings",
     "collect_symbol_libraries",
@@ -180,6 +198,7 @@ __all__ = [
     "load_repository_report_state",
     "load_user_management_bundle",
     "manufacturer_page_html",
+    "merge_runtime_diagnostics",
     "next_dashboard_tasks",
     "next_tasks_html",
     "page_by_id",

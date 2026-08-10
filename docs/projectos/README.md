@@ -13,6 +13,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 - Z_Cockpit-Issue-/Fehlermeldungsworkflow: umgesetzt
 - Z_Cockpit-3D-Vorschauen und Modellabdeckung: umgesetzt
 - direkte KiCad-Editoraufrufe aus dem Z_Cockpit: umgesetzt
+- Persistenzanbindung der Laufzeit-Wissensgraphdiagnosen: umgesetzt
 - Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -110,6 +111,42 @@ Technische Dokumentation:
 - `tools/windows/register_z_kicad_protocol.ps1`;
 - `tools/windows/open_kicad_from_cockpit.ps1`.
 
+## Persistierte Laufzeitdiagnosen
+
+`ProjectOSProjectMemory` besitzt jetzt einen versionierten Persistenzvertrag für den Laufzeit-Wissensgraphen. Gespeichert werden ausschließlich die fachlichen Quellen der Diagnose:
+
+- Wissenselemente;
+- typisierte Beziehungen;
+- bekannte Message-IDs;
+- bekannte Correlation-IDs;
+- Speicherzeitpunkt.
+
+Die Standarddatei für die lokale Cockpit-Anbindung lautet:
+
+```text
+build/PROJECTOS_RUNTIME_MEMORY.json
+```
+
+`build/` ist ignoriert und bleibt ein lokales Laufzeitartefakt. Die vorhandenen ProjectOS-Diagnosedienste werden beim Erzeugen des Z_Cockpit erneut auf diesen Zustand angewendet. Diagnoseergebnisse, Ampelfarben und Reparaturempfehlungen selbst werden nicht persistiert.
+
+Persistenz-API:
+
+```text
+distributions/projectos_project_memory_persistence.py
+```
+
+Cockpit-Brücke:
+
+```text
+tools/z_cockpit/runtime_diagnostics.py
+```
+
+Technische Dokumentation:
+
+- `docs/03_Developer/Z_COCKPIT_LAUFZEITDIAGNOSEN.md`.
+
+Die bestehende ProjectOS-Projektbundle-v4-Persistenz für Benutzerverwaltung bleibt unverändert; der Wissensgraph-Snapshot ist bewusst ein separater lokaler Runtime-Zustand.
+
 ## Improvement-System
 
 Das Improvement-System umfasst Dublettenerkennung, Gewichtung, Priorisierung und GitHub-Anbindung.
@@ -136,6 +173,6 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 ## Nächster Schritt
 
-Benutzerverwaltung, Whitelist/Berechtigungen, Issue/Fehlermeldung, 3D-Vorschauen und direkte KiCad-Editoraufrufe sind abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe.
+Benutzerverwaltung, Whitelist/Berechtigungen, Issue/Fehlermeldung, 3D-Vorschauen, direkte KiCad-Editoraufrufe und die Persistenzanbindung der Laufzeitdiagnosen sind abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe.
 
-Als technischer Folgepunkt bleibt die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe. Weitere Arbeit wird erst als neuer fachlicher oder technischer Ausbaupunkt in `project_state.yaml` geplant.
