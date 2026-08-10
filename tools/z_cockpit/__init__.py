@@ -92,6 +92,13 @@ from .user_management_page import (
     load_user_management_bundle as _load_user_management_bundle,
     user_management_page_html as _user_management_page_html,
 )
+from .user_simulation import (
+    CockpitIdentityView,
+    TEST_USER_ID,
+    collect_identity_users,
+    simulation_test_user,
+    user_simulation_html,
+)
 
 _active_permissions_snapshot: PermissionsSnapshot | None = None
 
@@ -113,12 +120,14 @@ def load_user_management_bundle(path, *, at=None):
 
 
 def user_management_page_html(snapshot: UserManagementSnapshot | None = None) -> str:
-    """Rendert Benutzer-, Berechtigungs- und Fehlerbericht-Seite im bestehenden Generatorpfad."""
+    """Rendert Benutzer-, Berechtigungs-, Simulations- und Fehlerbericht-Seite."""
+    users = collect_user_management() if snapshot is None else snapshot
     permissions = _active_permissions_snapshot
-    if permissions is None or (snapshot is not None and permissions.source_label != snapshot.source_label):
+    if permissions is None or permissions.source_label != users.source_label:
         permissions = collect_permissions()
     return (
-        _user_management_page_html(snapshot)
+        _user_management_page_html(users)
+        + user_simulation_html(users)
         + permissions_page_html(permissions)
         + issue_report_page_html()
     )
@@ -141,6 +150,7 @@ def settings_page_html(snapshot: CockpitSettingsSnapshot | None = None) -> str:
 __all__ = [
     "DEFAULT_PAGES",
     "DEFAULT_RUNTIME_MEMORY_PATH",
+    "CockpitIdentityView",
     "CockpitSettingsSnapshot",
     "DashboardTask",
     "DiagnosticEntry",
@@ -165,6 +175,7 @@ __all__ = [
     "StatusItem",
     "SymbolLibrary",
     "SymbolPreview",
+    "TEST_USER_ID",
     "ThreeDPreviewAssignment",
     "UserManagementSnapshot",
     "UserPermissionView",
@@ -172,6 +183,7 @@ __all__ = [
     "blocked_tasks",
     "collect_diagnostics",
     "collect_documentation",
+    "collect_identity_users",
     "collect_issue_report",
     "collect_manufacturers",
     "collect_permissions",
@@ -212,7 +224,9 @@ __all__ = [
     "security_state_label",
     "security_table_html",
     "settings_page_html",
+    "simulation_test_user",
     "symbol_preview",
     "three_d_preview_assignment",
     "user_management_page_html",
+    "user_simulation_html",
 ]
