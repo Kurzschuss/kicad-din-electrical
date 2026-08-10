@@ -64,9 +64,25 @@ def test_library_page_moves_summary_counts_into_filter_labels_and_uses_inline_de
     assert '<td colspan="6">' in html
     assert 'aria-expanded="false"' in html
     assert '<code>Z_Test:TEST</code>' in html
-    assert 'generic.test.b16' in html
     assert 'row.dataset.detailTemplate' in html
     assert 'toggleSelection(row)' in html
+
+
+def test_library_symbol_table_uses_static_inspector_for_preview_and_device_ids():
+    html = library_page_html((_library(),))
+
+    assert 'class="library-inspector"' in html
+    assert '<h2>Eigenschaften</h2>' in html
+    assert 'id="library-symbol-inspector"' in html
+    assert 'class="library-symbol-row"' in html
+    assert '<th>Geräte-IDs</th>' not in html
+    assert 'data-device-ids="[&quot;generic.test.b16&quot;]"' in html
+    assert 'data-preview-url="symbol-previews/Z_Test/TEST.svg"' in html
+    assert 'library-device-ids' in html
+    assert 'JSON.parse(row.dataset.deviceIds||"[]")' in html
+    assert 'if(first)selectSymbol(first)' in html
+    assert 'previewTitle.textContent="Symbolvorschau"' in html
+    assert 'idsTitle.textContent="Geräte-IDs"' in html
 
 
 def test_library_page_compacts_device_page_top_spacing():

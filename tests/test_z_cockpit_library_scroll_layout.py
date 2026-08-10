@@ -16,6 +16,8 @@ def test_library_page_keeps_heading_and_filters_fixed_while_table_scrolls():
     assert '#page-bibliotheken.active{position:absolute;inset:0;display:flex;flex-direction:column;' in html
     assert 'min-height:0;overflow:hidden;padding:0}' in html
     assert '.library-list-scroll{flex:1 1 auto;min-height:0;overflow:hidden;' in html
-    assert '.library-main{display:flex;flex-direction:column;overflow:hidden}' in html
+    assert '.library-workspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;' in html
+    assert '.library-main{min-width:0;min-height:0;padding:1rem;display:flex;flex-direction:column;overflow:hidden}' in html
+    assert '.library-inspector{min-width:0;min-height:0;padding:1rem;overflow:auto;border-left:1px solid #8886}' in html
     assert '.library-overview-wrap{flex:1 1 auto;min-height:0;overflow:auto;' in html
     assert '.library-overview-table thead th{position:sticky;top:0;background:Canvas;z-index:1}' in html
