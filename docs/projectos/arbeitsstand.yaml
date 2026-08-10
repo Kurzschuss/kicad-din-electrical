@@ -50,6 +50,16 @@ next_z_cockpit_expansion:
       implementation: tools/z_cockpit/user_management_page.py
       documentation: docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
       project_bundle_option: "python -m tools.generate_z_cockpit --project-bundle <projektdatei>"
+    - id: benutzer_simulation
+      title_de: Testuser, aktive Identitaet und Simulationsmodus integrieren
+      implementation: tools/z_cockpit/user_simulation.py
+      documentation: docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
+      local_storage_key: z-cockpit.identity.v1
+      test_user_id: 00000000-0000-0000-0000-000000000001
+      test_user_persisted: false
+      authentication_backend: false
+      projectos_write_access: false
+      kicad_editor_calls_blocked_in_simulation: true
     - id: whitelist_verwaltung
       title_de: Whitelist- und Berechtigungsverwaltung integrieren
       implementation: tools/z_cockpit/permissions_page.py
@@ -100,6 +110,15 @@ next_z_cockpit_expansion:
   permission_write_path:
     service: distributions/projectos_user_management_change_service.py
     authorization: distributions/projectos_user_management_command_authorization.py
+  user_simulation_policy:
+    local_identity_is_authentication: false
+    local_identity_storage: z-cockpit.identity.v1
+    test_user_is_projectos_entity: false
+    test_user_default_weight: 100
+    test_user_permissions_persisted: false
+    existing_user_permissions_use_projectos_evaluator: true
+    simulation_mutates_projectos: false
+    simulation_blocks_kicad_z_editor_calls: true
   issue_report_privacy:
     excludes_user_management_dump: true
     excludes_authenticated_github_user: true
@@ -135,11 +154,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 542
-  last_successful_commit: 37f527a86884a9e9977dd6f11cd4ce6a439ad169
+  last_successful_run_number: 545
+  last_successful_commit: 5c10dc82611c27e7a6cd496a797058a19cf16ccf
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Persistenzanbindung der Laufzeitdiagnosen auf PR #198 mit CI #542 erfolgreich geprueft. Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Persistiert werden nur Wissensgraph-Quellen und Referenz-IDs; abgeleitete Diagnosen werden neu berechnet."
+  note: "Testuser, aktive ProjectOS-Identitaet und lokaler Simulationsmodus auf PR #199 mit CI #545 erfolgreich geprueft. Die Simulation schreibt keine ProjectOS-Daten, nutzt fuer reale Benutzer die vorhandene Rechteauswertung und blockiert lokale kicad-z-Editoraufrufe."
