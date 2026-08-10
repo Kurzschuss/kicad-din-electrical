@@ -39,6 +39,14 @@ def library_health_page_html(
     project_report: Any | None = None,
 ) -> str:
     """Rendert Projektkonsistenz und Library Quality als Cockpit-Qualitätsseite."""
+    if results is None and project_report is None:
+        # Lazy-Import vermeidet eine zyklische Abhängigkeit beim Laden des
+        # z_cockpit-Pakets. Im echten Cockpit wird der Projektbericht automatisch
+        # berechnet; Unit-Tests mit injizierten Library-Ergebnissen bleiben isoliert.
+        from tools.project_validator import validate_project
+
+        project_report = validate_project()
+
     items = evaluate_libraries() if results is None else results
     checks_total = sum(item.checks_total for item in items)
     checks_passed = sum(item.checks_passed for item in items)
