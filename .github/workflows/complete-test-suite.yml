@@ -77,6 +77,9 @@ jobs:
       - name: Check generated device catalog HTML
         run: python -m tools.generate_device_catalog_html --check
 
+      - name: Run ProjectOS project validator
+        run: python -m tools.project_validator --json-output build/Z_PROJECT_VALIDATION.json
+
       - name: Generate Z_Cockpit HTML
         run: |
           python -m tools.generate_z_cockpit
