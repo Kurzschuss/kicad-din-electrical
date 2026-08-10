@@ -105,11 +105,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 533
-  last_successful_commit: 5307b64066b71a27d22522e5e27d33c2a9340ac8
-  result: pending_3d_preview_final_head
+  last_successful_run_number: 536
+  last_successful_commit: 00a170a9785532d511e67c0eebe43d214870de38
+  result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "3D-Vorschauen und Modellabdeckung sind implementiert; finale CI-Pruefung des 3D-Vorschau-Branches steht vor dem Merge aus. Echte Modelle und technische F.Fab-Huellkoerper bleiben getrennte Statuswerte."
+  note: "3D-Vorschauen und Modellabdeckung auf PR #196 mit CI #536 erfolgreich geprueft; 3D-Generatorcheck, Python-Syntax, KiCad-Pruefungen, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Echte Modelle und technische F.Fab-Huellkoerper bleiben getrennte Statuswerte."
