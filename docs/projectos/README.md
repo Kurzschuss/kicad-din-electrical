@@ -11,6 +11,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 - Z_Cockpit-Benutzerverwaltung: umgesetzt
 - Z_Cockpit-Whitelist-/Berechtigungsverwaltung: umgesetzt
 - Z_Cockpit-Issue-/Fehlermeldungsworkflow: umgesetzt
+- Z_Cockpit-3D-Vorschauen und Modellabdeckung: umgesetzt
 - Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -70,6 +71,37 @@ Technische Dokumentation:
 - `docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md`;
 - `docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md`.
 
+## 3D-Vorschauen und Modellabdeckung
+
+ProjectOS unterstützt native 3D-Artefakte bereits als optionale KiCad-Quellen (`.step`, `.stp`, `.wrl`). Das Z_Cockpit bindet diesen Bestand jetzt sichtbar an.
+
+Single Source of Truth bleiben die KiCad-Footprints und ihre `model`-Referenzen sowie Repositorydateien unter:
+
+```text
+3dmodels/Z_3DModell.3dshapes/
+```
+
+Der Vorschaupfad unterscheidet strikt:
+
+- echtes Modell: KiCad-`model`-Referenz plus vorhandene Repositorydatei;
+- fehlende Modellreferenzdatei;
+- technischen Hüllkörper aus bereits vorhandener `F.Fab`-Kontur;
+- vollständig fehlende 3D-/Hüllgeometrie.
+
+Ein F.Fab-Hüllkörper wird niemals als echtes 3D-Modell gezählt. Der Generator erzeugt keine vermuteten Produktgehäuse und lädt keine Herstellerdateien nach.
+
+Generator und Prüfung:
+
+```text
+python -m tools.generate_3d_previews
+python -m tools.generate_3d_previews --check
+```
+
+Technische Dokumentation:
+
+- `docs/03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md`;
+- `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md`.
+
 ## Improvement-System
 
 Das Improvement-System umfasst Dublettenerkennung, Gewichtung, Priorisierung und GitHub-Anbindung.
@@ -96,4 +128,6 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 ## Nächster Schritt
 
-Der festgelegte Dreierausbau Benutzerverwaltung → Whitelist/Berechtigungen → Issue/Fehlermeldung ist abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Benutzerverwaltung, Whitelist/Berechtigungen, Issue/Fehlermeldung und 3D-Vorschauen sind abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe.
+
+Als technische Folgepunkte bleiben direkte KiCad-Editoraufrufe und die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
