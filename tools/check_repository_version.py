@@ -112,8 +112,10 @@ def check_repository_version(git_runner: CommandRunner = run_git,
         ahead, behind = (int(value) for value in counts.split())
         clean = not _value(git_runner, ["status", "--porcelain", "--untracked-files=normal"])
         developer_mode = os.getenv("KICAD_DIN_DEVELOPER_MODE", "").strip().lower() in {"1", "true", "ja", "yes"}
-        user = authenticated_github_user(command_runner) if developer_mode else ""
-        users = load_authorized_developers() if developer_mode else set()
+        # Die GitHub-Identität wird unabhängig vom Entwicklermodus erfasst. Sie wird
+        # nicht in Fehlerberichte übernommen, ist aber für ProjectOS-Rechteprüfungen nötig.
+        user = authenticated_github_user(command_runner)
+        users = load_authorized_developers() if user else set()
         return classify_repository_state(local_commit=local_commit, remote_commit=remote_commit,
             branch=branch, ahead=ahead, behind=behind, remote_url=remote_url,
             clean_worktree=clean, developer_mode=developer_mode,

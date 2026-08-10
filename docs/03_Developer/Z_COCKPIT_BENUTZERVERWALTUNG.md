@@ -2,138 +2,120 @@
 
 Stand: 10. August 2026
 
-Die Benutzerverwaltung stellt vorhandene ProjectOS-Benutzer-, Lifecycle-, Rollen- und Berechtigungsdaten nachvollziehbar dar, ohne eine zweite Benutzer- oder Rechtequelle einzuführen. Zusätzlich besitzt das Cockpit einen rein lokalen Identitäts- und Simulationsmodus für Testzwecke.
+Die Benutzerverwaltung verwendet weiterhin ausschließlich `ProjectOSUserManagementState` als fachliche Quelle. Neu ist ein vertrauenswürdiger lokaler Verwaltungspfad für Benutzerprofile und Zugriffsregeln; die statische HTML-Seite selbst bleibt ausdrücklich **keine Authentifizierungs- oder Sicherheitsinstanz**.
 
-## Datenquelle
+## Benutzerprofil
 
-Die fachliche Quelle bleibt `ProjectOSUserManagementState` aus:
+Ein ProjectOS-Benutzer besitzt insbesondere:
+
+- stabile `user_id`;
+- Bezeichnung/Anzeigename;
+- Gewichtung `0..1000`;
+- Profil- und Projektrollen;
+- optional eindeutigen `github_login`;
+- Lifecycle `Aktiv`/`Deaktiviert`;
+- Berechtigungszuweisungen, Widerrufe, White-/Blacklist und Ausnahmen.
+
+Die Benutzerverwaltungs-Persistenz hat Version `5`; ältere Stände `1..4` bleiben lesbar. Das äußere ProjectOS-Projektbundle bleibt Version `4`.
+
+Die Gewichtung bleibt von der Autorisierungsentscheidung getrennt. Eine höhere Gewichtung erteilt keine Rechte.
+
+## GitHub-Zuordnung
+
+Der optionale `github_login` verbindet einen ProjectOS-Benutzer mit dem tatsächlich über GitHub CLI (`gh`) authentifizierten GitHub-Konto. Ein GitHub-Login darf innerhalb eines Projekts nur einem Benutzer zugeordnet sein.
+
+Diese Zuordnung wird für vertrauenswürdige schreibende Verwaltungsaktionen und automatische GitHub-Fehlermeldungen verwendet. Die im Browser gewählte `Aktive ProjectOS-Identität` wird dafür **nicht** als Authentifizierung akzeptiert.
+
+## Aktive Identität und Simulation
+
+Der obere Cockpit-Bereich zeigt weiterhin lokale Identität, Bearbeitungsstatus, Gewichtung, Rollen und effektive Rechte. Der feste Testuser
 
 ```text
-distributions/projectos_user_management_persistence.py
+00000000-0000-0000-0000-000000000001
 ```
 
-Darin liegen unter anderem:
+bleibt ausschließlich Simulation und wird nicht in ProjectOS gespeichert. Im Simulationsmodus werden weder Governance-Änderungen noch automatische GitHub-Meldungen freigeschaltet.
 
-- Benutzerprofile;
-- Benutzer-Deaktivierungen und -Reaktivierungen;
-- Berechtigungszuweisungen und Widerrufe;
-- Projektrollen und Beendigungen von Rollenzuweisungen;
-- Freigabe- und Nachprüfungsdaten.
+## Vertrauenswürdiger Verwaltungspfad
 
-Die Cockpit-Seite erzeugt daraus ausschließlich eine read-only Sicht. Die Auswertung verwendet die bereits vorhandenen ProjectOS-Komponenten für Lifecycle, Projektrollen und Autorisierung.
-
-## Z_Cockpit erzeugen
-
-Ohne explizite ProjectOS-Projektdatei:
+Schreibende Aktionen laufen über:
 
 ```text
-python -m tools.generate_z_cockpit
+Z_Cockpit
+  -> projectos-z://governance
+  -> tools/windows/open_projectos_from_cockpit.ps1
+  -> tools/projectos_governance_cli.py
+  -> tools/projectos_governance.py
+  -> DinEditorProjectManager / ProjectOSUserManagementChangeService
+  -> ProjectOS-v4-Projektdatei
 ```
 
-In diesem Fall zeigt die Benutzerseite korrekt an, dass keine ProjectOS-Benutzerquelle angebunden ist. Es werden keine fachlichen Ersatzbenutzer in ProjectOS erzeugt. Der lokale `Testuser` der Simulation ist davon getrennt und wird niemals persistiert.
+Vor einer normalen Änderung wird der Repositoryzustand erneut geprüft und der mit `gh` authentifizierte Benutzer einem eindeutigen ProjectOS-Profil zugeordnet. Danach muss das für die Aktion erforderliche ProjectOS-Recht effektiv erlaubt sein. DENY/Blacklist und deaktivierte Benutzer wirken fail-closed.
 
-Mit einem vorhandenen ProjectOS-v4-Projektbundle:
+Aktuell verwaltbar sind:
+
+- Benutzer anlegen;
+- Bezeichnung ändern;
+- Gewichtung ändern;
+- GitHub-Login zuordnen/ändern;
+- White-/Blacklist-Regeln mit Recht, Scope und Risikoklasse anlegen;
+- bestehende Rechtezuweisungen nachvollziehbar widerrufen.
+
+## Erstadministrator
+
+Ein leeres Projekt besitzt bewusst noch keinen automatisch erfundenen Administrator. Der Bootstrap `Erstadministrator einrichten` ist nur zulässig, wenn:
+
+- die Benutzerverwaltung leer ist;
+- der Repositoryprüfer einen aktuellen offiziellen Stand bestätigt;
+- `gh` einen authentifizierten Benutzer liefert;
+- dieser Benutzer in `config/authorized_developers.json` freigegeben ist.
+
+Der Bootstrap verknüpft dieses GitHub-Konto mit dem ersten ProjectOS-Benutzer und vergibt die initialen Administrationsrechte. Danach gelten für weitere Änderungen die normalen ProjectOS-Rechte.
+
+## Sicht- und Bearbeitungsbereiche
+
+Für die Cockpit-Policy sind die Rechte
+
+```text
+cockpit.view
+cockpit.edit
+```
+
+mit Scopes wie `page:projekt`, `page:diagnose`, `page:benutzer`, `page:berechtigungen` oder `page:fehlerbericht` vorgesehen. Die Benutzerseite zeigt diese Entscheidungen als Matrix `Sehen / Bearbeiten`.
+
+Wichtig: Das aktuell statisch erzeugte HTML kann bereits geladene Daten nicht sicher vor einem Benutzer verbergen, der die Datei und das Projektbundle auf Dateisystem-/GitHub-Ebene bereits besitzt. `cockpit.view/edit` bilden deshalb die fachliche Zugriffspolicy und sind für vertrauenswürdige Laufzeitaktionen maßgeblich; echte Vertraulichkeit der Projektdatei wird zusätzlich durch den in `Z_COCKPIT_PROJEKTDATEI.md` beschriebenen Datei-/Repositoryzugriff erzwungen.
+
+## Projekt- und Verwaltungsrechte
+
+Der zentrale Rechtekatalog umfasst unter anderem:
+
+```text
+project.file.read
+project.file.write
+project.file.share
+project.file.admin
+project.user.manage
+project.permission.manage
+github.issue.prepare
+github.issue.auto_submit
+```
+
+Nicht vorhandene Grants werden nicht erfunden. Ein wirksames DENY beziehungsweise eine Blacklist bleibt vorrangig.
+
+## Datenquelle und Cockpit-Erzeugung
+
+Mit Projektbundle:
 
 ```text
 python -m tools.generate_z_cockpit --project-bundle <projektdatei>
 ```
 
-Der Generator lädt dabei ausschließlich das angegebene Bundle über den bestehenden ProjectOS-v4-Lader. Benutzerverwaltungsdaten werden nicht in eine separate Cockpit-Datei kopiert oder zurückgeschrieben.
+Ohne Bundle werden keine realen Benutzer oder Berechtigungen erfunden. Der lokale Testuser bleibt davon getrennt.
 
-## Benutzeransicht
+## Sicherheitsgrenzen
 
-Die Seite `Benutzer` folgt dem freigegebenen Cockpit-Muster:
-
-- kompakter Seitentitel mit Erklärung in Klammern;
-- Arbeitsliste links;
-- fester Eigenschaftenbereich rechts;
-- nur Listen-/Detailbereiche scrollen;
-- technische IDs bleiben sichtbar.
-
-Die Benutzerliste enthält Anzeigename und technische `user_id`, Status `Aktiv` oder `Deaktiviert`, Profil- und aktive Projektrollen, Anzahl erlaubter und verweigerter Rechte sowie Lifecycle-Ereignisse.
-
-Filter stehen für Freitextsuche, Benutzerstatus, Rolle und Berechtigungszustand zur Verfügung.
-
-## Aktive ProjectOS-Identität im oberen Bereich
-
-Im Kopfbereich des Z_Cockpits wird dauerhaft der lokale Benutzerkontext angezeigt. Sichtbar sind:
-
-- **Aktive ProjectOS-Identität**;
-- **Modus** (`Lokale Identität`, `Nicht gewählt` oder `SIMULATION`);
-- **Bearbeitungsstatus** aus dem ProjectOS-Benutzer-Lifecycle;
-- **Gewichtung** des Benutzerprofils;
-- **Rollen**;
-- **effektive Rechte** mit Zusammenfassung und aufklappbarer Rechte-Liste.
-
-Wichtig: Das statische Z_Cockpit besitzt derzeit keinen Authentifizierungsserver. Die Auswahl `Eigene Cockpit-Identität` ist deshalb eine **lokale Oberflächenwahl und keine echte Anmeldung**. Sie dient dazu, den persönlichen ProjectOS-Kontext im Cockpit sichtbar zu halten, ohne eine nicht vorhandene Authentifizierung vorzutäuschen.
-
-Die lokale Auswahl wird unter folgendem Browser-Schlüssel gespeichert:
-
-```text
-z-cockpit.identity.v1
-```
-
-Sie verändert keine Repository- oder ProjectOS-Datei.
-
-## Testuser
-
-Die Benutzerverwaltung enthält einen festen lokalen Testbenutzer für Simulationen:
-
-```text
-Name:        Testuser
-ID:          00000000-0000-0000-0000-000000000001
-Status:      Aktiv
-Gewichtung:  100
-Rolle:       Testbenutzer
-Rechte:      keine persistierten Rechte
-```
-
-Die Gewichtung des Testusers kann im Browser zwischen `0` und `1000` verändert werden. Sie bleibt rein lokal und wird nicht persistiert.
-
-ProjectOS trennt Gewichtung und Autorisierung ausdrücklich. Eine veränderte Gewichtung darf daher nicht automatisch Rechte erteilen oder entziehen.
-
-## Simulationsmodus
-
-Der Simulationsmodus wird direkt in der Benutzerverwaltung ein- und ausgeschaltet. Er ist vollständig read-only und besitzt zwei Anwendungsfälle:
-
-1. **Testuser** als neutrale Identität ohne persistierte Rechte;
-2. **vorhandenen ProjectOS-Benutzer simulieren**, um dessen bereits durch die echte Domainlogik ausgewerteten Status, Gewichtung, Rollen und effektiven Rechte im oberen Cockpit-Kontext zu sehen.
-
-Der Simulationsmodus kopiert oder verändert keine `ProjectOSUserManagementState`-Objekte. Die Rechte vorhandener Benutzer stammen weiterhin aus dem bestehenden `ProjectOSAuthorizationEvaluator`; DENY, Widerrufe und Benutzer-Lifecycle werden nicht in JavaScript nachgebaut.
-
-Damit ist die Simulation eine Sichtumschaltung und keine parallele Autorisierungsengine.
-
-## Sicherheitsgrenze der Simulation
-
-Solange der Simulationsmodus aktiv ist:
-
-- werden keine ProjectOS-Benutzer-, Rollen- oder Rechtdaten geschrieben;
-- bleibt der Testuser rein lokal;
-- werden lokale `kicad-z:`-Editoraufrufe im Browser blockiert;
-- wird der Modus im oberen Bereich deutlich als `SIMULATION` gekennzeichnet.
-
-Dadurch kann eine simulierte Benutzeridentität nicht versehentlich einen lokalen KiCad-Editoraufruf als reale Aktion auslösen.
-
-## Eigenschaften und Rechte
-
-Nach Auswahl eines realen Benutzers werden rechts Benutzername, technische Benutzer-ID, Lifecycle-Status, Rollen, vorhandene Gewichtung sowie Anzahl und Entscheidung der ausgewerteten Rechte angezeigt.
-
-Für jedes vorhandene Recht werden technische Berechtigung, effektive Entscheidung, wirksame Herkunft, Risikoklasse, aktive Quellen und Widerrufe dargestellt.
-
-Die Herkunft verwendet die bestehenden ProjectOS-Typen Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist.
-
-DENY- und Benutzer-Lifecycle-Regeln werden nicht im Cockpit neu implementiert, sondern durch den bestehenden `ProjectOSAuthorizationEvaluator` ausgewertet.
-
-## Lifecycle
-
-Deaktivierung und Reaktivierung bleiben historische Ereignisse derselben Benutzeridentität. Die Seite zeigt die chronologische Ereigniskette und den daraus resultierenden aktuellen Status.
-
-Eine Deaktivierung löscht den Benutzer nicht. Rollen- und Rechtebezüge bleiben in den ProjectOS-Daten nachvollziehbar erhalten; ihre Wirksamkeit wird durch die vorhandenen Evaluatoren bestimmt.
-
-## Schreibende Aktionen
-
-Die Benutzerseite bleibt absichtlich **read-only**.
-
-Anlegen, Bearbeiten, Deaktivieren, Reaktivieren, Rollenzuweisungen oder Berechtigungsänderungen dürfen nicht als unabhängige JavaScript- oder HTML-Logik implementiert werden. Diese Aktionen müssen über die vorhandenen ProjectOS-Change-/Command-Services laufen und dabei Autorisierung, Audit-Historie, Freigaben und Persistenz einhalten.
-
-Der Testuser und der Simulationsmodus sind davon ausdrücklich ausgenommen, weil sie ausschließlich lokale Browserzustände darstellen und keine fachliche ProjectOS-Entität erzeugen.
+- Browser-`localStorage` ist keine Authentifizierung.
+- Die Simulation kann keine echten Rechte erteilen.
+- Schreibende Governance-Aktionen vertrauen nur der neu geprüften lokalen Laufzeit, `gh`-Identität und ProjectOS-Autorisierung.
+- GitHub- oder Dateisystem-Leserechte können nicht durch das Cockpit aufgehoben werden.
+- Zugangstokens werden nicht in die ProjectOS-Projektdatei oder Cockpit-Seite geschrieben.

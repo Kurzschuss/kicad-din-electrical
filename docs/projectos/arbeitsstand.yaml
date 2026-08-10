@@ -94,7 +94,29 @@ next_z_cockpit_expansion:
       issue_form: .github/ISSUE_TEMPLATE/bug_report.yml
       repository_check: "python -m tools.check_repository_version"
       repository_result: build/VERSIONSPRUEFUNG.json
-      automatic_issue_submission: false
+      manual_issue_preparation: true
+    - id: zugriffs_reporting_governance
+      title_de: Benutzerzugriffe, White-/Blacklist und automatische GitHub-Meldungen verwalten
+      governance: tools/projectos_governance.py
+      governance_cli: tools/projectos_governance_cli.py
+      cockpit_controls: tools/z_cockpit/governance_controls.py
+      issue_reporting: tools/projectos_issue_reporting.py
+      issue_reporting_cli: tools/projectos_issue_reporting_cli.py
+      protocol_handler: tools/windows/open_projectos_from_cockpit.ps1
+      user_management_persistence_version: 5
+      outer_project_bundle_version: 4
+      github_login_mapping: true
+      trusted_actor_source: gh_authenticated_user
+      local_identity_is_authentication: false
+      whitelist_write: true
+      blacklist_write: true
+      deny_precedence: true
+      automatic_issue_submission: true
+      duplicate_fingerprint: sha256_category_reference_title
+      manual_issue_duplicate_fallback: exact_title_plus_reference
+      duplicate_creates_second_issue: false
+      duplicate_tracks_reporters_and_count: true
+      secret_scan_before_auto_submit: true
     - id: 3d_vorschauen
       title_de: 3D-Vorschauen und Modellabdeckung anbinden
       implementation: tools/z_cockpit/three_d_preview.py
@@ -123,7 +145,7 @@ next_z_cockpit_expansion:
       derived_diagnostics_persisted: false
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
-  handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_PROJEKTDATEI.md
+  handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_GOVERNANCE.md
   project_file_workflow:
     domain_creator: distributions.din_editor_project_manager.DinEditorProjectManager
     bundle_version: 4
@@ -149,12 +171,51 @@ next_z_cockpit_expansion:
     projectos_file_permissions: [project.file.read, project.file.write, project.file.share, project.file.admin]
     projectos_rights_replace_storage_acl: false
     local_identity_is_security_authentication: false
+  governance_policy:
+    user_management_persistence_version: 5
+    outer_project_bundle_version: 4
+    github_login_unique_per_project: true
+    trusted_actor: gh_authenticated_user_mapped_to_projectos
+    repository_state_rechecked_before_write: true
+    bootstrap_requires_empty_user_management: true
+    bootstrap_requires_repository_developer_whitelist: true
+    user_manage_permission: project.user.manage
+    permission_manage_permission: project.permission.manage
+    permissions:
+      - project.file.read
+      - project.file.write
+      - project.file.share
+      - project.file.admin
+      - project.user.manage
+      - project.permission.manage
+      - cockpit.view
+      - cockpit.edit
+      - github.issue.prepare
+      - github.issue.auto_submit
+    scopes:
+      - project
+      - page:start
+      - page:projekt
+      - page:geraete
+      - page:bibliotheken
+      - page:hersteller
+      - page:qualitaet
+      - page:diagnose
+      - page:sicherheit
+      - page:dokumentation
+      - page:einstellungen
+      - page:benutzer
+      - page:berechtigungen
+      - page:fehlerbericht
+    static_html_is_security_boundary: false
+    storage_acl_required_for_confidentiality: true
   whitelist_separation:
     projectos_user_permissions: distributions/projectos_user_management_persistence.py
     repository_developer_whitelist: config/authorized_developers.json
   permission_write_path:
     service: distributions/projectos_user_management_change_service.py
-    authorization: distributions/projectos_user_management_command_authorization.py
+    trusted_wrapper: tools/projectos_governance.py
+    authorization: ProjectOSAuthorizationEvaluator
   user_simulation_policy:
     local_identity_is_authentication: false
     local_identity_storage: z-cockpit.identity.v1
@@ -164,11 +225,26 @@ next_z_cockpit_expansion:
     existing_user_permissions_use_projectos_evaluator: true
     simulation_mutates_projectos: false
     simulation_blocks_kicad_z_editor_calls: true
+    simulation_blocks_governance_writes: true
+    simulation_blocks_auto_issue_submit: true
   issue_report_privacy:
     excludes_user_management_dump: true
     excludes_authenticated_github_user: true
     excludes_tokens_keys_credentials: true
     explicit_preview_confirmation: true
+    auto_submit_permission: github.issue.auto_submit
+    auto_submit_rechecks_repository: true
+    auto_submit_rechecks_github_identity: true
+    auto_submit_rechecks_projectos_authorization: true
+    fork_auto_submit: blocked
+    outdated_auto_submit: blocked
+    duplicate_strategy: fingerprint_then_exact_title_reference
+    duplicate_creates_second_issue: false
+    duplicate_repeat_comment: true
+    duplicate_tracks_original_and_repeat_reporters: true
+    duplicate_tracks_report_count: true
+    result_artifact: build/Z_ISSUE_REPORTING_RESULT.json
+    secret_scan: true
   three_d_preview_policy:
     real_model_requires_kicad_model_reference_and_repository_file: true
     technical_hull_source: F.Fab
@@ -199,11 +275,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 555
-  last_successful_commit: fc59793c1f7cbdaf2227b21d112b137b2d8763cc
+  last_successful_run_number: 570
+  last_successful_commit: bc2e3dbb4b10a4cf86ee117a4da5f21524049448
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Projektschutz und Dateirechte auf PR #201 mit CI #555 erfolgreich geprueft. 815 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Vertrauliche Projekte werden im allgemeinen Quell-Repository blockiert; ProjectOS-Dateirechte und Speicher-/Git-Sichtbarkeit bleiben getrennte Schutzebenen."
+  note: "Zugriffs-/Reporting-Governance auf PR #202 mit CI #570 erfolgreich geprueft. 825 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Manuelle Issue-Dubletten, sichere dynamische Cockpit-Texte und vollstaendige Governance-Dokumentation sind enthalten; der finale Dokumentations-Head muss nochmals gruen sein."
