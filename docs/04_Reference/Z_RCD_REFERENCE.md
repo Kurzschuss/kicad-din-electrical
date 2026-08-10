@@ -133,7 +133,7 @@ Die vier externen Anschlüsse sind absichtlich als offen markiert. Dadurch bleib
 
 ## Abgrenzung
 
-Die Symbole beschreiben die elektrische Funktion im Schaltplan. Sie ersetzen keine Auswahl nach nationalen Installationsregeln, keine Bemessung und keine Prüfung einer realen Anlage.
+Die Symbole beschreiben die elektrische Funktion im Schaltplan. Die Symbolfamilie ersetzt keine Auswahl nach nationalen Installationsregeln, keine Bemessung und keine Prüfung einer realen Anlage.
 
 Generische Footprint- oder Modulwerte sind keine Bohr-, Anschluss- oder Fertigungsfreigabe für ein konkretes RCD.
 
