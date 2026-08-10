@@ -56,6 +56,15 @@ next_z_cockpit_expansion:
       active_state: build/Z_COCKPIT_ACTIVE_PROJECT.json
       project_bundle_version: 4
       arbitrary_browser_path_input: false
+    - id: projektdatei_zugriffsschutz
+      title_de: ProjectOS-Projektdateien nach Schutzklasse und Dateirechten absichern
+      implementation: tools/z_cockpit/project_access.py
+      documentation: docs/03_Developer/Z_COCKPIT_PROJEKTDATEI.md
+      default_protection: private_team
+      confidential_in_general_source_repository: blocked
+      private_team_storage: separate_private_project_repository
+      project_file_permissions: [project.file.read, project.file.write, project.file.share, project.file.admin]
+      local_identity_is_authentication: false
     - id: benutzerverwaltung
       title_de: Benutzerverwaltung im Z_Cockpit integrieren
       implementation: tools/z_cockpit/user_management_page.py
@@ -114,20 +123,32 @@ next_z_cockpit_expansion:
       derived_diagnostics_persisted: false
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
-  handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
+  handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_PROJEKTDATEI.md
   project_file_workflow:
     domain_creator: distributions.din_editor_project_manager.DinEditorProjectManager
     bundle_version: 4
     browser_protocol: projectos-z
     browser_passes_project_name_only: true
+    browser_passes_protection_class: true
     browser_passes_file_path: false
     path_selection: native_windows_save_dialog
     protocol_registry_scope: current_user
     active_state: build/Z_COCKPIT_ACTIVE_PROJECT.json
+    active_state_schema: 2
     active_state_versioned: false
+    legacy_active_state_schema_1_supported: true
     active_project_revalidated_on_start: true
     invalid_active_project_is_nonblocking: true
     blocked_in_simulation: true
+    protection_modes: [private_team, restricted_local, repository_visible]
+    default_protection: private_team
+    confidential_general_source_repository_target: blocked
+    repository_visible_requires_confirmation: true
+    private_team_requires_separate_private_repository: true
+    github_single_repository_per_file_visibility: false
+    projectos_file_permissions: [project.file.read, project.file.write, project.file.share, project.file.admin]
+    projectos_rights_replace_storage_acl: false
+    local_identity_is_security_authentication: false
   whitelist_separation:
     projectos_user_permissions: distributions/projectos_user_management_persistence.py
     repository_developer_whitelist: config/authorized_developers.json
@@ -178,11 +199,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 551
-  last_successful_commit: 1dd7a3d7ec36e1acbe21194e28c9de8bde0d559c
+  last_successful_run_number: 555
+  last_successful_commit: fc59793c1f7cbdaf2227b21d112b137b2d8763cc
   result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "ProjectOS-Projektdatei-Workflow auf PR #200 mit CI #551 erfolgreich geprueft. 811 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Der Browser uebergibt nur den Projektnamen; der Zielpfad wird ausschliesslich im nativen Windows-Speicherdialog gewaehlt."
+  note: "Projektschutz und Dateirechte auf PR #201 mit CI #555 erfolgreich geprueft. 815 Tests, Python-Syntax, KiCad-Pruefungen, 3D-Vorschaucheck, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Vertrauliche Projekte werden im allgemeinen Quell-Repository blockiert; ProjectOS-Dateirechte und Speicher-/Git-Sichtbarkeit bleiben getrennte Schutzebenen."

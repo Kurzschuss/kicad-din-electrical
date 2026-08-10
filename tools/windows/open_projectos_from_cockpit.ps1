@@ -31,6 +31,21 @@ function Assert-ProjectName([string]$Value) {
     return $name
 }
 
+function Assert-Protection([string]$Value) {
+    $mode = if ($null -eq $Value) { '' } else { $Value.Trim().ToLowerInvariant() }
+    if ($mode -notin @('private_team', 'restricted_local', 'repository_visible')) {
+        throw 'Ungültige ProjectOS-Schutzklasse.'
+    }
+    return $mode
+}
+
+function Test-IsWithinRoot([string]$Path, [string]$Root) {
+    $fullPath = [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
+    $fullRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\')
+    if ($fullPath.Equals($fullRoot, [System.StringComparison]::OrdinalIgnoreCase)) { return $true }
+    return $fullPath.StartsWith($fullRoot + '\', [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function Find-Python([string]$RepositoryRoot) {
     $venv = Join-Path $RepositoryRoot '.venv\Scripts\python.exe'
     if (Test-Path -LiteralPath $venv -PathType Leaf) {
@@ -50,12 +65,19 @@ if ($parsed.Host.ToLowerInvariant() -ne 'new') {
 }
 
 $name = Assert-ProjectName (Get-QueryValue $parsed 'name')
+$protection = Assert-Protection (Get-QueryValue $parsed 'protection')
 $repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
 $python = Find-Python $repositoryRoot
 
 Add-Type -AssemblyName System.Windows.Forms
 $dialog = New-Object System.Windows.Forms.SaveFileDialog
-$dialog.Title = 'Neues ProjectOS-Projekt speichern'
+$dialog.Title = if ($protection -eq 'private_team') {
+    'Vertrauliches Teamprojekt speichern – separaten privaten Projekt-Repository-Klon verwenden'
+} elseif ($protection -eq 'restricted_local') {
+    'Vertrauliches lokales ProjectOS-Projekt speichern'
+} else {
+    'Repository-sichtbares ProjectOS-Projekt speichern'
+}
 $dialog.Filter = 'ProjectOS-Projekt (*.projectos.json)|*.projectos.json|JSON-Datei (*.json)|*.json'
 $dialog.FileName = "$name.projectos.json"
 $dialog.InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
@@ -69,7 +91,30 @@ if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
 }
 
 $target = $dialog.FileName
-& $python -m tools.projectos_project_cli new --name $name --output $target --overwrite
+$insideSourceRepository = Test-IsWithinRoot $target $repositoryRoot
+if ($protection -in @('private_team', 'restricted_local') -and $insideSourceRepository) {
+    [System.Windows.Forms.MessageBox]::Show(
+        'Vertrauliche ProjectOS-Projekte dürfen nicht im allgemeinen Quell-Repository gespeichert werden. Verwende einen lokalen geschützten Ordner oder einen separaten privaten Projekt-Repository-Klon.',
+        'ProjectOS – Speicherort nicht zulässig',
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    ) | Out-Null
+    exit 2
+}
+if ($protection -eq 'repository_visible' -and $insideSourceRepository) {
+    $answer = [System.Windows.Forms.MessageBox]::Show(
+        'Diese Projektdatei liegt im allgemeinen Repository und ist damit für alle Benutzer mit Leserechten auf dieses Repository sichtbar. Wirklich fortfahren?',
+        'ProjectOS – Repository-Sichtbarkeit bestätigen',
+        [System.Windows.Forms.MessageBoxButtons]::YesNo,
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    )
+    if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) {
+        Write-Output 'PROJECTOS_Z_RESULT=CANCELLED'
+        exit 0
+    }
+}
+
+& $python -m tools.projectos_project_cli new --name $name --output $target --protection $protection --overwrite
 if ($LASTEXITCODE -ne 0) {
     throw "ProjectOS-Projekt konnte nicht erzeugt werden: $target"
 }
