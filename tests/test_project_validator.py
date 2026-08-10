@@ -64,9 +64,10 @@ def test_outdated_paths_reports_only_drift(tmp_path: Path):
         tmp_path / "missing.txt": "erwartet\n",
     })
 
-    assert str(stale) in result
-    assert str(tmp_path / "missing.txt") in result
-    assert str(current) not in result
+    # Project reports deliberately use stable POSIX-style paths on every OS.
+    assert stale.as_posix() in result
+    assert (tmp_path / "missing.txt").as_posix() in result
+    assert current.as_posix() not in result
 
 
 def test_quality_page_can_render_project_validation_report():
