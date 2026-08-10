@@ -145,15 +145,18 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'id="setting-remember-page"' in html
     assert 'id="setting-developer-details"' in html
     assert 'id="settings-reset"' in html
-    assert "Projektwerte werden aus den vorhandenen Repository-Quellen gelesen" in html
+    assert "Projektwerte aus Repository-Quellen" in html
     assert "Diese Optionen ändern keine Repositorydateien" in html
     assert "z-cockpit.settings.v1" in html
+    assert 'class="cockpit-page-title"' in html
+    assert 'class="cockpit-page-description"' in html
+    assert "function compactPageHeadings()" in html
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
-    assert "Keine ausführbare Aufgabe offen." in html
+    assert "Benutzerverwaltung im Z_Cockpit integrieren" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
