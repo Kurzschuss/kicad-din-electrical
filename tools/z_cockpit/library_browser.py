@@ -25,9 +25,9 @@ class LibrarySymbol:
     footprint_name: str | None
     footprint_available: bool
     footprint_preview_available: bool
-    three_d_model_available: bool
-    three_d_preview_available: bool
-    three_d_preview_status: str
+    three_d_model_available: bool = False
+    three_d_preview_available: bool = False
+    three_d_preview_status: str = "Fehlt"
 
 
 @dataclass(frozen=True)
@@ -39,8 +39,8 @@ class SymbolLibrary:
     device_count: int
     footprint_count: int
     complete_preview_count: int
-    three_d_model_count: int
-    three_d_preview_count: int
+    three_d_model_count: int = 0
+    three_d_preview_count: int = 0
 
 
 def parse_library_symbols(path: Path) -> tuple[str, ...]:
