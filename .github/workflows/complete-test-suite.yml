@@ -69,6 +69,9 @@ jobs:
       - name: Check generated symbol previews
         run: python tools/generate_symbol_previews.py --check
 
+      - name: Check generated 3D previews
+        run: python tools/generate_3d_previews.py --check
+
       - name: Check generated HTML reference
         run: |
           python -m tools.generate_html_reference
