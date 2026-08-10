@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from tools.generate_device_variants import expand_series
 from tools.generate_symbol_previews import (
     parse_pin_names,
@@ -36,9 +38,10 @@ def test_rcd_symbol_uses_vertical_two_pole_terminal_flow():
     assert parse_pin_names(block) == ["~", "~", "N", "N"]
 
 
-def test_rcd_symbol_matches_reference_switch_and_test_circuit_geometry():
+def test_rcd_symbol_matches_approved_switch_and_test_circuit_geometry():
     block = symbol_blocks(RCD_PATH.read_text(encoding="utf-8"))["RCD"]
     points = {polyline.points for polyline in parse_polylines(block)}
+    rectangles = parse_rectangles(block)
     texts = parse_texts(block)
 
     assert ((0.0, 10.16), (0.0, 8.89)) in points
@@ -47,40 +50,54 @@ def test_rcd_symbol_matches_reference_switch_and_test_circuit_geometry():
     assert ((7.62, 10.16), (7.62, 8.89)) in points
     assert ((5.08, 8.89), (7.62, 3.81)) in points
     assert ((7.62, 3.81), (7.62, -10.16)) in points
-    assert ((-5.08, 5.08), (22.86, 5.08)) in points
+
+    # Die mechanische Kopplung liegt mittig durch die beiden Hauptkontakte.
+    assert ((-5.08, 6.35), (22.86, 6.35)) in points
+    assert (8.89 + 3.81) / 2 == pytest.approx(6.35)
+
+    # Der Testkontakt über dem verlängerten Widerstand ist auf dieselbe Höhe gesetzt.
     assert ((-20.32, 5.08), (-17.78, 5.08)) in points
-    assert ((-17.78, 6.35), (-15.24, 2.54)) in points
+    assert ((-17.78, 8.89), (-15.24, 3.81)) in points
+    assert any(
+        (item.x1, item.y1, item.x2, item.y2) == (-16.51, 0.0, -13.97, -5.08)
+        for item in rectangles
+    )
     assert (
-        (-15.24, -3.81),
+        (-15.24, -5.08),
         (-15.24, -8.89),
         (7.62, -8.89),
     ) in points
     assert any(item.value == "T" and item.x == -20.32 and item.y == 7.62 for item in texts)
     assert any(
-        item.dashed and item.points == ((-5.08, 5.08), (22.86, 5.08))
+        item.dashed and item.points == ((-5.08, 6.35), (22.86, 6.35))
         for item in parse_polylines(block)
     )
 
 
-def test_rcd_symbol_matches_reference_residual_trip_geometry():
+def test_rcd_symbol_matches_approved_residual_trip_geometry():
     block = symbol_blocks(RCD_PATH.read_text(encoding="utf-8"))["RCD"]
     points = {polyline.points for polyline in parse_polylines(block)}
     rectangles = parse_rectangles(block)
 
+    # Summenstromwandler und Auslöseblock liegen gegenüber dem vorherigen Stand tiefer.
     assert any(
         item.filled
-        and (item.x1, item.y1, item.x2, item.y2) == (13.97, 1.27, 15.24, -3.81)
+        and (item.x1, item.y1, item.x2, item.y2) == (13.97, 0.0, 15.24, -5.08)
         for item in rectangles
     )
-    assert ((12.7, 2.54), (17.78, 2.54), (17.78, 0.0), (16.51, 0.0)) in points
-    assert ((17.78, 0.0), (20.32, 0.0)) in points
-    assert ((17.78, -2.54), (20.32, -2.54)) in points
-    assert ((27.94, -1.27), (29.21, -2.54), (27.94, -3.81)) in points
-    assert ((26.035, 5.08), (26.035, 1.27)) in points
+    assert ((12.7, 1.27), (17.78, 1.27), (17.78, -1.27), (16.51, -1.27)) in points
+    assert ((17.78, -1.27), (20.32, -1.27)) in points
+    assert ((17.78, -3.81), (20.32, -3.81)) in points
+    assert ((27.94, -2.54), (29.21, -3.81), (27.94, -5.08)) in points
+
+    # Das Kreuz im oberen Kasten ist exakt auf Höhe der gestrichelten Kopplung zentriert.
+    assert ((26.035, 3.81), (26.035, 0.0)) in points
+    assert ((22.86, 6.35), (29.21, 6.35)) in points
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (22.86, 10.16, 29.21, 5.08)
+        (item.x1, item.y1, item.x2, item.y2) == (22.86, 8.89, 29.21, 3.81)
         for item in rectangles
     )
+    assert (8.89 + 3.81) / 2 == pytest.approx(6.35)
 
 
 def test_rcd_preview_preserves_reference_dashes_fill_and_terminal_labels():
