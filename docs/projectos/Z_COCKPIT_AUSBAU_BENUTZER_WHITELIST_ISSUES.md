@@ -2,17 +2,17 @@
 
 Stand: 10. August 2026
 
-Dieses Dokument legt die drei fachlichen Ausbaustufen nach Abschluss der ursprünglichen Z_Cockpit-Kernseiten fest. Die Reihenfolge bleibt verbindlich, solange keine neue Freigabe etwas anderes festlegt:
+Der nach Abschluss der ursprünglichen Z_Cockpit-Kernseiten festgelegte Ausbau ist vollständig umgesetzt:
 
 1. **Benutzerverwaltung – umgesetzt**
 2. **Whitelist- und Berechtigungsverwaltung – umgesetzt**
-3. **Issue- und Fehlermeldungsworkflow – als Nächstes geplant**
+3. **Issue- und Fehlermeldungsworkflow – umgesetzt**
 
-Die Arbeiten bauen auf den bereits vorhandenen ProjectOS-Domänen- und Persistenzbausteinen auf. Es wird keine parallele Benutzer-, Rechte- oder Fehlerdatenbank im Z_Cockpit eingeführt.
+Alle drei Stufen bauen auf vorhandenen ProjectOS-/Repository-Quellen auf. Es wurde keine parallele Benutzer-, Rechte- oder Fehlerdatenbank im Z_Cockpit eingeführt.
 
 ## 1. Benutzerverwaltung – umgesetzt
 
-Das Z_Cockpit besitzt den Bereich `Benutzer`. Er zeigt vorhandene ProjectOS-Benutzer, technische Benutzer-IDs, Lifecycle-Status, Rollen, effektive Rechte und Rechteherkunft read-only an.
+Der Bereich `Benutzer` zeigt vorhandene ProjectOS-Benutzer, technische Benutzer-IDs, Lifecycle-Status, Rollen, effektive Rechte und Rechteherkunft read-only an.
 
 Technische Grundlage sind insbesondere:
 
@@ -22,7 +22,7 @@ Technische Grundlage sind insbesondere:
 - `distributions/projectos_user_project_roles.py`;
 - `distributions/projectos_project_bundle_v4.py`.
 
-Ohne angebundene ProjectOS-Projektdatei werden keine Benutzer erfunden. Für echte Projektdaten kann der Generator mit einem ProjectOS-v4-Bundle aufgerufen werden:
+Ohne angebundene ProjectOS-Projektdatei werden keine Benutzer erfunden. Reale Projektdaten können explizit angebunden werden:
 
 ```text
 python -m tools.generate_z_cockpit --project-bundle <projektdatei>
@@ -32,171 +32,152 @@ Details: `docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md`.
 
 ## 2. Whitelist- und Berechtigungsverwaltung – umgesetzt
 
-### Ergebnis
-
-Das Z_Cockpit besitzt den eigenen Bereich `Berechtigungen`. Er trennt zwei fachlich verschiedene Sicherheitsquellen strikt voneinander:
+Der Bereich `Berechtigungen` trennt zwei fachlich unterschiedliche Sicherheitsquellen:
 
 1. ProjectOS-Benutzerberechtigungen aus `ProjectOSUserManagementState`;
 2. Repository-Entwickler-Whitelist aus `config/authorized_developers.json`.
 
-Benutzer- und Berechtigungsseite verwenden bei `--project-bundle` denselben ProjectOS-Datenpfad. Ohne Projektbundle werden keine Beispielberechtigungen erzeugt. Die Repository-Entwickler-Whitelist bleibt als eigenständige Repository-Quelle sichtbar.
+### ProjectOS-Berechtigungen
 
-### A. ProjectOS-Benutzerberechtigungen
-
-Die Berechtigungsseite wertet die vorhandenen `ProjectOSPermissionAssignment`-Objekte aus. Sichtbar sind:
+Sichtbar sind unter anderem:
 
 - Benutzer und technische Benutzer-ID;
 - Berechtigung und Zuweisungs-ID;
-- Quelle der Zuweisung;
-- Wirkung `allow` oder `deny`;
+- Quelle: Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist oder Blacklist;
+- Wirkung `allow` / `deny`;
 - Scope und Risikoklasse;
-- Gültig-ab/Gültig-bis;
-- Quellenreferenz;
-- Zuweisungsstatus `Aktiv`, `Geplant`, `Abgelaufen` oder `Widerrufen`;
-- effektive Autorisierungsentscheidung;
-- effektive Rechteherkunft.
+- Gültigkeitszeitraum;
+- Widerrufsstatus;
+- effektive Autorisierungsentscheidung und Rechteherkunft.
 
-Die vorhandenen ProjectOS-Quellen bleiben unverändert:
+Die effektive Entscheidung wird durch den bestehenden `ProjectOSAuthorizationEvaluator` bestimmt. Ein wirksames DENY beziehungsweise eine Blacklist-Zuweisung bleibt vorrangig.
 
-- Rolle;
-- direkte Zuweisung;
-- Delegation;
-- DENY;
-- Ausnahme;
-- Whitelist;
-- Blacklist.
+### Repository-Entwickler-Whitelist
 
-Die effektive Entscheidung wird nicht im Cockpit neu erfunden, sondern durch den bestehenden `ProjectOSAuthorizationEvaluator` bestimmt.
-
-### Sicherheitsregel
-
-Ein wirksames DENY beziehungsweise eine Blacklist-Zuweisung bleibt vorrangig. Eine Whitelist kann einen ausdrücklich gesperrten Zugriff nicht unbemerkt überschreiben.
-
-### B. Repository-Entwickler-Whitelist
-
-Die Repository-Entwickler-Whitelist bleibt eine getrennte Sicherheitsquelle:
+Die Repository-Entwickler-Whitelist bleibt eine getrennte, versionierte Quelle:
 
 ```text
 config/authorized_developers.json
 ```
 
-Die Berechtigungsseite zeigt:
+Sie wird nicht in das ProjectOS-Berechtigungsmodell importiert und nicht als Browserkopie gepflegt.
 
-- Vorhandensein;
-- Schema-Version;
-- Anzahl der freigegebenen GitHub-Benutzer;
-- eingetragene Benutzernamen;
-- feste Repository-Quelle.
+### Schreibgrenze
 
-Sie wird nicht in das ProjectOS-Berechtigungsmodell importiert und nicht mit der ProjectOS-Benutzer-Whitelist zusammengeführt.
+Das statische HTML schreibt keine Berechtigungen. ProjectOS-Änderungen müssen über die vorhandenen autorisierten Fachservices laufen, insbesondere `ProjectOSUserManagementChangeService` und die fail-closed `ProjectOSUserManagementCommandAuthorization`. Änderungen der Repository-Entwickler-Whitelist erfolgen als normale versionierte Repository-Änderung mit anschließender Validator-/CI-Prüfung.
 
-### Bedienung
+Details: `docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md`.
 
-Die Seite folgt dem freigegebenen Cockpit-Muster:
+## 3. Issue- und Fehlermeldungsworkflow – umgesetzt
 
-- kompakter Seitenkopf mit Erklärung in Klammern;
-- Filter und Arbeitsliste links;
-- fester Eigenschaftenbereich rechts;
-- Freitextsuche;
-- Filter nach Benutzer, Quelle, Wirkung und Status;
-- technische IDs sichtbar;
-- Auswahl per Maus sowie Enter/Leertaste.
+### Ziel und Ergebnis
 
-### Kontrollierte Änderungswege
+Der Bereich `Fehler melden` erzeugt einen reproduzierbaren Markdown-Fehlerbericht. Benutzerangaben werden mit bereits vorhandenen technischen Prüfständen kombiniert, ohne sensible Benutzer- oder Zugangsdaten automatisch zu übernehmen.
 
-Das statische HTML schreibt keine Berechtigungen.
+### Fehlerkategorien
 
-ProjectOS-Änderungen müssen über die vorhandenen, autorisierten Fachservices laufen, insbesondere:
-
-- `ProjectOSUserManagementChangeService.command_assign_permission(...)`;
-- `ProjectOSUserManagementChangeService.command_revoke_permission(...)`;
-- `ProjectOSUserManagementCommandAuthorization` als fail-closed Autorisierungsprüfung;
-- vorhandene Command-/Audit-/Persistenzpfade.
-
-Änderungen an `config/authorized_developers.json` erfolgen als versionierte Repository-Änderung und müssen anschließend Validatoren und CI bestehen. Es wird keine lokale Browser-Whitelist als zweite Quelle geführt.
-
-Damit ist Phase 2 fachlich abgeschlossen. Die Detaildokumentation liegt unter:
-
-```text
-docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
-```
-
-## 3. Issue- und Fehlermeldungsworkflow – als Nächstes geplant
-
-### Ziel
-
-Aus dem Z_Cockpit soll ein reproduzierbarer, strukturierter Fehlerbericht erzeugt werden können. Der Benutzer soll technische Zustandsdaten nicht manuell zusammensuchen müssen.
-
-### Geplante Fehlerkategorien
-
-Mindestens:
+Umgesetzt sind:
 
 - allgemeiner Programmfehler;
 - Z_Cockpit-Oberfläche;
 - Gerätedaten;
 - Symbol;
 - Footprint;
-- Vorschau/3D;
-- Projektvalidator/Qualität;
-- Benutzer-/Berechtigungsverwaltung;
+- Vorschau / 3D;
+- Projektvalidator / Qualität;
+- Benutzer / Berechtigungen;
 - Sicherheit;
 - Dokumentation.
 
-### Automatisch erfassbare Diagnoseinformationen
+### Berichtsdaten
 
-Soweit lokal vorhanden und für die Meldung relevant:
+Der Benutzer erfasst:
 
-- ProjectOS-/Projektversion;
-- Z_Cockpit-Version;
-- Projektvalidator-Gesamtstatus;
-- relevante `PRJ-*`-Prüfcodes;
-- Diagnosebefunde;
-- Repository-Zustand;
-- Versions-/Originalitätsprüfung;
-- betroffene technische Geräte-ID;
-- Symbol- oder Footprintreferenz;
-- aktive Seite/Funktion;
-- gegebenenfalls Benutzerverwaltungs- oder Berechtigungsfehlercode.
+- Kurztitel;
+- Kategorie;
+- optionale technische Referenz;
+- Beschreibung;
+- Reproduktionsschritte;
+- erwartetes Verhalten;
+- tatsächliches Verhalten.
+
+Optional und einzeln abwählbar werden ergänzt:
+
+- Projektname, Zielrelease, ProjectOS- und Z_Cockpit-Version;
+- Diagnosezusammenfassung und relevante `PRJ-*`-/Analysebefunde;
+- Repository-Sicherheitsstatus;
+- Ergebnis der expliziten Repositoryprüfung.
+
+Die Diagnoseeinbettung ist auf 25 Befunde begrenzt; weitere Befunde werden nur als Anzahl genannt.
+
+### Repositoryprüfung
+
+Für die GitHub-Vorbereitung wird der vorhandene Prüfer verwendet:
+
+```text
+python -m tools.check_repository_version
+```
+
+Das Ergebnis liegt unter:
+
+```text
+build/VERSIONSPRUEFUNG.json
+```
+
+Die Fehlerbericht-Seite liest diese Datei nur. Sie startet selbst keinen Netzwerkzugriff. Der Windows-Starter `tools/windows/open_z_cockpit.bat` führt die Repositoryprüfung vor der Cockpit-Erzeugung automatisch aus.
+
+Die GitHub-Vorbereitung bleibt gesperrt, wenn die Repositoryprüfung keinen zulässigen Zustand bestätigt. Der lokale Bericht bleibt davon unabhängig verfügbar.
 
 ### Datenschutz- und Sicherheitsgrenze
 
-Vor dem Erzeugen oder Absenden eines Fehlerberichts muss sichtbar sein, welche Informationen enthalten sind.
+Nicht automatisch übernommen werden:
 
-Nicht automatisch übertragen werden dürfen:
-
-- Passwörter oder Tokens;
+- Benutzerkonten oder vollständige Benutzerverwaltungsdaten;
+- Rollen-/Berechtigungsbestände;
+- authentifizierter GitHub-Benutzer aus der Repositoryprüfung;
+- Passwörter;
+- Tokens;
 - private Schlüssel;
 - Zugangsdaten;
-- nicht erforderliche personenbezogene Daten;
-- ungeprüfte lokale Dateiinhalte;
-- vollständige Benutzer-/Rechtedatenbestände, wenn für den Fehler nicht erforderlich.
+- ungeprüfte lokale Dateiinhalte.
 
-Sensible oder potenziell personenbezogene Angaben müssen vor einer externen Übertragung überprüfbar und entfernbar sein.
+Die sichtbare Markdown-Vorschau ist die verbindliche Übergabegrenze. Vor der GitHub-Vorbereitung muss der Benutzer ausdrücklich bestätigen, dass der Bericht geprüft und sensible oder unnötige Angaben entfernt wurden.
 
 ### Ausgabewege
 
-Die Architektur soll mindestens zwei Wege unterstützen:
+Umgesetzt sind zwei Wege:
 
-1. **lokal erzeugbarer Bericht** zum Kopieren/Speichern;
-2. **GitHub-Issue-Vorbereitung** mit strukturierter Vorlage.
+1. **lokaler Bericht** – kopierbar und als `z-cockpit-fehlerbericht.md` speicherbar;
+2. **GitHub-Issue-Vorbereitung** – Bericht kopieren und offizielles GitHub-Issue-Formular öffnen.
 
-Eine direkte GitHub-Erstellung darf erst angebunden werden, wenn Authentisierung, Berechtigungsprüfung, Fehlerbehandlung und Nutzerbestätigung sauber definiert sind. Das statische HTML darf keine Zugangstokens enthalten.
+Das Z_Cockpit legt kein GitHub-Issue automatisch an und sendet nichts automatisch ab.
 
-### GitHub-Vorlagen
+### GitHub Issue Form
 
-Im Zuge dieses Arbeitspakets sollen passende Issue-Templates beziehungsweise Issue-Forms unter `.github/ISSUE_TEMPLATE/` angelegt werden. Mindestens ein allgemeiner Bug-Report und bei Bedarf spezialisierte Formulare für Bibliotheks-/Gerätefehler sind vorgesehen.
+Die strukturierte Vorlage liegt unter:
+
+```text
+.github/ISSUE_TEMPLATE/bug_report.yml
+```
+
+Sie enthält dieselben Hauptfelder sowie verpflichtende Datenschutz-/Sicherheitsbestätigungen.
+
+Technische Detaildokumentation:
+
+```text
+docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md
+```
 
 ## Einheitliche Z_Cockpit-Bedienlogik
 
-Neue Seiten orientieren sich an den bereits freigegebenen Arbeitsseiten:
+Alle drei Ausbaupunkte folgen dem bestehenden Cockpit-Muster:
 
 - kompakter Seitenkopf;
 - Erklärung in Klammern direkt in der Überschriftszeile;
-- Filter und Arbeitsliste links;
-- fester Detail-/Eigenschaftenbereich rechts, wenn fachlich sinnvoll;
-- nur der eigentliche Listenbereich scrollt;
-- technische IDs bleiben sichtbar und kopierbar;
-- read-only und schreibende Funktionen werden klar getrennt.
+- Arbeitsbereich links und fester Detail-/Vorschaubereich rechts, wenn fachlich sinnvoll;
+- nur fachlich notwendige Bereiche scrollen;
+- technische IDs bleiben sichtbar;
+- read-only Datenaggregation und schreibende Aktionen bleiben klar getrennt.
 
 ## Abnahmestand
 
@@ -206,15 +187,21 @@ Benutzer, Status, Rollen und effektive Rechte werden aus der vorhandenen Project
 
 ### Phase 2 – Whitelist-/Berechtigungsverwaltung: erfüllt
 
-ProjectOS-Whitelist/Blacklist/Ausnahmen und Repository-Entwickler-Whitelist werden klar getrennt dargestellt. Die bestehenden autorisierten Änderungswege sind dokumentiert und das statische Cockpit führt keine eigene Schreiblogik ein.
+ProjectOS-Whitelist/Blacklist/Ausnahmen und Repository-Entwickler-Whitelist werden klar getrennt dargestellt. Bestehende autorisierte Änderungswege bleiben verbindlich.
 
-### Phase 3 – Issue-/Fehlermeldung: offen
+### Phase 3 – Issue-/Fehlermeldung: erfüllt
 
-Abnahme, wenn ein strukturierter lokaler Fehlerbericht erzeugt werden kann, relevante Diagnosedaten automatisch aufgenommen werden und der Benutzer vor externer Weitergabe die enthaltenen Daten kontrollieren kann.
+Ein strukturierter lokaler Fehlerbericht kann erzeugt werden, relevante Diagnosedaten können automatisch aufgenommen werden und der Benutzer kontrolliert die endgültige Berichtsvorschau vor jeder externen Weitergabe.
+
+## Zentraler Projektstatus
+
+Die Aufgaben `benutzerverwaltung`, `whitelist_verwaltung` und `issue_fehlermeldung` stehen in `project_state.yaml` auf `done`.
+
+Damit ist aktuell keine normale `planned`- oder `in_progress`-Aufgabe im zentralen Projektmodell vorhanden.
 
 ## Separat offen
 
-Unabhängig von diesen drei Arbeitspaketen bleiben weiterhin offen:
+Unabhängig vom abgeschlossenen Dreierpaket bleiben weiterhin offen:
 
 - 3D-Vorschauen;
 - direkte KiCad-Editoraufrufe;

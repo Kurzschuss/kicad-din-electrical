@@ -30,6 +30,14 @@ Ohne Projektbundle werden weder Benutzer noch ProjectOS-Berechtigungen erfunden.
 tools\windows\open_z_cockpit.bat
 ```
 
+Der Windows-Starter führt vor der Cockpit-Erzeugung zusätzlich die vorhandene Repositoryprüfung für den Fehlerbericht aus:
+
+```text
+python -m tools.check_repository_version
+```
+
+Ein gesperrter Repositoryzustand blockiert nur die GitHub-Issue-Vorbereitung; das lokale Z_Cockpit und lokale Fehlerberichte bleiben nutzbar.
+
 Alternativ:
 
 ```powershell
@@ -48,6 +56,7 @@ Die Navigation wird aus `tools/z_cockpit/pages.py` erzeugt. Aktuell umgesetzt si
 - Diagnose;
 - Benutzer;
 - Berechtigungen;
+- Fehler melden;
 - Sicherheit;
 - Dokumentation;
 - Einstellungen.
@@ -78,7 +87,8 @@ Wichtige Quellen sind:
 - ProjectOS-Projektvalidator und Projektanalyse;
 - vorhandene Markdown-Dokumentation;
 - optional `ProjectOSUserManagementState` aus einem ProjectOS-v4-Projektbundle;
-- Repository-Entwickler-Whitelist unter `config/authorized_developers.json`.
+- Repository-Entwickler-Whitelist unter `config/authorized_developers.json`;
+- optionales Repositoryprüfergebnis unter `build/VERSIONSPRUEFUNG.json` für die GitHub-Fehlermeldung.
 
 ## Geräte
 
@@ -109,15 +119,7 @@ Die Diagnoseansicht bündelt repositoryweite Befunde aus Projektvalidator und Pr
 
 Die Benutzerseite ist eine read-only Sicht auf den bestehenden `ProjectOSUserManagementState`.
 
-Angezeigt werden:
-
-- Benutzername und technische `user_id`;
-- Lifecycle-Status `Aktiv` / `Deaktiviert`;
-- Profil- und Projektrollen;
-- effektive Rechte;
-- Rechteherkunft;
-- Risikoklassen und Widerrufe;
-- Lifecycle-Ereignisse.
+Angezeigt werden Benutzername und technische `user_id`, Lifecycle-Status, Profil- und Projektrollen, effektive Rechte, Rechteherkunft, Risikoklassen, Widerrufe und Lifecycle-Ereignisse.
 
 Technische Details:
 
@@ -131,19 +133,9 @@ Die Berechtigungsseite trennt zwei Sicherheitsquellen strikt:
 
 ### ProjectOS-Benutzerberechtigungen
 
-Aus `ProjectOSUserManagementState` werden die vorhandenen Rechtezuweisungen mit folgenden Quellen ausgewertet:
+Aus `ProjectOSUserManagementState` werden vorhandene Rechtezuweisungen mit den Quellen Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist ausgewertet.
 
-- Rolle;
-- direkte Zuweisung;
-- Delegation;
-- DENY;
-- Ausnahme;
-- Whitelist;
-- Blacklist.
-
-Sichtbar sind Benutzer, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus sowie die effektive Autorisierungsentscheidung.
-
-Die effektive Entscheidung wird durch den bestehenden `ProjectOSAuthorizationEvaluator` bestimmt. Ein wirksames DENY/Blacklist bleibt vorrangig.
+Sichtbar sind Benutzer, Berechtigung, Zuweisungs-ID, Quelle, Wirkung, Scope, Risikoklasse, Gültigkeit, Widerrufsstatus sowie die effektive Autorisierungsentscheidung. Ein wirksames DENY/Blacklist bleibt vorrangig.
 
 ### Repository-Entwickler-Whitelist
 
@@ -163,6 +155,35 @@ Technische Details:
 
 ```text
 docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md
+```
+
+## Fehler melden
+
+Der Bereich `Fehler melden` erzeugt einen strukturierten Markdown-Bericht und bereitet bei zulässigem Repositoryzustand ein GitHub-Issue vor.
+
+Der Benutzer erfasst Kategorie, Kurztitel, optionale technische Referenz, Beschreibung, Reproduktionsschritte sowie erwartetes und tatsächliches Verhalten. Optional werden ergänzt:
+
+- Projektname, Zielrelease, ProjectOS- und Z_Cockpit-Version;
+- Diagnosezusammenfassung mit relevanten `PRJ-*`-/Analysebefunden;
+- Repository-Sicherheitsstatus;
+- Ergebnis der expliziten Repositoryprüfung.
+
+Die Seite selbst führt keinen Netzwerkzugriff aus. Sie liest ausschließlich ein vorhandenes `build/VERSIONSPRUEFUNG.json`. Der lokale Bericht kann unabhängig vom Repositorystatus kopiert oder als `z-cockpit-fehlerbericht.md` gespeichert werden.
+
+Die GitHub-Vorbereitung ist nur freigeschaltet, wenn die Repositoryprüfung einen zulässigen Zustand bestätigt, Kurztitel und Beschreibung vorhanden sind und der Benutzer die sichtbare Vorschau ausdrücklich geprüft hat. Anschließend wird der Bericht kopiert und das offizielle Issue-Formular geöffnet. Das Issue wird nicht automatisch angelegt oder abgesendet.
+
+Nicht automatisch aufgenommen werden Benutzer-/Berechtigungsbestände, authentifizierte GitHub-Benutzernamen, Tokens, Passwörter, Schlüssel, Zugangsdaten oder ungeprüfte Dateiinhalte.
+
+Issue Form:
+
+```text
+.github/ISSUE_TEMPLATE/bug_report.yml
+```
+
+Technische Details:
+
+```text
+docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md
 ```
 
 ## Sicherheit
@@ -189,6 +210,8 @@ Die Tests prüfen unter anderem:
 - Benutzeraggregation, Rollen, Lifecycle und effektive Rechte;
 - ProjectOS-Whitelist/Blacklist/Ausnahmen und Widerrufe;
 - getrennte Repository-Entwickler-Whitelist;
+- Fehlerbericht, Datenschutzgrenze und GitHub-Gate;
+- GitHub Issue Form;
 - HTML-Escaping;
 - Dokumentationsbrowser;
 - lokale Einstellungen;
@@ -199,17 +222,13 @@ GitHub Actions erzeugt das Cockpit bei der vollständigen ProjectOS-Prüfkette u
 
 ## Aktueller Entwicklungsstand
 
-Benutzerverwaltung sowie Whitelist-/Berechtigungsverwaltung sind umgesetzt. Im zentralen Projektmodell ist als nächster Z_Cockpit-Ausbau geplant:
+Der festgelegte dreistufige Ausbau ist abgeschlossen:
 
-```text
-Issue- und Fehlermeldungsworkflow integrieren
-```
+1. Benutzerverwaltung;
+2. Whitelist- und Berechtigungsverwaltung;
+3. Issue- und Fehlermeldungsworkflow.
 
-Die fachliche Reihenfolge und Datenschutz-/Sicherheitsanforderungen dafür sind dokumentiert unter:
-
-```text
-docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
-```
+Im zentralen `project_state.yaml` ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der Entwicklungsnavigator meldet entsprechend `Keine ausführbare Aufgabe offen.`
 
 Separat offen bleiben weiterhin:
 

@@ -26,6 +26,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Z_Cockpit erzeugen und testen](03_Developer/Z_COCKPIT.md)
 - [Z_Cockpit Benutzerverwaltung](03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md)
 - [Z_Cockpit Berechtigungen und Whitelists](03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md)
+- [Z_Cockpit Issue- und Fehlermeldung](03_Developer/Z_COCKPIT_FEHLERMELDUNG.md)
 - [ProjectOS-Ausbau: Benutzer, Whitelist und Fehlermeldungen](projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md)
 
 ## Bibliotheksreferenz und Werkzeuge
@@ -58,9 +59,17 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 ## Aktueller ProjectOS-Ausbau
 
-Im Z_Cockpit sind jetzt sowohl die Benutzerverwaltung als auch die Whitelist-/Berechtigungsverwaltung umgesetzt. Als nächster geplanter Schritt folgt der **Issue- und Fehlermeldungsworkflow**.
+Der festgelegte dreistufige Z_Cockpit-Ausbau ist vollständig umgesetzt:
 
-ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Details stehen in den oben verlinkten Entwickler- und ProjectOS-Dokumenten.
+- Benutzerverwaltung;
+- Whitelist- und Berechtigungsverwaltung;
+- Issue- und Fehlermeldungsworkflow.
+
+Der Bereich `Fehler melden` erzeugt einen lokalen, überprüfbaren Markdown-Bericht und kann bei zulässigem Repositoryzustand das offizielle GitHub-Issue-Formular vorbereiten. Das Issue wird nicht automatisch abgesendet.
+
+ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Benutzer-/Berechtigungsbestände, Tokens, Schlüssel und Zugangsdaten werden nicht automatisch in Fehlerberichte übernommen.
+
+Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
 
 Weitere ältere Roadmap-Punkte werden in den jeweiligen Fach- und Übergabedokumenten fortgeführt.
 
