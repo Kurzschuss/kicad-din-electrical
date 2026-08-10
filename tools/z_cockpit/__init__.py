@@ -19,6 +19,12 @@ from .library_browser import (
 )
 from .library_health_page import library_health_page_html
 from .library_page import library_page_html
+from .manufacturer_page import (
+    ManufacturerSeriesView,
+    ManufacturerView,
+    collect_manufacturers,
+    manufacturer_page_html,
+)
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
 from .project_dashboard import (
     DashboardTask,
@@ -45,6 +51,8 @@ __all__ = [
     "FootprintAssignment",
     "LibraryQualityResult",
     "LibrarySymbol",
+    "ManufacturerSeriesView",
+    "ManufacturerView",
     "NavigatorRecommendation",
     "PageSpec",
     "ProjectState",
@@ -54,6 +62,7 @@ __all__ = [
     "SymbolLibrary",
     "SymbolPreview",
     "blocked_tasks",
+    "collect_manufacturers",
     "collect_project_status",
     "collect_security_status",
     "collect_symbol_libraries",
@@ -65,6 +74,7 @@ __all__ = [
     "library_page_html",
     "load_footprint_mapping",
     "load_project_state",
+    "manufacturer_page_html",
     "next_dashboard_tasks",
     "next_tasks_html",
     "page_by_id",
