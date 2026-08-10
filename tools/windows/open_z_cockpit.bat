@@ -6,6 +6,10 @@ title Z_Cockpit erzeugen und oeffnen
 set "PYTHON_CMD=python"
 if exist ".venv\Scripts\python.exe" set "PYTHON_CMD=.venv\Scripts\python.exe"
 
+rem Repositoryzustand fuer den Fehlerbericht erfassen. Ein gesperrter Zustand
+rem blockiert nur die GitHub-Vorbereitung, nicht das lokale Z_Cockpit.
+%PYTHON_CMD% -m tools.check_repository_version >nul 2>&1
+
 %PYTHON_CMD% -m tools.generate_z_cockpit
 if errorlevel 1 (
     echo.
