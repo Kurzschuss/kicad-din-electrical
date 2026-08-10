@@ -43,11 +43,19 @@ def test_library_page_uses_excel_like_filterable_overview_table():
     assert '<details class="library-card"' not in html
 
 
-def test_library_page_keeps_fixed_summary_and_selectable_detail_panel():
+def test_library_page_moves_summary_counts_into_filter_labels_and_keeps_details():
     html = library_page_html((_library(),))
 
     assert '#page-bibliotheken.active{position:absolute;inset:0;display:flex;flex-direction:column;' in html
-    assert 'class="library-page-summary"' in html
+    assert 'class="library-page-summary"' not in html
+    assert 'class="library-summary"' not in html
+    assert '<h2 class="library-page-title">Bibliotheken <small>(' in html
+    assert 'Übersicht aus Symbolbibliotheken, Gerätekatalog, Footprint-Zuordnung und erzeugten Vorschauen.' in html
+    assert 'Bibliothek (1)<select id="library-filter-name"' in html
+    assert 'Symbole vorhanden (1)<select id="library-filter-symbols"' in html
+    assert 'Gerätezuordnung (1)<select id="library-filter-devices"' in html
+    assert 'Footprints (1)<select id="library-filter-footprints"' in html
+    assert 'Vorschauen (1)<select id="library-filter-preview"' in html
     assert 'class="library-workspace"' in html
     assert '<h2>Bibliotheksdetails</h2>' in html
     assert 'id="library-detail-0"' in html
