@@ -6,28 +6,30 @@ from tools.z_cockpit import (
 )
 
 
-def test_recommends_next_executable_task():
+def test_no_executable_task_is_recommended_after_projectvalidator_completion():
     state = load_project_state()
-    recommendation = recommended_work(state)
-    assert recommendation is not None
-    assert recommendation.task_id == "projektvalidator"
-    assert recommendation.task_state == "planned"
-    assert recommendation.milestone_title_de == "Qualitätssicherung"
+    assert recommended_work(state) is None
+
+
+def test_projectvalidator_is_marked_done():
+    state = load_project_state()
+    tasks = {
+        task.task_id: task
+        for milestone in state.milestones
+        for task in milestone.tasks
+    }
+    assert tasks["projektvalidator"].state == "done"
 
 
 def test_blocked_ruleset_is_not_recommended():
     state = load_project_state()
-    recommendation = recommended_work(state)
-    assert recommendation is not None
-    assert recommendation.task_id != "ruleset"
+    assert recommended_work(state) is None
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in blocked_tasks(state)
 
 
-def test_navigator_html_uses_german_labels_and_separates_blocked_work():
+def test_navigator_html_separates_completed_and_blocked_work():
     html = development_navigator_html(load_project_state())
     assert "Entwicklungsnavigator" in html
-    assert "Als Nächstes empfohlen" in html
-    assert "Projektanalyse und Konsistenzprüfung umsetzen" in html
-    assert "Geplant" in html
+    assert "Keine ausführbare Aufgabe offen." in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
