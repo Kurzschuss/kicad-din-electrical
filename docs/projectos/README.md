@@ -10,6 +10,7 @@ ProjectOS ist die verbindliche Grundlage für die Weiterentwicklung von `kicad-d
 - weitere ProjectOS-Implementierungsbausteine und Z_Cockpit-Kernseiten: umgesetzt
 - Z_Cockpit-Benutzerverwaltung: umgesetzt
 - Z_Cockpit-Whitelist-/Berechtigungsverwaltung: umgesetzt
+- Z_Cockpit-Issue-/Fehlermeldungsworkflow: umgesetzt
 - Dokumentationsstand aktualisiert am 10. August 2026
 
 ## Verbindliche Architekturprinzipien
@@ -48,11 +49,26 @@ Technische Dokumentation:
 - `docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md`;
 - `docs/03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md`.
 
-## Nächster Z_Cockpit-Ausbau
+## Issue- und Fehlermeldungsworkflow
 
-Als nächster fachlicher Schritt ist jetzt der **Issue- und Fehlermeldungsworkflow** geplant.
+Der Bereich `Fehler melden` erzeugt einen reproduzierbaren Markdown-Bericht aus Benutzerangaben und vorhandenen Projekt-, Diagnose-, Sicherheits- und Repository-Prüfdaten.
 
-Die vollständige Planung steht in [Z_Cockpit – Ausbau: Benutzer, Whitelist und Fehlermeldungen](Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md).
+Die Repositoryprüfung wird über den vorhandenen Prüfer erzeugt:
+
+```text
+python -m tools.check_repository_version
+```
+
+Das Cockpit liest das Ergebnis aus `build/VERSIONSPRUEFUNG.json`. Ein gesperrter oder nicht prüfbarer Repositoryzustand blockiert nur die GitHub-Vorbereitung; der lokale Bericht bleibt verfügbar.
+
+Vor einer GitHub-Vorbereitung muss der Benutzer die sichtbare Berichtsvorschau ausdrücklich prüfen. Benutzer-/Berechtigungsbestände, authentifizierter GitHub-Benutzer, Tokens, Schlüssel, Passwörter und ungeprüfte Dateiinhalte werden nicht automatisch in den Bericht aufgenommen.
+
+Die GitHub-Vorbereitung kopiert nur den sichtbaren Bericht und öffnet die Issue Form unter `.github/ISSUE_TEMPLATE/bug_report.yml`. Das Issue wird nicht automatisch abgesendet.
+
+Technische Dokumentation:
+
+- `docs/03_Developer/Z_COCKPIT_FEHLERMELDUNG.md`;
+- `docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md`.
 
 ## Improvement-System
 
@@ -80,4 +96,4 @@ Dieser Bereich dient als Entwicklungsprotokoll. Neue Änderungen sollen direkt r
 
 ## Nächster Schritt
 
-Issue- und Fehlermeldungsworkflow integrieren. Dabei sollen relevante Diagnose- und Versionsdaten reproduzierbar vorbereitet werden, ohne Tokens, Schlüssel oder unnötige personenbezogene Daten automatisch weiterzugeben.
+Der festgelegte Dreierausbau Benutzerverwaltung → Whitelist/Berechtigungen → Issue/Fehlermeldung ist abgeschlossen. Im zentralen Projektmodell gibt es aktuell keine normale ausführbare `planned`- oder `in_progress`-Aufgabe. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
