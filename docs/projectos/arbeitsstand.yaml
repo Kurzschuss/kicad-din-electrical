@@ -86,11 +86,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 530
-  last_successful_commit: 4b23fe4dd6ce71337f004ed081223b24c87d9e1c
-  result: pending_final_head
+  last_successful_run_number: 532
+  last_successful_commit: cc7dc1e5a5f13c41a1e7bdfd2187dda5bf06c1d5
+  result: success
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Benutzerverwaltung, Whitelist-/Berechtigungsverwaltung und Issue-/Fehlermeldungsworkflow sind umgesetzt. Fuer den aktuellen Fehlerbericht-Branch steht die abschliessende CI-Pruefung noch aus."
+  note: "Fehlerbericht-Implementierung auf PR #195 mit CI #532 erfolgreich geprueft: 779 Tests, Projektvalidator 10/10, KiCad-Validator 0 Fehler und Z_Cockpit-Erzeugung erfolgreich. Diese Aktualisierung dokumentiert nur das bereits gruene Ergebnis."
