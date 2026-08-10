@@ -17,7 +17,7 @@ def write_symbol(
     description: str = "Test",
     policy: str | None = None,
 ) -> None:
-    policy_line = f'    (property "Footprint Policy" "{policy}")\n' if policy is not None else ""
+    policy_line = f'    (property "Z_Footprint_Policy" "{policy}")\n' if policy is not None else ""
     path.write_text(
         f'''(kicad_symbol_lib (version 20231120)
   (symbol "{name}"
@@ -50,12 +50,21 @@ def test_symbol_parser_reads_top_level_name_and_properties(tmp_path: Path):
     assert symbol_names(path) == ["Switch"]
     assert symbol_properties(path)["Footprint"] == "Z_Test:Switch"
     assert symbol_properties(path)["Description"] == "Test"
+    assert symbol_properties(path)["Z_Footprint_Policy"] == "required"
     assert footprint_policy(symbol_properties(path)) == "required"
 
 
 def test_footprint_policy_defaults_to_optional():
     assert footprint_policy({}) == "optional"
-    assert footprint_policy({"Footprint Policy": ""}) == "optional"
+    assert footprint_policy({"Z_Footprint_Policy": ""}) == "optional"
+
+
+def test_footprint_policy_prefers_z_property_and_keeps_legacy_readable():
+    assert footprint_policy({"Footprint Policy": "required"}) == "required"
+    assert footprint_policy({
+        "Footprint Policy": "required",
+        "Z_Footprint_Policy": "none",
+    }) == "none"
 
 
 def test_footprint_name_reads_declared_name(tmp_path: Path):
