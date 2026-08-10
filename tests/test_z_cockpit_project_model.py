@@ -55,6 +55,17 @@ def test_next_tasks_prioritize_work_in_progress(tmp_path: Path) -> None:
     assert [task.state for task in state.next_tasks()] == ["in_progress", "planned", "blocked"]
 
 
+def test_next_tasks_keep_declared_order_with_same_state(tmp_path: Path) -> None:
+    path = tmp_path / "project_state.yaml"
+    _write_model(path, task_states=["planned", "planned", "planned"])
+    state = load_project_state(path)
+    assert [task.task_id for task in state.next_tasks()] == [
+        "aufgabe-1",
+        "aufgabe-2",
+        "aufgabe-3",
+    ]
+
+
 def test_invalid_task_state_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "project_state.yaml"
     _write_model(path, task_states=["unbekannt"])
