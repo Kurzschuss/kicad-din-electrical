@@ -56,6 +56,14 @@ from .security_page import security_page_html, security_state_label, security_ta
 from .security_status import SecurityItem, collect_security_status
 from .settings_page import CockpitSettingsSnapshot, collect_settings, settings_page_html
 from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_preview
+from .user_management_page import (
+    UserManagementSnapshot,
+    UserPermissionView,
+    UserView,
+    collect_user_management,
+    load_user_management_bundle,
+    user_management_page_html,
+)
 
 __all__ = [
     "DEFAULT_PAGES",
@@ -77,6 +85,9 @@ __all__ = [
     "StatusItem",
     "SymbolLibrary",
     "SymbolPreview",
+    "UserManagementSnapshot",
+    "UserPermissionView",
+    "UserView",
     "blocked_tasks",
     "collect_diagnostics",
     "collect_documentation",
@@ -85,6 +96,7 @@ __all__ = [
     "collect_security_status",
     "collect_settings",
     "collect_symbol_libraries",
+    "collect_user_management",
     "development_navigator_html",
     "diagnostics_page_html",
     "documentation_page_html",
@@ -95,6 +107,7 @@ __all__ = [
     "library_page_html",
     "load_footprint_mapping",
     "load_project_state",
+    "load_user_management_bundle",
     "manufacturer_page_html",
     "next_dashboard_tasks",
     "next_tasks_html",
@@ -109,4 +122,5 @@ __all__ = [
     "security_table_html",
     "settings_page_html",
     "symbol_preview",
+    "user_management_page_html",
 ]
