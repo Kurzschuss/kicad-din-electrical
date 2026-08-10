@@ -74,6 +74,15 @@ next_z_cockpit_expansion:
       generated_previews: docs/site/3d-previews
       fake_product_geometry: false
       hull_preview_counts_as_model: false
+    - id: kicad_editoraufrufe
+      title_de: Direkte KiCad-Editoraufrufe anbinden
+      implementation: tools/z_cockpit/editor_links.py
+      protocol_registration: tools/windows/register_z_kicad_protocol.ps1
+      protocol_handler: tools/windows/open_kicad_from_cockpit.ps1
+      documentation: docs/03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md
+      protocol: kicad-z
+      arbitrary_path_input: false
+      arbitrary_command_input: false
   order: []
   specification: docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
   handover: docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md
@@ -93,10 +102,16 @@ next_z_cockpit_expansion:
     technical_hull_source: F.Fab
     technical_hull_is_not_real_model: true
     external_model_download: false
+  kicad_editor_link_policy:
+    browser_executes_processes: false
+    protocol_registry_scope: current_user
+    repository_identifiers_only: true
+    footprint_direct_file_open: true
+    symbol_reference_copied_to_clipboard: true
+    symbol_editor_manager_hotkey: Ctrl+L
   ruleset_status: blocked_separate_approval
 
 remaining_technical_followups:
-  - direct_kicad_editor_calls
   - runtime_diagnostics_persistence
   - github_ruleset_activation_blocked
 
@@ -105,11 +120,11 @@ initial_validation_domains: [MCB, RCCB]
 
 verification:
   workflow: Complete test suite
-  last_successful_run_number: 536
-  last_successful_commit: 00a170a9785532d511e67c0eebe43d214870de38
-  result: success
+  last_successful_run_number: 537
+  last_successful_commit: 930a2f6b3bb810b98147a1e93f7a8d0533d2b8c5
+  result: pending_kicad_editor_links_final_head
   repository_health_check: enabled
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "3D-Vorschauen und Modellabdeckung auf PR #196 mit CI #536 erfolgreich geprueft; 3D-Generatorcheck, Python-Syntax, KiCad-Pruefungen, Projektvalidator und Z_Cockpit-Erzeugung sind gruen. Echte Modelle und technische F.Fab-Huellkoerper bleiben getrennte Statuswerte."
+  note: "Direkte KiCad-Editoraufrufe sind implementiert; finale CI-Pruefung des Editorlink-Branches steht vor dem Merge aus. Footprints werden ueber fpedit direkt geoeffnet; Symbole oeffnen den Symbol-Editor und uebergeben die gepruefte technische Referenz ueber die Zwischenablage."
