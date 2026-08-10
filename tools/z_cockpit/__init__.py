@@ -37,6 +37,15 @@ from .manufacturer_page import (
     manufacturer_page_html,
 )
 from .pages import DEFAULT_PAGES, PageSpec, page_by_id
+from .permissions_page import (
+    PermissionAssignmentView,
+    PermissionsSnapshot,
+    RepositoryDeveloperWhitelist,
+    collect_permissions,
+    load_permissions_bundle,
+    load_repository_developer_whitelist,
+    permissions_page_html,
+)
 from .project_dashboard import (
     DashboardTask,
     next_dashboard_tasks,
@@ -79,8 +88,11 @@ __all__ = [
     "ManufacturerView",
     "NavigatorRecommendation",
     "PageSpec",
+    "PermissionAssignmentView",
+    "PermissionsSnapshot",
     "ProjectState",
     "QualityIssue",
+    "RepositoryDeveloperWhitelist",
     "SecurityItem",
     "StatusItem",
     "SymbolLibrary",
@@ -92,6 +104,7 @@ __all__ = [
     "collect_diagnostics",
     "collect_documentation",
     "collect_manufacturers",
+    "collect_permissions",
     "collect_project_status",
     "collect_security_status",
     "collect_settings",
@@ -106,7 +119,9 @@ __all__ = [
     "library_health_page_html",
     "library_page_html",
     "load_footprint_mapping",
+    "load_permissions_bundle",
     "load_project_state",
+    "load_repository_developer_whitelist",
     "load_user_management_bundle",
     "manufacturer_page_html",
     "next_dashboard_tasks",
@@ -114,6 +129,7 @@ __all__ = [
     "page_by_id",
     "parse_library_symbols",
     "parse_symbol_reference",
+    "permissions_page_html",
     "progress_bar_html",
     "project_progress_html",
     "recommended_work",
