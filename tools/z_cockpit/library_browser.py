@@ -10,6 +10,7 @@ from tools.validate_device_catalog import REPO_ROOT
 
 from .footprint_preview import footprint_assignment
 from .symbol_preview import symbol_preview
+from .three_d_preview import three_d_preview_assignment
 
 _TOP_LEVEL_SYMBOL = re.compile(r'^  \(symbol "([^"]+)"')
 
@@ -24,6 +25,9 @@ class LibrarySymbol:
     footprint_name: str | None
     footprint_available: bool
     footprint_preview_available: bool
+    three_d_model_available: bool
+    three_d_preview_available: bool
+    three_d_preview_status: str
 
 
 @dataclass(frozen=True)
@@ -35,6 +39,8 @@ class SymbolLibrary:
     device_count: int
     footprint_count: int
     complete_preview_count: int
+    three_d_model_count: int
+    three_d_preview_count: int
 
 
 def parse_library_symbols(path: Path) -> tuple[str, ...]:
@@ -78,6 +84,7 @@ def collect_symbol_libraries(
             reference = f"{library_name}:{symbol_name}"
             symbol_state = symbol_preview(reference, repo_root)
             footprint_state = footprint_assignment(reference, repo_root)
+            three_d_state = three_d_preview_assignment(reference, repo_root)
             device_ids = device_index.get(reference, ())
             symbols.append(
                 LibrarySymbol(
@@ -89,6 +96,9 @@ def collect_symbol_libraries(
                     footprint_name=footprint_state.footprint_name,
                     footprint_available=footprint_state.footprint_available,
                     footprint_preview_available=footprint_state.preview_available,
+                    three_d_model_available=three_d_state.model_available,
+                    three_d_preview_available=three_d_state.preview_available,
+                    three_d_preview_status=three_d_state.preview_status,
                 )
             )
 
@@ -104,6 +114,8 @@ def collect_symbol_libraries(
                     symbol.symbol_preview_available and symbol.footprint_preview_available
                     for symbol in symbols
                 ),
+                three_d_model_count=sum(symbol.three_d_model_available for symbol in symbols),
+                three_d_preview_count=sum(symbol.three_d_preview_available for symbol in symbols),
             )
         )
 
