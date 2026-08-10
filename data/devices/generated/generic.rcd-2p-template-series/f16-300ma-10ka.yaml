@@ -1,0 +1,18 @@
+{
+  "device_type": "Fehlerstrom-Schutzschalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.rcd",
+  "id": "generic.rcd-2p-template-series.f16-300ma-10ka",
+  "making_breaking_capacity_ka": 1.5,
+  "manufacturer": "Generic",
+  "modules": 2,
+  "part_number": "RCD-2P-F-16A-300MA-10KA",
+  "poles": 2,
+  "rated_current_a": 16,
+  "rated_short_circuit_current_ka": 10,
+  "rcd_type": "F",
+  "residual_current_ma": 300,
+  "series": "Template RCD 2P",
+  "source_status": "template",
+  "symbol": "Z_RCD:RCD"
+}

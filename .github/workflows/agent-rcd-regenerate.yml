@@ -1,0 +1,45 @@
+name: Temporary RCD artifact regeneration
+
+on:
+  push:
+    branches:
+      - agent/rcd-2p-family-64-variants
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Regenerate ProjectOS artifacts
+        run: |
+          python tools/generate_device_variants.py
+          python tools/generate_symbol_previews.py
+          python tools/generate_library_reference.py
+          python tools/generate_quality_report.py
+          python -m tools.generate_html_reference
+          python -m tools.generate_device_catalog_html
+
+      - name: Remove temporary workflow and commit generated artifacts
+        run: |
+          rm .github/workflows/agent-rcd-regenerate.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+          else
+            git commit -m "RCD 2P: generierte Artefakte aktualisieren"
+            git push origin HEAD
+          fi
