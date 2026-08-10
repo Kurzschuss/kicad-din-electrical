@@ -39,6 +39,7 @@
         {"id": "benutzer_simulation", "title_de": "Testuser, aktive Identität und Simulationsmodus integrieren", "state": "done"},
         {"id": "whitelist_verwaltung", "title_de": "Whitelist- und Berechtigungsverwaltung integrieren", "state": "done"},
         {"id": "issue_fehlermeldung", "title_de": "Issue- und Fehlermeldungsworkflow integrieren", "state": "done"},
+        {"id": "zugriffs_reporting_governance", "title_de": "Benutzerzugriffe, White-/Blacklist und automatische GitHub-Meldungen verwalten", "state": "done"},
         {"id": "3d_vorschauen", "title_de": "3D-Vorschauen und Modellabdeckung anbinden", "state": "done"},
         {"id": "kicad_editoraufrufe", "title_de": "Direkte KiCad-Editoraufrufe anbinden", "state": "done"},
         {"id": "runtime_diagnostics_persistence", "title_de": "Persistenzanbindung der Laufzeitdiagnosen", "state": "done"}
