@@ -127,7 +127,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'id="diagnostic-filter-source"' in html
     assert 'id="diagnostic-filter-area"' in html
     assert 'class="diagnostic-inspector"' in html
-    assert "Arbeitsliste aus ProjectOS-Projektvalidator und Bibliotheks-Quality-Engine" in html
+    assert "Arbeitsliste aus ProjectOS-Projektvalidator und repositoryweiter Projektanalyse" in html
     assert "Laufzeit-Wissensgraphdiagnosen" in html
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
