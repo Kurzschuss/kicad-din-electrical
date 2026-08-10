@@ -28,6 +28,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Z_Cockpit Berechtigungen und Whitelists](03_Developer/Z_COCKPIT_BERECHTIGUNGEN.md)
 - [Z_Cockpit Issue- und Fehlermeldung](03_Developer/Z_COCKPIT_FEHLERMELDUNG.md)
 - [Z_Cockpit 3D-Vorschauen und Modellabdeckung](03_Developer/Z_COCKPIT_3D_VORSCHAUEN.md)
+- [Z_Cockpit direkte KiCad-Editoraufrufe](03_Developer/Z_COCKPIT_KICAD_EDITORAUFRUFE.md)
 - [ProjectOS-Ausbau: Benutzer, Whitelist und Fehlermeldungen](projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md)
 
 ## Bibliotheksreferenz und Werkzeuge
@@ -68,11 +69,13 @@ Der festgelegte dreistufige Z_Cockpit-Ausbau ist vollständig umgesetzt:
 
 Zusätzlich sind die **3D-Vorschauen und die Modellabdeckung** angebunden. Das Cockpit unterscheidet echte KiCad-3D-Modelle von technischen Hüllkörperansichten aus vorhandener `F.Fab`-Geometrie. Hüllkörper werden nicht als echte Modelle gezählt und fehlende Produktgeometrien werden nicht erfunden.
 
+Die **direkten KiCad-Editoraufrufe** sind ebenfalls angebunden. Unter Windows registriert der Cockpit-Starter das lokale `kicad-z:`-Protokoll im aktuellen Benutzerprofil. Zugeordnete Footprints können direkt im Footprint Editor geöffnet werden; beim Symbolaufruf wird der KiCad Symbol Editor geöffnet und die geprüfte technische Symbolreferenz in die Zwischenablage gelegt.
+
 Der Bereich `Fehler melden` erzeugt einen lokalen, überprüfbaren Markdown-Bericht und kann bei zulässigem Repositoryzustand das offizielle GitHub-Issue-Formular vorbereiten. Das Issue wird nicht automatisch abgesendet.
 
 ProjectOS-Benutzer-Whitelist und Repository-Entwickler-Whitelist bleiben getrennte Sicherheitsquellen. Benutzer-/Berechtigungsbestände, Tokens, Schlüssel und Zugangsdaten werden nicht automatisch in Fehlerberichte übernommen.
 
-Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Als technische Folgepunkte bleiben direkte KiCad-Editoraufrufe und die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
+Im zentralen Projektmodell ist derzeit keine normale `planned`- oder `in_progress`-Aufgabe offen. Als technischer Folgepunkt bleibt die Persistenzanbindung der Laufzeitdiagnosen. Der GitHub-Ruleset bleibt separat blockiert und benötigt eine eigene Freigabe.
 
 Weitere ältere Roadmap-Punkte werden in den jeweiligen Fach- und Übergabedokumenten fortgeführt.
 
