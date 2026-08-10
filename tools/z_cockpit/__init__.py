@@ -54,10 +54,12 @@ from .quality_engine import (
 )
 from .security_page import security_page_html, security_state_label, security_table_html
 from .security_status import SecurityItem, collect_security_status
+from .settings_page import CockpitSettingsSnapshot, collect_settings, settings_page_html
 from .symbol_preview import SymbolPreview, parse_symbol_reference, symbol_preview
 
 __all__ = [
     "DEFAULT_PAGES",
+    "CockpitSettingsSnapshot",
     "DashboardTask",
     "DiagnosticEntry",
     "DiagnosticsSnapshot",
@@ -81,6 +83,7 @@ __all__ = [
     "collect_manufacturers",
     "collect_project_status",
     "collect_security_status",
+    "collect_settings",
     "collect_symbol_libraries",
     "development_navigator_html",
     "diagnostics_page_html",
@@ -104,5 +107,6 @@ __all__ = [
     "security_page_html",
     "security_state_label",
     "security_table_html",
+    "settings_page_html",
     "symbol_preview",
 ]
