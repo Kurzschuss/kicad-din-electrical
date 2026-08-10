@@ -81,6 +81,12 @@ def library_health_page_html(
         )
 
     return (
+        '<style>'
+        '#page-start>h2,#page-qualitaet>h2{margin:0 0 .25rem}'
+        '#page-start>p,#page-qualitaet>p{margin:.1rem 0 .75rem}'
+        '#page-qualitaet>.project-validation>h3{margin:.15rem 0 .25rem}'
+        '#page-qualitaet>.project-validation>p{margin:.1rem 0 .75rem}'
+        '</style>'
         '<section class="page" id="page-qualitaet"><h2>Bibliotheksgesundheit</h2>'
         '<p>Bewertung aus der zentralen Quality Engine für Zuordnungen, Footprints und Vorschauen.</p>'
         f'{_project_validation_html(project_report)}'
