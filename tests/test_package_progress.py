@@ -24,6 +24,29 @@ def test_mcb_is_first_checked_reference_package():
     assert not mcb["example"]
 
 
+def test_checked_package_requires_symbol_data_documentation_tests_and_evidence(tmp_path):
+    payload = copy.deepcopy(load_progress())
+    package = payload["families"][0]
+    package["documentation"] = False
+    path = tmp_path / "progress.json"
+    import json
+
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="Checked package is incomplete"):
+        load_progress(path)
+
+
+def test_checked_package_cannot_have_needs_rework_status(tmp_path):
+    payload = copy.deepcopy(load_progress())
+    payload["families"][0]["quality_status"] = "needs_rework"
+    path = tmp_path / "progress.json"
+    import json
+
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="cannot require rework"):
+        load_progress(path)
+
+
 def test_practice_tested_requires_complete_package(tmp_path):
     payload = copy.deepcopy(load_progress())
     payload["families"][0]["quality_level"] = "Praxisgetestet"

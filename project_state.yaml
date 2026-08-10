@@ -49,6 +49,7 @@
       "id": "qualitaet",
       "title_de": "Qualitätssicherung",
       "tasks": [
+        {"id": "qualitaetshandbuch", "title_de": "Verbindliches Qualitätshandbuch für Bibliothekspakete ausarbeiten", "state": "done"},
         {"id": "projektvalidator", "title_de": "Projektanalyse und Konsistenzprüfung umsetzen", "state": "done"}
       ]
     },

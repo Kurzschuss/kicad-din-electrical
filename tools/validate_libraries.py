@@ -16,6 +16,8 @@ FOOTPRINT_NAME_RE = re.compile(r'^\(footprint\s+"((?:\\.|[^"\\])*)"')
 TOP_LEVEL_SYMBOL_RE = re.compile(r'^\s{2}\(symbol\s+"((?:\\.|[^"\\])*)"', re.MULTILINE)
 FOOTPRINT_POLICIES = {"required", "optional", "none"}
 DEFAULT_FOOTPRINT_POLICY = "optional"
+CANONICAL_FOOTPRINT_POLICY_PROPERTY = "Z_Footprint_Policy"
+LEGACY_FOOTPRINT_POLICY_PROPERTY = "Footprint Policy"
 
 
 def _unescape(value: str) -> str:
@@ -73,8 +75,11 @@ def footprint_name(path: Path) -> str | None:
 
 
 def footprint_policy(properties: dict[str, str]) -> str:
-    """Liefert die Footprint-Richtlinie; ohne Feld gilt optional."""
-    value = properties.get("Footprint Policy", DEFAULT_FOOTPRINT_POLICY).strip().lower()
+    """Liefert die Policy aus Z_Footprint_Policy; Legacy-Feld bleibt lesbar."""
+    value = properties.get(CANONICAL_FOOTPRINT_POLICY_PROPERTY)
+    if value is None:
+        value = properties.get(LEGACY_FOOTPRINT_POLICY_PROPERTY, DEFAULT_FOOTPRINT_POLICY)
+    value = value.strip().lower()
     return value or DEFAULT_FOOTPRINT_POLICY
 
 
