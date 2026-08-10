@@ -41,12 +41,16 @@ sprints:
     completion_note: "Rekursive Sicherheitsalarmkette beendet; neue Sicherheitsfaelle verwenden projectos.security_events."
 
 next_z_cockpit_expansion:
-  status: planned
+  status: in_progress
   ui_heading_reference: Bibliotheken
   ui_heading_rule: "Seitentitel und kurze Erklaerung in Klammern in derselben Zeile"
-  order:
+  completed:
     - id: benutzerverwaltung
       title_de: Benutzerverwaltung im Z_Cockpit integrieren
+      implementation: tools/z_cockpit/user_management_page.py
+      documentation: docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
+      project_bundle_option: "python -m tools.generate_z_cockpit --project-bundle <projektdatei>"
+  order:
     - id: whitelist_verwaltung
       title_de: Whitelist- und Berechtigungsverwaltung integrieren
     - id: issue_fehlermeldung
@@ -70,4 +74,4 @@ verification:
   local_runner: run_tests.bat
   pr_workflow: .github/workflows/test-distributions.yml
   release_workflow: .github/workflows/projectos-release.yml
-  note: "Der letzte bestaetigte Lauf 842 war erfolgreich. Dieser Abschluss-Commit aktualisiert den Arbeitsstand und loest den finalen CI-Lauf fuer den neuesten Branch-Kopf aus."
+  note: "Benutzerverwaltung ist umgesetzt; Whitelist-/Berechtigungsverwaltung ist der naechste geplante Z_Cockpit-Ausbau. CI-Ergebnis wird nach Merge aktualisiert."

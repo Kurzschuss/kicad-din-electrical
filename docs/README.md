@@ -24,6 +24,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Geräteserien und Varianten](03_Developer/DEVICE_SERIES.md)
 - [Gerätefamilien und Funktionsgruppen](03_Developer/DEVICE_TAXONOMY.md)
 - [Z_Cockpit erzeugen und testen](03_Developer/Z_COCKPIT.md)
+- [Z_Cockpit Benutzerverwaltung](03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md)
+- [ProjectOS-Ausbau: Benutzer, Whitelist und Fehlermeldungen](projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md)
 
 ## Bibliotheksreferenz und Werkzeuge
 
@@ -53,14 +55,13 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Entscheidungsprotokoll](01_Roadmap/DECISIONS.md)
 - [Projektprotokoll](01_Roadmap/PROJECT_LOG.md)
 
-## Als Nächstes geplant
+## Aktueller ProjectOS-Ausbau
 
-- LS-Master-Goldstandard fachlich und grafisch festlegen
-- Leitungsschutzschalter-Familie 1P bis 4P aufbauen
-- Symbolvorschau in die Z_Cockpit-Detailansicht integrieren
-- Qualitätsstatus in die Gerätetabelle übernehmen
-- kleinen Verteilerplan als Praxistest erstellen
-- Qualitätshandbuch weiter ausarbeiten
-- Normen- und Symbolreferenz ergänzen
+Die Z_Cockpit-Benutzerverwaltung ist umgesetzt. Als Nächstes folgen:
+
+- Whitelist- und Berechtigungsverwaltung;
+- Issue- und Fehlermeldungsworkflow.
+
+Weitere ältere Roadmap-Punkte werden in den jeweiligen Fach- und Übergabedokumenten fortgeführt.
 
 Die Dokumentation soll besonders für KiCad-Einsteiger verständlich sein und zugleich die technischen Entscheidungen des Projekts dauerhaft nachvollziehbar machen.

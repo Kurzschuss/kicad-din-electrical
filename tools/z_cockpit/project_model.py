@@ -50,9 +50,20 @@ class ProjectState:
         return round(finished * 100 / len(tasks))
 
     def next_tasks(self) -> tuple[TaskState, ...]:
+        """Liefert offene Aufgaben nach Status und deklarierter Projekt-Reihenfolge.
+
+        Die Sortierung ist absichtlich stabil: bei gleichem Status bleibt die
+        Reihenfolge aus ``project_state.yaml`` erhalten. Damit kann das zentrale
+        Projektmodell eine bewusst festgelegte Arbeitsreihenfolge ausdrücken.
+        """
         priority = {"in_progress": 0, "planned": 1, "blocked": 2, "done": 3}
-        tasks = [task for milestone in self.milestones for task in milestone.tasks if task.state != "done"]
-        return tuple(sorted(tasks, key=lambda task: (priority[task.state], task.title_de.casefold())))
+        tasks = [
+            task
+            for milestone in self.milestones
+            for task in milestone.tasks
+            if task.state != "done"
+        ]
+        return tuple(sorted(tasks, key=lambda task: priority[task.state]))
 
 
 def _required_text(mapping: dict[str, Any], key: str) -> str:

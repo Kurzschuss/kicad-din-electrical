@@ -48,12 +48,14 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="bibliotheken"' in navigation
     assert 'data-page="hersteller"' in navigation
     assert 'data-page="diagnose"' in navigation
+    assert 'data-page="benutzer"' in navigation
     assert 'data-page="dokumentation"' in navigation
     assert 'data-page="einstellungen"' in navigation
     assert "Bibliotheken" in navigation
     assert "Hersteller" in navigation
     assert "Qualität" in navigation
     assert "Diagnose" in navigation
+    assert "Benutzer" in navigation
     assert "Dokumentation" in navigation
     assert "Einstellungen" in navigation
     assert "Sicherheit" in navigation
@@ -62,6 +64,7 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="hersteller" title="Hersteller, Serien und Katalogzuordnungen">Hersteller</button>' in navigation
     assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
     assert 'data-page="diagnose" title="Fehler, Warnungen und Prüfdetails">Diagnose</button>' in navigation
+    assert 'data-page="benutzer" title="ProjectOS-Benutzer, Rollen, Rechte und Lifecycle">Benutzer</button>' in navigation
     assert 'data-page="dokumentation" title="Projekt- und Entwicklerdokumentation">Dokumentation</button>' in navigation
     assert 'data-page="einstellungen" title="Sprache, Pfade und Entwickleroptionen">Einstellungen</button>' in navigation
 
@@ -129,6 +132,16 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'class="diagnostic-inspector"' in html
     assert "Arbeitsliste aus ProjectOS-Projektvalidator und repositoryweiter Projektanalyse" in html
     assert "Laufzeit-Wissensgraphdiagnosen" in html
+    assert 'id="page-benutzer"' in html
+    assert html.count('id="page-benutzer"') == 1
+    assert 'id="user-management-overview"' in html
+    assert 'id="user-management-filter-search"' in html
+    assert 'id="user-management-filter-status"' in html
+    assert 'id="user-management-filter-role"' in html
+    assert 'id="user-management-filter-permission"' in html
+    assert 'class="user-management-inspector"' in html
+    assert "Keine ProjectOS-Benutzer geladen" in html
+    assert "--project-bundle" in html
     assert 'id="page-dokumentation"' in html
     assert html.count('id="page-dokumentation"') == 1
     assert 'id="documentation-overview"' in html
@@ -156,7 +169,7 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Nächste Aufgaben" in html
     assert "Blockiert" in html
     assert "Entwicklungsnavigator" in html
-    assert "Benutzerverwaltung im Z_Cockpit integrieren" in html
+    assert "Whitelist- und Berechtigungsverwaltung integrieren" in html
     assert "Später nach Freigabe" in html
     assert "GitHub-Ruleset gemeinsam prüfen und aktivieren" in html
     assert "Projektbestandteile" in html
@@ -187,5 +200,5 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Für diesen Footprint ist keine Vorschau verfügbar." in html
     assert "Footprint vorhanden, aber noch ohne darstellbare Geometrie." in html
     assert "Technische SVG-Schnellansicht" in html
-    assert "Datenquellen: Gerätekatalog und project_state.yaml" in html
+    assert "Datenquellen: Gerätekatalog, project_state.yaml und ProjectOS-Benutzerverwaltung" in html
     assert "Z_Cockpit 1.1" in html

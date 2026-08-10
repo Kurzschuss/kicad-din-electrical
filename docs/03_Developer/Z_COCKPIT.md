@@ -2,7 +2,7 @@
 
 `Z_Cockpit` ist die zentrale, tabellenbasierte Bibliotheks- und Geräteübersicht der KiCad DIN Electrical Suite.
 
-Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der technische Gerätekatalog unter `data/devices/` bleibt die einzige Datenquelle.
+Die angezeigten Geräte werden nicht in der Oberfläche doppelt gepflegt. Der technische Gerätekatalog unter `data/devices/` bleibt die einzige Datenquelle für Geräte.
 
 ## Erzeugen
 
@@ -19,6 +19,14 @@ docs/site/z-cockpit.html
 `docs/site/z-cockpit.html` ist ein **lokal erzeugtes Arbeitsartefakt**. Die Datei wird über `.gitignore` ausgeschlossen und nicht committed.
 
 Der Modulaufruf ist verbindlich, weil der Generator gemeinsame Funktionen aus dem Python-Paket `tools` verwendet.
+
+Für die Benutzerverwaltungsansicht kann zusätzlich ein vorhandenes ProjectOS-v4-Projektbundle explizit angebunden werden:
+
+```text
+python -m tools.generate_z_cockpit --project-bundle <projektdatei>
+```
+
+Ohne diese Option werden keine Benutzer erfunden; die Benutzerseite zeigt einen klaren Leerzustand.
 
 ## Unter Windows öffnen
 
@@ -57,11 +65,12 @@ Aktuell umgesetzt:
 - Hersteller;
 - Qualität;
 - Diagnose;
+- Benutzer;
 - Sicherheit;
 - Dokumentation;
 - Einstellungen.
 
-Damit sind alle aktuell registrierten Kernseiten des Z_Cockpits umgesetzt. Die Seitenregistrierung bleibt die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
+Die Seitenregistrierung bleibt die verbindliche Grundlage für Navigation, Tests und spätere Erweiterungen. Neue Bereiche werden dort ergänzt, statt unabhängige Einzeloberflächen anzulegen.
 
 ## Einheitliche Seitenköpfe
 
@@ -75,7 +84,7 @@ Seitentitel (kurze Erklärung zum Menüpunkt)
 
 Die Erklärung steht in kleinerer, zurückhaltender Schrift in derselben Überschriftszeile. Eine zusätzliche zweite Erklärungszeile unmittelbar unter dem ersten Seitentitel soll vermieden werden.
 
-`Einstellungen` und `Sicherheit` verwenden dieses Muster direkt in ihrem Seitenmarkup. Für bestehende Seiten, die noch einen erklärenden Absatz direkt hinter der ersten `h2`-Überschrift liefern, normalisiert das erzeugte Z_Cockpit diese Darstellung auf dasselbe Muster. Damit werden Start, Qualität, Hersteller, Diagnose und Dokumentation ebenfalls einheitlich dargestellt.
+`Einstellungen`, `Sicherheit` und `Benutzerverwaltung` verwenden dieses Muster direkt in ihrem Seitenmarkup. Für bestehende Seiten, die noch einen erklärenden Absatz direkt hinter der ersten `h2`-Überschrift liefern, normalisiert das erzeugte Z_Cockpit diese Darstellung auf dasselbe Muster. Damit werden Start, Qualität, Hersteller, Diagnose und Dokumentation ebenfalls einheitlich dargestellt.
 
 `Geräte` und `Bibliotheken` werden strukturell nicht umgebaut, da ihr oberer Arbeitsbereich bereits dem freigegebenen Bedienkonzept entspricht.
 
@@ -154,6 +163,32 @@ Die Befunde werden nach Fehlern und Warnungen priorisiert und können nach Statu
 
 Die ProjectOS-Wissensgraph-Diagnostik unter `distributions/projectos_knowledge_diagnostics.py` und `distributions/z_cockpit_diagnostics_worklist.py` bleibt ein separater Laufzeitpfad. Da das statisch erzeugte Z_Cockpit derzeit keine persistierte `ProjectOSProjectMemory`-Instanz lädt, werden dort keine Laufzeitbefunde erfunden. Eine spätere Persistenzanbindung kann diese Diagnosen ergänzen.
 
+## Benutzerverwaltung
+
+Die Benutzerseite ist eine read-only Sicht auf den bestehenden `ProjectOSUserManagementState`. Sie führt keine zweite Benutzer- oder Rechtequelle ein.
+
+Angezeigt werden:
+
+- Benutzername und technische `user_id`;
+- Status `Aktiv` oder `Deaktiviert` aus dem vorhandenen Lifecycle-Evaluator;
+- Profilrollen und aktive Projektrollen;
+- effektive Berechtigungsentscheidungen;
+- Rechteherkunft wie Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist oder Blacklist;
+- Risikoklasse, aktive Quellen und Widerrufe je Recht;
+- chronologische Lifecycle-Ereignisse.
+
+Links stehen Suche und Filter nach Status, Rolle und Berechtigungszustand zur Verfügung. Rechts bleibt der Eigenschaftenbereich fest; Rechte und Lifecycle-Details besitzen eigene scrollbare Bereiche.
+
+Die Standarderzeugung ohne Projektbundle zeigt bewusst keine Beispielbenutzer. Echte Benutzerverwaltungsdaten können ausschließlich über ein explizit angegebenes ProjectOS-v4-Projektbundle geladen werden.
+
+Schreibende Benutzeraktionen werden nicht in JavaScript implementiert. Anlegen, Bearbeiten, Deaktivieren, Reaktivieren sowie spätere Rollen-/Rechteänderungen müssen über die vorhandenen autorisierten ProjectOS-Change-/Command-Services laufen.
+
+Technische Details stehen unter:
+
+```text
+docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
+```
+
 ## Dokumentationsansicht
 
 Die Dokumentationsseite ist ein read-only Browser für die bereits vorhandene Markdown-Dokumentation des Repositories. Sie führt keine zweite Dokumentationsdatenbank ein.
@@ -202,15 +237,14 @@ Die Qualitätsseite verbindet zwei Ebenen:
 
 Der Projektvalidator prüft Projektmodell, Bibliotheken, Gerätekatalog, Generatorstände, HTML-Ausgaben, Symbolvorschauen und das zentrale Cockpit-Seitenmodell. Details und CLI-Aufruf sind in `docs/03_Developer/PROJECT_VALIDATOR.md` dokumentiert.
 
-Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose-, Dokumentations- und Einstellungsansicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
+Der Projektpunkt `Projektanalyse und Konsistenzprüfung umsetzen` (`projektvalidator`) ist erledigt. Hersteller-, Diagnose-, Dokumentations-, Einstellungs- und Benutzeransicht sind ebenfalls als abgeschlossene Cockpit-Bausteine im zentralen Projektmodell dokumentiert. Der GitHub-Ruleset-Punkt bleibt separat als `blocked` geführt.
 
 ## Nächste Ausbaustufe
 
-Nach Abschluss der aktuellen Kernseiten ist die nächste verbindliche Reihenfolge im zentralen Projektmodell als `planned` hinterlegt:
+Von der festgelegten dreistufigen Ausbaureihenfolge ist die Benutzerverwaltung abgeschlossen. Als nächste Arbeiten stehen im zentralen Projektmodell:
 
-1. `benutzerverwaltung` – Benutzerverwaltung im Z_Cockpit integrieren;
-2. `whitelist_verwaltung` – Whitelist- und Berechtigungsverwaltung integrieren;
-3. `issue_fehlermeldung` – Issue- und Fehlermeldungsworkflow integrieren.
+1. `whitelist_verwaltung` – Whitelist- und Berechtigungsverwaltung integrieren;
+2. `issue_fehlermeldung` – Issue- und Fehlermeldungsworkflow integrieren.
 
 Die vollständige fachliche Spezifikation liegt unter:
 
@@ -218,12 +252,10 @@ Die vollständige fachliche Spezifikation liegt unter:
 docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
 ```
 
-Wichtig ist die Trennung zweier Whitelist-Konzepte:
+Wichtig bleibt die Trennung zweier Whitelist-Konzepte:
 
 - ProjectOS-Benutzer-Whitelist als Teil des Berechtigungsmodells;
 - Repository-Entwickler-Whitelist aus `config/authorized_developers.json`.
-
-Die geplante Benutzerverwaltung verwendet die bereits vorhandenen ProjectOS-Benutzer-, Persistenz-, Autorisierungs- und Lifecycle-Bausteine. Es wird keine zweite Benutzerdatenbank im Cockpit eingeführt.
 
 Der geplante Issue-/Fehlermeldungsworkflow soll Diagnosedaten reproduzierbar zusammenstellen, vor externer Weitergabe sichtbar machen und passende GitHub-Issue-Vorlagen vorbereiten. Zugangstokens, Schlüssel und unnötige personenbezogene Daten dürfen nicht automatisch in Fehlerberichte aufgenommen werden.
 
@@ -243,6 +275,10 @@ Die automatisierten Tests prüfen unter anderem:
 - Herstellerfilter und statischen Herstellerinspektor;
 - Diagnoseaggregation aus Projektvalidator und Projektanalyse;
 - Diagnosefilter, Detailinspektor und HTML-Escaping;
+- Benutzeraggregation aus `ProjectOSUserManagementState`;
+- Lifecycle-, Rollen- und Berechtigungsentscheidungen der Benutzerseite;
+- Benutzerfilter, festen Inspektor und HTML-Escaping;
+- leeren Benutzerzustand ohne erfundene Daten;
 - automatische Markdown-Erfassung für den Dokumentationsbrowser;
 - Dokumentationssuche, Bereichsfilter, Direktlinks und HTML-Escaping;
 - read-only Projektwerte der Einstellungsseite;
@@ -258,11 +294,10 @@ GitHub Actions erzeugt die Cockpit-Datei bei jedem vollständigen CI-Lauf und pr
 
 ## Aktueller Entwicklungsstand
 
-Die lokale HTML-Anwendung besitzt alle derzeit registrierten Kernseiten: Start, Geräte, Bibliotheken, Hersteller, Qualität, Diagnose, Sicherheit, Dokumentation und Einstellungen.
+Die lokale HTML-Anwendung besitzt jetzt: Start, Geräte, Bibliotheken, Hersteller, Qualität, Diagnose, Benutzer, Sicherheit, Dokumentation und Einstellungen.
 
-Als nächste fachliche Arbeiten sind jetzt ausdrücklich geplant:
+Als nächste fachliche Arbeiten sind geplant:
 
-- Benutzerverwaltung;
 - Whitelist-/Berechtigungsverwaltung;
 - Issue-/Fehlermeldungsworkflow.
 
@@ -273,4 +308,4 @@ Separat offen bleiben:
 - Persistenzanbindung für Laufzeitdiagnosen;
 - serverseitige GitHub-Ruleset-Aktivierung nach separater Freigabe.
 
-Der visuell freigegebene Bibliotheksstand ist unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert. Die aktuelle Kopfzeilenvereinheitlichung und die nächste Ausbaureihenfolge sind zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md` gesichert.
+Der visuell freigegebene Bibliotheksstand ist unter `docs/handover/ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md` dokumentiert. Die Kopfzeilenvereinheitlichung und die Ausbaureihenfolge sind zusätzlich unter `docs/handover/ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md` gesichert.

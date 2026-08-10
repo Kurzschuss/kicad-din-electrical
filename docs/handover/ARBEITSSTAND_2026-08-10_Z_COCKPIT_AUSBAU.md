@@ -1,4 +1,4 @@
-# Arbeitsstand 2026-08-10 – Z_Cockpit Layout und nächster Ausbau
+# Arbeitsstand 2026-08-10 – Z_Cockpit Layout und Ausbau
 
 ## Visuell festgelegter Stand
 
@@ -12,11 +12,9 @@ Menü-/Seitentitel (kurze Erklärung zum Bereich)
 
 Die Erklärung steht in kleinerer, zurückhaltender Schrift direkt in derselben Überschriftszeile. Eine zusätzliche zweite Erklärungszeile unmittelbar unter dem Seitentitel soll vermieden werden.
 
-Die Änderung gilt für Seiten, die bisher direkt unter ihrer ersten Überschrift einen erklärenden Absatz hatten. `Einstellungen` und `Sicherheit` wurden ausdrücklich auf dieses Muster umgestellt. Start, Qualität, Hersteller, Diagnose und Dokumentation werden im erzeugten Cockpit ebenfalls auf dieses gemeinsame Kopfzeilenmuster normalisiert.
+`Einstellungen`, `Sicherheit` und die neue `Benutzerverwaltung` verwenden dieses Muster direkt. Start, Qualität, Hersteller, Diagnose und Dokumentation werden im erzeugten Cockpit ebenfalls auf dieses gemeinsame Kopfzeilenmuster normalisiert.
 
 `Geräte` und `Bibliotheken` werden strukturell nicht umgebaut. Die bereits freigegebene Bibliotheksansicht bleibt Referenz für die kompakte Kopfgestaltung.
-
-Zusätzlich wird auf der Sicherheitsseite der unnötige obere Abstand vor der Sicherheitstabelle entfernt.
 
 ## Nicht verändern
 
@@ -28,13 +26,13 @@ Ohne neue ausdrückliche Anforderung bleiben unverändert:
 - rechter Eigenschaften-/Vorschaubereich;
 - separates Scrollverhalten der Geräte-ID-Listen.
 
-## Nächste verbindliche Ausbaureihenfolge
+## Ausbaureihenfolge und aktueller Stand
 
-Nach Abschluss dieser Layoutvereinheitlichung wird in folgender Reihenfolge weitergearbeitet:
+Die festgelegte Reihenfolge lautet:
 
-1. **Benutzerverwaltung**
-2. **Whitelist- und Berechtigungsverwaltung**
-3. **Issue- und Fehlermeldungsworkflow**
+1. **Benutzerverwaltung – umgesetzt**
+2. **Whitelist- und Berechtigungsverwaltung – als Nächstes**
+3. **Issue- und Fehlermeldungsworkflow – danach**
 
 Die vollständige fachliche Planung steht in:
 
@@ -42,22 +40,38 @@ Die vollständige fachliche Planung steht in:
 docs/projectos/Z_COCKPIT_AUSBAU_BENUTZER_WHITELIST_ISSUES.md
 ```
 
-## Benutzerverwaltung
+## Benutzerverwaltung – umgesetzt
 
-Die vorhandenen ProjectOS-Bausteine für Benutzer, Rollen, Berechtigungen, Benutzer-Lifecycle, Persistenz und Rechteherkunft werden ins Z_Cockpit integriert. Es wird keine zweite Benutzerdatenbank aufgebaut.
+Die vorhandenen ProjectOS-Bausteine für Benutzer, Rollen, Berechtigungen, Benutzer-Lifecycle und Rechteherkunft sind in eine eigene Z_Cockpit-Seite integriert. Es wurde keine zweite Benutzerdatenbank aufgebaut.
 
-Zielbild:
+Umgesetzt sind:
 
-- Benutzerliste;
-- aktiv/deaktiviert;
-- Rollen;
-- effektive Rechte;
-- Rechteherkunft;
-- Lifecycle und Änderungsinformationen;
-- Filter links und fester Detailbereich rechts;
-- schreibende Änderungen ausschließlich über vorhandene autorisierte ProjectOS-Services.
+- eigener Navigationspunkt `Benutzer`;
+- Benutzerliste mit Anzeigename und technischer Benutzer-ID;
+- Status `Aktiv` / `Deaktiviert` aus der bestehenden Lifecycle-Auswertung;
+- Profilrollen und aktive Projektrollen;
+- effektive Rechte und Rechteherkunft aus dem bestehenden Autorisierungs-Evaluator;
+- Rechtequellen wie Rolle, direkte Zuweisung, Delegation, DENY, Ausnahme, Whitelist und Blacklist;
+- Filter nach Name/ID, Status, Rolle und Berechtigungszustand;
+- fester Detailbereich rechts;
+- Lifecycle-Historie;
+- klare read-only Trennung zu späteren schreibenden Aktionen.
 
-## Whitelist-Verwaltung
+Ohne ProjectOS-Projektdatei werden keine Benutzer erfunden. Für reale Projektdaten kann ein vorhandenes v4-Bundle explizit angebunden werden:
+
+```text
+python -m tools.generate_z_cockpit --project-bundle <projektdatei>
+```
+
+Schreibende Änderungen bleiben den bestehenden autorisierten ProjectOS-Change-/Command-Services vorbehalten.
+
+Detaildokumentation:
+
+```text
+docs/03_Developer/Z_COCKPIT_BENUTZERVERWALTUNG.md
+```
+
+## Whitelist-Verwaltung – nächster Schritt
 
 Zwei verschiedene Whitelist-Arten müssen sichtbar getrennt bleiben:
 
@@ -66,7 +80,9 @@ Zwei verschiedene Whitelist-Arten müssen sichtbar getrennt bleiben:
 
 Blacklist/DENY bleibt vorrangig. Whitelist, Blacklist und Ausnahmerechte dürfen nicht zu einer unklaren gemeinsamen Liste zusammengezogen werden.
 
-## Issue-/Fehlermeldung
+Die Benutzerseite stellt Rechteherkunft bereits read-only dar. Die nächste Stufe ergänzt kontrollierte Whitelist-/Blacklist-/Ausnahmeverwaltung und die getrennte Repository-Entwickler-Whitelist.
+
+## Issue-/Fehlermeldung – danach
 
 Geplant ist ein strukturierter Workflow für Fehlerberichte aus dem Z_Cockpit. Relevante Diagnose- und Versionsdaten sollen automatisch vorbereitet werden, aber vor einer externen Weitergabe für den Benutzer sichtbar und kontrollierbar bleiben.
 

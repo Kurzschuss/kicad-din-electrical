@@ -20,6 +20,7 @@ DEFAULT_PAGES: tuple[PageSpec, ...] = (
     PageSpec("hersteller", "Hersteller", "Hersteller, Serien und Katalogzuordnungen", True),
     PageSpec("qualitaet", "Qualität", "Tests, Regeln und Qualitätsberichte", True),
     PageSpec("diagnose", "Diagnose", "Fehler, Warnungen und Prüfdetails", True),
+    PageSpec("benutzer", "Benutzer", "ProjectOS-Benutzer, Rollen, Rechte und Lifecycle", True),
     PageSpec("sicherheit", "Sicherheit", "Repository-, Versions- und Freigabestatus", True),
     PageSpec("dokumentation", "Dokumentation", "Projekt- und Entwicklerdokumentation", True),
     PageSpec("einstellungen", "Einstellungen", "Sprache, Pfade und Entwickleroptionen", True),
