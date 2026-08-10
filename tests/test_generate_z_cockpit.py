@@ -47,13 +47,16 @@ def test_navigation_is_generated_from_registered_pages():
     assert 'data-page="geraete"' in navigation
     assert 'data-page="bibliotheken"' in navigation
     assert 'data-page="hersteller"' in navigation
+    assert 'data-page="diagnose"' in navigation
     assert "Bibliotheken" in navigation
     assert "Hersteller" in navigation
     assert "Qualität" in navigation
+    assert "Diagnose" in navigation
     assert "Sicherheit" in navigation
     assert 'data-page="bibliotheken" title="Symbole, Footprints und Modelle">Bibliotheken</button>' in navigation
     assert 'data-page="hersteller" title="Hersteller, Serien und Katalogzuordnungen">Hersteller</button>' in navigation
     assert 'data-page="qualitaet" title="Tests, Regeln und Qualitätsberichte">Qualität</button>' in navigation
+    assert 'data-page="diagnose" title="Fehler, Warnungen und Prüfdetails">Diagnose</button>' in navigation
 
 
 def test_project_status_cards_distinguish_present_and_prepared_components():
@@ -74,7 +77,9 @@ def test_implemented_pages_are_not_generated_as_placeholders():
     assert 'id="page-bibliotheken"' not in placeholders
     assert 'id="page-hersteller"' not in placeholders
     assert 'id="page-qualitaet"' not in placeholders
-    assert 'id="page-diagnose"' in placeholders
+    assert 'id="page-diagnose"' not in placeholders
+    assert 'id="page-dokumentation"' in placeholders
+    assert 'id="page-einstellungen"' in placeholders
 
 
 def test_rendered_cockpit_contains_navigation_dashboard_quality_security_previews_and_catalog_data():
@@ -115,6 +120,15 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Gesundheitswert" in html
     assert "Warnungen" in html
     assert "Fehler" in html
+    assert 'id="page-diagnose"' in html
+    assert html.count('id="page-diagnose"') == 1
+    assert 'id="diagnostic-overview"' in html
+    assert 'id="diagnostic-filter-severity"' in html
+    assert 'id="diagnostic-filter-source"' in html
+    assert 'id="diagnostic-filter-area"' in html
+    assert 'class="diagnostic-inspector"' in html
+    assert "Arbeitsliste aus ProjectOS-Projektvalidator und Bibliotheks-Quality-Engine" in html
+    assert "Laufzeit-Wissensgraphdiagnosen" in html
     assert "Z_Cockpit" in html
     assert "Repository-Sicherheit" in html
     assert "Nächste Aufgaben" in html
@@ -135,7 +149,6 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert 'data-security="ruleset"' in html
     assert "Laufzeitprüfung" in html
     assert "Eine vorhandene Ruleset-Vorlage bedeutet nicht" in html
-    assert 'id="page-diagnose"' in html
     assert "Dieser Bereich befindet sich im Aufbau." in html
     assert "Gerätefamilie" in html
     assert "Hersteller" in html
