@@ -14,6 +14,9 @@ def sample_libraries() -> tuple[SymbolLibrary, ...]:
         footprint_name="Z_DIN_Module_18mm",
         footprint_available=True,
         footprint_preview_available=False,
+        three_d_model_available=False,
+        three_d_preview_available=True,
+        three_d_preview_status="Hüllkörper",
     )
     return (
         SymbolLibrary(
@@ -24,11 +27,13 @@ def sample_libraries() -> tuple[SymbolLibrary, ...]:
             device_count=1,
             footprint_count=1,
             complete_preview_count=0,
+            three_d_model_count=0,
+            three_d_preview_count=1,
         ),
     )
 
 
-def test_library_page_contains_summary_and_symbol_details():
+def test_library_page_contains_summary_symbol_and_3d_details():
     html = library_page_html(sample_libraries())
     assert 'id="page-bibliotheken"' in html
     assert "Bibliotheken" in html
@@ -39,6 +44,11 @@ def test_library_page_contains_summary_and_symbol_details():
     assert "Z_DIN_Module_18mm" in html
     assert "Vorhanden" in html
     assert "Fehlt" in html
+    assert 'id="library-filter-three-d"' in html
+    assert 'data-three-d-status="Hüllkörper"' in html
+    assert 'data-three-d-preview-available="Ja"' in html
+    assert "3D-Vorschau" in html
+    assert "3D-Modelle" in html
 
 
 def test_library_page_escapes_repository_data():
@@ -51,6 +61,7 @@ def test_library_page_escapes_repository_data():
         footprint_name="<footprint>",
         footprint_available=False,
         footprint_preview_available=False,
+        three_d_preview_status="<3d>",
     )
     library = SymbolLibrary(
         name="<library>",
@@ -66,3 +77,4 @@ def test_library_page_escapes_repository_data():
     assert "&lt;script&gt;" in html
     assert "&lt;device&gt;" in html
     assert "&lt;footprint&gt;" in html
+    assert "&lt;3d&gt;" in html
