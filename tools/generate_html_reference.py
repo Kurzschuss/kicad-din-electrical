@@ -7,6 +7,7 @@ import argparse
 from html import escape
 import json
 from pathlib import Path
+import re
 import sys
 
 from tools.generate_quality_report import collect_statistics
@@ -21,6 +22,13 @@ from tools.validate_libraries import (
 )
 
 OUTPUT_PATH = REPO_ROOT / "docs" / "site" / "index.html"
+FOOTPRINT_PROPERTY_RE = re.compile(r'\(property\s+"Footprint"\s+"((?:\\.|[^"\\])*)"')
+
+
+def _library_footprint(path: Path) -> str:
+    """Liefert bei Mehrsymbol-Bibliotheken die erste konkrete Footprint-Zuordnung."""
+    values = FOOTPRINT_PROPERTY_RE.findall(path.read_text(encoding="utf-8"))
+    return next((value.strip() for value in values if value.strip()), "—")
 
 
 def collect_devices(
@@ -67,7 +75,7 @@ def collect_site_data(symbol_root: Path = SYMBOL_ROOT, footprint_root: Path = FO
                 "status": "befüllt" if names else "vorbereitet, noch leer",
                 "symbols": names,
                 "policy": footprint_policy(properties) if names else "—",
-                "footprint": properties.get("Footprint", "").strip() or "—",
+                "footprint": _library_footprint(path) if names else "—",
             }
         )
 
