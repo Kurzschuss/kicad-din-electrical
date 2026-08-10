@@ -13,7 +13,7 @@ Diese Roadmap ordnet die langfristigen Ziele des Projekts. Sie ist ein lebendes 
 - [x] Symbol-, Footprint- und Qualitätsreferenzen erzeugen
 - [x] Gerätekatalog, Geräteserien und Taxonomie einführen
 - [x] HTML-Referenzen und Symbolvorschauen bereitstellen
-- [ ] Qualitätshandbuch `docs/00_Project/LIBRARY_GUIDELINES.md` vollständig ausarbeiten
+- [x] Qualitätshandbuch `docs/00_Project/LIBRARY_GUIDELINES.md` vollständig ausarbeiten
 
 ## Phase B – Benutzerdokumentation
 
