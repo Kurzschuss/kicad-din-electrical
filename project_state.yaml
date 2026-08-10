@@ -29,7 +29,8 @@
         {"id": "navigation", "title_de": "Navigation und Startseite", "state": "done"},
         {"id": "projektstatus", "title_de": "Projektstatus-Karten", "state": "done"},
         {"id": "sicherheitsseite", "title_de": "Sicherheitsseite sichtbar anbinden", "state": "done"},
-        {"id": "herstellerseite", "title_de": "Hersteller- und Serienübersicht umsetzen", "state": "done"}
+        {"id": "herstellerseite", "title_de": "Hersteller- und Serienübersicht umsetzen", "state": "done"},
+        {"id": "diagnoseseite", "title_de": "Diagnose-Arbeitsliste umsetzen", "state": "done"}
       ]
     },
     {
