@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from tools.generate_device_variants import expand_series
 from tools.generate_symbol_previews import (
     parse_pin_names,
@@ -51,7 +53,7 @@ def test_rcd_symbol_matches_approved_switch_and_test_circuit_geometry():
 
     # Die mechanische Kopplung liegt mittig durch die beiden Hauptkontakte.
     assert ((-5.08, 6.35), (22.86, 6.35)) in points
-    assert (8.89 + 3.81) / 2 == 6.35
+    assert (8.89 + 3.81) / 2 == pytest.approx(6.35)
 
     # Der Testkontakt über dem verlängerten Widerstand ist auf dieselbe Höhe gesetzt.
     assert ((-20.32, 5.08), (-17.78, 5.08)) in points
@@ -95,7 +97,7 @@ def test_rcd_symbol_matches_approved_residual_trip_geometry():
         (item.x1, item.y1, item.x2, item.y2) == (22.86, 8.89, 29.21, 3.81)
         for item in rectangles
     )
-    assert (8.89 + 3.81) / 2 == 6.35
+    assert (8.89 + 3.81) / 2 == pytest.approx(6.35)
 
 
 def test_rcd_preview_preserves_reference_dashes_fill_and_terminal_labels():
