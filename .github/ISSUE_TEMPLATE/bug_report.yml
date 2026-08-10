@@ -1,0 +1,73 @@
+name: Fehler melden
+description: Reproduzierbaren Fehler in ProjectOS, Z_Cockpit oder den KiCad-Bibliotheken melden
+title: "[Fehler] "
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Kategorie
+      options:
+        - Allgemeiner Programmfehler
+        - Z_Cockpit-Oberfläche
+        - Gerätedaten
+        - Symbol
+        - Footprint
+        - Vorschau / 3D
+        - Projektvalidator / Qualität
+        - Benutzer / Berechtigungen
+        - Sicherheit
+        - Dokumentation
+    validations:
+      required: true
+
+  - type: input
+    id: reference
+    attributes:
+      label: Technische Referenz
+      description: Optional, zum Beispiel Geräte-ID, Symbol, Footprint oder PRJ-Code.
+      placeholder: generic.mcb-1p-b16-template / Z_MCB:MCB / PRJ-002
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Beschreibung
+      description: Was ist passiert?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Schritte zur Reproduktion
+      description: Möglichst kurz und eindeutig beschreiben.
+      placeholder: |
+        1. Z_Cockpit öffnen
+        2. ...
+        3. ...
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Tatsächliches Verhalten
+
+  - type: textarea
+    id: generated_report
+    attributes:
+      label: Z_Cockpit-Fehlerbericht
+      description: Hier den im Z_Cockpit geprüften und kopierten Markdown-Bericht einfügen. Vor dem Einfügen sensible oder unnötige Angaben entfernen.
+      render: markdown
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Datenschutz und Sicherheit
+      options:
+        - label: Ich habe geprüft, dass der Bericht keine Passwörter, Tokens, privaten Schlüssel oder unnötigen personenbezogenen Daten enthält.
+          required: true
+        - label: Ich habe den Repository-/Versionsstatus geprüft oder im Bericht kenntlich gemacht, wenn diese Prüfung nicht erfolgreich war.
+          required: true
