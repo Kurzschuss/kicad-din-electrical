@@ -5,7 +5,6 @@
   "footprint_policy": "optional",
   "function_group": "switching.contactor",
   "id": "generic.contactor-3p-ac3-template-series.25a",
-  "main_contacts_nc": 0,
   "main_contacts_no": 3,
   "manufacturer": "Generic",
   "name_de": "Leistungsschütz 3-polig 25 A AC-3",
