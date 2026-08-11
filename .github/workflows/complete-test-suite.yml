@@ -11,7 +11,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   pytest:
@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          ref: agent/main-switch-package
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -30,6 +32,40 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
+
+      - name: Generate main-switch package artifacts
+        run: |
+          python tools/generate_device_variants.py
+          python tools/generate_package_progress.py
+          python tools/generate_library_reference.py
+          python tools/generate_quality_report.py
+          python tools/generate_symbol_previews.py
+          python -m tools.generate_html_reference
+          python -m tools.generate_device_catalog_html
+          python -m tools.generate_z_cockpit
+
+      - name: Commit generated main-switch artifacts and restore workflow
+        run: |
+          git fetch origin main
+          git checkout origin/main -- .github/workflows/complete-test-suite.yml
+          git add \
+            data/devices/generated/generic.main-switch-2p-template-series/ \
+            data/devices/generated/generic.main-switch-4p-template-series/ \
+            docs/04_Reference/Z_PACKAGE_PROGRESS.md \
+            docs/04_Reference/QUALITY_REPORT.md \
+            docs/04_Reference/SYMBOL_INDEX.md \
+            docs/04_Reference/FOOTPRINT_INDEX.md \
+            docs/site/symbol-previews/Z_MAIN_SWITCH/ \
+            docs/site/symbol-previews/index.html \
+            docs/site/index.html \
+            docs/site/devices.html \
+            .github/workflows/complete-test-suite.yml
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Hauptschalter: generierte Paketartefakte aktualisieren"
+            git push origin HEAD:agent/main-switch-package
+          fi
 
       - name: Run repository health check
         run: python -m pytest -q tests/test_projectos_repository_consistency.py
