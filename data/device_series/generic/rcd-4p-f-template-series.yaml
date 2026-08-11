@@ -1,0 +1,25 @@
+{
+  "series_id": "generic.rcd-4p-f-template-series",
+  "defaults": {
+    "manufacturer": "Generic",
+    "series": "Template RCD 4P F",
+    "device_type": "Fehlerstrom-Schutzschalter",
+    "function_group": "protection.rcd",
+    "poles": 4,
+    "modules": 4,
+    "symbol": "Z_RCD:RCD_4P",
+    "footprint_policy": "optional",
+    "source_status": "template"
+  },
+  "variants": [
+    {"variant_id": "f25-30ma", "part_number": "RCD-4P-F-25A-30MA", "rated_current_a": 25, "residual_current_ma": 30, "rcd_type": "F"},
+    {"variant_id": "f25-300ma", "part_number": "RCD-4P-F-25A-300MA", "rated_current_a": 25, "residual_current_ma": 300, "rcd_type": "F"},
+    {"variant_id": "f25-500ma", "part_number": "RCD-4P-F-25A-500MA", "rated_current_a": 25, "residual_current_ma": 500, "rcd_type": "F"},
+    {"variant_id": "f40-30ma", "part_number": "RCD-4P-F-40A-30MA", "rated_current_a": 40, "residual_current_ma": 30, "rcd_type": "F"},
+    {"variant_id": "f40-300ma", "part_number": "RCD-4P-F-40A-300MA", "rated_current_a": 40, "residual_current_ma": 300, "rcd_type": "F"},
+    {"variant_id": "f40-500ma", "part_number": "RCD-4P-F-40A-500MA", "rated_current_a": 40, "residual_current_ma": 500, "rcd_type": "F"},
+    {"variant_id": "f63-30ma", "part_number": "RCD-4P-F-63A-30MA", "rated_current_a": 63, "residual_current_ma": 30, "rcd_type": "F"},
+    {"variant_id": "f63-300ma", "part_number": "RCD-4P-F-63A-300MA", "rated_current_a": 63, "residual_current_ma": 300, "rcd_type": "F"},
+    {"variant_id": "f63-500ma", "part_number": "RCD-4P-F-63A-500MA", "rated_current_a": 63, "residual_current_ma": 500, "rcd_type": "F"}
+  ]
+}
