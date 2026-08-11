@@ -1,0 +1,16 @@
+{
+  "device_type": "Fehlerstrom-Schutzschalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.rcd",
+  "id": "generic.rcd-4p-f-template-series.f40-300ma",
+  "manufacturer": "Generic",
+  "modules": 4,
+  "part_number": "RCD-4P-F-40A-300MA",
+  "poles": 4,
+  "rated_current_a": 40,
+  "rcd_type": "F",
+  "residual_current_ma": 300,
+  "series": "Template RCD 4P F",
+  "source_status": "template",
+  "symbol": "Z_RCD:RCD_4P"
+}
