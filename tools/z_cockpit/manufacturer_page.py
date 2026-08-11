@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from html import escape
 import json
 
+from projectos.manufacturer_registry import ManufacturerRegistryEntry, load_manufacturer_registry
 from tools.generate_device_catalog_html import collect_devices
 
 
@@ -11,6 +12,13 @@ _SOURCE_LABELS = {
     "template": "Vorlage",
     "verified": "Verifiziert",
     "unverified": "Ungeprüft",
+}
+
+_STATUS_LABELS = {
+    "ACTIVE": "Aktiv",
+    "INACTIVE": "Historisch / inaktiv",
+    "CATALOG_ONLY": "Nur Gerätekatalog",
+    "GENERIC": "Herstellerneutral",
 }
 
 
@@ -34,6 +42,15 @@ class ManufacturerView:
     device_ids: tuple[str, ...]
     families: tuple[str, ...]
     source_states: tuple[str, ...]
+    manufacturer_id: str | None = None
+    legal_name: str | None = None
+    country_code: str | None = None
+    website: str | None = None
+    registry_status: str = "CATALOG_ONLY"
+    aliases: tuple[str, ...] = ()
+    registry_source_status: str | None = None
+    registry_source_url: str | None = None
+    note: str | None = None
 
     @property
     def series_count(self) -> int:
@@ -44,23 +61,72 @@ class ManufacturerView:
         return len(self.device_ids)
 
 
+
 def _manufacturer_name(value: str) -> str:
     return "Herstellerneutral" if value == "Generic" else value
+
 
 
 def _source_label(value: str) -> str:
     return _SOURCE_LABELS.get(value, value or "Unbekannt")
 
 
+
+def _source_labels(states: tuple[str, ...]) -> tuple[str, ...]:
+    if not states:
+        return ("Noch keine Gerätezuordnung",)
+    return tuple(_source_label(value) for value in states)
+
+
+
+def _source_text(states: tuple[str, ...]) -> str:
+    return ", ".join(_source_labels(states))
+
+
+
+def _status_label(value: str) -> str:
+    return _STATUS_LABELS.get(value, value or "Unbekannt")
+
+
+
+def _registry_lookup(
+    entries: tuple[ManufacturerRegistryEntry, ...],
+) -> dict[str, ManufacturerRegistryEntry]:
+    result: dict[str, ManufacturerRegistryEntry] = {}
+    for entry in entries:
+        for name in entry.search_names:
+            result[name.casefold()] = entry
+    return result
+
+
+
 def collect_manufacturers(
     devices: list[dict[str, object]] | None = None,
+    registry: tuple[ManufacturerRegistryEntry, ...] | None = None,
 ) -> tuple[ManufacturerView, ...]:
-    """Aggregiert Hersteller und Serien ausschließlich aus dem technischen Gerätekatalog."""
+    """Führt Hersteller-Stammdaten und technische Gerätekatalogzuordnungen zusammen."""
     source = list(collect_devices()["devices"]) if devices is None else list(devices)
+    registry_entries = (
+        load_manufacturer_registry()
+        if devices is None and registry is None
+        else (() if registry is None else registry)
+    )
+    lookup = _registry_lookup(registry_entries)
     manufacturers: dict[str, dict[str, object]] = {}
 
+    for entry in registry_entries:
+        manufacturers[entry.catalog_name] = {
+            "device_ids": set(),
+            "families": set(),
+            "source_states": set(),
+            "series": {},
+            "registry": entry,
+        }
+
     for item in source:
-        catalog_name = str(item.get("manufacturer") or "Unbekannt")
+        raw_catalog_name = str(item.get("manufacturer") or "Unbekannt")
+        registry_entry = lookup.get(raw_catalog_name.casefold())
+        catalog_name = registry_entry.catalog_name if registry_entry is not None else raw_catalog_name
         series_name = str(item.get("series") or "Ohne Serie")
         family = str(item.get("family") or "Unbekannt")
         source_state = str(item.get("source_status") or "unverified")
@@ -75,6 +141,7 @@ def collect_manufacturers(
                 "families": set(),
                 "source_states": set(),
                 "series": {},
+                "registry": registry_entry,
             },
         )
         manufacturer["device_ids"].add(device_id)  # type: ignore[union-attr]
@@ -103,30 +170,64 @@ def collect_manufacturers(
                 )
             )
         series_items.sort(key=lambda item: item.name.casefold())
+
+        entry = manufacturer.get("registry")
+        if isinstance(entry, ManufacturerRegistryEntry):
+            registered = entry.manufacturer
+            display_name = entry.display_name
+            manufacturer_id = str(registered.manufacturer_id)
+            legal_name = registered.name
+            country_code = registered.country_code
+            website = registered.website
+            registry_status = registered.status.value
+            aliases = entry.aliases
+            registry_source_status = entry.source_status
+            registry_source_url = entry.source_url
+            note = entry.note
+        else:
+            display_name = _manufacturer_name(catalog_name)
+            manufacturer_id = None
+            legal_name = None
+            country_code = None
+            website = None
+            registry_status = "GENERIC" if catalog_name == "Generic" else "CATALOG_ONLY"
+            aliases = ()
+            registry_source_status = None
+            registry_source_url = None
+            note = None
+
         result.append(
             ManufacturerView(
                 catalog_name=catalog_name,
-                display_name=_manufacturer_name(catalog_name),
+                display_name=display_name,
                 series=tuple(series_items),
                 device_ids=tuple(sorted(manufacturer["device_ids"], key=str.casefold)),  # type: ignore[arg-type]
                 families=tuple(sorted(manufacturer["families"], key=str.casefold)),  # type: ignore[arg-type]
                 source_states=tuple(sorted(manufacturer["source_states"], key=str.casefold)),  # type: ignore[arg-type]
+                manufacturer_id=manufacturer_id,
+                legal_name=legal_name,
+                country_code=country_code,
+                website=website,
+                registry_status=registry_status,
+                aliases=aliases,
+                registry_source_status=registry_source_status,
+                registry_source_url=registry_source_url,
+                note=note,
             )
         )
 
     return tuple(sorted(result, key=lambda item: item.display_name.casefold()))
 
 
+
 def _options(values: tuple[str, ...]) -> str:
     return "".join(f'<option value="{escape(value)}">{escape(value)}</option>' for value in values)
+
 
 
 def _json_attr(values: tuple[str, ...]) -> str:
     return escape(json.dumps(values, ensure_ascii=False), quote=True)
 
-
-def _source_text(states: tuple[str, ...]) -> str:
-    return ", ".join(_source_label(value) for value in states)
 
 
 def _series_table(item: ManufacturerView) -> str:
@@ -141,7 +242,7 @@ def _series_table(item: ManufacturerView) -> str:
             '</tr>'
         )
     if not rows:
-        return '<p class="manufacturer-empty">Keine Serienzuordnung vorhanden.</p>'
+        return '<p class="manufacturer-empty">Noch keine Serie aus dem Gerätekatalog zugeordnet.</p>'
     return (
         '<div class="manufacturer-series-wrap"><table class="manufacturer-series-table">'
         '<thead><tr><th>Serie</th><th>Geräte</th><th>Gerätefamilien</th><th>Quellenstatus</th></tr></thead>'
@@ -149,24 +250,65 @@ def _series_table(item: ManufacturerView) -> str:
     )
 
 
+
+def _link(url: str | None, text: str) -> str:
+    if not url:
+        return "–"
+    return (
+        f'<a href="{escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f'{escape(text)}</a>'
+    )
+
+
+
 def _inspector_template(item: ManufacturerView, index: int) -> str:
-    device_ids = "".join(f'<li><code>{escape(device_id)}</code></li>' for device_id in item.device_ids)
+    device_ids = (
+        "".join(f'<li><code>{escape(device_id)}</code></li>' for device_id in item.device_ids)
+        if item.device_ids
+        else '<li>Noch keine Gerätezuordnung.</li>'
+    )
     catalog_note = (
         "Herstellerneutrale Katalogvorlage"
         if item.catalog_name == "Generic"
-        else item.catalog_name
+        else item.legal_name or item.catalog_name
+    )
+    aliases = ", ".join(item.aliases) if item.aliases else "–"
+    manufacturer_id = item.manufacturer_id or "–"
+    country = item.country_code or "–"
+    registry_source = (
+        _link(item.registry_source_url, "Offizielle Quelle")
+        if item.registry_source_url
+        else "–"
+    )
+    registry_source_status = (
+        _source_label(item.registry_source_status)
+        if item.registry_source_status
+        else "–"
+    )
+    note = (
+        f'<dt>Hinweis</dt><dd>{escape(item.note)}</dd>'
+        if item.note
+        else ""
     )
     return (
         f'<template id="manufacturer-inspector-{index}">'
         '<div class="manufacturer-inspector-fixed">'
         '<dl class="manufacturer-properties">'
         f'<dt>Hersteller</dt><dd><strong>{escape(item.display_name)}</strong></dd>'
+        f'<dt>Firmenname</dt><dd>{escape(catalog_note)}</dd>'
+        f'<dt>Hersteller-ID</dt><dd><code>{escape(manufacturer_id)}</code></dd>'
         f'<dt>Katalogwert</dt><dd><code>{escape(item.catalog_name)}</code></dd>'
-        f'<dt>Einordnung</dt><dd>{escape(catalog_note)}</dd>'
+        f'<dt>Land</dt><dd>{escape(country)}</dd>'
+        f'<dt>Status</dt><dd>{escape(_status_label(item.registry_status))}</dd>'
+        f'<dt>Aliase</dt><dd>{escape(aliases)}</dd>'
+        f'<dt>Website</dt><dd>{_link(item.website, "Herstellerseite")}</dd>'
+        f'<dt>Stammdatenquelle</dt><dd>{registry_source}</dd>'
+        f'<dt>Stammdatenprüfung</dt><dd>{escape(registry_source_status)}</dd>'
         f'<dt>Serien</dt><dd>{item.series_count}</dd>'
         f'<dt>Geräte</dt><dd>{item.device_count}</dd>'
-        f'<dt>Gerätefamilien</dt><dd>{escape(", ".join(item.families))}</dd>'
-        f'<dt>Quellenstatus</dt><dd>{escape(_source_text(item.source_states))}</dd>'
+        f'<dt>Gerätefamilien</dt><dd>{escape(", ".join(item.families) or "–")}</dd>'
+        f'<dt>Geräte-Quellenstatus</dt><dd>{escape(_source_text(item.source_states))}</dd>'
+        f'{note}'
         '</dl>'
         '<h3>Serien</h3>'
         f'{_series_table(item)}'
@@ -178,50 +320,56 @@ def _inspector_template(item: ManufacturerView, index: int) -> str:
     )
 
 
+
 def manufacturer_page_html(
     manufacturers: tuple[ManufacturerView, ...] | None = None,
 ) -> str:
-    """Rendert die read-only Hersteller-/Serienübersicht aus dem Gerätekatalog."""
+    """Rendert die read-only Hersteller-/Serienübersicht aus Stammdaten und Gerätekatalog."""
     items = collect_manufacturers() if manufacturers is None else manufacturers
     total_series = sum(item.series_count for item in items)
     total_devices = sum(item.device_count for item in items)
     families = tuple(sorted({family for item in items for family in item.families}, key=str.casefold))
     series_names = tuple(sorted({series.name for item in items for series in item.series}, key=str.casefold))
     source_labels = tuple(
-        sorted({_source_label(state) for item in items for state in item.source_states}, key=str.casefold)
+        sorted({label for item in items for label in _source_labels(item.source_states)}, key=str.casefold)
     )
+    status_labels = tuple(sorted({_status_label(item.registry_status) for item in items}, key=str.casefold))
     manufacturer_names = tuple(item.display_name for item in items)
 
     rows: list[str] = []
     templates: list[str] = []
     for index, item in enumerate(items):
         source_text = _source_text(item.source_states)
+        status_text = _status_label(item.registry_status)
         rows.append(
             f'<tr class="manufacturer-row" tabindex="0" data-index="{index}" '
             f'data-manufacturer="{escape(item.display_name, quote=True)}" '
             f'data-series="{_json_attr(tuple(series.name for series in item.series))}" '
             f'data-families="{_json_attr(item.families)}" '
-            f'data-sources="{_json_attr(tuple(_source_label(state) for state in item.source_states))}">'
+            f'data-status="{escape(status_text, quote=True)}" '
+            f'data-sources="{_json_attr(_source_labels(item.source_states))}">'
             f'<th scope="row"><strong>{escape(item.display_name)}</strong></th>'
+            f'<td>{escape(status_text)}</td>'
+            f'<td>{escape(item.country_code or "–")}</td>'
             f'<td>{item.series_count}</td><td>{item.device_count}</td>'
-            f'<td>{escape(", ".join(item.families))}</td>'
+            f'<td>{escape(", ".join(item.families) or "–")}</td>'
             f'<td>{escape(source_text)}</td></tr>'
         )
         templates.append(_inspector_template(item, index))
 
-    empty_row = '<tr><td colspan="5">Keine Herstellerdaten im Gerätekatalog vorhanden.</td></tr>'
+    empty_row = '<tr><td colspan="7">Keine Herstellerdaten vorhanden.</td></tr>'
     table_rows = "".join(rows) if rows else empty_row
 
     return (
         '<style>'
         '#page-hersteller.active{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}'
-        '.manufacturer-workspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;height:100%;min-height:0;overflow:hidden}'
+        '.manufacturer-workspace{display:grid;grid-template-columns:minmax(0,1fr) 380px;height:100%;min-height:0;overflow:hidden}'
         '.manufacturer-main{min-width:0;min-height:0;padding:1rem;display:flex;flex-direction:column;overflow:hidden}'
         '.manufacturer-title{margin:0 0 .35rem;flex:0 0 auto}'
         '.manufacturer-subtitle{margin:.1rem 0 .9rem;opacity:.78;flex:0 0 auto}'
-        '.manufacturer-filters{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:.6rem;margin-bottom:.8rem;flex:0 0 auto}'
+        '.manufacturer-filters{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:.6rem;margin-bottom:.8rem;flex:0 0 auto}'
         '.manufacturer-table-wrap{flex:1 1 auto;min-height:0;overflow:auto;border:1px solid #8886}'
-        '.manufacturer-table{border-collapse:collapse;width:100%;min-width:760px}'
+        '.manufacturer-table{border-collapse:collapse;width:100%;min-width:980px}'
         '.manufacturer-table th,.manufacturer-table td{padding:.55rem .65rem;border-bottom:1px solid #8884;text-align:left;white-space:nowrap}'
         '.manufacturer-table thead th{position:sticky;top:0;background:Canvas;z-index:1}'
         '.manufacturer-table th[scope="row"]{position:static;background:transparent}'
@@ -249,21 +397,22 @@ def manufacturer_page_html(
         '.manufacturer-device-ids li{padding:.35rem .45rem;border:1px solid #8885;border-radius:.3rem}'
         '.manufacturer-device-ids code{white-space:normal;overflow-wrap:anywhere;word-break:break-word}'
         '.manufacturer-empty{padding:.7rem;border:1px dashed #8888;text-align:center}'
-        '@media(max-width:1050px){.manufacturer-workspace{grid-template-columns:1fr}.manufacturer-inspector{height:auto;overflow:auto;border-left:0;border-top:1px solid #8886}'
+        '@media(max-width:1150px){.manufacturer-workspace{grid-template-columns:1fr}.manufacturer-inspector{height:auto;overflow:auto;border-left:0;border-top:1px solid #8886}'
         '#manufacturer-inspector-content{overflow:visible}.manufacturer-device-scroll{max-height:18rem}.manufacturer-filters{grid-template-columns:repeat(2,minmax(120px,1fr))}}'
         '</style>'
         '<section class="page" id="page-hersteller"><div class="manufacturer-workspace">'
         '<div class="manufacturer-main">'
         '<h2 class="manufacturer-title">Hersteller</h2>'
-        '<p class="manufacturer-subtitle">Read-only Übersicht aus dem technischen Gerätekatalog. Hersteller, Serien und Gerätezuordnungen bleiben damit ohne zweite Datenpflege nachvollziehbar.</p>'
+        '<p class="manufacturer-subtitle">Read-only Übersicht aus verifizierten Hersteller-Stammdaten und technischem Gerätekatalog. Hersteller können bereits ohne Produktzuordnung gepflegt werden; Serien und Geräte werden später automatisch ergänzt.</p>'
         '<div class="manufacturer-filters">'
         f'<label>Hersteller ({len(items)})<select id="manufacturer-page-filter-name"><option value="">Alle</option>{_options(manufacturer_names)}</select></label>'
+        f'<label>Status ({len(status_labels)})<select id="manufacturer-page-filter-status"><option value="">Alle</option>{_options(status_labels)}</select></label>'
         f'<label>Serien ({total_series})<select id="manufacturer-page-filter-series"><option value="">Alle</option>{_options(series_names)}</select></label>'
         f'<label>Gerätefamilien ({len(families)})<select id="manufacturer-page-filter-family"><option value="">Alle</option>{_options(families)}</select></label>'
-        f'<label>Quellenstatus ({len(source_labels)})<select id="manufacturer-page-filter-source"><option value="">Alle</option>{_options(source_labels)}</select></label>'
+        f'<label>Geräte-Quellenstatus ({len(source_labels)})<select id="manufacturer-page-filter-source"><option value="">Alle</option>{_options(source_labels)}</select></label>'
         '</div>'
         '<div class="manufacturer-table-wrap"><table class="manufacturer-table" id="manufacturer-overview">'
-        '<thead><tr><th>Hersteller</th><th>Serien</th><th>Geräte</th><th>Gerätefamilien</th><th>Quellenstatus</th></tr></thead>'
+        '<thead><tr><th>Hersteller</th><th>Status</th><th>Land</th><th>Serien</th><th>Geräte</th><th>Gerätefamilien</th><th>Geräte-Quellenstatus</th></tr></thead>'
         f'<tbody>{table_rows}</tbody></table></div>'
         f'<p class="manufacturer-result-count" id="manufacturer-result-count">{len(items)} Hersteller · {total_series} Serien · {total_devices} Geräte</p>'
         '</div>'
@@ -277,6 +426,7 @@ def manufacturer_page_html(
         'const inspector=document.getElementById("manufacturer-inspector-content");'
         'const count=document.getElementById("manufacturer-result-count");'
         'const nameFilter=document.getElementById("manufacturer-page-filter-name");'
+        'const statusFilter=document.getElementById("manufacturer-page-filter-status");'
         'const seriesFilter=document.getElementById("manufacturer-page-filter-series");'
         'const familyFilter=document.getElementById("manufacturer-page-filter-family");'
         'const sourceFilter=document.getElementById("manufacturer-page-filter-source");'
@@ -286,11 +436,12 @@ def manufacturer_page_html(
         'function select(row){rows.forEach(item=>item.classList.remove("selected"));row.classList.add("selected");selected=row;'
         'const template=document.getElementById(`manufacturer-inspector-${row.dataset.index}`);inspector.innerHTML=template?template.innerHTML:"<p>Keine Detaildaten vorhanden.</p>";}'
         'function apply(){let visible=0;rows.forEach(row=>{const show=(!nameFilter.value||row.dataset.manufacturer===nameFilter.value)'
+        '&&(!statusFilter.value||row.dataset.status===statusFilter.value)'
         '&&(!seriesFilter.value||values(row,"series").includes(seriesFilter.value))'
         '&&(!familyFilter.value||values(row,"families").includes(familyFilter.value))'
         '&&(!sourceFilter.value||values(row,"sources").includes(sourceFilter.value));row.hidden=!show;if(show)visible+=1;});'
         'if(selected&&selected.hidden)reset();count.textContent=`${visible} Hersteller sichtbar`;}'
         'rows.forEach(row=>{row.addEventListener("click",()=>select(row));row.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();select(row);}});});'
-        '[nameFilter,seriesFilter,familyFilter,sourceFilter].forEach(filter=>filter.addEventListener("change",apply));apply();'
+        '[nameFilter,statusFilter,seriesFilter,familyFilter,sourceFilter].forEach(filter=>filter.addEventListener("change",apply));apply();'
         '})();</script>'
     )
