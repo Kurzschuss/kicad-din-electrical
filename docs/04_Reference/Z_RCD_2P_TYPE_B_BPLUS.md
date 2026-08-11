@@ -14,6 +14,12 @@ Quelle im Repository:
 data/device_series/generic/rcd-2p-b-bplus-template-series.yaml
 ```
 
+Die erzeugten Einzelgeräte liegen unter:
+
+```text
+data/devices/generated/generic.rcd-2p-b-bplus-template-series/
+```
+
 Die Serie erzeugt 16 herstellerneutrale Vorlagen aus:
 
 - Bemessungsstrom: 16 A, 25 A, 40 A, 63 A;
