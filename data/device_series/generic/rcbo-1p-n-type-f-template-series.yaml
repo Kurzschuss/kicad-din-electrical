@@ -1,0 +1,23 @@
+{
+  "series_id": "generic.rcbo-1p-n-type-f-template-series",
+  "defaults": {
+    "manufacturer": "Generic",
+    "series": "Template RCBO 1P+N Typ F",
+    "device_type": "FI/LS-Schalter",
+    "function_group": "protection.rcbo",
+    "description": "Konservative herstellerneutrale 1P+N-RCBO-Planungsserie Typ F; konkrete Produktdaten vor der Ausführung prüfen.",
+    "poles": 2,
+    "residual_current_ma": 30,
+    "rcd_type": "F",
+    "trip_curve": "C",
+    "breaking_capacity_ka": 6,
+    "modules": 2,
+    "symbol": "Z_RCBO_1P_N:RCBO_1P_N",
+    "footprint_policy": "optional",
+    "source_status": "template"
+  },
+  "variants": [
+    {"variant_id": "c6", "part_number": "RCBO-1PN-F-C6-30MA-6KA", "rated_current_a": 6},
+    {"variant_id": "c16", "part_number": "RCBO-1PN-F-C16-30MA-6KA", "rated_current_a": 16}
+  ]
+}
