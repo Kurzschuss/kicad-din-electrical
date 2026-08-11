@@ -38,12 +38,18 @@
       "name": "RCBO",
       "symbol": true,
       "device_data": true,
-      "documentation": false,
+      "documentation": true,
       "example": false,
-      "tests": false,
-      "quality_status": "needs_rework",
-      "quality_level": "Entwurf",
-      "references": ["symbols/Z_RCBO_1P_N.kicad_sym"]
+      "tests": true,
+      "quality_status": "z_conform",
+      "quality_level": "Geprüft",
+      "references": [
+        "symbols/Z_RCBO_1P_N.kicad_sym",
+        "data/device_series/generic/rcbo-1p-n-type-a-template-series.yaml",
+        "data/device_series/generic/rcbo-1p-n-type-f-template-series.yaml",
+        "docs/04_Reference/Z_RCBO_REFERENCE.md",
+        "tests/test_z_rcbo_1p_n_family.py"
+      ]
     },
     {
       "id": "Z_MAIN_SWITCH",
