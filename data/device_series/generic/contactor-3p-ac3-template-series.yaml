@@ -8,7 +8,6 @@
     "description": "Herstellerneutrale 3-polige Leistungsschütz-Planungsserie mit drei Hauptschließern; Spulenspannung und konkrete Bauform vor der Ausführung anhand des gewählten Produkts festlegen.",
     "poles": 3,
     "main_contacts_no": 3,
-    "main_contacts_nc": 0,
     "utilization_category": "AC-3",
     "symbol": "Z_CONTACTOR:CONTACTOR",
     "footprint_policy": "optional",
