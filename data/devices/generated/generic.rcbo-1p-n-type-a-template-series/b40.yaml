@@ -1,0 +1,19 @@
+{
+  "breaking_capacity_ka": 6,
+  "description": "Herstellerneutrale 1P+N-RCBO-Planungsserie; konkrete Produktdaten vor der Ausführung prüfen.",
+  "device_type": "FI/LS-Schalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.rcbo",
+  "id": "generic.rcbo-1p-n-type-a-template-series.b40",
+  "manufacturer": "Generic",
+  "modules": 2,
+  "part_number": "RCBO-1PN-A-B40-30MA-6KA",
+  "poles": 2,
+  "rated_current_a": 40,
+  "rcd_type": "A",
+  "residual_current_ma": 30,
+  "series": "Template RCBO 1P+N Typ A",
+  "source_status": "template",
+  "symbol": "Z_RCBO_1P_N:RCBO_1P_N",
+  "trip_curve": "B"
+}

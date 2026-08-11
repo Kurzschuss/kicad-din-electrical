@@ -8,7 +8,7 @@ Eine Familie gilt erst als vollständiges Paket, wenn Symbol, Gerätedaten, Doku
 |---|:---:|:---:|:---:|:---:|:---:|---|---|
 | MCB (`Z_MCB`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
 | RCD (`Z_RCD`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
-| RCBO (`Z_RCBO`) | ✅ | ✅ | ⬜ | ⬜ | ⬜ | `needs_rework` | Entwurf |
+| RCBO (`Z_RCBO`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
 | Hauptschalter (`Z_MAIN_SWITCH`) | ✅ | ✅ | ⬜ | ⬜ | ⬜ | `needs_rework` | Entwurf |
 
 ## Reifegrade

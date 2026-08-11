@@ -1,10 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
   <title>Z_RCBO_1P_N: RCBO_1P_N</title>
   <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
-  <rect x="89.52" y="47.52" width="60.96" height="60.96" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="62.76" x2="89.52" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="93.24" x2="89.52" y2="93.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="62.76" x2="150.48" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="93.24" x2="150.48" y2="93.24" stroke="currentColor" stroke-width="2"/>
+  <rect x="49.85" y="78.00" width="12.20" height="24.40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="92.55" y="78.00" width="61.00" height="24.40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="92.55" y="78.00" width="6.10" height="24.40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="165.75" y="78.00" width="36.60" height="36.60" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="165.75" y="35.30" width="30.50" height="24.40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="104.75,29.20 104.75,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="92.55,35.30 104.75,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.75,59.70 104.75,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="141.35,29.20 141.35,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="129.15,35.30 141.35,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="141.35,59.70 141.35,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="80.35,47.50 165.75,47.50" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="31.55,59.70 31.55,47.50" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="31.55,53.60 43.75,53.60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="43.75,35.30 55.95,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="55.95,59.70 55.95,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="55.95,102.40 55.95,120.70 141.35,120.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="68.15,47.50 68.15,23.10 80.35,23.10 80.35,29.20 104.75,29.20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="98.65,90.20 153.55,90.20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="165.75,96.30 153.55,96.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="165.75,102.40 153.55,102.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="181.00,35.30 181.00,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="165.75,47.50 196.25,47.50" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="181.00,59.70 181.00,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="196.25,47.50 208.45,47.50" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="208.45,53.60 208.45,41.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="80.35,71.90 86.45,71.90 92.55,78.00 98.65,71.90 110.85,71.90" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="84.01,66.20 90.16,60.35 92.44,67.19 84.01,66.20" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="91.30,63.77 103.50,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="104.75" y1="17.00" x2="104.75" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="104.75" y1="139.00" x2="104.75" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="141.35" y1="17.00" x2="141.35" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="141.35" y1="139.00" x2="141.35" y2="126.80" stroke="currentColor" stroke-width="2"/>
   <text x="120" y="164" text-anchor="middle" font-size="12">RCBO_1P_N</text>
 </svg>
