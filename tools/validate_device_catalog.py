@@ -23,7 +23,8 @@ ALLOWED_FIELDS = REQUIRED_FIELDS | {
     "rcd_type", "trip_curve", "breaking_capacity_ka",
     "rated_short_circuit_current_ka", "making_breaking_capacity_ka",
     "modules", "footprint", "datasheet", "source_status", "name_de",
-    "name_en", "abbreviation",
+    "name_en", "abbreviation", "main_contacts_no", "main_contacts_nc",
+    "utilization_category",
 }
 POLICIES = {"required", "optional", "none"}
 SOURCE_STATES = {"template", "verified", "unverified"}
@@ -107,9 +108,10 @@ def validate_device(
     ):
         errors.append("abbreviation muss ein etabliertes großgeschriebenes Fachkürzel sein")
 
-    rcd_type = data.get("rcd_type")
-    if rcd_type is not None and (not isinstance(rcd_type, str) or not rcd_type.strip()):
-        errors.append("rcd_type muss ein nichtleerer Text sein")
+    for field in ("rcd_type", "utilization_category"):
+        value = data.get(field)
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            errors.append(f"{field} muss ein nichtleerer Text sein")
 
     family = data.get("function_group")
     if isinstance(family, str) and allowed_families is not None and family not in allowed_families:
@@ -141,6 +143,12 @@ def validate_device(
     value = data.get("poles")
     if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 1):
         errors.append("poles muss eine positive ganze Zahl sein")
+    for field in ("main_contacts_no", "main_contacts_nc"):
+        value = data.get(field)
+        if value is not None and (
+            not isinstance(value, int) or isinstance(value, bool) or value < 1
+        ):
+            errors.append(f"{field} muss eine positive ganze Zahl sein")
     for field in (
         "rated_current_a",
         "residual_current_ma",

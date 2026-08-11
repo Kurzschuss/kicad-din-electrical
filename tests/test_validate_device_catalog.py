@@ -41,6 +41,21 @@ def test_valid_device_without_footprint_is_allowed(tmp_path: Path):
     assert validate_device(valid_device(), symbol_root=symbols, footprint_root=tmp_path) == []
 
 
+def test_contactor_fields_are_allowed_and_validated(tmp_path: Path):
+    symbols = tmp_path / "symbols"
+    make_symbol(symbols)
+    device = valid_device()
+    device["main_contacts_no"] = 3
+    device["utilization_category"] = "AC-3"
+    assert validate_device(device, symbol_root=symbols, footprint_root=tmp_path) == []
+
+    device["main_contacts_nc"] = 0
+    device["utilization_category"] = ""
+    errors = validate_device(device, symbol_root=symbols, footprint_root=tmp_path)
+    assert "main_contacts_nc muss eine positive ganze Zahl sein" in errors
+    assert "utilization_category muss ein nichtleerer Text sein" in errors
+
+
 def test_rejects_unknown_device_family(tmp_path: Path):
     symbols = tmp_path / "symbols"
     make_symbol(symbols)

@@ -68,6 +68,23 @@
         "docs/04_Reference/Z_MAIN_SWITCH_REFERENCE.md",
         "tests/test_z_main_switch_family.py"
       ]
+    },
+    {
+      "id": "Z_CONTACTOR",
+      "name": "Schütze",
+      "symbol": true,
+      "device_data": true,
+      "documentation": true,
+      "example": false,
+      "tests": true,
+      "quality_status": "z_conform",
+      "quality_level": "Geprüft",
+      "references": [
+        "symbols/Z_CONTACTOR.kicad_sym",
+        "data/device_series/generic/contactor-3p-ac3-template-series.yaml",
+        "docs/04_Reference/Z_CONTACTOR_REFERENCE.md",
+        "tests/test_z_contactor_family.py"
+      ]
     }
   ]
 }
