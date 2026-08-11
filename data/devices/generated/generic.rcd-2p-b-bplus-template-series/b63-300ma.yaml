@@ -1,0 +1,16 @@
+{
+  "device_type": "Fehlerstrom-Schutzschalter",
+  "footprint_policy": "optional",
+  "function_group": "protection.rcd",
+  "id": "generic.rcd-2p-b-bplus-template-series.b63-300ma",
+  "manufacturer": "Generic",
+  "modules": 2,
+  "part_number": "RCD-2P-B-63A-300MA",
+  "poles": 2,
+  "rated_current_a": 63,
+  "rcd_type": "B",
+  "residual_current_ma": 300,
+  "series": "Template RCD 2P B/B+",
+  "source_status": "template",
+  "symbol": "Z_RCD:RCD"
+}

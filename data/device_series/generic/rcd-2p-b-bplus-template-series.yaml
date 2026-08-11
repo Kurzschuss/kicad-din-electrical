@@ -1,0 +1,32 @@
+{
+  "series_id": "generic.rcd-2p-b-bplus-template-series",
+  "defaults": {
+    "manufacturer": "Generic",
+    "series": "Template RCD 2P B/B+",
+    "device_type": "Fehlerstrom-Schutzschalter",
+    "function_group": "protection.rcd",
+    "poles": 2,
+    "modules": 2,
+    "symbol": "Z_RCD:RCD",
+    "footprint_policy": "optional",
+    "source_status": "template"
+  },
+  "variants": [
+    {"variant_id": "b16-30ma", "part_number": "RCD-2P-B-16A-30MA", "rated_current_a": 16, "residual_current_ma": 30, "rcd_type": "B"},
+    {"variant_id": "b16-300ma", "part_number": "RCD-2P-B-16A-300MA", "rated_current_a": 16, "residual_current_ma": 300, "rcd_type": "B"},
+    {"variant_id": "b25-30ma", "part_number": "RCD-2P-B-25A-30MA", "rated_current_a": 25, "residual_current_ma": 30, "rcd_type": "B"},
+    {"variant_id": "b25-300ma", "part_number": "RCD-2P-B-25A-300MA", "rated_current_a": 25, "residual_current_ma": 300, "rcd_type": "B"},
+    {"variant_id": "b40-30ma", "part_number": "RCD-2P-B-40A-30MA", "rated_current_a": 40, "residual_current_ma": 30, "rcd_type": "B"},
+    {"variant_id": "b40-300ma", "part_number": "RCD-2P-B-40A-300MA", "rated_current_a": 40, "residual_current_ma": 300, "rcd_type": "B"},
+    {"variant_id": "b63-30ma", "part_number": "RCD-2P-B-63A-30MA", "rated_current_a": 63, "residual_current_ma": 30, "rcd_type": "B"},
+    {"variant_id": "b63-300ma", "part_number": "RCD-2P-B-63A-300MA", "rated_current_a": 63, "residual_current_ma": 300, "rcd_type": "B"},
+    {"variant_id": "bplus16-30ma", "part_number": "RCD-2P-BPLUS-16A-30MA", "rated_current_a": 16, "residual_current_ma": 30, "rcd_type": "B+"},
+    {"variant_id": "bplus16-300ma", "part_number": "RCD-2P-BPLUS-16A-300MA", "rated_current_a": 16, "residual_current_ma": 300, "rcd_type": "B+"},
+    {"variant_id": "bplus25-30ma", "part_number": "RCD-2P-BPLUS-25A-30MA", "rated_current_a": 25, "residual_current_ma": 30, "rcd_type": "B+"},
+    {"variant_id": "bplus25-300ma", "part_number": "RCD-2P-BPLUS-25A-300MA", "rated_current_a": 25, "residual_current_ma": 300, "rcd_type": "B+"},
+    {"variant_id": "bplus40-30ma", "part_number": "RCD-2P-BPLUS-40A-30MA", "rated_current_a": 40, "residual_current_ma": 30, "rcd_type": "B+"},
+    {"variant_id": "bplus40-300ma", "part_number": "RCD-2P-BPLUS-40A-300MA", "rated_current_a": 40, "residual_current_ma": 300, "rcd_type": "B+"},
+    {"variant_id": "bplus63-30ma", "part_number": "RCD-2P-BPLUS-63A-30MA", "rated_current_a": 63, "residual_current_ma": 30, "rcd_type": "B+"},
+    {"variant_id": "bplus63-300ma", "part_number": "RCD-2P-BPLUS-63A-300MA", "rated_current_a": 63, "residual_current_ma": 300, "rcd_type": "B+"}
+  ]
+}
