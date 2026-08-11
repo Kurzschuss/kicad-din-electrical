@@ -40,6 +40,8 @@ Alle fünf Varianten besitzen:
 - `footprint_policy: optional`;
 - `source_status: template`.
 
+Die drei vorhandenen Hauptschließer werden mit `main_contacts_no: 3` beschrieben. Nicht vorhandene Hauptöffner werden bewusst **nicht** als numerischer Nullwert gespeichert; das Feld `main_contacts_nc` fehlt in dieser Basisserie vollständig. Damit bleiben technische Zahlenfelder positiv und eine spätere tatsächlich vorhandene NC-Bestückung kann eindeutig modelliert werden.
+
 ## Bewusst nicht pauschalisierte Werte
 
 Die neutrale Serie enthält absichtlich **keine** allgemeine Spulenspannung, keine Spulenart AC/DC und keine Modul- oder Gehäusebreite. Diese Eigenschaften hängen von der konkreten Hersteller-/Bestellvariante ab und werden erst mit belegten Produktdaten ergänzt.
