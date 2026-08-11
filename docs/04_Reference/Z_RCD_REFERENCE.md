@@ -71,7 +71,7 @@ Die erzeugten Einzelgeräte verwenden gemeinsam `Z_RCD:RCD` und werden unter `da
 
 ## Gerätefamilie 3+N / 4P
 
-Die parametrische Serie liegt unter:
+Die bestehende parametrische Serie liegt unter:
 
 ```text
 data/device_series/generic/rcd-4p-template-series.yaml
@@ -87,6 +87,26 @@ Sie erzeugt 72 herstellerneutrale Gerätevarianten aus der vollständigen Kombin
 Das Schließ- und Abschaltvermögen beträgt für alle Varianten 1,5 kA.
 
 Die erzeugten Einzelgeräte verwenden gemeinsam `Z_RCD:RCD_4P` und werden unter `data/devices/generated/generic.rcd-4p-template-series/` abgelegt.
+
+### Ergänzung Typ F
+
+Typ F wird getrennt in einer konservativen Serie geführt:
+
+```text
+data/device_series/generic/rcd-4p-f-template-series.yaml
+```
+
+Sie erzeugt 9 weitere herstellerneutrale Varianten aus:
+
+- Bemessungsstrom: 25 A, 40 A, 63 A;
+- Bemessungsdifferenzstrom: 30 mA, 300 mA, 500 mA;
+- RCD-Typ: F.
+
+Für diese Typ-F-Vorlagen werden `rated_short_circuit_current_ka` und `making_breaking_capacity_ka` bewusst nicht pauschal gesetzt. Diese Werte müssen bei einem konkreten Produkt aus dem Herstellerdatenblatt übernommen werden.
+
+Damit umfasst die datengetriebene 4P-RCD-Familie insgesamt 81 Varianten. Die Typ-F-Einzelgeräte liegen unter `data/devices/generated/generic.rcd-4p-f-template-series/`.
+
+Weitere Evidenz und Abgrenzung: `docs/04_Reference/Z_RCD_4P_TYPE_F.md`.
 
 ## Anschlüsse
 
