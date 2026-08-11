@@ -143,9 +143,10 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert html.count('id="page-hersteller"') == 1
     assert 'id="manufacturer-overview"' in html
     assert 'id="manufacturer-page-filter-name"' in html
+    assert 'id="manufacturer-page-filter-status"' in html
     assert 'class="manufacturer-inspector"' in html
     assert "Herstellerneutral" in html
-    assert "Read-only Übersicht aus dem technischen Gerätekatalog" in html
+    assert "Read-only Übersicht aus verifizierten Hersteller-Stammdaten und technischem Gerätekatalog" in html
     assert 'id="page-qualitaet"' in html
     assert html.count('id="page-qualitaet"') == 1
     assert "Bibliotheksgesundheit" in html
