@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_MAIN_SWITCH: MAIN_SWITCH_4P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="65.10,29.20 65.10,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="52.90,35.30 65.10,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="65.10,59.70 65.10,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="101.70,29.20 101.70,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="89.50,35.30 101.70,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="101.70,59.70 101.70,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="138.30,29.20 138.30,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="126.10,35.30 138.30,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="138.30,59.70 138.30,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="174.90,29.20 174.90,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="162.70,35.30 174.90,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="174.90,59.70 174.90,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="40.70,47.50 199.30,47.50" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="65.10" y1="17.00" x2="65.10" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="65.10" y1="139.00" x2="65.10" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="101.70" y1="17.00" x2="101.70" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="101.70" y1="139.00" x2="101.70" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="138.30" y1="17.00" x2="138.30" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="138.30" y1="139.00" x2="138.30" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="174.90" y1="17.00" x2="174.90" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="174.90" y1="139.00" x2="174.90" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">MAIN_SWITCH_4P</text>
+</svg>
