@@ -48,6 +48,8 @@ Aktuelle Herstellerprogramme belegen vierpolige Typ-F-RCCBs in der gewählten Pl
 - Eaton `PFIM-25/4/003-G/F`: 4-polig, 25 A, 30 mA, Typ F;
 - Eaton `PFIM-40/4/003-G/F`: 4-polig, 40 A, 30 mA, Typ F;
 - Eaton `PFIM-63/4/003-G/F`: 4-polig, 63 A, 30 mA, Typ F;
+- Siemens `5SV3344-3`: 4-polig, 40 A, 30 mA, Typ F;
+- Siemens `5SV3644-3`: 4-polig, 40 A, 300 mA, Typ F;
 - Doepke `DFS 4 025-4/0,30-F`: 4-polig, 25 A, 300 mA, Typ F;
 - Doepke `DFS 4 025-4/0,50-F`: 4-polig, 25 A, 500 mA, Typ F;
 - Doepke `DFS 4 040-4/0,30-F`: 4-polig, 40 A, 300 mA, Typ F;
@@ -60,6 +62,8 @@ Primärquellen:
 - https://www.eaton.com/us/en-us/skuPage.187455.html
 - https://www.eaton.com/de/de-de/skuPage.187456.html
 - https://www.eaton.com/de/de-de/skuPage.187358.html
+- https://mall.industry.siemens.com/mall/NO/NO/Catalog/Product/?mlfb=5SV3344-3
+- https://mall.industry.siemens.com/mall/my/EN/Catalog/Product/?mlfb=5SV3644-3
 - https://www.doepke.de/de/produkte/schuetzen/fehlerstromschutzschalter-rccb/fehlerstromtyp-f/basisausfuehrung/09126820
 - https://www.doepke.de/de/produkte/schuetzen/fehlerstromschutzschalter-rccb/fehlerstromtyp-f/basisausfuehrung/09127820
 - https://www.doepke.de/de/produkte/schuetzen/fehlerstromschutzschalter-rccb/fehlerstromtyp-f/basisausfuehrung/09136820
