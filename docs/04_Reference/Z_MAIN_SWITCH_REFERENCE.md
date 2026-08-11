@@ -11,6 +11,8 @@
 
 Beide Symbole verwenden getrennte Schaltkontakte je Pol und eine gestrichelte mechanische Kopplung. Beim 2P-Symbol ist der zweite Pol als Neutralleiter gekennzeichnet; beim 4P-Symbol ist der vierte Pol als Neutralleiter gekennzeichnet.
 
+Die erste freigegebene Paketbasis beschränkt sich bewusst auf 2P und 4P/3P+N, weil diese Varianten in den vorhandenen Installations- und Verteilungsmodellen unmittelbar benötigt werden. Eine reine 3P-Variante wird erst ergänzt, wenn dafür ein konkreter Projektbedarf oder ein eigenes Gerätepaket vorliegt; die abstrakte Altlogik in `distributions/din_switchgear.py` ist dafür allein kein Freigabegrund.
+
 ## Geräteserien
 
 Die herstellerneutralen Planungsserien liegen unter:
