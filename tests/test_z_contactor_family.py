@@ -83,7 +83,6 @@ def test_contactor_series_contains_conservative_ac3_planning_matrix():
     assert {item["rated_current_a"] for item in devices} == set(CURRENTS)
     assert {item["poles"] for item in devices} == {3}
     assert {item["main_contacts_no"] for item in devices} == {3}
-    assert {item["main_contacts_nc"] for item in devices} == {0}
     assert {item["utilization_category"] for item in devices} == {"AC-3"}
     assert {item["symbol"] for item in devices} == {"Z_CONTACTOR:CONTACTOR"}
     assert {item["footprint_policy"] for item in devices} == {"optional"}
@@ -92,11 +91,12 @@ def test_contactor_series_contains_conservative_ac3_planning_matrix():
     assert all(item["name_de"] and item["name_en"] for item in devices)
 
 
-def test_contactor_series_does_not_invent_coil_voltage_or_mechanical_width():
+def test_contactor_series_does_not_invent_absent_contacts_coil_or_mechanical_width():
     series = json.loads(SERIES_PATH.read_text(encoding="utf-8"))
     devices = expand_series(series)
 
     for item in devices:
+        assert "main_contacts_nc" not in item
         assert "coil_voltage_v" not in item
         assert "coil_voltage_type" not in item
         assert "modules" not in item
