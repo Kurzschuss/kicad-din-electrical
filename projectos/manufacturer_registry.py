@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 from .identifiers import BusinessId, ObjectId
 from .manufacturer import Manufacturer, ManufacturerStatus
@@ -41,6 +42,14 @@ class ManufacturerRegistryEntry:
         )
 
 
+def _validate_https_url(value: str | None, field_name: str, manufacturer_id: BusinessId) -> None:
+    if value is None:
+        return
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ValueError(f"{manufacturer_id}: {field_name} muss eine vollständige HTTPS-URL sein.")
+
+
 def load_manufacturer_registry(path: Path = REGISTRY_PATH) -> tuple[ManufacturerRegistryEntry, ...]:
     """Lädt und validiert die kanonischen Hersteller-Stammdaten."""
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -71,6 +80,11 @@ def load_manufacturer_registry(path: Path = REGISTRY_PATH) -> tuple[Manufacturer
                 f"{manufacturer_id}: source_status muss verified oder unverified sein."
             )
 
+        source_url = str(raw.get("source_url") or "").strip() or None
+        _validate_https_url(source_url, "source_url", manufacturer_id)
+        if source_status == "verified" and source_url is None:
+            raise ValueError(f"{manufacturer_id}: verified benötigt eine offizielle source_url.")
+
         status_text = str(raw.get("status") or ManufacturerStatus.ACTIVE.value).strip().upper()
         try:
             status = ManufacturerStatus(status_text)
@@ -96,11 +110,16 @@ def load_manufacturer_registry(path: Path = REGISTRY_PATH) -> tuple[Manufacturer
             support_url=str(raw.get("support_url") or "") or None,
             status=status,
         )
+        if manufacturer.website is not None:
+            _validate_https_url(manufacturer.website, "website", manufacturer_id)
+        if manufacturer.support_url is not None:
+            _validate_https_url(manufacturer.support_url, "support_url", manufacturer_id)
+
         entry = ManufacturerRegistryEntry(
             manufacturer=manufacturer,
             catalog_name=catalog_name,
             aliases=aliases,
-            source_url=str(raw.get("source_url") or "") or None,
+            source_url=source_url,
             source_status=source_status,
             note=str(raw.get("note") or "").strip() or None,
         )
