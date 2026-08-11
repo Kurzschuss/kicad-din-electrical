@@ -30,11 +30,11 @@
 
   <section class="cards" aria-label="Kennzahlen">
     <div class="card"><strong>29</strong>Symbolbibliotheken</div>
-    <div class="card"><strong>22</strong>Hauptsymbole</div>
+    <div class="card"><strong>23</strong>Hauptsymbole</div>
     <div class="card"><strong>35</strong>Footprintbibliotheken</div>
     <div class="card"><strong>6</strong>Footprints</div>
-    <div class="card"><strong>224</strong>Geräte</div>
-    <div class="card"><strong>1</strong>belegte Funktionsgruppen</div>
+    <div class="card"><strong>232</strong>Geräte</div>
+    <div class="card"><strong>2</strong>belegte Funktionsgruppen</div>
     <div class="card"><strong>0</strong>Fehler</div>
     <div class="card"><strong>55</strong>Hinweise</div>
   </section>
@@ -44,6 +44,7 @@
     <input id="search" type="search" placeholder="Bibliothek, Symbol, Footprint oder Gerät suchen …" aria-label="Referenz durchsuchen">
     <select id="group" aria-label="Geräte nach Funktionsgruppe filtern">
       <option value="">Alle Funktionsgruppen</option>
+<option value="Schalten">Schalten</option>
 <option value="Schutzgeräte">Schutzgeräte</option>
     </select>
   </div>
@@ -53,6 +54,14 @@
   <div class="table-wrap"><table id="devices">
     <thead><tr><th>Geräte-ID</th><th>Gruppe / Familie</th><th>Hersteller</th><th>Serie</th><th>Artikelnummer</th><th>Gerätetyp</th><th>Symbol</th><th>Footprint Policy</th><th>Quellenstatus</th></tr></thead>
     <tbody>
+<tr data-group="Schalten"><td><code>generic.main-switch-2p-template-series.16a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 2P</td><td><code>MAIN-SW-2P-16A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-2p-template-series.25a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 2P</td><td><code>MAIN-SW-2P-25A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-2p-template-series.40a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 2P</td><td><code>MAIN-SW-2P-40A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-2p-template-series.63a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 2P</td><td><code>MAIN-SW-2P-63A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-4p-template-series.16a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 4P</td><td><code>MAIN-SW-4P-16A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH_4P</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-4p-template-series.25a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 4P</td><td><code>MAIN-SW-4P-25A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH_4P</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-4p-template-series.40a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 4P</td><td><code>MAIN-SW-4P-40A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH_4P</code></td><td><code>optional</code></td><td>template</td></tr>
+<tr data-group="Schalten"><td><code>generic.main-switch-4p-template-series.63a</code></td><td>Schalten<br><span class="muted">Haupt- und Lastschalter</span></td><td>Generic</td><td>Template Hauptschalter 4P</td><td><code>MAIN-SW-4P-63A</code></td><td>Hauptschalter</td><td><code>Z_MAIN_SWITCH:MAIN_SWITCH_4P</code></td><td><code>optional</code></td><td>template</td></tr>
 <tr data-group="Schutzgeräte"><td><code>generic.rcd-2p-40a-30ma-type-a-template</code></td><td>Schutzgeräte<br><span class="muted">Fehlerstrom-Schutzeinrichtungen</span></td><td>Generic</td><td>Template</td><td><code>RCD-2P-40A-30MA-TYPE-A</code></td><td>Fehlerstrom-Schutzschalter</td><td><code>Z_RCD:RCD</code></td><td><code>optional</code></td><td>template</td></tr>
 <tr data-group="Schutzgeräte"><td><code>generic.rcd-2p-b-bplus-template-series.b16-300ma</code></td><td>Schutzgeräte<br><span class="muted">Fehlerstrom-Schutzeinrichtungen</span></td><td>Generic</td><td>Template RCD 2P B/B+</td><td><code>RCD-2P-B-16A-300MA</code></td><td>Fehlerstrom-Schutzschalter</td><td><code>Z_RCD:RCD</code></td><td><code>optional</code></td><td>template</td></tr>
 <tr data-group="Schutzgeräte"><td><code>generic.rcd-2p-b-bplus-template-series.b16-30ma</code></td><td>Schutzgeräte<br><span class="muted">Fehlerstrom-Schutzeinrichtungen</span></td><td>Generic</td><td>Template RCD 2P B/B+</td><td><code>RCD-2P-B-16A-30MA</code></td><td>Fehlerstrom-Schutzschalter</td><td><code>Z_RCD:RCD</code></td><td><code>optional</code></td><td>template</td></tr>
@@ -298,7 +307,7 @@
 <tr><td><code>Z_FI_RCD_4P</code></td><td>befüllt</td><td>FI_RCD_4P</td><td><code>optional</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_FUSE</code></td><td>befüllt</td><td>FUSE</td><td><code>optional</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_Fuse_Distribution_Bus</code></td><td>befüllt</td><td>Fuse_Distribution_Bus</td><td><code>optional</code></td><td><code>—</code></td></tr>
-<tr><td><code>Z_MAIN_SWITCH</code></td><td>befüllt</td><td>MAIN_SWITCH</td><td><code>optional</code></td><td><code>—</code></td></tr>
+<tr><td><code>Z_MAIN_SWITCH</code></td><td>befüllt</td><td>MAIN_SWITCH, MAIN_SWITCH_4P</td><td><code>optional</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_MCB</code></td><td>befüllt</td><td>MCB, MCB_3P</td><td><code>optional</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_MCB_single_pole</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>
 <tr><td><code>Z_MOTOR_PROTECT</code></td><td>vorbereitet, noch leer</td><td>—</td><td><code>—</code></td><td><code>—</code></td></tr>

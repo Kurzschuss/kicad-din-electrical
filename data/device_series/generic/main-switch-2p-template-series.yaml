@@ -1,0 +1,22 @@
+{
+  "series_id": "generic.main-switch-2p-template-series",
+  "defaults": {
+    "manufacturer": "Generic",
+    "series": "Template Hauptschalter 2P",
+    "device_type": "Hauptschalter",
+    "function_group": "switching.main_switch",
+    "description": "Herstellerneutrale 2-polige Hauptschalter-/Lasttrennschalter-Planungsserie; konkrete Produktdaten vor der Ausführung prüfen.",
+    "poles": 2,
+    "modules": 2,
+    "symbol": "Z_MAIN_SWITCH:MAIN_SWITCH",
+    "footprint_policy": "optional",
+    "source_status": "template",
+    "abbreviation": "HS"
+  },
+  "variants": [
+    {"variant_id": "16a", "part_number": "MAIN-SW-2P-16A", "rated_current_a": 16, "name_de": "Hauptschalter 2-polig 16 A", "name_en": "Main switch / switch disconnector 2-pole 16 A"},
+    {"variant_id": "25a", "part_number": "MAIN-SW-2P-25A", "rated_current_a": 25, "name_de": "Hauptschalter 2-polig 25 A", "name_en": "Main switch / switch disconnector 2-pole 25 A"},
+    {"variant_id": "40a", "part_number": "MAIN-SW-2P-40A", "rated_current_a": 40, "name_de": "Hauptschalter 2-polig 40 A", "name_en": "Main switch / switch disconnector 2-pole 40 A"},
+    {"variant_id": "63a", "part_number": "MAIN-SW-2P-63A", "rated_current_a": 63, "name_de": "Hauptschalter 2-polig 63 A", "name_en": "Main switch / switch disconnector 2-pole 63 A"}
+  ]
+}

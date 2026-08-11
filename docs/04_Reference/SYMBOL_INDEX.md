@@ -44,9 +44,10 @@ Die Symbolbibliotheken liegen direkt unter `symbols/`.
 - `Z_Fuse_Distribution_Bus.kicad_sym` — 1 Symbol(e)
   - Footprintbibliothek: `Z_Fuse_Distribution_Bus.pretty` mit 0 Footprint(s)
   - Symbol: `Fuse_Distribution_Bus`
-- `Z_MAIN_SWITCH.kicad_sym` — 1 Symbol(e)
+- `Z_MAIN_SWITCH.kicad_sym` — 2 Symbol(e)
   - Footprintbibliothek: `Z_MAIN_SWITCH.pretty` mit 0 Footprint(s)
   - Symbol: `MAIN_SWITCH`
+  - Symbol: `MAIN_SWITCH_4P`
 - `Z_MCB.kicad_sym` — 2 Symbol(e)
   - Footprintbibliothek: `Z_MCB.pretty` mit 0 Footprint(s)
   - Symbol: `MCB`

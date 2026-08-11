@@ -1,0 +1,18 @@
+{
+  "abbreviation": "HS",
+  "description": "Herstellerneutrale 2-polige Hauptschalter-/Lasttrennschalter-Planungsserie; konkrete Produktdaten vor der Ausführung prüfen.",
+  "device_type": "Hauptschalter",
+  "footprint_policy": "optional",
+  "function_group": "switching.main_switch",
+  "id": "generic.main-switch-2p-template-series.16a",
+  "manufacturer": "Generic",
+  "modules": 2,
+  "name_de": "Hauptschalter 2-polig 16 A",
+  "name_en": "Main switch / switch disconnector 2-pole 16 A",
+  "part_number": "MAIN-SW-2P-16A",
+  "poles": 2,
+  "rated_current_a": 16,
+  "series": "Template Hauptschalter 2P",
+  "source_status": "template",
+  "symbol": "Z_MAIN_SWITCH:MAIN_SWITCH"
+}

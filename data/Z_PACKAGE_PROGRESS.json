@@ -56,12 +56,18 @@
       "name": "Hauptschalter",
       "symbol": true,
       "device_data": true,
-      "documentation": false,
+      "documentation": true,
       "example": false,
-      "tests": false,
-      "quality_status": "needs_rework",
-      "quality_level": "Entwurf",
-      "references": ["symbols/Z_MAIN_SWITCH.kicad_sym"]
+      "tests": true,
+      "quality_status": "z_conform",
+      "quality_level": "Geprüft",
+      "references": [
+        "symbols/Z_MAIN_SWITCH.kicad_sym",
+        "data/device_series/generic/main-switch-2p-template-series.yaml",
+        "data/device_series/generic/main-switch-4p-template-series.yaml",
+        "docs/04_Reference/Z_MAIN_SWITCH_REFERENCE.md",
+        "tests/test_z_main_switch_family.py"
+      ]
     }
   ]
 }
