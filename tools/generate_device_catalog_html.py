@@ -45,6 +45,8 @@ def collect_devices(
                 "device_type": data["device_type"],
                 "poles": data.get("poles"),
                 "rated_current_a": data.get("rated_current_a"),
+                "residual_current_ma": data.get("residual_current_ma"),
+                "rcd_type": data.get("rcd_type"),
                 "trip_curve": data.get("trip_curve"),
                 "breaking_capacity_ka": data.get("breaking_capacity_ka"),
                 "modules": data.get("modules"),
@@ -58,6 +60,14 @@ def collect_devices(
         "devices": devices,
         "groups": sorted({str(item["group"]) for item in devices}, key=str.casefold),
         "families": sorted({str(item["family"]) for item in devices}, key=str.casefold),
+        "rcd_types": sorted(
+            {str(item["rcd_type"]) for item in devices if item.get("rcd_type") not in (None, "")},
+            key=str.casefold,
+        ),
+        "residual_currents_ma": sorted(
+            {item["residual_current_ma"] for item in devices if item.get("residual_current_ma") not in (None, "")},
+            key=float,
+        ),
         "source_states": sorted({str(item["source_status"]) for item in devices}, key=str.casefold),
     }
 
@@ -68,12 +78,23 @@ def _options(values: list[str], all_label: str) -> str:
     return "\n".join(rows)
 
 
+def _measurement_options(values: list[object], all_label: str, suffix: str) -> str:
+    rows = [f'<option value="">{escape(all_label)}</option>']
+    rows.extend(
+        f'<option value="{escape(str(value))}">{escape(_display(value, suffix))}</option>'
+        for value in values
+    )
+    return "\n".join(rows)
+
+
 def _rows(devices: list[dict[str, object]]) -> str:
     rows: list[str] = []
     for item in devices:
         rows.append(
             f'<tr data-group="{escape(str(item["group"]))}" '
             f'data-family="{escape(str(item["family"]))}" '
+            f'data-rcd-type="{escape(str(item.get("rcd_type") or ""))}" '
+            f'data-residual-current="{escape(str(item.get("residual_current_ma") or ""))}" '
             f'data-source="{escape(str(item["source_status"]))}">'
             f'<td><code>{escape(str(item["id"]))}</code></td>'
             f'<td>{escape(str(item["group"]))}<br><span class="muted">{escape(str(item["family"]))}</span></td>'
@@ -82,6 +103,8 @@ def _rows(devices: list[dict[str, object]]) -> str:
             f'<td><code>{escape(str(item["part_number"]))}</code></td>'
             f'<td>{escape(_display(item["poles"]))}</td>'
             f'<td>{escape(_display(item["rated_current_a"], " A"))}</td>'
+            f'<td>{escape(_display(item.get("rcd_type")))}</td>'
+            f'<td>{escape(_display(item.get("residual_current_ma"), " mA"))}</td>'
             f'<td>{escape(_display(item["trip_curve"]))}</td>'
             f'<td>{escape(_display(item["breaking_capacity_ka"], " kA"))}</td>'
             f'<td>{escape(_display(item["modules"], " TE"))}</td>'
@@ -104,10 +127,10 @@ def render_html(data: dict[str, object]) -> str:
   <style>
     :root {{ color-scheme: light dark; font-family: system-ui, sans-serif; }}
     body {{ max-width: 1500px; margin: 0 auto; padding: 2rem; line-height: 1.5; }}
-    .filters {{ display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: .75rem; margin: 1.5rem 0; }}
+    .filters {{ display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: .75rem; margin: 1.5rem 0; }}
     input, select {{ width: 100%; box-sizing: border-box; padding: .7rem; font: inherit; }}
     .table-wrap {{ overflow-x: auto; }}
-    table {{ width: 100%; min-width: 1350px; border-collapse: collapse; }}
+    table {{ width: 100%; min-width: 1550px; border-collapse: collapse; }}
     th, td {{ border-bottom: 1px solid #8885; padding: .6rem; text-align: left; vertical-align: top; }}
     th {{ position: sticky; top: 0; background: Canvas; }}
     .muted {{ opacity: .72; }}
@@ -128,11 +151,13 @@ def render_html(data: dict[str, object]) -> str:
     <input id="search" type="search" placeholder="Gerät, Hersteller, Serie oder Artikelnummer suchen …" aria-label="Geräte durchsuchen">
     <select id="group" aria-label="Funktionsgruppe filtern">{_options(data['groups'], 'Alle Funktionsgruppen')}</select>
     <select id="family" aria-label="Gerätefamilie filtern">{_options(data['families'], 'Alle Gerätefamilien')}</select>
+    <select id="rcd-type" aria-label="RCD-Typ filtern">{_options(data.get('rcd_types', []), 'Alle RCD-Typen')}</select>
+    <select id="residual-current" aria-label="Bemessungsdifferenzstrom filtern">{_measurement_options(data.get('residual_currents_ma', []), 'Alle IΔn', ' mA')}</select>
     <select id="source" aria-label="Quellenstatus filtern">{_options(data['source_states'], 'Alle Quellenstatus')}</select>
   </div>
 
   <div class="table-wrap"><table id="devices">
-    <thead><tr><th>Geräte-ID</th><th>Gruppe / Familie</th><th>Hersteller</th><th>Serie</th><th>Artikelnummer</th><th>Polzahl</th><th>Nennstrom</th><th>Kennlinie</th><th>Ausschaltvermögen</th><th>Breite</th><th>Symbol</th><th>Footprint Policy</th><th>Quelle</th></tr></thead>
+    <thead><tr><th>Geräte-ID</th><th>Gruppe / Familie</th><th>Hersteller</th><th>Serie</th><th>Artikelnummer</th><th>Polzahl</th><th>Nennstrom</th><th>RCD-Typ</th><th>IΔn</th><th>Kennlinie</th><th>Ausschaltvermögen</th><th>Breite</th><th>Symbol</th><th>Footprint Policy</th><th>Quelle</th></tr></thead>
     <tbody>
 {_rows(devices)}
     </tbody>
@@ -143,6 +168,8 @@ def render_html(data: dict[str, object]) -> str:
     const search = document.getElementById('search');
     const group = document.getElementById('group');
     const family = document.getElementById('family');
+    const rcdType = document.getElementById('rcd-type');
+    const residualCurrent = document.getElementById('residual-current');
     const source = document.getElementById('source');
     const count = document.getElementById('count');
     function applyFilters() {{
@@ -152,13 +179,15 @@ def render_html(data: dict[str, object]) -> str:
         const matches = row.textContent.toLocaleLowerCase('de').includes(query)
           && (!group.value || row.dataset.group === group.value)
           && (!family.value || row.dataset.family === family.value)
+          && (!rcdType.value || row.dataset.rcdType === rcdType.value)
+          && (!residualCurrent.value || row.dataset.residualCurrent === residualCurrent.value)
           && (!source.value || row.dataset.source === source.value);
         row.hidden = !matches;
         if (matches) visible += 1;
       }});
       count.textContent = visible;
     }}
-    [search, group, family, source].forEach(element => element.addEventListener(element.tagName === 'INPUT' ? 'input' : 'change', applyFilters));
+    [search, group, family, rcdType, residualCurrent, source].forEach(element => element.addEventListener(element.tagName === 'INPUT' ? 'input' : 'change', applyFilters));
   </script>
 </body>
 </html>

@@ -64,7 +64,7 @@ Details: `docs/03_Developer/Z_COCKPIT_PROJEKTDATEI.md`.
 
 ## Geräte, Bibliotheken und 3D
 
-Geräte- und Bibliotheksansicht behalten den festen rechten Inspektor und getrennte Scrollbereiche. Symbol-, Footprint- und 3D-Vorschauen werden aus vorhandenen Repositorydaten erzeugt. Eine technische `F.Fab`-Hüllkörpervorschau zählt nicht als echtes 3D-Modell.
+Geräte- und Bibliotheksansicht behalten den festen rechten Inspektor und getrennte Scrollbereiche. Die Geräteansicht führt für RCD/FI zusätzlich `RCD-Typ` und Bemessungsdifferenzstrom `IΔn` als eigene Tabellenwerte und Filter; MCB-Kennlinien bleiben weiterhin separat unter `Charakteristik`. Symbol-, Footprint- und 3D-Vorschauen werden aus vorhandenen Repositorydaten erzeugt. Eine technische `F.Fab`-Hüllkörpervorschau zählt nicht als echtes 3D-Modell.
 
 Lokale KiCad-Aktionen verwenden ausschließlich validierte Repository-IDs über `kicad-z:`. Beliebige Browserpfade oder Shell-Befehle werden nicht übernommen.
 

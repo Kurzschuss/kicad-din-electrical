@@ -21,6 +21,8 @@ def test_cockpit_uses_catalog_devices():
     assert all("three_d_preview_status" in item for item in devices)
     assert all(isinstance(item["three_d_preview_available"], bool) for item in devices)
     assert all(isinstance(item["model"], bool) for item in devices)
+    assert all("rcd_type" in item for item in devices)
+    assert all("residual_current" in item for item in devices)
 
 
 def test_generic_manufacturer_is_shown_in_german():
@@ -40,6 +42,18 @@ def test_generic_manufacturer_is_shown_in_german():
         "Fehlt",
         "Nicht zugeordnet",
     }
+
+
+def test_rcd_values_are_exposed_for_cockpit_filtering():
+    device = next(
+        item
+        for item in cockpit_devices()
+        if item["id"] == "generic.rcd-2p-b-bplus-template-series.b40-30ma"
+    )
+    assert device["rcd_type"] == "B"
+    assert device["residual_current"] == "30 mA"
+    assert device["current"] == "40 A"
+    assert device["curve"] == "–"
 
 
 def test_summary_uses_real_catalog_values():
@@ -233,7 +247,14 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Gerätefamilie" in html
     assert "Hersteller" in html
     assert "Charakteristik" in html
+    assert "RCD-Typ" in html
+    assert "IΔn" in html
+    assert 'id="rcd_type"' in html
+    assert 'id="residual_current"' in html
     assert "generic.mcb-1p-b16-template" in html
+    assert "generic.rcd-2p-b-bplus-template-series.b40-30ma" in html
+    assert '\"rcd_type\": \"B\"' in html
+    assert '\"residual_current\": \"30 mA\"' in html
     assert '\"symbol_preview_url\": \"symbol-previews/Z_MCB/MCB.svg\"' in html
     assert '\"symbol_preview_available\": true' in html
     assert '\"footprint_preview_status\"' in html
@@ -251,4 +272,4 @@ def test_rendered_cockpit_contains_navigation_dashboard_quality_security_preview
     assert "Technische SVG-Schnellansicht" in html
     assert "Technische Hüllkörper-Vorschau" in html
     assert "Datenquellen: Gerätekatalog, KiCad-Bibliotheken, 3D-Modellreferenzen, project_state.yaml und ProjectOS" in html
-    assert "Z_Cockpit 1.1" in html
+    assert "Z_Cockpit 1.2" in html
