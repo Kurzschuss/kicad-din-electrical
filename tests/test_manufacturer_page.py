@@ -40,6 +40,7 @@ def test_collect_manufacturers_groups_catalog_devices_by_manufacturer_and_series
 
     abb = manufacturers[0]
     assert abb.catalog_name == "ABB"
+    assert abb.registry_status == "CATALOG_ONLY"
     assert abb.series_count == 2
     assert abb.device_count == 2
     assert [series.name for series in abb.series] == ["F200", "S200"]
@@ -49,6 +50,7 @@ def test_collect_manufacturers_groups_catalog_devices_by_manufacturer_and_series
     generic = manufacturers[1]
     assert generic.catalog_name == "Generic"
     assert generic.display_name == "Herstellerneutral"
+    assert generic.registry_status == "GENERIC"
     assert generic.series_count == 1
     assert generic.series[0].device_count == 2
 
@@ -58,6 +60,7 @@ def test_manufacturer_page_contains_filters_table_and_fixed_inspector():
     assert 'id="page-hersteller"' in html
     assert 'id="manufacturer-overview"' in html
     assert 'id="manufacturer-page-filter-name"' in html
+    assert 'id="manufacturer-page-filter-status"' in html
     assert 'id="manufacturer-page-filter-series"' in html
     assert 'id="manufacturer-page-filter-family"' in html
     assert 'id="manufacturer-page-filter-source"' in html
@@ -70,6 +73,7 @@ def test_manufacturer_page_contains_filters_table_and_fixed_inspector():
     assert "Verifiziert" in html
     assert "Vorlage" in html
     assert "abb.s200.b16" in html
+    assert "Nur Gerätekatalog" in html
 
 
 def test_manufacturer_page_escapes_catalog_values():
@@ -91,10 +95,44 @@ def test_manufacturer_page_escapes_catalog_values():
     assert "&lt;Familie&gt;" in html
 
 
-def test_repository_manufacturer_page_uses_real_catalog():
+def test_repository_manufacturer_page_uses_registry_and_real_catalog():
     manufacturers = collect_manufacturers()
     assert manufacturers
     assert sum(item.device_count for item in manufacturers) > 0
-    assert all(item.series_count >= 1 for item in manufacturers)
+
+    names = {item.display_name for item in manufacturers}
+    assert {
+        "ABB",
+        "Siemens",
+        "Hager",
+        "Eaton",
+        "Schneider Electric",
+        "Doepke",
+        "Siedle",
+        "Shelly",
+        "Theben",
+        "Eltako",
+        "Klöckner-Moeller",
+        "LCN",
+        "Phoenix Contact",
+        "WAGO",
+        "Weidmüller",
+        "Pollmann",
+        "Herstellerneutral",
+    } <= names
+
+    lcn = next(item for item in manufacturers if item.display_name == "LCN")
+    assert lcn.legal_name == "Issendorff KG"
+    assert lcn.device_count == 0
+    assert lcn.series_count == 0
+    assert lcn.registry_status == "ACTIVE"
+
+    legacy = next(item for item in manufacturers if item.display_name == "Klöckner-Moeller")
+    assert legacy.registry_status == "INACTIVE"
+    assert legacy.note and "Eaton" in legacy.note
+
     html = manufacturer_page_html(manufacturers)
-    assert "Read-only Übersicht aus dem technischen Gerätekatalog" in html
+    assert "verifizierten Hersteller-Stammdaten" in html
+    assert "Noch keine Gerätezuordnung" in html
+    assert "Historisch / inaktiv" in html
+    assert "Offizielle Quelle" in html
