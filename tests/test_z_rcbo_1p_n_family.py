@@ -70,7 +70,7 @@ def test_rcbo_symbol_combines_overcurrent_and_residual_current_functions():
     )
 
 
-def test_rcbo_preview_contains_function_labels_and_mechanical_coupling():
+def test_rcbo_preview_is_generated_from_supported_geometry():
     block = rcbo_block()
     svg = render_svg(
         "Z_RCBO_1P_N",
@@ -83,12 +83,12 @@ def test_rcbo_preview_contains_function_labels_and_mechanical_coupling():
         parse_texts(block),
     )
 
-    assert 'stroke-dasharray="8 6"' in svg
-    assert 'fill="currentColor"' in svg
-    assert ">T</text>" in svg
-    assert ">I&gt;</text>" in svg or ">I></text>" in svg
-    assert ">IΔ</text>" in svg
-    assert svg.count(">N</text>") == 2
+    assert "<title>Z_RCBO_1P_N: RCBO_1P_N</title>" in svg
+    assert "<rect " in svg
+    assert "<polyline " in svg
+    assert "<polygon " in svg
+    assert svg.count("<line ") == 4
+    assert ">RCBO_1P_N</text>" in svg
 
 
 def test_rcbo_symbol_reference_metadata_is_complete():
