@@ -117,6 +117,8 @@ def test_render_html_contains_technical_columns_and_filters():
     assert 'id="residual-current"' in html
     assert "RCD-Typ" in html
     assert "IΔn" in html
+    assert "Alle RCD-Typen" in html
+    assert "Alle IΔn" in html
     assert "16 A" in html
     assert "6 kA" in html
     assert "1 TE" in html
