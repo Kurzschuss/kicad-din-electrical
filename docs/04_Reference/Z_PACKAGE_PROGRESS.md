@@ -10,6 +10,7 @@ Eine Familie gilt erst als vollständiges Paket, wenn Symbol, Gerätedaten, Doku
 | RCD (`Z_RCD`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
 | RCBO (`Z_RCBO`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
 | Hauptschalter (`Z_MAIN_SWITCH`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
+| Schütze (`Z_CONTACTOR`) | ✅ | ✅ | ✅ | ⬜ | ✅ | `z_conform` | Geprüft |
 
 ## Reifegrade
 

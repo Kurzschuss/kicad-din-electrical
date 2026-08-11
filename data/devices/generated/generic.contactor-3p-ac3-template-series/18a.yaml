@@ -1,0 +1,20 @@
+{
+  "abbreviation": "K",
+  "description": "Herstellerneutrale 3-polige Leistungsschütz-Planungsserie mit drei Hauptschließern; Spulenspannung und konkrete Bauform vor der Ausführung anhand des gewählten Produkts festlegen.",
+  "device_type": "Leistungsschütz",
+  "footprint_policy": "optional",
+  "function_group": "switching.contactor",
+  "id": "generic.contactor-3p-ac3-template-series.18a",
+  "main_contacts_nc": 0,
+  "main_contacts_no": 3,
+  "manufacturer": "Generic",
+  "name_de": "Leistungsschütz 3-polig 18 A AC-3",
+  "name_en": "Power contactor 3-pole 18 A AC-3",
+  "part_number": "CONTACTOR-3P-AC3-18A",
+  "poles": 3,
+  "rated_current_a": 18,
+  "series": "Template Leistungsschütz 3P AC-3",
+  "source_status": "template",
+  "symbol": "Z_CONTACTOR:CONTACTOR",
+  "utilization_category": "AC-3"
+}

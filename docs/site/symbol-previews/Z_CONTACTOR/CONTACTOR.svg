@@ -1,14 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
   <title>Z_CONTACTOR: CONTACTOR</title>
   <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
-  <rect x="89.52" y="17.04" width="60.96" height="121.92" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="32.28" x2="89.52" y2="32.28" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="62.76" x2="89.52" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="93.24" x2="89.52" y2="93.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="32.28" x2="150.48" y2="32.28" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="62.76" x2="150.48" y2="62.76" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="93.24" x2="150.48" y2="93.24" stroke="currentColor" stroke-width="2"/>
-  <line x1="59.04" y1="123.72" x2="89.52" y2="123.72" stroke="currentColor" stroke-width="2"/>
-  <line x1="180.96" y1="123.72" x2="150.48" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <rect x="162.70" y="65.80" width="24.40" height="24.40" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="65.10,29.20 65.10,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="52.90,35.30 65.10,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="65.10,59.70 65.10,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="101.70,29.20 101.70,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="89.50,35.30 101.70,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="101.70,59.70 101.70,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="138.30,29.20 138.30,35.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="126.10,35.30 138.30,59.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="138.30,59.70 138.30,126.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="40.70,47.50 174.90,47.50 174.90,65.80" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="65.10" y1="17.00" x2="65.10" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="65.10" y1="139.00" x2="65.10" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="101.70" y1="17.00" x2="101.70" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="101.70" y1="139.00" x2="101.70" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="138.30" y1="17.00" x2="138.30" y2="29.20" stroke="currentColor" stroke-width="2"/>
+  <line x1="138.30" y1="139.00" x2="138.30" y2="126.80" stroke="currentColor" stroke-width="2"/>
+  <line x1="150.50" y1="78.00" x2="162.70" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="199.30" y1="78.00" x2="187.10" y2="78.00" stroke="currentColor" stroke-width="2"/>
   <text x="120" y="164" text-anchor="middle" font-size="12">CONTACTOR</text>
 </svg>
