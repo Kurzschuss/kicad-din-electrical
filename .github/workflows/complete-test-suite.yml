@@ -54,7 +54,6 @@ jobs:
             tests/test_generate_z_cockpit.py \
             docs/03_Developer/Z_COCKPIT.md \
             docs/site/devices.html \
-            docs/site/z-cockpit.html \
             .github/workflows/complete-test-suite.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
