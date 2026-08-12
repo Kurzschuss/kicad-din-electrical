@@ -1,4 +1,4 @@
-name: QET 11_singlepole audit
+name: QET 11_singlepole validation
 
 on:
   push:
@@ -8,9 +8,13 @@ on:
       - "tools/convert_qet_to_kicad.py"
       - "tools/convert_qet_to_kicad_checked.py"
       - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "tests/test_qet_11_singlepole_names.py"
+      - "config/qet_de_names/11_singlepole/**"
       - ".github/workflows/qet-11-singlepole-audit.yml"
   workflow_dispatch:
     inputs:
@@ -23,7 +27,7 @@ permissions:
   contents: read
 
 jobs:
-  audit-qet-11-singlepole:
+  validate-qet-11-singlepole:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -45,12 +49,14 @@ jobs:
       - name: Install test dependency
         run: python -m pip install pytest
 
-      - name: Run converter and audit unit tests
+      - name: Run converter, audit and name tests
         run: |
           python -m pytest \
             tests/test_convert_qet_to_kicad.py \
             tests/test_convert_qet_to_kicad_checked.py \
             tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
+            tests/test_qet_11_singlepole_names.py \
             -q
 
       - name: Convert complete 11_singlepole raw scope
@@ -70,7 +76,15 @@ jobs:
             --scope 11_singlepole \
             --output build/qet-11-singlepole-source-audit.json
 
-      - name: Validate raw library structure and audit agreement
+      - name: Apply reviewed German visible names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech_11_singlepole.kicad_sym \
+            --config-dir config/qet_de_names/11_singlepole \
+            --report build/qet-11-singlepole-de-name-report.json \
+            --strict
+
+      - name: Validate final library and exact name coverage
         run: |
           python - <<'PY'
           import json
@@ -79,6 +93,7 @@ jobs:
           library = Path("build/Z_Q_QElectroTech_11_singlepole.kicad_sym").read_text(encoding="utf-8")
           report = json.loads(Path("build/qet-11-singlepole-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-11-singlepole-source-audit.json").read_text(encoding="utf-8"))
+          names = json.loads(Path("build/qet-11-singlepole-de-name-report.json").read_text(encoding="utf-8"))
 
           assert report["source_files"] > 0
           assert report["converted"] == report["source_files"]
@@ -87,6 +102,14 @@ jobs:
           assert audit["source_files"] == report["source_files"]
           assert audit["missing_german_names"] == report["missing_german_names"]
           assert not audit["parse_errors"]
+
+          audited_paths = {item["path"] for item in audit["items"]}
+          applied_paths = set(names["applied_paths"])
+          assert names["configured_overrides"] == audit["missing_german_names"] == 144
+          assert names["applied_overrides"] == 144
+          assert not names["unmatched_override_paths"]
+          assert applied_paths == audited_paths
+          assert library.count("german_name_override") == 144
 
           top_level = sum(
               1 for line in library.splitlines()
@@ -107,7 +130,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends kicad
           kicad-cli version --format about | tee build/kicad-version.txt
 
-      - name: Load and render all 11_singlepole symbols with KiCad
+      - name: Load and render all final 11_singlepole symbols with KiCad
         run: |
           mkdir -p build/kicad-svg-11-singlepole
           kicad-cli sym export svg \
@@ -135,23 +158,26 @@ jobs:
           )
           PY
 
-      - name: Print audit summary
+      - name: Print validation summary
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           report = json.loads(Path("build/qet-11-singlepole-report.json").read_text(encoding="utf-8"))
-          print(json.dumps(report, ensure_ascii=False, indent=2))
+          names = json.loads(Path("build/qet-11-singlepole-de-name-report.json").read_text(encoding="utf-8"))
+          smoke = json.loads(Path("build/qet-11-singlepole-kicad-smoke-report.json").read_text(encoding="utf-8"))
+          print(json.dumps({"conversion": report, "names": names, "kicad": smoke}, ensure_ascii=False, indent=2))
           PY
 
-      - name: Upload 11_singlepole audit artifacts
+      - name: Upload 11_singlepole validation artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: qet-11-singlepole-audit
+          name: qet-11-singlepole-validation
           path: |
             build/Z_Q_QElectroTech_11_singlepole.kicad_sym
             build/qet-11-singlepole-report.json
             build/qet-11-singlepole-source-audit.json
+            build/qet-11-singlepole-de-name-report.json
             build/qet-11-singlepole-kicad-smoke-report.json
             build/qet-source-commit.txt
             build/kicad-version.txt
