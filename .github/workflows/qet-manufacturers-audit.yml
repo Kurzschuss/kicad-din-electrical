@@ -1,4 +1,4 @@
-name: QET manufacturers audit
+name: QET manufacturers validation
 
 on:
   push:
@@ -10,12 +10,15 @@ on:
       - "tools/qet_xml.py"
       - "tools/audit_qet_source.py"
       - "tools/apply_qet_language_neutral_names.py"
+      - "tools/apply_qet_de_names.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
       - "tests/test_qet_legacy_manufacturer.py"
       - "tests/test_qet_manufacturer_fill.py"
       - "tests/test_apply_qet_language_neutral_names.py"
+      - "tests/test_qet_manufacturer_names.py"
+      - "config/qet_de_names/manufacturers/**"
       - ".github/workflows/qet-manufacturers-audit.yml"
   workflow_dispatch:
     inputs:
@@ -28,7 +31,7 @@ permissions:
   contents: read
 
 jobs:
-  audit-qet-manufacturers:
+  validate-qet-manufacturers:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -50,7 +53,7 @@ jobs:
       - name: Install test dependency
         run: python -m pip install pytest
 
-      - name: Run converter and audit unit tests
+      - name: Run manufacturer conversion tests
         run: |
           python -m pytest \
             tests/test_convert_qet_to_kicad.py \
@@ -59,104 +62,91 @@ jobs:
             tests/test_qet_legacy_manufacturer.py \
             tests/test_qet_manufacturer_fill.py \
             tests/test_apply_qet_language_neutral_names.py \
+            tests/test_qet_manufacturer_names.py \
             -q
 
-      - name: Convert complete manufacturer scope for diagnostics
+      - name: Convert complete manufacturer scope
         run: |
-          set +e
           python tools/convert_qet_to_kicad_checked.py \
             --qet-root .qet-elements/10_electric \
             --scope 20_manufacturers_articles \
             --output build/Z_Q_QElectroTech_manufacturers.kicad_sym \
             --report build/qet-manufacturers-report.json \
             --fail-on-errors
-          printf '%s\n' "$?" > build/qet-manufacturers-converter-exit-code.txt
           git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
-          exit 0
 
-      - name: Audit missing German source names
+      - name: Audit source names
         run: |
-          set +e
           python tools/audit_qet_source.py \
             --qet-root .qet-elements/10_electric \
             --scope 20_manufacturers_articles \
             --output build/qet-manufacturers-source-audit.json
-          printf '%s\n' "$?" > build/qet-manufacturers-audit-exit-code.txt
-          exit 0
 
-      - name: Accept conservative language-neutral product identifiers
+      - name: Accept conservative language-neutral identifiers
         run: |
           python tools/apply_qet_language_neutral_names.py \
             --library build/Z_Q_QElectroTech_manufacturers.kicad_sym \
             --audit build/qet-manufacturers-source-audit.json \
             --report build/qet-manufacturers-language-neutral-report.json
 
-      - name: Print manufacturer diagnostics
+      - name: Apply reviewed German manufacturer names
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech_manufacturers.kicad_sym \
+            --config-dir config/qet_de_names/manufacturers \
+            --report build/qet-manufacturers-de-name-report.json \
+            --strict
 
-          for name in (
-              "build/qet-manufacturers-report.json",
-              "build/qet-manufacturers-source-audit.json",
-              "build/qet-manufacturers-language-neutral-report.json",
-          ):
-              path = Path(name)
-              if path.exists():
-                  payload = json.loads(path.read_text(encoding="utf-8"))
-                  payload = {k: v for k, v in payload.items() if k not in {"items", "applied_paths", "remaining_translation_paths"}}
-                  print(f"--- {name} ---")
-                  print(json.dumps(payload, ensure_ascii=False, indent=2))
-          PY
-
-      - name: Upload manufacturer diagnostic artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: qet-manufacturers-diagnostics
-          if-no-files-found: error
-          path: |
-            build/Z_Q_QElectroTech_manufacturers.kicad_sym
-            build/qet-manufacturers-report.json
-            build/qet-manufacturers-source-audit.json
-            build/qet-manufacturers-language-neutral-report.json
-            build/qet-manufacturers-converter-exit-code.txt
-            build/qet-manufacturers-audit-exit-code.txt
-            build/qet-source-commit.txt
-
-      - name: Validate raw manufacturer library structure
+      - name: Validate manufacturer coverage and write progress report
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
           library = Path("build/Z_Q_QElectroTech_manufacturers.kicad_sym").read_text(encoding="utf-8")
-          report = json.loads(Path("build/qet-manufacturers-report.json").read_text(encoding="utf-8"))
+          conversion = json.loads(Path("build/qet-manufacturers-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-manufacturers-source-audit.json").read_text(encoding="utf-8"))
           neutral = json.loads(Path("build/qet-manufacturers-language-neutral-report.json").read_text(encoding="utf-8"))
+          german = json.loads(Path("build/qet-manufacturers-de-name-report.json").read_text(encoding="utf-8"))
 
-          assert report["source_files"] > 0
-          assert report["converted"] == report["source_files"], report["errors"]
-          assert not report["errors"], report["errors"]
-          assert not report["unsupported_nodes"], report["unsupported_nodes"]
-          assert audit["source_files"] == report["source_files"]
-          assert audit["missing_german_names"] == report["missing_german_names"] == 1605
-          assert not audit["parse_errors"], audit["parse_errors"]
-          assert len(audit["sanitized_xml_files"]) == 1, audit["sanitized_xml_files"]
-          assert neutral["audited_missing_german_names"] == 1605
+          assert conversion["source_files"] == conversion["converted"] == 4019
+          assert not conversion["errors"]
+          assert not conversion["unsupported_nodes"]
+          assert audit["source_files"] == 4019
+          assert audit["missing_german_names"] == conversion["missing_german_names"] == 1605
+          assert not audit["parse_errors"]
+          assert len(audit["sanitized_xml_files"]) == 1
           assert neutral["language_neutral_candidates"] == neutral["language_neutral_applied"] == 672
-          assert neutral["remaining_translation_count"] == 933
-          assert library.count("language_neutral_name_accepted") == 672
+          assert german["configured_overrides"] == german["applied_overrides"]
+          assert not german["unmatched_override_paths"]
 
-          top_level = sum(
-              1 for line in library.splitlines()
-              if line.startswith('  (symbol "Z_Q_')
+          neutral_paths = set(neutral["applied_paths"])
+          german_paths = set(german["applied_paths"])
+          missing_paths = {item["path"] for item in audit["items"]}
+          assert neutral_paths.isdisjoint(german_paths)
+          assert neutral_paths | german_paths <= missing_paths
+
+          resolved = len(neutral_paths | german_paths)
+          remaining = len(missing_paths - neutral_paths - german_paths)
+          assert resolved + remaining == 1605
+          assert library.count("language_neutral_name_accepted") == len(neutral_paths)
+          assert library.count("german_name_override") == len(german_paths)
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == 4019
+
+          progress = {
+              "source_files": 4019,
+              "missing_german_source_names": 1605,
+              "language_neutral_resolved": len(neutral_paths),
+              "explicit_german_resolved": len(german_paths),
+              "total_resolved": resolved,
+              "remaining_translation_count": remaining,
+          }
+          Path("build/qet-manufacturers-name-progress.json").write_text(
+              json.dumps(progress, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
           )
-          assert top_level == report["converted"]
-          assert library.count('(property "QET_Source_Path" ') == report["converted"]
-          assert library.count('(property "QET_Category" ') == report["converted"]
-          assert library.count('(property "QET_Adjustments" ') == report["converted"]
+          print(json.dumps(progress, ensure_ascii=False, indent=2))
           PY
 
       - name: Install KiCad 10 CLI
@@ -178,34 +168,26 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
-          report = json.loads(Path("build/qet-manufacturers-report.json").read_text(encoding="utf-8"))
           svg_files = sorted(Path("build/kicad-svg-manufacturers").glob("*.svg"))
-          assert len(svg_files) == report["converted"], (len(svg_files), report["converted"])
+          assert len(svg_files) == 4019
           assert all(path.stat().st_size > 0 for path in svg_files)
           Path("build/qet-manufacturers-kicad-smoke-report.json").write_text(
-              json.dumps(
-                  {
-                      "exported_svg_symbols": len(svg_files),
-                      "expected_symbols": report["converted"],
-                      "empty_svg_files": 0,
-                  },
-                  indent=2,
-              ) + "\n",
+              json.dumps({"exported_svg_symbols": 4019, "expected_symbols": 4019, "empty_svg_files": 0}, indent=2) + "\n",
               encoding="utf-8",
           )
           PY
 
-      - name: Upload successful manufacturer audit artifacts
-        if: success()
+      - name: Upload manufacturer validation artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: qet-manufacturers-audit
+          name: qet-manufacturers-validation
           path: |
             build/Z_Q_QElectroTech_manufacturers.kicad_sym
             build/qet-manufacturers-report.json
             build/qet-manufacturers-source-audit.json
             build/qet-manufacturers-language-neutral-report.json
+            build/qet-manufacturers-de-name-report.json
+            build/qet-manufacturers-name-progress.json
             build/qet-manufacturers-kicad-smoke-report.json
             build/qet-source-commit.txt
             build/kicad-version.txt
