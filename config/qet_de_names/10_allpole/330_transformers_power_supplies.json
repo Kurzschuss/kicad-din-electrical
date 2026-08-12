@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/330_transformers_power_supplies",
+  "overrides": {
+    "10_electric/10_allpole/330_transformers_power_supplies/10_transformers/trafo2.elmt": "Transformator mit drei Wicklungen",
+    "10_electric/10_allpole/330_transformers_power_supplies/10_transformers/trafo3v.elmt": "Transformator mit drei Wicklungen ohne Anzapfungen",
+    "10_electric/10_allpole/330_transformers_power_supplies/30_power_supplies/power_supply_1_phase_ac_dc.elmt": "Einphasiges Netzteil 24 V DC"
+  }
+}
