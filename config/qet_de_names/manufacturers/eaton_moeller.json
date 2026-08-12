@@ -3,13 +3,13 @@
   "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
   "scope": "10_electric/20_manufacturers_articles/eaton_moeller",
   "overrides": {
-    "10_electric/20_manufacturers_articles/eaton_moeller/20_frequency_drives/eaton_powerxl_dc1_2.elmt": "Eaton PowerXL DC1 – Frequenzumrichter, Variante 2",
-    "10_electric/20_manufacturers_articles/eaton_moeller/20_frequency_drives/eaton_powerxl_dc1_3.elmt": "Eaton PowerXL DC1 – Frequenzumrichter, Variante 3",
-    "10_electric/20_manufacturers_articles/eaton_moeller/moeller_dilm12.elmt": "Eaton/Moeller DILM12 – Leistungsschütz",
-    "10_electric/20_manufacturers_articles/eaton_moeller/moeller_m22.elmt": "Eaton/Moeller M22 – Drehschalter",
-    "10_electric/20_manufacturers_articles/eaton_moeller/moeller_nzm10.elmt": "Eaton/Moeller NZM10 – Leistungsschalter",
-    "10_electric/20_manufacturers_articles/eaton_moeller/pke12ak.elmt": "Eaton/Moeller PKE12/AK",
-    "10_electric/20_manufacturers_articles/eaton_moeller/pke12ak_dilm12.elmt": "Eaton/Moeller PKE12/AK + DILM12 – Motorstarter-Kombination",
-    "10_electric/20_manufacturers_articles/eaton_moeller/contactor_dilm12.elmt": "Eaton/Moeller DILM12 – Schütz"
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_410.elmt": "Eaton easy 410 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_512.elmt": "Eaton easy 512 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_620.elmt": "Eaton easy 620 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_719.elmt": "Eaton easy 719 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_819.elmt": "Eaton easy 819 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_821.elmt": "Eaton easy 821 – programmierbares Relais",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_e4-ac-12rc1.elmt": "Eaton easyE4 AC-12RC1 – programmierbares Relais, 100–240 VAC, Relaisausgänge",
+    "10_electric/20_manufacturers_articles/eaton_moeller/01_PLC_controllers/easy_e4-dc-12tc1.elmt": "Eaton easyE4 DC-12TC1 – programmierbares Relais, 24 VDC, Transistorausgänge"
   }
 }
