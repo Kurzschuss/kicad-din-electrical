@@ -41,6 +41,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install test dependency
+        run: python -m pip install pytest
+
       - name: Run converter unit tests
         run: python -m pytest tests/test_convert_qet_to_kicad.py -q
 
