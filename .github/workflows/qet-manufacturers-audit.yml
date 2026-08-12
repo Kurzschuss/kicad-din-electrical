@@ -53,22 +53,61 @@ jobs:
             tests/test_audit_qet_source.py \
             -q
 
-      - name: Convert complete manufacturer scope
+      - name: Convert complete manufacturer scope for diagnostics
         run: |
+          set +e
           python tools/convert_qet_to_kicad_checked.py \
             --qet-root .qet-elements/10_electric \
             --scope 20_manufacturers_articles \
             --output build/Z_Q_QElectroTech_manufacturers.kicad_sym \
             --report build/qet-manufacturers-report.json \
             --fail-on-errors
+          printf '%s\n' "$?" > build/qet-manufacturers-converter-exit-code.txt
           git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+          exit 0
 
       - name: Audit missing German source names
         run: |
+          set +e
           python tools/audit_qet_source.py \
             --qet-root .qet-elements/10_electric \
             --scope 20_manufacturers_articles \
             --output build/qet-manufacturers-source-audit.json
+          printf '%s\n' "$?" > build/qet-manufacturers-audit-exit-code.txt
+          exit 0
+
+      - name: Print manufacturer diagnostics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for name in (
+              "build/qet-manufacturers-report.json",
+              "build/qet-manufacturers-source-audit.json",
+          ):
+              path = Path(name)
+              if path.exists():
+                  payload = json.loads(path.read_text(encoding="utf-8"))
+                  if "items" in payload:
+                      payload = {k: v for k, v in payload.items() if k != "items"}
+                  print(f"--- {name} ---")
+                  print(json.dumps(payload, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload manufacturer diagnostic artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-manufacturers-diagnostics
+          if-no-files-found: error
+          path: |
+            build/Z_Q_QElectroTech_manufacturers.kicad_sym
+            build/qet-manufacturers-report.json
+            build/qet-manufacturers-source-audit.json
+            build/qet-manufacturers-converter-exit-code.txt
+            build/qet-manufacturers-audit-exit-code.txt
+            build/qet-source-commit.txt
 
       - name: Validate raw manufacturer library structure
         run: |
@@ -81,12 +120,12 @@ jobs:
           audit = json.loads(Path("build/qet-manufacturers-source-audit.json").read_text(encoding="utf-8"))
 
           assert report["source_files"] > 0
-          assert report["converted"] == report["source_files"]
-          assert not report["errors"]
-          assert not report["unsupported_nodes"]
+          assert report["converted"] == report["source_files"], report["errors"]
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
           assert audit["source_files"] == report["source_files"]
           assert audit["missing_german_names"] == report["missing_german_names"]
-          assert not audit["parse_errors"]
+          assert not audit["parse_errors"], audit["parse_errors"]
 
           top_level = sum(
               1 for line in library.splitlines()
@@ -135,16 +174,8 @@ jobs:
           )
           PY
 
-      - name: Print manufacturer audit summary
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          report = json.loads(Path("build/qet-manufacturers-report.json").read_text(encoding="utf-8"))
-          print(json.dumps(report, ensure_ascii=False, indent=2))
-          PY
-
-      - name: Upload manufacturer audit artifacts
+      - name: Upload successful manufacturer audit artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: qet-manufacturers-audit
