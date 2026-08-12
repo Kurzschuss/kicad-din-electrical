@@ -3,17 +3,17 @@
   "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
   "scope": "10_electric/20_manufacturers_articles/telemecanique",
   "overrides": {
-    "10_electric/20_manufacturers_articles/telemecanique/contrôle_d'exploitation_bvw572.elmt": "Telemecanique BVW572 – Betriebssteuerung",
-    "10_electric/20_manufacturers_articles/telemecanique/contrôle_dxploitation_txbt_f024410120002.elmt": "Telemecanique TXBT F024410120002 – Bedienterminal",
-    "10_electric/20_manufacturers_articles/telemecanique/cellule_photoélectrique_xue-f04311.elmt": "Telemecanique XUE-F04311 – Lichtschranke",
-    "10_electric/20_manufacturers_articles/telemecanique/disjoncteur_l100.elmt": "Telemecanique L100 – Leistungsschalter",
-    "10_electric/20_manufacturers_articles/telemecanique/disjoncteur_l200.elmt": "Telemecanique L200 – Leistungsschalter",
-    "10_electric/20_manufacturers_articles/telemecanique/interrupteur_iso40a.elmt": "Telemecanique ISO 40 A – Lasttrennschalter",
-    "10_electric/20_manufacturers_articles/telemecanique/pmx-entrées_tor.elmt": "Telemecanique PMX – Digitaleingangsmodul",
-    "10_electric/20_manufacturers_articles/telemecanique/pmx-sorties_tor.elmt": "Telemecanique PMX – Digitalausgangsmodul",
-    "10_electric/20_manufacturers_articles/telemecanique/red_button.elmt": "Telemecanique – Roter Drucktaster",
-    "10_electric/20_manufacturers_articles/telemecanique/T60l(btsymbol).elmt": "Telemecanique T60L (BT)",
-    "10_electric/20_manufacturers_articles/telemecanique/variateur_de_vitesse_vwd3m-eu-uk.elmt": "Telemecanique VWD3M-EU/UK – Drehzahlregler",
-    "10_electric/20_manufacturers_articles/telemecanique/démarreur_direct/démarreur_direct-d.elmt": "Telemecanique – Direktstarter, rechts"
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/altivar_11.elmt": "Telemecanique Altivar 11 – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv11_tri.elmt": "Telemecanique Altivar 11 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv16_tri.elmt": "Telemecanique Altivar 16 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv18_tri.elmt": "Telemecanique Altivar 18 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv21_tri.elmt": "Telemecanique Altivar 21 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv28_tri.elmt": "Telemecanique Altivar 28 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv31.elmt": "Telemecanique Altivar 31 – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv31_tri.elmt": "Telemecanique Altivar 31 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv58_tri.elmt": "Telemecanique Altivar 58 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv61_tri.elmt": "Telemecanique Altivar 61 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv71_tri.elmt": "Telemecanique Altivar 71 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/table_param_atv.elmt": "Telemecanique Altivar 11 – Parametertabelle"
   }
 }
