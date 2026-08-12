@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/danfoss",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/vlt_automation_drive_fc-302_power.elmt": "Danfoss VLT AutomationDrive FC 302 – Leistungsteil",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/danfoss_mcb_112.elmt": "Danfoss MCB 112 – PTC-Thermistormodul",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/danfoss_mcb_114.elmt": "Danfoss MCB 114 – PTC-Sensoreingangsmodul",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/danfoss_mcb_102.elmt": "Danfoss MCB 102 – EnDat-Optionskarte",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/danfoss_braking_resistor.elmt": "Danfoss – Bremswiderstand",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/danfoss_fcp106.elmt": "Danfoss FCP 106 – Frequenzumrichter für Motormontage",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/vlt_micro_drive_fc51.elmt": "Danfoss VLT Micro Drive FC 51 – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/danfoss/20_frequency_drives/vlt_hvac_drive_fc100.elmt": "Danfoss VLT HVAC Drive FC 100 – Frequenzumrichter"
+  }
+}
