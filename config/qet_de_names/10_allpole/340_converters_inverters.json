@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/340_converters_inverters",
+  "overrides": {
+    "10_electric/10_allpole/340_converters_inverters/10_converters/prev_232_485.elmt": "RS232/RS485-Wandler",
+    "10_electric/10_allpole/340_converters_inverters/90_filters/almeto/ts_811.elmt": "Filter TS 811 1751",
+    "10_electric/10_allpole/340_converters_inverters/90_filters/almeto/tsk6711.elmt": "Filter TSK 6711",
+    "10_electric/10_allpole/340_converters_inverters/90_filters/almeto/tsk_6741.elmt": "Filter TSK 6741"
+  }
+}
