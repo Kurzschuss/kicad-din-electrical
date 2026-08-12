@@ -11,8 +11,11 @@ on:
     paths:
       - "tools/convert_qet_to_kicad.py"
       - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "config/qet_de_names/**"
       - ".github/workflows/qet-10-allpole-validation.yml"
 
 permissions:
@@ -46,6 +49,7 @@ jobs:
           python -m pytest \
             tests/test_convert_qet_to_kicad.py \
             tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
             -q
 
       - name: Convert complete 10_allpole
@@ -65,6 +69,14 @@ jobs:
             --scope 10_allpole \
             --output build/qet-source-audit.json
 
+      - name: Apply reviewed German visible names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir config/qet_de_names/10_allpole \
+            --report build/qet-de-name-report.json \
+            --strict
+
       - name: Validate generated KiCad library structure
         run: |
           python - <<'PY'
@@ -74,6 +86,7 @@ jobs:
           library = Path("build/Z_Q_QElectroTech.kicad_sym").read_text(encoding="utf-8")
           report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-source-audit.json").read_text(encoding="utf-8"))
+          names = json.loads(Path("build/qet-de-name-report.json").read_text(encoding="utf-8"))
 
           assert library.startswith("(kicad_symbol_lib ")
           assert library.rstrip().endswith(")")
@@ -109,9 +122,18 @@ jobs:
           assert library.count('(property "QET_Category" ') == report["converted"]
           assert library.count('(property "QET_Adjustments" ') == report["converted"]
           assert library.count('(property "QET_Original_Pin_Count" "0"') == report["zero_pin_symbols"]
+
           assert audit["source_files"] == report["source_files"]
           assert audit["missing_german_names"] == report["missing_german_names"]
           assert not audit["parse_errors"]
+
+          audited_paths = {item["path"] for item in audit["items"]}
+          applied_paths = set(names["applied_paths"])
+          assert names["configured_overrides"] == audit["missing_german_names"]
+          assert names["applied_overrides"] == audit["missing_german_names"]
+          assert not names["unmatched_override_paths"]
+          assert applied_paths == audited_paths
+          assert library.count("german_name_override") == audit["missing_german_names"]
           PY
 
       - name: Assert full source coverage
@@ -136,4 +158,5 @@ jobs:
             build/Z_Q_QElectroTech.kicad_sym
             build/qet-10-allpole-report.json
             build/qet-source-audit.json
+            build/qet-de-name-report.json
             build/qet-source-commit.txt
