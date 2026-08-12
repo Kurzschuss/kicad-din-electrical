@@ -139,8 +139,11 @@ jobs:
           assert library.count("german_name_override") == audit["missing_german_names"]
           PY
 
-      - name: Install KiCad CLI
+      - name: Install KiCad 10 CLI
         run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends kicad
           kicad-cli version --format about | tee build/kicad-version.txt
