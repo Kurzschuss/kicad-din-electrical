@@ -139,6 +139,40 @@ jobs:
           assert library.count("german_name_override") == audit["missing_german_names"]
           PY
 
+      - name: Install KiCad CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render all symbols with KiCad
+        run: |
+          mkdir -p build/kicad-svg
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg \
+            build/Z_Q_QElectroTech.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+          svg_files = sorted(Path("build/kicad-svg").glob("*.svg"))
+          assert len(svg_files) == report["converted"], (len(svg_files), report["converted"])
+          assert all(path.stat().st_size > 0 for path in svg_files)
+          Path("build/kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": report["converted"],
+                      "empty_svg_files": 0,
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
       - name: Assert full source coverage
         run: |
           python - <<'PY'
@@ -163,3 +197,5 @@ jobs:
             build/qet-source-audit.json
             build/qet-de-name-report.json
             build/qet-source-commit.txt
+            build/kicad-version.txt
+            build/kicad-smoke-report.json
