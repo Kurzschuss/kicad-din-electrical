@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/380_signaling_operating",
+  "overrides": {
+    "10_electric/10_allpole/380_signaling_operating/20_push_buttons/otocny_spinac.elmt": "Drehschalter",
+    "10_electric/10_allpole/380_signaling_operating/20_push_buttons/rozpin_tlacitko.elmt": "Öffner-Taster",
+    "10_electric/10_allpole/380_signaling_operating/20_push_buttons/spin_tlacitko.elmt": "Schließer-Taster",
+    "10_electric/10_allpole/380_signaling_operating/21_selector_switches/012_switch_dpst.elmt": "DPST-Schalter, Schließer",
+    "10_electric/10_allpole/380_signaling_operating/21_selector_switches/commut_3_pos.elmt": "3-Stellungs-Wahlschalter A/0/M",
+    "10_electric/10_allpole/380_signaling_operating/21_selector_switches/contact_015.elmt": "Beleuchteter Drehschalter, 2 Stellungen",
+    "10_electric/10_allpole/380_signaling_operating/21_selector_switches/issw_1-0-2.elmt": "3-Stellungs-Wahlschalter 1-0-2"
+  }
+}
