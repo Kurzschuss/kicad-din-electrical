@@ -10,9 +10,11 @@ on:
   pull_request:
     paths:
       - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
       - "tools/audit_qet_source.py"
       - "tools/apply_qet_de_names.py"
       - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
       - "tests/test_apply_qet_de_names.py"
       - "config/qet_de_names/**"
@@ -48,13 +50,14 @@ jobs:
         run: |
           python -m pytest \
             tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
             tests/test_audit_qet_source.py \
             tests/test_apply_qet_de_names.py \
             -q
 
       - name: Convert complete 10_allpole
         run: |
-          python tools/convert_qet_to_kicad.py \
+          python tools/convert_qet_to_kicad_checked.py \
             --qet-root .qet-elements/10_electric \
             --scope 10_allpole \
             --output build/Z_Q_QElectroTech.kicad_sym \
