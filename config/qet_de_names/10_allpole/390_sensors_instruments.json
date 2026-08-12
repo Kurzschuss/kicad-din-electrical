@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/390_sensors_instruments",
+  "overrides": {
+    "10_electric/10_allpole/390_sensors_instruments/70_meters_measuring_indicators/comptage.elmt": "Zähler"
+  }
+}
