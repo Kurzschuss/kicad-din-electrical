@@ -7,11 +7,6 @@ on:
         description: "qelectrotech-elements ref/commit"
         required: true
         default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
-  push:
-    paths:
-      - "tools/convert_qet_to_kicad.py"
-      - "tests/test_convert_qet_to_kicad.py"
-      - ".github/workflows/qet-10-allpole-validation.yml"
   pull_request:
     paths:
       - "tools/convert_qet_to_kicad.py"
@@ -55,6 +50,52 @@ jobs:
             --output build/Z_Q_QElectroTech.kicad_sym \
             --report build/qet-10-allpole-report.json \
             --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Validate generated KiCad library structure
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          library = Path("build/Z_Q_QElectroTech.kicad_sym").read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+
+          assert library.startswith("(kicad_symbol_lib ")
+          assert library.rstrip().endswith(")")
+
+          depth = 0
+          in_string = False
+          escaped = False
+          for ch in library:
+              if in_string:
+                  if escaped:
+                      escaped = False
+                  elif ch == "\\":
+                      escaped = True
+                  elif ch == '"':
+                      in_string = False
+                  continue
+              if ch == '"':
+                  in_string = True
+              elif ch == "(":
+                  depth += 1
+              elif ch == ")":
+                  depth -= 1
+                  assert depth >= 0
+          assert depth == 0
+          assert not in_string
+
+          top_level_symbols = sum(
+              1 for line in library.splitlines()
+              if line.startswith('  (symbol "Z_Q_')
+          )
+          assert top_level_symbols == report["converted"], (top_level_symbols, report["converted"])
+          assert library.count('(property "QET_Source_Path" ') == report["converted"]
+          assert library.count('(property "QET_Category" ') == report["converted"]
+          assert library.count('(property "QET_Adjustments" ') == report["converted"]
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == report["zero_pin_symbols"]
+          PY
 
       - name: Assert full source coverage
         run: |
@@ -66,6 +107,7 @@ jobs:
           assert report["source_files"] > 0, report
           assert report["converted"] == report["source_files"], report
           assert not report["errors"], report
+          assert not report["unsupported_nodes"], report
           print(json.dumps(report, ensure_ascii=False, indent=2))
           PY
 
@@ -76,3 +118,4 @@ jobs:
           path: |
             build/Z_Q_QElectroTech.kicad_sym
             build/qet-10-allpole-report.json
+            build/qet-source-commit.txt
