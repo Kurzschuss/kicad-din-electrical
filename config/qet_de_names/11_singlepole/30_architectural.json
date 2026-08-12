@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/11_singlepole/500_home_installation/30_architectural",
+  "overrides": {
+    "10_electric/11_singlepole/500_home_installation/30_architectural/alimentation.elmt": "Stromversorgung",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/camera.elmt": "Kamera",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/detecteurdemouvement.elmt": "Bewegungsmelder",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/interrupteurdeuxallumages.elmt": "Serienschalter",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/lampe_1.elmt": "Leuchte",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/microphone.elmt": "Mikrofon",
+    "10_electric/11_singlepole/500_home_installation/30_architectural/printer.elmt": "Drucker"
+  }
+}
