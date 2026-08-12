@@ -7,10 +7,12 @@ on:
     paths:
       - "tools/convert_qet_to_kicad.py"
       - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
       - "tools/audit_qet_source.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
+      - "tests/test_qet_legacy_manufacturer.py"
       - ".github/workflows/qet-manufacturers-audit.yml"
   workflow_dispatch:
     inputs:
@@ -51,6 +53,7 @@ jobs:
             tests/test_convert_qet_to_kicad.py \
             tests/test_convert_qet_to_kicad_checked.py \
             tests/test_audit_qet_source.py \
+            tests/test_qet_legacy_manufacturer.py \
             -q
 
       - name: Convert complete manufacturer scope for diagnostics
@@ -126,6 +129,7 @@ jobs:
           assert audit["source_files"] == report["source_files"]
           assert audit["missing_german_names"] == report["missing_german_names"]
           assert not audit["parse_errors"], audit["parse_errors"]
+          assert len(audit["sanitized_xml_files"]) == 1, audit["sanitized_xml_files"]
 
           top_level = sum(
               1 for line in library.splitlines()
