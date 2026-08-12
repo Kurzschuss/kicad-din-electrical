@@ -3,16 +3,16 @@
   "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
   "scope": "10_electric/20_manufacturers_articles/rittal",
   "overrides": {
-    "10_electric/20_manufacturers_articles/rittal/rittal-sv9393501.elmt": "Rittal SV9393501 – Verteilerblock-Basis",
-    "10_electric/20_manufacturers_articles/rittal/rittal-sv9676560.elmt": "Rittal SV9676560 – Sammelschienen-Verteilerfeld 60 mm, 160 A, 3-polig, 320×495 mm",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sz2410.000.elmt": "Rittal SZ2410.000 – Kabeldurchführungsring Ø40 mm",
-    "10_electric/20_manufacturers_articles/rittal/rittal-dk7257435.elmt": "Rittal DK7257435 – Vertikales Kabelmanagementfeld, 6×85×125 mm, Breite 800 mm",
-    "10_electric/20_manufacturers_articles/rittal/rittal_cp6052500.elmt": "Rittal CP6052500 – Anschlussstück CP 120",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sk3110000.elmt": "Rittal SK3110000 – Schaltschrankthermostat, Öffner, +5…+55 °C",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sk3118200.elmt": "Rittal SK3118200 – Hygrostat, 10–100 % r. F.",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sk3305100.elmt": "Rittal SK3305100 – Luft/Wasser-Wärmetauscher, Wandmontage, 2,5 kW",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sk3304500.elmt": "Rittal SK3304500 – Dachlüfter mit Filter, 550/600 m³/h",
-    "10_electric/20_manufacturers_articles/rittal/rittal_ts8609001.elmt": "Rittal TS8609001 – Schaltschrank-Sockel 200 mm, RAL 7022",
-    "10_electric/20_manufacturers_articles/rittal/rittal_sk3124100.elmt": "Rittal SK3124100 – Lüftungsgitter für 120-mm-Lüfter, RAL 7035"
+    "10_electric/20_manufacturers_articles/rittal/rittal_3110_000.elmt": "Rittal 3110.000 – Schaltschrankthermostat",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3304_100.elmt": "Rittal 3304.100 – Lüfter",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_500.elmt": "Rittal 3305.500 – Kühlgerät",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_500_sideview_left.elmt": "Rittal 3305.500 – Kühlgerät, Seitenansicht links",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_540.elmt": "Rittal 3305.540 – Kühlgerät",
+    "10_electric/20_manufacturers_articles/rittal/rittal_4138_150.elmt": "Rittal 4138.150 – Schaltschrankleuchte",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8285_500.elmt": "Rittal 8285.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8286_500.elmt": "Rittal 8286.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8286_500_sideview_left.elmt": "Rittal 8286.500 – Seitenansicht links",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8686_500.elmt": "Rittal 8686.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_9612_000.elmt": "Rittal 9612.000 – Anschlussadapter"
   }
 }
