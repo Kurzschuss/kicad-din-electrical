@@ -9,11 +9,13 @@ on:
       - "tools/convert_qet_to_kicad_checked.py"
       - "tools/qet_xml.py"
       - "tools/audit_qet_source.py"
+      - "tools/apply_qet_language_neutral_names.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
       - "tests/test_qet_legacy_manufacturer.py"
       - "tests/test_qet_manufacturer_fill.py"
+      - "tests/test_apply_qet_language_neutral_names.py"
       - ".github/workflows/qet-manufacturers-audit.yml"
   workflow_dispatch:
     inputs:
@@ -56,6 +58,7 @@ jobs:
             tests/test_audit_qet_source.py \
             tests/test_qet_legacy_manufacturer.py \
             tests/test_qet_manufacturer_fill.py \
+            tests/test_apply_qet_language_neutral_names.py \
             -q
 
       - name: Convert complete manufacturer scope for diagnostics
@@ -81,6 +84,13 @@ jobs:
           printf '%s\n' "$?" > build/qet-manufacturers-audit-exit-code.txt
           exit 0
 
+      - name: Accept conservative language-neutral product identifiers
+        run: |
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/Z_Q_QElectroTech_manufacturers.kicad_sym \
+            --audit build/qet-manufacturers-source-audit.json \
+            --report build/qet-manufacturers-language-neutral-report.json
+
       - name: Print manufacturer diagnostics
         run: |
           python - <<'PY'
@@ -90,12 +100,12 @@ jobs:
           for name in (
               "build/qet-manufacturers-report.json",
               "build/qet-manufacturers-source-audit.json",
+              "build/qet-manufacturers-language-neutral-report.json",
           ):
               path = Path(name)
               if path.exists():
                   payload = json.loads(path.read_text(encoding="utf-8"))
-                  if "items" in payload:
-                      payload = {k: v for k, v in payload.items() if k != "items"}
+                  payload = {k: v for k, v in payload.items() if k not in {"items", "applied_paths", "remaining_translation_paths"}}
                   print(f"--- {name} ---")
                   print(json.dumps(payload, ensure_ascii=False, indent=2))
           PY
@@ -110,6 +120,7 @@ jobs:
             build/Z_Q_QElectroTech_manufacturers.kicad_sym
             build/qet-manufacturers-report.json
             build/qet-manufacturers-source-audit.json
+            build/qet-manufacturers-language-neutral-report.json
             build/qet-manufacturers-converter-exit-code.txt
             build/qet-manufacturers-audit-exit-code.txt
             build/qet-source-commit.txt
@@ -123,15 +134,20 @@ jobs:
           library = Path("build/Z_Q_QElectroTech_manufacturers.kicad_sym").read_text(encoding="utf-8")
           report = json.loads(Path("build/qet-manufacturers-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-manufacturers-source-audit.json").read_text(encoding="utf-8"))
+          neutral = json.loads(Path("build/qet-manufacturers-language-neutral-report.json").read_text(encoding="utf-8"))
 
           assert report["source_files"] > 0
           assert report["converted"] == report["source_files"], report["errors"]
           assert not report["errors"], report["errors"]
           assert not report["unsupported_nodes"], report["unsupported_nodes"]
           assert audit["source_files"] == report["source_files"]
-          assert audit["missing_german_names"] == report["missing_german_names"]
+          assert audit["missing_german_names"] == report["missing_german_names"] == 1605
           assert not audit["parse_errors"], audit["parse_errors"]
           assert len(audit["sanitized_xml_files"]) == 1, audit["sanitized_xml_files"]
+          assert neutral["audited_missing_german_names"] == 1605
+          assert neutral["language_neutral_candidates"] == neutral["language_neutral_applied"] == 672
+          assert neutral["remaining_translation_count"] == 933
+          assert library.count("language_neutral_name_accepted") == 672
 
           top_level = sum(
               1 for line in library.splitlines()
@@ -189,6 +205,7 @@ jobs:
             build/Z_Q_QElectroTech_manufacturers.kicad_sym
             build/qet-manufacturers-report.json
             build/qet-manufacturers-source-audit.json
+            build/qet-manufacturers-language-neutral-report.json
             build/qet-manufacturers-kicad-smoke-report.json
             build/qet-source-commit.txt
             build/kicad-version.txt
