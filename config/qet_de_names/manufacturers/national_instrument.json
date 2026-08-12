@@ -3,17 +3,17 @@
   "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
   "scope": "10_electric/20_manufacturers_articles/national_instrument",
   "overrides": {
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_9023.elmt": "NI cRIO-9023 – Echtzeit-Controller",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9472.elmt": "NI 9472 – 8 Digitalausgänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9425.elmt": "NI 9425 – 32 Digitaleingänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9263.elmt": "NI 9263 – 4 Analogausgänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9205.elmt": "NI 9205 – 32 Analogeingänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9201.elmt": "NI 9201 – 8 Analogeingänge ±10 V",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9476.elmt": "NI 9476 – 32 Digitalausgänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9208.elmt": "NI 9208 – 16 Strom-Analogeingänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9217.elmt": "NI 9217 – 4 RTD-Eingänge Pt100",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9265.elmt": "NI 9265 – 4 Strom-Analogausgänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9485.elmt": "NI 9485 – 8 Halbleiterrelais-Ausgänge",
-    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_crio_ni9421.elmt": "NI 9421 – 8 Source-Digitaleingänge, 100 µs"
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9035.elmt": "NI cRIO-9035 – Echtzeit-Controller",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9217_4tc.elmt": "NI cRIO-9217 – 4 RTD-Eingänge Pt100",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9269_4ao.elmt": "NI cRIO-9269 – 4 isolierte Analogausgänge ±10 V",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9422_8di.elmt": "NI cRIO-9422 – 8 Digitaleingänge 24 V",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9481_4do.elmt": "NI cRIO-9481 – 4 Relaisausgänge 2 A",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9853_2can.elmt": "NI cRIO-9853 – 2 High-Speed-CAN-Schnittstellen",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_9xxx_module_vide.elmt": "NI cRIO-9xxx – Blindmodul",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_chassis_9112_8slots.elmt": "NI cRIO-9112 – 8-Slot-Chassis",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/crio_controleur.elmt": "NI cRIO-9024 – Echtzeit-Controller",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_9215.elmt": "NI cRIO-9215 – 4 differentielle Analogeingänge ±10 V",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_9263.elmt": "NI cRIO-9263 – 4 Analogausgänge ±10 V",
+    "10_electric/20_manufacturers_articles/national_instrument/01_PLC_controllers/crio/ni_9472.elmt": "NI cRIO-9472 – 8 Digitalausgänge 24 V"
   }
 }
