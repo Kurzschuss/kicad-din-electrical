@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/140_connectors_plugs",
+  "overrides": {
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/24_pin_connector_male_female.elmt": "24-poliger Steckverbinder, Buchse + Stecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c091a_3p_fem.elmt": "C091D 3-polig, Buchse",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c091a_3p_male.elmt": "C091A 3-polig, Stecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c091a_male.elmt": "C091A 4-polig, Stecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c091d_fem.elmt": "C091D 4-polig, Buchse",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c16_4p_f.elmt": "C16 4-polig, Buchse",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c16_4p_m.elmt": "C16 4-polig, Stecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c16_7p_fem.elmt": "C16 7-polig, Buchse",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/c16_7p_male.elmt": "C16 7-polig, Stecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/kon10pin_pravy.elmt": "10-poliger Steckverbinder, rechts",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/konektor10pin.elmt": "10-poliger Steckverbinder, links",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/pin_m_fm.elmt": "Steckverbinderkontakt",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/vidlice_5p.elmt": "5-poliger Drehstromstecker",
+    "10_electric/10_allpole/140_connectors_plugs/01_connectors_pins/zas_schurter.elmt": "Schurter-Steckdose mit Schalter"
+  }
+}
