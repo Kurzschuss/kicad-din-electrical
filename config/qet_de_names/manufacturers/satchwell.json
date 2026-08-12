@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/satchwell",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/satchwell/avum_25_33.elmt": "Satchwell AVUM 25-33 – 3-Wege-Regelventil mit Stellantrieb",
+    "10_electric/20_manufacturers_articles/satchwell/avum_32_43.elmt": "Satchwell AVUM 32-43 – 3-Wege-Regelventil mit Stellantrieb",
+    "10_electric/20_manufacturers_articles/satchwell/avum_50_55.elmt": "Satchwell AVUM 50-55 – 3-Wege-Regelventil mit Stellantrieb",
+    "10_electric/20_manufacturers_articles/satchwell/dw_1201.elmt": "Satchwell DW 1201 – Differenzdruckschalter",
+    "10_electric/20_manufacturers_articles/satchwell/dw_1301.elmt": "Satchwell DW 1301 – Differenzdruckschalter",
+    "10_electric/20_manufacturers_articles/satchwell/exacter_mnh200_1_2.elmt": "Satchwell Exacter MNH200 1/2 – 3-Wege-Misch-/Verteilventil",
+    "10_electric/20_manufacturers_articles/satchwell/mch3.elmt": "Satchwell MCH3 – 3-Wege-Misch-/Verteilventil",
+    "10_electric/20_manufacturers_articles/satchwell/vem_25_22.elmt": "Satchwell VEM 25-22 – 2-Wege-Regelventil",
+    "10_electric/20_manufacturers_articles/satchwell/vem_32_33.elmt": "Satchwell VEM 32-33 – 2-Wege-Regelventil",
+    "10_electric/20_manufacturers_articles/satchwell/vem_40_33.elmt": "Satchwell VEM 40-33 – 2-Wege-Regelventil",
+    "10_electric/20_manufacturers_articles/satchwell/vem_50_55.elmt": "Satchwell VEM 50-55 – 2-Wege-Regelventil",
+    "10_electric/20_manufacturers_articles/satchwell/valve_b_series_avue1101_avux1101.elmt": "Satchwell B-Serie – Regelventil mit AVUE1101/AVUX1101",
+    "10_electric/20_manufacturers_articles/satchwell/valve_b_series_mz18b_230.elmt": "Satchwell B-Serie – Regelventil mit MZ18B-230",
+    "10_electric/20_manufacturers_articles/satchwell/water_flow_switch.elmt": "Satchwell – Paddel-Durchflusswächter für Wasser"
+  }
+}
