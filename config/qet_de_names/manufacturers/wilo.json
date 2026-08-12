@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/wilo",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/wilo/module_0-10ext-min.elmt": "Wilo IF-Modul 0–10 V – Ext. Min.",
+    "10_electric/20_manufacturers_articles/wilo/module_0-10ext-off.elmt": "Wilo IF-Modul 0–10 V – Ext. Aus",
+    "10_electric/20_manufacturers_articles/wilo/module_0-10sbm.elmt": "Wilo IF-Modul 0–10 V – SBM",
+    "10_electric/20_manufacturers_articles/wilo/module_dp-lon.elmt": "Wilo IF-Modul DP-LON",
+    "10_electric/20_manufacturers_articles/wilo/module_ext-off_0-10sbm.elmt": "Wilo IF-Modul Ext. Aus / 0–10 V / SBM",
+    "10_electric/20_manufacturers_articles/wilo/module_if-dp.elmt": "Wilo IF-Modul DP",
+    "10_electric/20_manufacturers_articles/wilo/stratos.elmt": "Wilo Stratos – Umwälzpumpe"
+  }
+}
