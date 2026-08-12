@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/130_terminals_terminal_strips",
+  "overrides": {
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_12g1.elmt": "Klemmleiste 12G1",
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_19g1.elmt": "Klemmleiste 19G1",
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_3g1.elmt": "Klemmleiste 3G1",
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_4g1.elmt": "Klemmleiste 4G1",
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_5g1.elmt": "Klemmleiste 5G1",
+    "10_electric/10_allpole/130_terminals_terminal_strips/90_terminal_strips_diagram/terminal_7g1.elmt": "Klemmleiste 7G1"
+  }
+}
