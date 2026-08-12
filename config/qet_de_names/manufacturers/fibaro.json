@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/fibaro",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-dimmer-2-fgd-212.elmt": "Fibaro Dimmer 2 FGD-212 – Z-Wave-Dimmermodul",
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-double-switch-2-fgs-223.elmt": "Fibaro Double Switch 2 FGS-223 – Z-Wave-Doppelrelais",
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-rgbw-controller-fgrgbwm-441.elmt": "Fibaro FGRGBWM-441 – Z-Wave-RGBW-Controller",
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-roller-shutter-3-fgr-223.elmt": "Fibaro Roller Shutter 3 FGR-223 – Z-Wave-Rollladenaktor",
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-single-switch-2-fgs-213.elmt": "Fibaro Single Switch 2 FGS-213 – Z-Wave-Schaltaktor",
+    "10_electric/20_manufacturers_articles/fibaro/fibaro-universal-binary-sensor.elmt": "Fibaro – universeller Z-Wave-Binärsensor"
+  }
+}
