@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/ewon",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-flx3402_2.elmt": "Ewon Flexy 205 FLX3402 – Teil 2, Eingänge 1–6",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-flx3402_1.elmt": "Ewon Flexy 205 FLX3402 – Teil 1, Eingänge 1–6",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-entradas1.elmt": "Ewon Flexy 205 – Teil 1, 2 Analogeingänge + 2 Digitaleingänge",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-saidas.elmt": "Ewon Flexy 205 – Teil 2, Ausgänge 1–4",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-flx3402-2serial.elmt": "Ewon Flexy 205 FLX3402 – Teil 2, RS232",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-flx3402_1serial.elmt": "Ewon Flexy 205 FLX3402 – Teil 1, serielle Schnittstellen und CAN",
+    "10_electric/20_manufacturers_articles/ewon/ewon-wifantenna.elmt": "Ewon – WiFi-Antenne",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-IO.elmt": "Ewon Flexy 205 – E/A",
+    "10_electric/20_manufacturers_articles/ewon/ewon-flexy205-power.elmt": "Ewon Flexy 205 – Spannungsversorgung"
+  }
+}
