@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/phoenix_contact",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_2744461.elmt": "Phoenix Contact 2744461 – Schnittstellenwandler",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_2761266.elmt": "Phoenix Contact 2761266 – Schnittstellenwandler RS-232/RS-422",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_2810913.elmt": "Phoenix Contact 2810913 – Signalaufbereiter",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_2813512.elmt": "Phoenix Contact 2813512 – Trennverstärker",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_2864082.elmt": "Phoenix Contact 2864082 – Signalaufbereiter",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_psm_eg_rs232_2761266.elmt": "Phoenix Contact 2761266 TTY-P2K – Schnittstellenwandler",
+    "10_electric/20_manufacturers_articles/phoenix_contact/phoenix_contact_psm_me_r232_rs485_p.elmt": "Phoenix Contact 2744416 – Schnittstellenwandler RS-232/RS-485"
+  }
+}
