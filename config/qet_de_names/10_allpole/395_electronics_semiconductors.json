@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/395_electronics_semiconductors",
+  "overrides": {
+    "10_electric/10_allpole/395_electronics_semiconductors/11_diodes/graetz.elmt": "Graetz-Schaltung / Brückengleichrichter",
+    "10_electric/10_allpole/395_electronics_semiconductors/11_diodes/pont_de_graetz.elmt": "Graetz-Brückengleichrichter",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/mosfet_n_enh.elmt": "N-Kanal-MOSFET, Anreicherungstyp",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/npn-a.elmt": "NPN-Bipolartransistor",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/pnp-a.elmt": "PNP-Bipolartransistor",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/pnp-a1.elmt": "PNP-Bipolartransistor",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/transistor_1.elmt": "PNP-Bipolartransistor",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/transistor_bipolaire_pnp.elmt": "PNP-Bipolartransistor",
+    "10_electric/10_allpole/395_electronics_semiconductors/12_transistors/trioda.elmt": "Triode",
+    "10_electric/10_allpole/395_electronics_semiconductors/13_thyristors/tyrystor_1.elmt": "Rückwärtssperrender Thyristor",
+    "10_electric/10_allpole/395_electronics_semiconductors/24piezo/piezoceramic1.elmt": "Piezokeramischer Wandler",
+    "10_electric/10_allpole/395_electronics_semiconductors/24piezo/piezoceramic2.elmt": "Piezokeramischer Wandler 2",
+    "10_electric/10_allpole/395_electronics_semiconductors/31_integrated_circuits/78xx.elmt": "Spannungsregler 78xx",
+    "10_electric/10_allpole/395_electronics_semiconductors/31_integrated_circuits/ne555.elmt": "Timer-IC NE555"
+  }
+}
