@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/victron",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/victron/1fsobrevpyt.elmt": "Victron – Überspannungsschutz, 2-polig",
+    "10_electric/20_manufacturers_articles/victron/4pst.elmt": "Victron – Überspannungsschutz, 4-polig",
+    "10_electric/20_manufacturers_articles/victron/bateria2.elmt": "Victron – Batterie 16S",
+    "10_electric/20_manufacturers_articles/victron/easysolar.elmt": "Victron EasySolar II",
+    "10_electric/20_manufacturers_articles/victron/multi.elmt": "Victron MultiPlus II",
+    "10_electric/20_manufacturers_articles/victron/panelfvpeq.elmt": "Victron – PV-Modul"
+  }
+}
