@@ -1,0 +1,75 @@
+name: QET 10_allpole validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+  push:
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad.py"
+      - ".github/workflows/qet-10-allpole-validation.yml"
+  pull_request:
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad.py"
+      - ".github/workflows/qet-10-allpole-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-qet-10-allpole:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run converter unit tests
+        run: python -m pytest tests/test_convert_qet_to_kicad.py -q
+
+      - name: Convert complete 10_allpole
+        run: |
+          python tools/convert_qet_to_kicad.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 10_allpole \
+            --output build/Z_Q_QElectroTech.kicad_sym \
+            --report build/qet-10-allpole-report.json \
+            --fail-on-errors
+
+      - name: Assert full source coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+          assert report["source_files"] > 0, report
+          assert report["converted"] == report["source_files"], report
+          assert not report["errors"], report
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload conversion result and report
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-10-allpole-validation
+          path: |
+            build/Z_Q_QElectroTech.kicad_sym
+            build/qet-10-allpole-report.json
