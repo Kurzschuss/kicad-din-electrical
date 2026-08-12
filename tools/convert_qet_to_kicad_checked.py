@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Sequence
@@ -18,6 +17,8 @@ _ORIGINAL_ET_PARSE = core.ET.parse
 _RADIUS_ATTRIBUTES = ("rx", "ry", "radius")
 _SANITIZED_PATHS: dict[Path, list[int]] = {}
 _PLACEHOLDER_LABEL_RE = re.compile(r"^\?[^?]+\?$")
+_NATIVE_FILLS = {"none", "black", "foreground", "color", "white", "background"}
+_PATTERN_FILLS = {"bdiag", "fdiag", "hor", "ver", "diagcross", "cross"}
 
 
 def _positive_numeric_attribute(node: ET.Element, names: Sequence[str]) -> bool:
@@ -33,11 +34,56 @@ def _positive_numeric_attribute(node: ET.Element, names: Sequence[str]) -> bool:
     return False
 
 
+def _clone(node: ET.Element) -> ET.Element:
+    return ET.fromstring(ET.tostring(node, encoding="unicode"))
+
+
 def _clone_without_zero_radii(node: ET.Element) -> ET.Element:
-    clone = ET.fromstring(ET.tostring(node, encoding="unicode"))
+    clone = _clone(node)
     if not _positive_numeric_attribute(node, _RADIUS_ATTRIBUTES):
         for name in _RADIUS_ATTRIBUTES:
             clone.attrib.pop(name, None)
+    return clone
+
+
+def _replace_style_value(style: str, key: str, value: str) -> str:
+    items = []
+    replaced = False
+    for item in style.split(";"):
+        if ":" not in item:
+            if item:
+                items.append(item)
+            continue
+        k, v = item.split(":", 1)
+        if k.strip().lower() == key:
+            items.append(f"{k.strip()}:{value}")
+            replaced = True
+        else:
+            items.append(f"{k.strip()}:{v.strip()}")
+    if not replaced:
+        items.append(f"{key}:{value}")
+    return ";".join(items)
+
+
+def _normalize_non_native_fill(node: ET.Element, adjustments: set[str]) -> ET.Element:
+    style = node.get("style")
+    if not style:
+        return node
+    filling = core.parse_style(style).get("filling", "none")
+    if filling in _NATIVE_FILLS:
+        return node
+
+    clone = _clone(node)
+    if filling in _PATTERN_FILLS:
+        replacement = "black"
+        adjustments.add(f"pattern_fill_mapped_to_outline:{filling}")
+    elif filling.startswith("htmlwhite"):
+        replacement = "white"
+        adjustments.add(f"color_fill_mapped_to_background:{filling}")
+    else:
+        replacement = "black"
+        adjustments.add(f"color_fill_mapped_to_outline:{filling}")
+    clone.set("style", _replace_style_value(style, "filling", replacement))
     return clone
 
 
@@ -53,8 +99,6 @@ def _safe_et_parse(source, parser=None):
 
 def explicit_label(root: ET.Element, description: ET.Element | None) -> str:
     value = _ORIGINAL_EXPLICIT_LABEL(root, description)
-    # Legacy QET <input tagg="label" text="?U?"> stores a UI placeholder,
-    # not a reference-prefix decision. Let qet_labels.xml/fallback policy decide.
     if value and _PLACEHOLDER_LABEL_RE.fullmatch(value):
         return ""
     return value
@@ -91,6 +135,7 @@ def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
     delegated = node
     if node.tag in {"rect", "rectangle"}:
         delegated = _clone_without_zero_radii(node)
+    delegated = _normalize_non_native_fill(delegated, adjustments)
 
     result = _ORIGINAL_GRAPHICS(delegated, adjustments, unsupported)
 
