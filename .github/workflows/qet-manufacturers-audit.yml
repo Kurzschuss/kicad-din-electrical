@@ -13,6 +13,7 @@ on:
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
       - "tests/test_qet_legacy_manufacturer.py"
+      - "tests/test_qet_manufacturer_fill.py"
       - ".github/workflows/qet-manufacturers-audit.yml"
   workflow_dispatch:
     inputs:
@@ -54,6 +55,7 @@ jobs:
             tests/test_convert_qet_to_kicad_checked.py \
             tests/test_audit_qet_source.py \
             tests/test_qet_legacy_manufacturer.py \
+            tests/test_qet_manufacturer_fill.py \
             -q
 
       - name: Convert complete manufacturer scope for diagnostics
