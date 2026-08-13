@@ -2,6 +2,7 @@
 """Checked QET→KiCad entrypoint with QA and legacy-format corrections."""
 from __future__ import annotations
 
+import math
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -161,6 +162,76 @@ def _render_dynamic_user_label(node: ET.Element, adjustments: set[str]) -> list[
     ]
 
 
+def _qet_triangle_points(
+    end_point: tuple[float, float],
+    other_point: tuple[float, float],
+    length: float,
+) -> tuple[tuple[float, float], list[tuple[float, float]]] | None:
+    """Reproduce QET PartLine::fourEndPoints() for a Triangle line end."""
+    dx = end_point[0] - other_point[0]
+    dy = end_point[1] - other_point[1]
+    line_length = math.hypot(dx, dy)
+    if line_length <= 1e-12 or length <= 0:
+        return None
+
+    ux = dx / line_length * length
+    uy = dy / line_length * length
+    vx, vy = -uy, ux
+    o = (end_point[0] - ux, end_point[1] - uy)
+    b = (o[0] + vx, o[1] + vy)
+    c = (o[0] - vx, o[1] - vy)
+    return o, [o, b, end_point, c, o]
+
+
+def _render_triangle_line_endings(node: ET.Element, adjustments: set[str]) -> list[str] | None:
+    if node.tag != "line":
+        return None
+
+    end1 = (node.get("end1") or "none").strip().lower()
+    end2 = (node.get("end2") or "none").strip().lower()
+    if "triangle" not in {end1, end2}:
+        return None
+    if end1 not in {"none", "triangle"} or end2 not in {"none", "triangle"}:
+        return None
+
+    try:
+        p1 = (float(node.get("x1", 0)), float(node.get("y1", 0)))
+        p2 = (float(node.get("x2", 0)), float(node.get("y2", 0)))
+        length1 = abs(float(node.get("length1", 1.5)))
+        length2 = abs(float(node.get("length2", 1.5)))
+    except ValueError:
+        return None
+
+    line_length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+    required = (length1 if end1 == "triangle" else 0.0) + (length2 if end2 == "triangle" else 0.0)
+    if line_length + 1e-12 < required:
+        return None
+
+    start = p1
+    stop = p2
+    triangles: list[list[tuple[float, float]]] = []
+
+    if end1 == "triangle":
+        first = _qet_triangle_points(p1, p2, length1)
+        if first is None:
+            return None
+        start, points = first
+        triangles.append(points)
+
+    if end2 == "triangle":
+        second = _qet_triangle_points(p2, p1, length2)
+        if second is None:
+            return None
+        stop, points = second
+        triangles.append(points)
+
+    style = node.get("style")
+    result = [core.poly([core.xy(*start), core.xy(*stop)], style, adjustments)]
+    result.extend(core.poly([core.xy(*point) for point in points], style, adjustments) for points in triangles)
+    adjustments.add("line_endpoint_decoration_rendered:triangle")
+    return result
+
+
 def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
     if node.tag == "input":
         tagg = (node.get("tagg") or node.get("tag") or "none").strip().lower()
@@ -182,6 +253,10 @@ def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
     user_label = _render_dynamic_user_label(node, adjustments)
     if user_label is not None:
         return user_label
+
+    triangle_line = _render_triangle_line_endings(node, adjustments)
+    if triangle_line is not None:
+        return triangle_line
 
     delegated = node
     if node.tag in {"rect", "rectangle"}:

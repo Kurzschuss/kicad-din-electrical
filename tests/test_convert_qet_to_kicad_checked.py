@@ -87,3 +87,34 @@ def test_non_usertext_label_can_still_supply_reference():
     )
 
     assert mod.explicit_label(root, root.find("description")) == "K1"
+
+
+def test_triangle_line_endpoint_is_rendered_with_qet_geometry():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="none" end2="triangle" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:normal;line-weight:normal;filling:black;color:black"/>'
+    )
+
+    assert len(drawing) == 2
+    assert '(xy 0 0) (xy 2.159 0)' in drawing[0]
+    assert '(xy 2.159 0)' in drawing[1]
+    assert '(xy 2.159 -0.381)' in drawing[1]
+    assert '(xy 2.54 0)' in drawing[1]
+    assert '(xy 2.159 0.381)' in drawing[1]
+    assert "line_endpoint_decoration_rendered:triangle" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_triangle_line_endpoints_can_be_rendered_at_both_ends():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="triangle" end2="triangle" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:normal;line-weight:normal;filling:black;color:black"/>'
+    )
+
+    assert len(drawing) == 3
+    assert '(xy 0.381 0) (xy 2.159 0)' in drawing[0]
+    assert sum('(xy 0 0)' in part or '(xy 2.54 0)' in part for part in drawing[1:]) == 2
+    assert "line_endpoint_decoration_rendered:triangle" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
