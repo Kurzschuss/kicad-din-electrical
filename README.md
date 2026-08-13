@@ -10,10 +10,15 @@ Dieses Projekt stellt KiCad-Bibliotheken für DIN-Schaltgeräte, Reiheneinbauger
 
 - [Schnellstart: erstes Symbol verwenden](docs/02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](docs/02_User/INSTALL.md)
+- [Häufig gestellte Fragen](docs/02_User/FAQ.md)
 - [QElectroTech-Masterbibliothek mit 8.755 Symbolen](docs/02_User/QET_LIBRARY.md)
 - [Technischen Gerätekatalog verwenden](docs/02_User/DEVICE_CATALOG.md)
 - [Durchsuchbaren Gerätekatalog öffnen](docs/site/devices.html)
-- [Lokale Tests ausführen](docs/02_User/TESTING.md)
+- [Lokale Tests und CI verstehen](docs/02_User/TESTING.md)
+- [Am Projekt mitwirken](CONTRIBUTING.md)
+- [Entwicklerleitfaden](docs/03_Developer/DEVELOPER.md)
+- [Änderungsverlauf](CHANGELOG.md)
+- [Lizenz](LICENSE)
 - [Vision](docs/00_Project/VISION.md)
 - [Manifest](docs/00_Project/MANIFESTO.md)
 - [Projekt-Roadmap](docs/01_Roadmap/PROJECT_ROADMAP.md)
@@ -113,4 +118,4 @@ Unter Linux und macOS steht `run_tests.sh` zur Verfügung.
 
 Weitere Informationen enthält [docs/02_User/TESTING.md](docs/02_User/TESTING.md).
 
-Die CI-Prüfungen stellen sicher, dass Dateinamen, interne Namen, Ordnerstruktur und Referenzen konsistent bleiben.
+Die zentrale CI `ProjectOS complete test suite` prüft zusätzlich Qualitätsprofile, KiCad-Bibliotheken, Generatoren, Kataloge, Vorschauen, HTML-Ausgaben und den ProjectOS-Projektzustand.

@@ -23,24 +23,26 @@ fix/<kurze-beschreibung>
 
 ## Symbolbibliotheken
 
-Symbolbibliotheken liegen ausschließlich unter:
+Symbolbibliotheken liegen ausschließlich direkt unter:
 
 ```text
-symbols/DIN_Electrical_Symbols/
+symbols/
 ```
 
-Dateinamen verwenden die Endung `.kicad_sym` und beginnen mit `Z_`.
+Verschachtelte Symbolbibliotheksordner sind nicht zulässig. Dateinamen verwenden die Endung `.kicad_sym` und beginnen mit `Z_`.
 
-Zu jeder Symbolbibliothek gehört unter `footprints/` ein gleichnamiger `.pretty`-Ordner.
+Zu jeder direkt eingecheckten Symbolbibliothek gehört unter `footprints/` ein gleichnamiger `.pretty`-Ordner.
 
 Beispiel:
 
 ```text
-symbols/DIN_Electrical_Symbols/Z_DIN_Control.kicad_sym
+symbols/Z_DIN_Control.kicad_sym
 footprints/Z_DIN_Control.pretty/
 ```
 
 Eine Symbolbibliothek darf mehrere Symbole enthalten.
+
+Die große QElectroTech-Masterbibliothek `Z_Q_QElectroTech.kicad_sym` ist eine Ausnahme bei der Ablage: Sie wird reproduzierbar erzeugt und wegen ihrer Größe als GitHub-Release-Asset verteilt. Einzelheiten stehen in `docs/02_User/QET_LIBRARY.md`.
 
 ## Footprintbibliotheken
 
@@ -90,6 +92,8 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 python tools/generate_library_reference.py --check
 ```
+
+Die zentrale GitHub-CI führt darüber hinaus Qualitäts-, Bibliotheks-, Katalog-, Generator-, Preview-, HTML- und ProjectOS-Prüfungen aus. Der aktuelle CI-Ablauf ist in `docs/02_User/TESTING.md` und `.github/workflows/complete-test-suite.yml` dokumentiert.
 
 Ein Beitrag soll erst eingereicht werden, wenn die lokalen Prüfungen erfolgreich sind.
 
