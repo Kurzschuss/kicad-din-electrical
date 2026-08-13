@@ -1,0 +1,247 @@
+name: QET Phase 4 pneumatic conversion
+
+on:
+  push:
+    branches:
+      - agent/qet-phase4-pneumatic-converter
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "config/qet_de_names/50_pneumatic/**"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_convert_qet_collection_generic.py"
+      - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "tests/test_qet_pneumatic_names.py"
+      - ".github/workflows/qet-phase4-pneumatic-conversion.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase4-pneumatic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run converter, audit, and pneumatic-name regressions
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_convert_qet_collection_generic.py \
+            tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
+            tests/test_qet_pneumatic_names.py \
+            -q
+
+      - name: Convert complete 50_pneumatic collection
+        run: |
+          mkdir -p build
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/50_pneumatic \
+            --scope 5010_compressed_air \
+            --scope 5020_velves \
+            --scope 5030_actuators \
+            --scope 5040_sensors \
+            --output build/Z_Q_QElectroTech_Pneumatic.kicad_sym \
+            --report build/qet-phase4-pneumatic-conversion-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Audit complete pneumatic source
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/50_pneumatic \
+            --scope 5010_compressed_air \
+            --scope 5020_velves \
+            --scope 5030_actuators \
+            --scope 5040_sensors \
+            --output build/qet-audit-50_pneumatic-full.json
+
+      - name: Apply reviewed German pneumatic name
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech_Pneumatic.kicad_sym \
+            --config-dir config/qet_de_names/50_pneumatic \
+            --report build/qet-phase4-pneumatic-name-apply-report.json \
+            --strict
+
+      - name: Validate pneumatic inventory, names, and metadata
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          expected_scopes = {
+              "5010_compressed_air": 102,
+              "5020_velves": 172,
+              "5030_actuators": 59,
+              "5040_sensors": 10,
+          }
+          expected_total = sum(expected_scopes.values())
+          assert expected_total == 343
+
+          library_path = Path("build/Z_Q_QElectroTech_Pneumatic.kicad_sym")
+          library = library_path.read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-phase4-pneumatic-conversion-report.json").read_text(encoding="utf-8"))
+          audit = json.loads(Path("build/qet-audit-50_pneumatic-full.json").read_text(encoding="utf-8"))
+          names = json.loads(Path("build/qet-phase4-pneumatic-name-apply-report.json").read_text(encoding="utf-8"))
+
+          assert report["source_files"] == report["converted"] == expected_total
+          assert report["zero_pin_symbols"] == 0
+          assert report["missing_german_names"] == 1
+          assert report["duplicate_names_resolved"] == 0
+          assert report["labels_file"] is None
+          assert not report["errors"], report["errors"]
+
+          assert audit["source_files"] == 343
+          assert audit["zero_pin_symbols"] == 0
+          assert audit["missing_german_names"] == 1
+          assert not audit["parse_errors"], audit["parse_errors"]
+          assert not audit["sanitized_xml_files"], audit["sanitized_xml_files"]
+
+          assert names["configured_overrides"] == names["applied_overrides"] == 1
+          assert not names["unmatched_override_paths"], names["unmatched_override_paths"]
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == 343
+          assert library.count('(property "QET_Source_Path" ') == 343
+          assert library.count('(property "QET_Category" ') == 343
+          assert library.count('(property "QET_Adjustments" ') == 343
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == 0
+          assert library.count("german_name_override") == 1
+          assert "german_name_fallback:" not in library
+          assert '(property "Value" "Z_Q_' not in library
+          assert '(property "Value" ""' not in library
+          assert "10_electric /" not in library
+          assert '"10_electric/' not in library
+
+          source_paths = re.findall(r'\(property "QET_Source_Path" "([^"]+)"', library)
+          assert len(source_paths) == 343
+          assert all(path.startswith("50_pneumatic/") for path in source_paths)
+          scope_counts = Counter(path.split("/")[1] for path in source_paths)
+          assert dict(scope_counts) == expected_scopes
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          manifest = {
+              "library": library_path.name,
+              "qet_source_commit": source_commit,
+              "collection": "50_pneumatic",
+              "source_files": report["source_files"],
+              "converted": report["converted"],
+              "zero_pin_symbols": report["zero_pin_symbols"],
+              "raw_missing_german_names": report["missing_german_names"],
+              "german_names_applied": names["applied_overrides"],
+              "remaining_german_names": 0,
+              "scope_counts": dict(scope_counts),
+              "fallback_references": report["fallback_references"],
+              "generated_pin_numbers": report["generated_pin_numbers"],
+              "symbols_with_adjustments": report["symbols_with_adjustments"],
+              "unsupported_nodes": report["unsupported_nodes"],
+              "adjustment_counts": report["adjustment_counts"],
+          }
+          Path("build/qet-phase4-pneumatic-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render complete pneumatic library with KiCad
+        run: |
+          mkdir -p build/kicad-svg-phase4-pneumatic
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg-phase4-pneumatic \
+            build/Z_Q_QElectroTech_Pneumatic.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          svg_files = sorted(Path("build/kicad-svg-phase4-pneumatic").glob("*.svg"))
+          assert len(svg_files) == 343, len(svg_files)
+          empty = [str(path) for path in svg_files if path.stat().st_size == 0]
+          assert not empty, empty[:20]
+          Path("build/qet-phase4-pneumatic-kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": 343,
+                      "empty_svg_files": len(empty),
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Enforce strict pneumatic conversion quality
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-phase4-pneumatic-conversion-report.json").read_text(encoding="utf-8"))
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
+          assert report["source_files"] == report["converted"] == 343
+          PY
+
+      - name: Upload Phase 4 pneumatic conversion and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase4-pneumatic-conversion
+          path: |
+            build/Z_Q_QElectroTech_Pneumatic.kicad_sym
+            build/qet-phase4-pneumatic-conversion-report.json
+            build/qet-audit-50_pneumatic-full.json
+            build/qet-phase4-pneumatic-name-apply-report.json
+            build/qet-phase4-pneumatic-manifest.json
+            build/qet-phase4-pneumatic-kicad-smoke-report.json
+            build/kicad-version.txt
+            build/qet-source-commit.txt
