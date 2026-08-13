@@ -97,11 +97,39 @@ def _safe_et_parse(source, parser=None):
     return _ORIGINAL_ET_PARSE(source, parser=parser)
 
 
-def explicit_label(root: ET.Element, description: ET.Element | None) -> str:
-    value = _ORIGINAL_EXPLICIT_LABEL(root, description)
-    if value and _PLACEHOLDER_LABEL_RE.fullmatch(value):
+def _usable_reference_label(value: str) -> str:
+    value = value.strip()
+    if not value or value == "_" or _PLACEHOLDER_LABEL_RE.fullmatch(value):
         return ""
     return value
+
+
+def explicit_label(root: ET.Element, description: ET.Element | None) -> str:
+    for cname in ("elementInformations", "element_informations"):
+        container = root.find(cname)
+        if container is not None:
+            for node in list(container):
+                if (node.get("name") or "").strip().lower() == "label":
+                    value = _usable_reference_label(node.text or node.get("text") or "")
+                    if value:
+                        return value
+
+    if description is not None:
+        for node in description.iter():
+            if (node.get("tagg") or node.get("tag") or "").strip().lower() == "label":
+                value = _usable_reference_label(node.get("text") or node.text or "")
+                if value:
+                    return value
+            if node.tag != "dynamic_text":
+                continue
+            if node.findtext("info_name", "").strip().lower() != "label":
+                continue
+            if (node.get("text_from") or "").strip().lower() == "usertext":
+                continue
+            value = _usable_reference_label(node.findtext("text", ""))
+            if value:
+                return value
+    return ""
 
 
 def _legacy_text_size(node: ET.Element) -> float:
@@ -112,6 +140,25 @@ def _legacy_text_size(node: ET.Element) -> float:
         except ValueError:
             pass
     return 1.27
+
+
+def _render_dynamic_user_label(node: ET.Element, adjustments: set[str]) -> list[str] | None:
+    if node.tag != "dynamic_text":
+        return None
+    info = node.findtext("info_name", "").strip().lower()
+    text_from = (node.get("text_from") or "").strip().lower()
+    text = node.findtext("text", "").strip()
+    if info != "label" or text_from != "usertext" or not text or text == "_":
+        return None
+
+    x, y = core.xy(node.get("x"), node.get("y"))
+    rotation = -float(node.get("rotation", 0) or 0)
+    size = core.font_size(node.get("font"))
+    adjustments.add("dynamic_text_staticized:UserText")
+    return [
+        f"      (text {core.quote(text)} (at {core.num(x)} {core.num(y)} {core.num(rotation)}) "
+        f"(effects (font (size {core.num(size)} {core.num(size)}))))"
+    ]
 
 
 def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
@@ -131,6 +178,10 @@ def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
             f"      (text {core.quote(text)} (at {core.num(x)} {core.num(y)} 0) "
             f"(effects (font (size {core.num(size)} {core.num(size)}))))"
         ]
+
+    user_label = _render_dynamic_user_label(node, adjustments)
+    if user_label is not None:
+        return user_label
 
     delegated = node
     if node.tag in {"rect", "rectangle"}:
