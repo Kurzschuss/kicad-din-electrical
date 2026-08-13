@@ -33,6 +33,38 @@ def test_valid_xml_numeric_reference_is_unchanged():
     assert codes == []
 
 
+def test_unclosed_name_before_sibling_is_closed_without_inventing_text():
+    import xml.etree.ElementTree as ET
+
+    source = (
+        '<definition><names>'
+        '<name lang="ca">Màquina, símbol general:'
+        '<name lang="cs">Stroj, všeobecná značka</name>'
+        '<name lang="de">Maschine, allgemein</name>'
+        '</names></definition>'
+    )
+    sanitized, inserted = qet_xml.sanitize_unclosed_name_siblings(source)
+    root = ET.fromstring(sanitized)
+    names = {node.get("lang"): (node.text or "") for node in root.find("names").findall("name")}
+
+    assert inserted == 1
+    assert names["ca"] == "Màquina, símbol general:"
+    assert names["cs"] == "Stroj, všeobecná značka"
+    assert names["de"] == "Maschine, allgemein"
+
+
+def test_valid_sibling_names_are_not_changed():
+    source = (
+        '<definition><names>'
+        '<name lang="de">Maschine</name>'
+        '<name lang="en">Machine</name>'
+        '</names></definition>'
+    )
+    sanitized, inserted = qet_xml.sanitize_unclosed_name_siblings(source)
+    assert sanitized == source
+    assert inserted == 0
+
+
 def test_legacy_input_label_maps_to_reference_without_placeholder():
     import xml.etree.ElementTree as ET
 
@@ -93,3 +125,34 @@ def test_full_conversion_records_sanitized_source(tmp_path: Path):
     assert "input_staticized:none" in data
     assert '(property "Reference" "QET"' in data
     assert '?U?' not in data
+
+
+def test_full_conversion_records_missing_name_end_tag_sanitation(tmp_path: Path):
+    qet = tmp_path / "10_electric"
+    scope = qet / "91_en_60617" / "en_60617_06"
+    scope.mkdir(parents=True)
+    (qet / "qet_labels.xml").write_text(
+        '<labels><category name="91_en_60617"><category name="en_60617_06"/></category></labels>',
+        encoding="utf-8",
+    )
+    (scope / "machine.elmt").write_text(
+        '<definition><names>'
+        '<name lang="ca">Màquina, símbol general:'
+        '<name lang="de">Maschine, allgemein</name>'
+        '<name lang="en">Machine, general</name>'
+        '</names><description><ellipse x="-10" y="-10" width="20" height="20"/></description></definition>',
+        encoding="utf-8",
+    )
+
+    checked.install()
+    output = tmp_path / "out.kicad_sym"
+    report = tmp_path / "report.json"
+    stats = checked.core.convert_library(
+        qet, qet / "qet_labels.xml", ["91_en_60617"], output, report
+    )
+    data = output.read_text(encoding="utf-8")
+
+    assert stats.converted == 1
+    assert stats.errors == []
+    assert "missing_name_end_tag_sanitized" in data
+    assert '(property "Value" "Maschine, allgemein"' in data
