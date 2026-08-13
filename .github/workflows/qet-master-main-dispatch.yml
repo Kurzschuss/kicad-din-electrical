@@ -18,7 +18,6 @@ on:
       - "tests/test_merge_qet_kicad_libraries.py"
       - ".github/workflows/qet-master-integration.yml"
       - ".github/workflows/qet-master-main-dispatch.yml"
-      - ".github/workflows/qet-master-release.yml"
 
 concurrency:
   group: qet-master-main-release
