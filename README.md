@@ -10,6 +10,7 @@ Dieses Projekt stellt KiCad-Bibliotheken für DIN-Schaltgeräte, Reiheneinbauger
 
 - [Schnellstart: erstes Symbol verwenden](docs/02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](docs/02_User/INSTALL.md)
+- [QElectroTech-Masterbibliothek](docs/02_User/QET_LIBRARY.md)
 - [Technischen Gerätekatalog verwenden](docs/02_User/DEVICE_CATALOG.md)
 - [Durchsuchbaren Gerätekatalog öffnen](docs/site/devices.html)
 - [Lokale Tests ausführen](docs/02_User/TESTING.md)
@@ -100,6 +101,8 @@ Kurz zusammengefasst:
 - Symbolbibliotheken direkt aus `symbols/` registrieren.
 - Footprintbibliotheken aus den einzelnen `.pretty`-Ordnern unter `footprints/` registrieren.
 - Dabei jeweils den Dateinamen beziehungsweise Ordnernamen ohne Endung als Bibliotheksnamen verwenden.
+
+Die große QElectroTech-Masterbibliothek wird separat als validierter GitHub-Release-Snapshot bereitgestellt; siehe [docs/02_User/QET_LIBRARY.md](docs/02_User/QET_LIBRARY.md).
 
 ## Tests
 
