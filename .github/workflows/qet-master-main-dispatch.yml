@@ -1,0 +1,37 @@
+name: QET master validation on main
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tools/apply_qet_language_neutral_names.py"
+      - "tools/generate_qet_98_assembly_de_names.py"
+      - "tools/generate_qet_energy_de_names.py"
+      - "tools/merge_qet_kicad_libraries.py"
+      - "config/qet_de_names/**"
+      - "tests/test_merge_qet_kicad_libraries.py"
+      - ".github/workflows/qet-master-integration.yml"
+      - ".github/workflows/qet-master-main-dispatch.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-master-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch complete QET master validation on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run qet-master-integration.yml \
+            --repo "${{ github.repository }}" \
+            --ref main \
+            -f qet_ref=42692ea76d2fcc3c6cf1ca335951584cd0978922
