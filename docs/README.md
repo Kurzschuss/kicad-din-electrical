@@ -7,7 +7,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Schnellstart: erstes Symbol verwenden](02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](02_User/INSTALL.md)
 - [Technischen Gerätekatalog verwenden](02_User/DEVICE_CATALOG.md)
-- [Lokale Tests ausführen](02_User/TESTING.md)
+- [Lokale Tests und CI verstehen](02_User/TESTING.md)
 - [Häufig gestellte Fragen](02_User/FAQ.md)
 - [Glossar](02_User/GLOSSARY.md)
 
@@ -15,6 +15,8 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 
 - [Am Projekt mitwirken](../CONTRIBUTING.md)
 - [Entwicklerleitfaden](03_Developer/DEVELOPER.md)
+- [Änderungsverlauf](../CHANGELOG.md)
+- [Lizenz](../LICENSE)
 - [Bibliotheksreferenz automatisch erzeugen](03_Developer/REFERENCE_GENERATOR.md)
 - [Bibliotheks-Validator](03_Developer/LIBRARY_VALIDATOR.md)
 - [Automatischer Qualitätsbericht](03_Developer/QUALITY_REPORT.md)
@@ -63,6 +65,7 @@ Das Qualitätshandbuch ist vollständig als verbindlicher Paket- und Freigabesta
 - [Ideensammlung](01_Roadmap/IDEAS.md)
 - [Entscheidungsprotokoll](01_Roadmap/DECISIONS.md)
 - [Projektprotokoll](01_Roadmap/PROJECT_LOG.md)
+- [Aktueller Arbeits-Handover](handover/AKTUELL.md)
 
 ## Aktueller ProjectOS-Ausbau
 
