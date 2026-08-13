@@ -3,9 +3,10 @@
 
 The official QET collection contains a few legacy XML defects. Recovery here is
 intentionally narrow and deterministic: illegal XML 1.0 numeric character
-references are replaced with U+FFFD, and a ``<name>`` that is demonstrably
-missing its closing tag immediately before the next sibling ``<name>`` is
-closed without inventing any missing text.
+references are replaced with U+FFFD, a ``<name>`` that is demonstrably missing
+its closing tag immediately before the next sibling ``<name>`` is closed, and
+literal ``<`` characters inside QET ``<name>`` text are escaped because QET
+names are plain text rather than mixed-content XML.
 """
 from __future__ import annotations
 
@@ -20,6 +21,10 @@ _UNCLOSED_NAME_BEFORE_SIBLING_RE = re.compile(
     r"(<name\b[^>]*>)(?P<body>(?:(?!</name>).)*?)(?P<ws>\s*)(?=<name\b)",
     re.DOTALL,
 )
+_CLOSED_NAME_RE = re.compile(
+    r"(<name\b[^>]*>)(?P<body>.*?)(</name>)",
+    re.DOTALL,
+)
 REPLACEMENT_CHAR = "\uFFFD"
 
 
@@ -27,10 +32,15 @@ REPLACEMENT_CHAR = "\uFFFD"
 class SanitizationInfo:
     invalid_codepoints: list[int] = field(default_factory=list)
     inserted_name_end_tags: int = 0
+    escaped_name_literal_lt: int = 0
 
     @property
     def changed(self) -> bool:
-        return bool(self.invalid_codepoints or self.inserted_name_end_tags)
+        return bool(
+            self.invalid_codepoints
+            or self.inserted_name_end_tags
+            or self.escaped_name_literal_lt
+        )
 
     @property
     def markers(self) -> list[str]:
@@ -39,6 +49,8 @@ class SanitizationInfo:
             markers.append("invalid_xml_char_reference_sanitized")
         if self.inserted_name_end_tags:
             markers.append("missing_name_end_tag_sanitized")
+        if self.escaped_name_literal_lt:
+            markers.append("literal_lt_in_name_text_sanitized")
         return markers
 
 
@@ -95,12 +107,46 @@ def sanitize_unclosed_name_siblings(text: str) -> tuple[str, int]:
     return _NAMES_BLOCK_RE.sub(repair_block, text), inserted
 
 
+def sanitize_literal_lt_in_name_text(text: str) -> tuple[str, int]:
+    """Escape raw ``<`` characters inside QET ``<name>`` text nodes.
+
+    QET ``name`` entries are plain language strings and do not contain child
+    markup. A literal less-than therefore cannot be valid XML there. Restricting
+    the repair to complete ``<name>...</name>`` elements avoids touching any XML
+    structure elsewhere in the element definition.
+    """
+    escaped = 0
+
+    def repair_block(block_match: re.Match[str]) -> str:
+        nonlocal escaped
+        opening, body, closing = block_match.groups()
+
+        def repair_name(name_match: re.Match[str]) -> str:
+            nonlocal escaped
+            name_body = name_match.group("body")
+            count = name_body.count("<")
+            if not count:
+                return name_match.group(0)
+            escaped += count
+            return (
+                name_match.group(1)
+                + name_body.replace("<", "&lt;")
+                + name_match.group(3)
+            )
+
+        return opening + _CLOSED_NAME_RE.sub(repair_name, body) + closing
+
+    return _NAMES_BLOCK_RE.sub(repair_block, text), escaped
+
+
 def sanitize_qet_xml(text: str) -> tuple[str, SanitizationInfo]:
     sanitized, invalid_codepoints = sanitize_invalid_numeric_references(text)
     sanitized, inserted_name_end_tags = sanitize_unclosed_name_siblings(sanitized)
+    sanitized, escaped_name_literal_lt = sanitize_literal_lt_in_name_text(sanitized)
     return sanitized, SanitizationInfo(
         invalid_codepoints=invalid_codepoints,
         inserted_name_end_tags=inserted_name_end_tags,
+        escaped_name_literal_lt=escaped_name_literal_lt,
     )
 
 
