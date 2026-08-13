@@ -39,6 +39,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
     missing_de: list[dict] = []
     parse_errors: list[dict] = []
     sanitized_xml_files: list[dict] = []
+    zero_pin_symbols = 0
 
     for source_file in files:
         rel = source_file.relative_to(qet_root)
@@ -57,6 +58,8 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
             names = element_names(root)
             description = root.find("description")
             terminals = [] if description is None else list(description.findall("terminal"))
+            if not terminals:
+                zero_pin_symbols += 1
             if not names.get("de"):
                 missing_de.append(
                     {
@@ -78,6 +81,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
     return {
         "scopes": list(scopes),
         "source_files": len(files),
+        "zero_pin_symbols": zero_pin_symbols,
         "missing_german_names": len(missing_de),
         "sanitized_xml_files": sanitized_xml_files,
         "parse_errors": parse_errors,

@@ -12,7 +12,7 @@ sys.modules[SPEC.name] = mod
 SPEC.loader.exec_module(mod)
 
 
-def test_audit_reports_only_missing_german_names(tmp_path: Path):
+def test_audit_reports_only_missing_german_names_and_zero_pin_count(tmp_path: Path):
     qet = tmp_path / "10_electric"
     scope = qet / "10_allpole" / "test"
     scope.mkdir(parents=True)
@@ -26,10 +26,16 @@ def test_audit_reports_only_missing_german_names(tmp_path: Path):
         '<description><terminal name="1"/><terminal name="2"/></description></definition>',
         encoding="utf-8",
     )
+    (scope / "graphic.elmt").write_text(
+        '<definition><names><name lang="de">Grafik</name><name lang="en">Graphic</name></names>'
+        '<description><line x1="0" y1="0" x2="10" y2="0"/></description></definition>',
+        encoding="utf-8",
+    )
 
     report = mod.audit(qet, ["10_allpole"])
 
-    assert report["source_files"] == 2
+    assert report["source_files"] == 3
+    assert report["zero_pin_symbols"] == 1
     assert report["missing_german_names"] == 1
     assert report["parse_errors"] == []
     assert report["items"] == [
@@ -56,6 +62,7 @@ def test_audit_reports_parse_errors_without_stopping(tmp_path: Path):
     report = mod.audit(qet, ["10_allpole"])
 
     assert report["source_files"] == 2
+    assert report["zero_pin_symbols"] == 1
     assert report["missing_german_names"] == 1
     assert len(report["parse_errors"]) == 1
     assert report["parse_errors"][0]["path"].endswith("bad.elmt")

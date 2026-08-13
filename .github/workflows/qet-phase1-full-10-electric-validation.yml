@@ -1,0 +1,338 @@
+name: QET Phase 1 full 10_electric validation
+
+on:
+  push:
+    branches:
+      - agent/qet-phase1-full-10-electric
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tools/apply_qet_language_neutral_names.py"
+      - "tools/generate_qet_98_assembly_de_names.py"
+      - "tools/qet_98_assembly_*.py"
+      - "config/qet_de_names/**"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "tests/test_apply_qet_language_neutral_names.py"
+      - "tests/test_qet_11_singlepole_names.py"
+      - "tests/test_qet_legacy_manufacturer.py"
+      - "tests/test_qet_manufacturer_fill.py"
+      - "tests/test_qet_manufacturer_names.py"
+      - ".github/workflows/qet-phase1-full-10-electric-validation.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase1-full:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run complete QET regression set
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
+            tests/test_apply_qet_language_neutral_names.py \
+            tests/test_qet_11_singlepole_names.py \
+            tests/test_qet_legacy_manufacturer.py \
+            tests/test_qet_manufacturer_fill.py \
+            tests/test_qet_manufacturer_names.py \
+            -q
+
+      - name: Convert complete Phase 1 10_electric tree into one library
+        run: |
+          mkdir -p build
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 10_allpole \
+            --scope 11_singlepole \
+            --scope 20_manufacturers_articles \
+            --scope 90_american_standards \
+            --scope 91_en_60617 \
+            --scope 98_graphics \
+            --scope 99_miscellaneous_unsorted \
+            --output build/Z_Q_QElectroTech.kicad_sym \
+            --report build/qet-phase1-full-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Audit each Phase 1 scope independently
+        run: |
+          for scope in \
+            10_allpole \
+            11_singlepole \
+            20_manufacturers_articles \
+            90_american_standards \
+            91_en_60617 \
+            98_graphics \
+            99_miscellaneous_unsorted
+          do
+            python tools/audit_qet_source.py \
+              --qet-root .qet-elements/10_electric \
+              --scope "$scope" \
+              --output "build/qet-audit-${scope}.json"
+          done
+
+      - name: Apply reviewed 10_allpole German names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir config/qet_de_names/10_allpole \
+            --report build/qet-names-10_allpole.json \
+            --strict
+
+      - name: Apply reviewed 11_singlepole German names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir config/qet_de_names/11_singlepole \
+            --report build/qet-names-11_singlepole.json \
+            --strict
+
+      - name: Finalize manufacturer names
+        run: |
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --audit build/qet-audit-20_manufacturers_articles.json \
+            --report build/qet-names-manufacturers-neutral.json
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir config/qet_de_names/manufacturers \
+            --report build/qet-names-manufacturers-de.json \
+            --strict
+
+      - name: Finalize 98_graphics names
+        run: |
+          mkdir -p build/qet-98-name-config
+          cp config/qet_de_names/98_graphics/*.json build/qet-98-name-config/
+          python tools/generate_qet_98_assembly_de_names.py \
+            --audit build/qet-audit-98_graphics.json \
+            --output build/qet-98-name-config/generated_assembly.json
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir build/qet-98-name-config \
+            --report build/qet-names-98_graphics.json \
+            --strict
+
+      - name: Finalize 99_miscellaneous_unsorted names
+        run: |
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --audit build/qet-audit-99_miscellaneous_unsorted.json \
+            --report build/qet-names-99-miscellaneous-neutral.json
+
+      - name: Validate complete Phase 1 coverage and write manifest
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          expected_scopes = {
+              "10_allpole": {"source_files": 941, "missing_de": 184},
+              "11_singlepole": {"source_files": 308, "missing_de": 144},
+              "20_manufacturers_articles": {"source_files": 4019, "missing_de": 1605},
+              "90_american_standards": {"source_files": 4, "missing_de": 0},
+              "91_en_60617": {"source_files": 912, "missing_de": 0},
+              "98_graphics": {"source_files": 723, "missing_de": 485},
+              "99_miscellaneous_unsorted": {"source_files": 11, "missing_de": 1},
+          }
+          expected_total = sum(v["source_files"] for v in expected_scopes.values())
+          expected_missing_de = sum(v["missing_de"] for v in expected_scopes.values())
+          assert expected_total == 6918
+          assert expected_missing_de == 2419
+
+          library_path = Path("build/Z_Q_QElectroTech.kicad_sym")
+          library = library_path.read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-phase1-full-report.json").read_text(encoding="utf-8"))
+
+          assert report["source_files"] == report["converted"] == expected_total
+          assert report["missing_german_names"] == expected_missing_de
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
+          assert report["duplicate_names_resolved"] == 0
+
+          audits = {}
+          scope_zero_pin_counts = {}
+          for scope, expected in expected_scopes.items():
+              audit = json.loads(Path(f"build/qet-audit-{scope}.json").read_text(encoding="utf-8"))
+              audits[scope] = audit
+              assert audit["source_files"] == expected["source_files"], (scope, audit["source_files"])
+              assert audit["missing_german_names"] == expected["missing_de"], (scope, audit["missing_german_names"])
+              assert not audit["parse_errors"], (scope, audit["parse_errors"])
+              scope_zero_pin_counts[scope] = audit["zero_pin_symbols"]
+
+          expected_zero_pin = sum(scope_zero_pin_counts.values())
+          assert expected_zero_pin == report["zero_pin_symbols"], (
+              scope_zero_pin_counts,
+              expected_zero_pin,
+              report["zero_pin_symbols"],
+          )
+
+          assert len(audits["20_manufacturers_articles"]["sanitized_xml_files"]) == 1
+          assert len(audits["91_en_60617"]["sanitized_xml_files"]) == 1
+          for scope in expected_scopes:
+              if scope not in {"20_manufacturers_articles", "91_en_60617"}:
+                  assert not audits[scope]["sanitized_xml_files"], (scope, audits[scope]["sanitized_xml_files"])
+
+          n_all = json.loads(Path("build/qet-names-10_allpole.json").read_text(encoding="utf-8"))
+          n_single = json.loads(Path("build/qet-names-11_singlepole.json").read_text(encoding="utf-8"))
+          n_manu_neutral = json.loads(Path("build/qet-names-manufacturers-neutral.json").read_text(encoding="utf-8"))
+          n_manu_de = json.loads(Path("build/qet-names-manufacturers-de.json").read_text(encoding="utf-8"))
+          n_graphics = json.loads(Path("build/qet-names-98_graphics.json").read_text(encoding="utf-8"))
+          n_misc = json.loads(Path("build/qet-names-99-miscellaneous-neutral.json").read_text(encoding="utf-8"))
+
+          assert n_all["configured_overrides"] == n_all["applied_overrides"] == 184
+          assert n_single["configured_overrides"] == n_single["applied_overrides"] == 144
+          assert n_manu_neutral["language_neutral_applied"] == 672
+          assert n_manu_neutral["remaining_translation_count"] == 933
+          assert n_manu_de["configured_overrides"] == n_manu_de["applied_overrides"] == 933
+          assert n_graphics["configured_overrides"] == n_graphics["applied_overrides"] == 485
+          assert n_misc["language_neutral_applied"] == 1
+          assert n_misc["remaining_translation_count"] == 0
+          assert not n_all["unmatched_override_paths"]
+          assert not n_single["unmatched_override_paths"]
+          assert not n_manu_de["unmatched_override_paths"]
+          assert not n_graphics["unmatched_override_paths"]
+
+          explicit_german = 184 + 144 + 933 + 485
+          language_neutral = 672 + 1
+          assert explicit_german == 1746
+          assert language_neutral == 673
+          assert explicit_german + language_neutral == expected_missing_de
+          assert library.count("german_name_override") == explicit_german
+          assert library.count("language_neutral_name_accepted") == language_neutral
+          assert "german_name_fallback:" not in library
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == expected_total
+          assert library.count('(property "QET_Source_Path" ') == expected_total
+          assert library.count('(property "QET_Category" ') == expected_total
+          assert library.count('(property "QET_Adjustments" ') == expected_total
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == expected_zero_pin
+          assert '(property "Value" "Z_Q_' not in library
+          assert '(property "Value" ""' not in library
+
+          source_paths = re.findall(r'\(property "QET_Source_Path" "([^"]+)"', library)
+          assert len(source_paths) == expected_total
+          scope_counts = Counter(path.split("/")[1] for path in source_paths)
+          assert dict(scope_counts) == {scope: data["source_files"] for scope, data in expected_scopes.items()}
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          manifest = {
+              "library": "Z_Q_QElectroTech.kicad_sym",
+              "qet_source_commit": source_commit,
+              "scope": "10_electric Phase 1",
+              "source_files": expected_total,
+              "converted": report["converted"],
+              "zero_pin_symbols": expected_zero_pin,
+              "scope_zero_pin_counts": scope_zero_pin_counts,
+              "raw_missing_german_names": expected_missing_de,
+              "explicit_german_names_applied": explicit_german,
+              "language_neutral_names_accepted": language_neutral,
+              "remaining_german_names": 0,
+              "scope_counts": dict(scope_counts),
+              "conversion_errors": len(report["errors"]),
+              "unsupported_nodes": report["unsupported_nodes"],
+              "duplicate_internal_names_resolved": report["duplicate_names_resolved"],
+              "fallback_references": report["fallback_references"],
+              "generated_pin_numbers": report["generated_pin_numbers"],
+              "symbols_with_adjustments": report["symbols_with_adjustments"],
+              "adjustment_counts": report["adjustment_counts"],
+          }
+          Path("build/qet-phase1-full-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render complete Phase 1 library with KiCad
+        run: |
+          mkdir -p build/kicad-svg-phase1-full
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg-phase1-full \
+            build/Z_Q_QElectroTech.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("build/qet-phase1-full-manifest.json").read_text(encoding="utf-8"))
+          svg_files = sorted(Path("build/kicad-svg-phase1-full").glob("*.svg"))
+          assert len(svg_files) == manifest["converted"] == 6918, len(svg_files)
+          empty = [str(path) for path in svg_files if path.stat().st_size == 0]
+          assert not empty, empty[:20]
+          Path("build/qet-phase1-full-kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": manifest["converted"],
+                      "empty_svg_files": len(empty),
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload complete Phase 1 library and reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase1-full-10-electric-validation
+          path: |
+            build/Z_Q_QElectroTech.kicad_sym
+            build/qet-phase1-full-report.json
+            build/qet-phase1-full-manifest.json
+            build/qet-phase1-full-kicad-smoke-report.json
+            build/qet-audit-*.json
+            build/qet-names-*.json
+            build/qet-98-name-config/generated_assembly.json
+            build/qet-source-commit.txt
+            build/kicad-version.txt

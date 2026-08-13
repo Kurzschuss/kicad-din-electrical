@@ -41,6 +41,28 @@ def test_finalize_applies_only_configured_path():
     assert report["unmatched_override_paths"] == []
 
 
+def test_finalize_removes_stale_german_fallback_but_keeps_other_adjustments():
+    target = "10_electric/10_allpole/test/english.elmt"
+    library = (
+        "(kicad_symbol_lib (version 20231120) (generator qet_to_kicad)\n"
+        + sample_symbol(
+            target,
+            "English",
+            "arc_approximated; german_name_fallback:en; generated_pin_number",
+        )
+        + "\n)\n"
+    )
+
+    finalized, report = mod.finalize_library(library, {target: "Deutsch"})
+
+    assert "german_name_fallback:" not in finalized
+    assert (
+        '(property "QET_Adjustments" '
+        '"arc_approximated; generated_pin_number; german_name_override"'
+    ) in finalized
+    assert report["applied_overrides"] == 1
+
+
 def test_unmatched_override_is_reported():
     library = "(kicad_symbol_lib (version 20231120) (generator qet_to_kicad)\n)\n"
     _, report = mod.finalize_library(library, {"10_electric/10_allpole/test/missing.elmt": "Deutsch"})
