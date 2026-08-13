@@ -1,0 +1,116 @@
+name: QET Phase 4 pneumatic German names
+
+on:
+  push:
+    branches:
+      - agent/qet-phase4-pneumatic-names
+    paths:
+      - "config/qet_de_names/50_pneumatic/**"
+      - "tools/apply_qet_de_names.py"
+      - "tools/audit_qet_source.py"
+      - "tools/qet_xml.py"
+      - "tests/test_qet_pneumatic_names.py"
+      - ".github/workflows/qet-phase4-pneumatic-names.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase4-pneumatic-names:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Validate pneumatic override file
+        run: python -m pytest tests/test_qet_pneumatic_names.py -q
+
+      - name: Audit pinned pneumatic source
+        run: |
+          mkdir -p build
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/50_pneumatic \
+            --scope 5010_compressed_air \
+            --scope 5020_velves \
+            --scope 5030_actuators \
+            --scope 5040_sensors \
+            --output build/qet-audit-50_pneumatic-full.json
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Prove exact German-name coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          expected_path = "50_pneumatic/5030_actuators/503070_cylinder_special/50307012_cylinder_cable.elmt"
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          audit = json.loads(Path("build/qet-audit-50_pneumatic-full.json").read_text(encoding="utf-8"))
+          assert audit["source_files"] == 343
+          assert audit["zero_pin_symbols"] == 0
+          assert audit["missing_german_names"] == 1
+          assert not audit["parse_errors"], audit["parse_errors"]
+          assert not audit["sanitized_xml_files"], audit["sanitized_xml_files"]
+          assert [item["path"] for item in audit["items"]] == [expected_path]
+
+          config = json.loads(Path("config/qet_de_names/50_pneumatic/all.json").read_text(encoding="utf-8"))
+          assert config["source_commit"] == source_commit
+          overrides = config["overrides"]
+          assert set(overrides) == {expected_path}
+
+          item = audit["items"][0]
+          report = {
+              "qet_source_commit": source_commit,
+              "collection": "50_pneumatic",
+              "audited_missing_german_names": 1,
+              "configured_german_names": 1,
+              "remaining_uncovered_paths": 0,
+              "entry": {
+                  "path": expected_path,
+                  "german_name": overrides[expected_path],
+                  "source_names": item["names"],
+                  "terminal_count": item["terminal_count"],
+              },
+          }
+          Path("build/qet-phase4-pneumatic-name-coverage.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({k: v for k, v in report.items() if k != "entry"}, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload pneumatic name review report
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase4-pneumatic-name-coverage
+          path: |
+            build/qet-audit-50_pneumatic-full.json
+            build/qet-phase4-pneumatic-name-coverage.json
+            build/qet-source-commit.txt
