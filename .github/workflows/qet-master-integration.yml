@@ -1,0 +1,375 @@
+name: QET master library integration
+
+on:
+  push:
+    branches:
+      - agent/qet-master-integration
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tools/apply_qet_language_neutral_names.py"
+      - "tools/generate_qet_98_assembly_de_names.py"
+      - "tools/generate_qet_energy_de_names.py"
+      - "tools/merge_qet_kicad_libraries.py"
+      - "config/qet_de_names/**"
+      - "tests/test_merge_qet_kicad_libraries.py"
+      - ".github/workflows/qet-master-integration.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run master and converter regressions
+        run: |
+          python -m pytest \
+            tests/test_merge_qet_kicad_libraries.py \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_convert_qet_collection_generic.py \
+            tests/test_apply_qet_de_names.py \
+            tests/test_apply_qet_language_neutral_names.py \
+            tests/test_qet_energy_de_names.py \
+            -q
+
+      - name: Convert complete 10_electric collection
+        run: |
+          mkdir -p build/parts build/reports
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 10_allpole \
+            --scope 11_singlepole \
+            --scope 20_manufacturers_articles \
+            --scope 90_american_standards \
+            --scope 91_en_60617 \
+            --scope 98_graphics \
+            --scope 99_miscellaneous_unsorted \
+            --output build/parts/electric.kicad_sym \
+            --report build/reports/electric-conversion.json \
+            --fail-on-errors
+
+      - name: Finalize 10_electric German names
+        run: |
+          python tools/audit_qet_source.py --qet-root .qet-elements/10_electric --scope 20_manufacturers_articles --output build/reports/electric-manufacturers-audit.json
+          python tools/audit_qet_source.py --qet-root .qet-elements/10_electric --scope 98_graphics --output build/reports/electric-graphics-audit.json
+          python tools/audit_qet_source.py --qet-root .qet-elements/10_electric --scope 99_miscellaneous_unsorted --output build/reports/electric-misc-audit.json
+
+          python tools/apply_qet_de_names.py \
+            --library build/parts/electric.kicad_sym \
+            --config-dir config/qet_de_names/10_allpole \
+            --report build/reports/electric-names-allpole.json --strict
+          python tools/apply_qet_de_names.py \
+            --library build/parts/electric.kicad_sym \
+            --config-dir config/qet_de_names/11_singlepole \
+            --report build/reports/electric-names-singlepole.json --strict
+
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/parts/electric.kicad_sym \
+            --audit build/reports/electric-manufacturers-audit.json \
+            --report build/reports/electric-names-manufacturers-neutral.json
+          python tools/apply_qet_de_names.py \
+            --library build/parts/electric.kicad_sym \
+            --config-dir config/qet_de_names/manufacturers \
+            --report build/reports/electric-names-manufacturers-de.json --strict
+
+          mkdir -p build/electric-graphics-name-config
+          cp config/qet_de_names/98_graphics/*.json build/electric-graphics-name-config/
+          python tools/generate_qet_98_assembly_de_names.py \
+            --audit build/reports/electric-graphics-audit.json \
+            --output build/electric-graphics-name-config/generated_assembly.json
+          python tools/apply_qet_de_names.py \
+            --library build/parts/electric.kicad_sym \
+            --config-dir build/electric-graphics-name-config \
+            --report build/reports/electric-names-graphics.json --strict
+
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/parts/electric.kicad_sym \
+            --audit build/reports/electric-misc-audit.json \
+            --report build/reports/electric-names-misc-neutral.json
+
+      - name: Convert complete 20_logic collection
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/20_logic \
+            --scope 2010_logic_gates \
+            --scope 2020_flow_chart \
+            --output build/parts/logic.kicad_sym \
+            --report build/reports/logic-conversion.json \
+            --fail-on-errors
+
+      - name: Convert and finalize complete 30_hydraulic collection
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/30_hydraulic \
+            --scope 21_tanks \
+            --scope 31_control_valves \
+            --scope 45_valves \
+            --scope 51_cylinders \
+            --scope 61_pumps \
+            --scope 71_exchangers \
+            --scope 81_filters \
+            --output build/parts/hydraulic.kicad_sym \
+            --report build/reports/hydraulic-conversion.json \
+            --fail-on-errors
+          python tools/apply_qet_de_names.py \
+            --library build/parts/hydraulic.kicad_sym \
+            --config-dir config/qet_de_names/30_hydraulic \
+            --report build/reports/hydraulic-names.json --strict
+
+      - name: Convert and finalize complete 50_pneumatic collection
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/50_pneumatic \
+            --scope 5010_compressed_air \
+            --scope 5020_velves \
+            --scope 5030_actuators \
+            --scope 5040_sensors \
+            --output build/parts/pneumatic.kicad_sym \
+            --report build/reports/pneumatic-conversion.json \
+            --fail-on-errors
+          python tools/apply_qet_de_names.py \
+            --library build/parts/pneumatic.kicad_sym \
+            --config-dir config/qet_de_names/50_pneumatic \
+            --report build/reports/pneumatic-names.json --strict
+
+      - name: Convert and finalize complete 60_energy collection
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/60_energy \
+            --scope 11_water \
+            --scope 21_refrigeration \
+            --scope 31_solar_thermal \
+            --scope 41_manufacturers_articles \
+            --output build/parts/energy.kicad_sym \
+            --report build/reports/energy-conversion.json \
+            --fail-on-errors
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/60_energy \
+            --scope 11_water \
+            --scope 21_refrigeration \
+            --scope 31_solar_thermal \
+            --scope 41_manufacturers_articles \
+            --output build/reports/energy-audit.json
+          python tools/generate_qet_energy_de_names.py \
+            --audit build/reports/energy-audit.json \
+            --rule-dir config/qet_de_names/60_energy/rules \
+            --output-dir build/energy-de-names \
+            --report build/reports/energy-name-review.json
+          python tools/apply_qet_de_names.py \
+            --library build/parts/energy.kicad_sym \
+            --config-dir build/energy-de-names \
+            --report build/reports/energy-names.json --strict
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Merge all QET collections into master library
+        run: |
+          python tools/merge_qet_kicad_libraries.py \
+            --input build/parts/electric.kicad_sym \
+            --input build/parts/logic.kicad_sym \
+            --input build/parts/hydraulic.kicad_sym \
+            --input build/parts/pneumatic.kicad_sym \
+            --input build/parts/energy.kicad_sym \
+            --output build/Z_Q_QElectroTech.kicad_sym \
+            --report build/qet-master-merge-report.json
+
+      - name: Validate complete QET master coverage and metadata
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          expected = {
+              "10_electric": {"symbols": 6918, "zero_pin": 2684, "missing_de": 2419},
+              "20_logic": {"symbols": 75, "zero_pin": 0, "missing_de": 0},
+              "30_hydraulic": {"symbols": 94, "zero_pin": 22, "missing_de": 94},
+              "50_pneumatic": {"symbols": 343, "zero_pin": 0, "missing_de": 1},
+              "60_energy": {"symbols": 1325, "zero_pin": 53, "missing_de": 1226},
+          }
+          expected_total = sum(item["symbols"] for item in expected.values())
+          expected_zero_pin = sum(item["zero_pin"] for item in expected.values())
+          expected_missing_de = sum(item["missing_de"] for item in expected.values())
+          assert expected_total == 8755
+          assert expected_zero_pin == 2759
+          assert expected_missing_de == 3740
+
+          report_paths = {
+              "10_electric": Path("build/reports/electric-conversion.json"),
+              "20_logic": Path("build/reports/logic-conversion.json"),
+              "30_hydraulic": Path("build/reports/hydraulic-conversion.json"),
+              "50_pneumatic": Path("build/reports/pneumatic-conversion.json"),
+              "60_energy": Path("build/reports/energy-conversion.json"),
+          }
+          reports = {key: json.loads(path.read_text(encoding="utf-8")) for key, path in report_paths.items()}
+          for collection, report in reports.items():
+              exp = expected[collection]
+              assert report["source_files"] == report["converted"] == exp["symbols"], (collection, report["source_files"], report["converted"])
+              assert report["zero_pin_symbols"] == exp["zero_pin"], (collection, report["zero_pin_symbols"])
+              assert report["missing_german_names"] == exp["missing_de"], (collection, report["missing_german_names"])
+              assert not report["errors"], (collection, report["errors"])
+              assert not report["unsupported_nodes"], (collection, report["unsupported_nodes"])
+              assert report["duplicate_names_resolved"] == 0, (collection, report["duplicate_names_resolved"])
+
+          allpole = json.loads(Path("build/reports/electric-names-allpole.json").read_text(encoding="utf-8"))
+          single = json.loads(Path("build/reports/electric-names-singlepole.json").read_text(encoding="utf-8"))
+          manu_neutral = json.loads(Path("build/reports/electric-names-manufacturers-neutral.json").read_text(encoding="utf-8"))
+          manu_de = json.loads(Path("build/reports/electric-names-manufacturers-de.json").read_text(encoding="utf-8"))
+          graphics = json.loads(Path("build/reports/electric-names-graphics.json").read_text(encoding="utf-8"))
+          misc = json.loads(Path("build/reports/electric-names-misc-neutral.json").read_text(encoding="utf-8"))
+          hydraulic_names = json.loads(Path("build/reports/hydraulic-names.json").read_text(encoding="utf-8"))
+          pneumatic_names = json.loads(Path("build/reports/pneumatic-names.json").read_text(encoding="utf-8"))
+          energy_names = json.loads(Path("build/reports/energy-names.json").read_text(encoding="utf-8"))
+
+          assert allpole["applied_overrides"] == 184
+          assert single["applied_overrides"] == 144
+          assert manu_neutral["language_neutral_applied"] == 672
+          assert manu_de["applied_overrides"] == 933
+          assert graphics["applied_overrides"] == 485
+          assert misc["language_neutral_applied"] == 1
+          assert hydraulic_names["applied_overrides"] == 94
+          assert pneumatic_names["applied_overrides"] == 1
+          assert energy_names["applied_overrides"] == 1226
+
+          explicit_german = 184 + 144 + 933 + 485 + 94 + 1 + 1226
+          language_neutral = 672 + 1
+          assert explicit_german == 3067
+          assert language_neutral == 673
+          assert explicit_german + language_neutral == expected_missing_de
+
+          merge = json.loads(Path("build/qet-master-merge-report.json").read_text(encoding="utf-8"))
+          assert merge["merged_symbols"] == expected_total
+          assert merge["unique_source_paths"] == expected_total
+          assert merge["collection_counts"] == {key: value["symbols"] for key, value in expected.items()}
+          assert merge["duplicate_internal_names_resolved"] == 0, merge["renames"]
+
+          library_path = Path("build/Z_Q_QElectroTech.kicad_sym")
+          library = library_path.read_text(encoding="utf-8")
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == expected_total
+          assert library.count('(property "QET_Source_Path" ') == expected_total
+          assert library.count('(property "QET_Category" ') == expected_total
+          assert library.count('(property "QET_Adjustments" ') == expected_total
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == expected_zero_pin
+          assert library.count("german_name_override") == explicit_german
+          assert library.count("language_neutral_name_accepted") == language_neutral
+          assert "german_name_fallback:" not in library
+          assert '(property "Value" "Z_Q_' not in library
+          assert '(property "Value" ""' not in library
+
+          source_paths = re.findall(r'\(property "QET_Source_Path" "([^"]+)"', library)
+          assert len(source_paths) == expected_total
+          assert len(set(source_paths)) == expected_total
+          roots = Counter(path.split("/", 1)[0] for path in source_paths)
+          assert dict(roots) == {key: value["symbols"] for key, value in expected.items()}
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          fallback_references = sum(report["fallback_references"] for report in reports.values())
+          generated_pin_numbers = sum(report["generated_pin_numbers"] for report in reports.values())
+          manifest = {
+              "library": library_path.name,
+              "qet_source_commit": source_commit,
+              "collections": {key: value["symbols"] for key, value in expected.items()},
+              "source_files": expected_total,
+              "converted": expected_total,
+              "zero_pin_symbols": expected_zero_pin,
+              "raw_missing_german_names": expected_missing_de,
+              "explicit_german_names_applied": explicit_german,
+              "language_neutral_names_accepted": language_neutral,
+              "remaining_german_names": 0,
+              "fallback_references": fallback_references,
+              "generated_pin_numbers": generated_pin_numbers,
+              "duplicate_internal_names_resolved": merge["duplicate_internal_names_resolved"],
+              "conversion_errors": 0,
+              "unsupported_nodes": {},
+          }
+          Path("build/qet-master-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render complete QET master library with KiCad
+        run: |
+          mkdir -p build/kicad-svg-master
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg-master \
+            build/Z_Q_QElectroTech.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          svg_files = sorted(Path("build/kicad-svg-master").glob("*.svg"))
+          assert len(svg_files) == 8755, len(svg_files)
+          empty = [str(path) for path in svg_files if path.stat().st_size == 0]
+          assert not empty, empty[:20]
+          report = {
+              "exported_svg_symbols": len(svg_files),
+              "expected_symbols": 8755,
+              "empty_svg_files": len(empty),
+          }
+          Path("build/qet-master-kicad-smoke-report.json").write_text(
+              json.dumps(report, indent=2) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(report, indent=2))
+          PY
+
+      - name: Upload complete QET master library and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-master-library-validation
+          path: |
+            build/Z_Q_QElectroTech.kicad_sym
+            build/qet-master-merge-report.json
+            build/qet-master-manifest.json
+            build/qet-master-kicad-smoke-report.json
+            build/kicad-version.txt
+            build/qet-source-commit.txt
+            build/reports/*.json
