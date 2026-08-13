@@ -1,10 +1,12 @@
 """Bidirectional synchronization helpers for DIN editor terminal labels."""
 from .kicad_terminal_label_export import terminal_label_fields
+from .kicad_terminal_labels import build_labeled_symbol_manifest
 
 
 def _terminal_plan(components: list[dict]) -> dict:
-    """Adapt editor components to the terminal-oriented KiCad export plan."""
+    """Adapt editor components to the KiCad export-plan structure."""
     return {
+        "components": [dict(c) for c in components if c.get("component_type") != "DIN_RAIL_TERMINAL_BLOCK"],
         "terminals": [dict(c) for c in components if c.get("component_type") == "DIN_RAIL_TERMINAL_BLOCK"],
     }
 
@@ -88,3 +90,8 @@ def import_kicad_manifest_labels(components: list[dict], manifest: dict, *, over
 
 def export_terminal_labels(components: list[dict]) -> list[dict]:
     return terminal_label_fields(_terminal_plan(components))
+
+
+def export_kicad_manifest(components: list[dict]) -> dict:
+    """Export the current DIN component state as a labeled KiCad symbol manifest."""
+    return build_labeled_symbol_manifest(_terminal_plan(components))
