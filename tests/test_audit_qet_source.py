@@ -49,6 +49,28 @@ def test_audit_reports_only_missing_german_names_and_zero_pin_count(tmp_path: Pa
     ]
 
 
+def test_audit_uses_actual_collection_root_for_paths_and_categories(tmp_path: Path):
+    qet = tmp_path / "20_logic"
+    scope = qet / "2020_flow_chart" / "test"
+    scope.mkdir(parents=True)
+    (scope / "english.elmt").write_text(
+        '<definition><names><name lang="en">Decision</name></names><description/></definition>',
+        encoding="utf-8",
+    )
+
+    report = mod.audit(qet, ["2020_flow_chart"])
+
+    assert report["items"] == [
+        {
+            "path": "20_logic/2020_flow_chart/test/english.elmt",
+            "category": "20_logic / 2020_flow_chart / test",
+            "filename": "english.elmt",
+            "names": {"en": "Decision"},
+            "terminal_count": 0,
+        }
+    ]
+
+
 def test_audit_reports_parse_errors_without_stopping(tmp_path: Path):
     qet = tmp_path / "10_electric"
     scope = qet / "10_allpole" / "test"
