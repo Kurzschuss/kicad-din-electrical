@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/telemecanique",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/altivar_11.elmt": "Telemecanique Altivar 11 – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv11_tri.elmt": "Telemecanique Altivar 11 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv16_tri.elmt": "Telemecanique Altivar 16 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv18_tri.elmt": "Telemecanique Altivar 18 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv21_tri.elmt": "Telemecanique Altivar 21 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv28_tri.elmt": "Telemecanique Altivar 28 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv31.elmt": "Telemecanique Altivar 31 – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv31_tri.elmt": "Telemecanique Altivar 31 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv58_tri.elmt": "Telemecanique Altivar 58 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv61_tri.elmt": "Telemecanique Altivar 61 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/atv71_tri.elmt": "Telemecanique Altivar 71 – Frequenzumrichter, dreiphasig",
+    "10_electric/20_manufacturers_articles/telemecanique/20_frequency_drives/table_param_atv.elmt": "Telemecanique Altivar 11 – Parametertabelle"
+  }
+}

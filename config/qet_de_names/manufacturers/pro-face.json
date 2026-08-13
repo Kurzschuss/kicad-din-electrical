@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/pro-face",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/pro-face/carte_16_entree_htb.elmt": "Pro-face HTB – 16-Digitaleingangsmodul",
+    "10_electric/20_manufacturers_articles/pro-face/carte_2_analogique_htb.elmt": "Pro-face HTB – 2-Analogeingangsmodul",
+    "10_electric/20_manufacturers_articles/pro-face/lt4301tadac.elmt": "Pro-face LT4301TADAC – Bediengerät mit E/A",
+    "10_electric/20_manufacturers_articles/pro-face/proface_lt3301l.elmt": "Pro-face LT3301L – Bediengerät",
+    "10_electric/20_manufacturers_articles/pro-face/tete_htb.elmt": "Pro-face HTB – Kopfmodul"
+  }
+}

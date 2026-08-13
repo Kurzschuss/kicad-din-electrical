@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Audit QElectroTech source metadata before translation/override work.
-
-The audit is intentionally read-only: it does not translate, rename or assign
-reference prefixes. It records all source-language names for elements that lack
-a German (de) name so later overrides can be reviewed explicitly.
-"""
+"""Audit QElectroTech source metadata before translation/override work."""
 from __future__ import annotations
 
 import argparse
@@ -12,6 +7,8 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Sequence
+
+from qet_xml import parse_qet_file
 
 
 def element_names(root: ET.Element) -> dict[str, str]:
@@ -41,12 +38,20 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
     files = discover_files(qet_root, scopes)
     missing_de: list[dict] = []
     parse_errors: list[dict] = []
+    sanitized_xml_files: list[dict] = []
 
     for source_file in files:
         rel = source_file.relative_to(qet_root)
         source_path = str(Path("10_electric") / rel).replace("\\", "/")
         try:
-            root = ET.parse(source_file).getroot()
+            root, replaced = parse_qet_file(source_file)
+            if replaced:
+                sanitized_xml_files.append(
+                    {
+                        "path": source_path,
+                        "invalid_codepoints": replaced,
+                    }
+                )
             names = element_names(root)
             description = root.find("description")
             terminals = [] if description is None else list(description.findall("terminal"))
@@ -72,6 +77,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
         "scopes": list(scopes),
         "source_files": len(files),
         "missing_german_names": len(missing_de),
+        "sanitized_xml_files": sanitized_xml_files,
         "parse_errors": parse_errors,
         "items": missing_de,
     }

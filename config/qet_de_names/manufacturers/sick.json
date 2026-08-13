@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/sick",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/sick/008_safety_controllers/flexi_soft_cpu0.elmt": "SICK Flexi Soft FX3-CPU000000 – Sicherheitssteuerung CPU0",
+    "10_electric/20_manufacturers_articles/sick/008_safety_controllers/flexi_soft_cpu1.elmt": "SICK Flexi Soft FX3-CPU130002 – Sicherheitssteuerung CPU1",
+    "10_electric/20_manufacturers_articles/sick/008_safety_controllers/flexi_soft_xtio84002.elmt": "SICK Flexi Soft FX3-XTIO84002 – Sicherheits-E/A-Modul",
+    "10_electric/20_manufacturers_articles/sick/009_safety_modules/sick_ue45.elmt": "SICK UE45 – Sicherheitsmodul",
+    "10_electric/20_manufacturers_articles/sick/s3000.elmt": "SICK S3000 – Sicherheits-Laserscanner",
+    "10_electric/20_manufacturers_articles/sick/sick_wl_wtb_optic_sensor.elmt": "SICK WL/WTB – Reflexions-Lichttaster/-Lichtschranke"
+  }
+}

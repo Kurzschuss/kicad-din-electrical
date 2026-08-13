@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/endress_hauser",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/endress_hauser/afficheur_endress_hauser_omnigrad_vu2563.elmt": "Endress+Hauser Omnigrad VU2563 – Temperaturanzeige",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_bitop.elmt": "Endress+Hauser Bitop L – Multiparameter-Analysentransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_debimetre_promag.elmt": "Endress+Hauser Promag 50 – Elektromagnetischer Durchflussmesser",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_liquisys_m.elmt": "Endress+Hauser Liquisys M – Flüssigkeits-Analysentransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_sonde_conductivite_cls40.elmt": "Endress+Hauser Condumax CLS40 – Induktiver Leitfähigkeitssensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_sonde_conductivite_indumax_h.elmt": "Endress+Hauser Indumax H CLS54 – Hygienischer induktiver Leitfähigkeitssensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_sonde_pression.elmt": "Endress+Hauser Cerabar M – Drucktransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/e_h_sonde_temperature.elmt": "Endress+Hauser iTEMP TMT180 – Kopf-Temperaturtransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress&hauser-cerabar-m-pmp.elmt": "Endress+Hauser Cerabar M PMP – Drucktransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress&hauser-condumax-cls21.elmt": "Endress+Hauser Condumax CLS21 – Konduktiver Leitfähigkeitssensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress&hauser-indumax-cls52.elmt": "Endress+Hauser Indumax CLS52 – Induktiver Leitfähigkeitssensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress&hauser-niveau-capacitif-ec11z-.elmt": "Endress+Hauser EC11Z – Kapazitiver Füllstandsensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress+hauser-debimetre-promag-50.elmt": "Endress+Hauser Promag 50 – Elektromagnetischer Durchflussmesser",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress+hauser-débimétre-promag-50.elmt": "Endress+Hauser Promag 50 – Elektromagnetischer Durchflussmesser",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress+hauser-liquisys-m.elmt": "Endress+Hauser Liquisys M – Flüssigkeits-Analysentransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress+hauser-mycom-l.elmt": "Endress+Hauser Mycom L – Prozessanalysentransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/endress-&-hauser-liquisys-m-cpm223.elmt": "Endress+Hauser Liquisys M CPM223 – Flüssigkeits-Analysentransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/promag10l.elmt": "Endress+Hauser Promag 10L – Elektromagnetischer Durchflussmesser",
+    "10_electric/20_manufacturers_articles/endress_hauser/sonde-pression-ceraphant-ptp33b.elmt": "Endress+Hauser Ceraphant PTP33B – Digitaler Druckschalter",
+    "10_electric/20_manufacturers_articles/endress_hauser/sonde-pression-citec-8930.elmt": "Citec 8930 – Drucktransmitter",
+    "10_electric/20_manufacturers_articles/endress_hauser/sonde-temperature-tmr345.elmt": "Endress+Hauser iTHERM TMR345 – Kompaktthermometer",
+    "10_electric/20_manufacturers_articles/endress_hauser/sonde_conductivite.elmt": "Endress+Hauser Condumax CLS40 – Induktiver Leitfähigkeitssensor",
+    "10_electric/20_manufacturers_articles/endress_hauser/watrepilot_fmx21_pt100.elmt": "Endress+Hauser Waterpilot FMX21 + Pt100 – Hydrostatische Tauchsonde"
+  }
+}

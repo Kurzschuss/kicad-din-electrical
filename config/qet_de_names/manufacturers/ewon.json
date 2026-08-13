@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/ewon",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/ewon/cosy/ewon_cosy_EC61330.elmt": "Ewon Cosy 131 EC61330 – VPN-Fernzugriffsrouter",
+    "10_electric/20_manufacturers_articles/ewon/cosy/ewon_cosy_EC6133C.elmt": "Ewon Cosy 131 EC6133C – VPN-Fernzugriffsrouter, 4G Europa",
+    "10_electric/20_manufacturers_articles/ewon/cosy/ewon_cosy_EC6133F.elmt": "Ewon Cosy 131 EC6133F – VPN-Fernzugriffsrouter, WLAN",
+    "10_electric/20_manufacturers_articles/ewon/cosy/ewon_cosy_EC6133G.elmt": "Ewon Cosy 131 EC6133G – VPN-Fernzugriffsrouter, 4G Amerika",
+    "10_electric/20_manufacturers_articles/ewon/cosy/ewon_cosy_EC6133H.elmt": "Ewon Cosy 131 EC6133H – VPN-Fernzugriffsrouter, 4G APAC/Japan",
+    "10_electric/20_manufacturers_articles/ewon/flexy/extension/flb3271_wlan.elmt": "Ewon FLB3271 – WLAN-Erweiterungsmodul",
+    "10_electric/20_manufacturers_articles/ewon/flexy/extension/flx3101_ethernet.elmt": "Ewon FLX3101 – 4-Port-Ethernet-Erweiterungsmodul",
+    "10_electric/20_manufacturers_articles/ewon/flexy/extension/flx3402_io_left.elmt": "Ewon FLX3402 – Digital-/Analog-E/A-Erweiterung, linke Seite",
+    "10_electric/20_manufacturers_articles/ewon/flexy/extension/flx3402_io_right.elmt": "Ewon FLX3402 – Digital-/Analog-E/A-Erweiterung, rechte Seite"
+  }
+}

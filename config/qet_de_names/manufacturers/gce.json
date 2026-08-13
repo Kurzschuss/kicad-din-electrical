@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/gce",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/gce/compteur_energie_impulsion.elmt": "GCE – Einphasen-Energiezähler mit Impulsausgang",
+    "10_electric/20_manufacturers_articles/gce/compteur_sgs-45a.elmt": "GCE SGS 45 A – Einphasen-Energiezähler mit Impulsausgang",
+    "10_electric/20_manufacturers_articles/gce/ecodevices.elmt": "GCE Eco-Devices – Energieverbrauchs-Monitoringmodul",
+    "10_electric/20_manufacturers_articles/gce/gce-ipx800V4-mini.elmt": "GCE IPX800 V4 Mini – Kompakter IP-Controller",
+    "10_electric/20_manufacturers_articles/gce/gce-RfPulse.elmt": "GCE RF-Pulse – Funk-Impulsmessmodul",
+    "10_electric/20_manufacturers_articles/gce/gce_eco-device.elmt": "GCE Eco-Devices – Energieverbrauchs-Monitoringmodul",
+    "10_electric/20_manufacturers_articles/gce/module_fil_pilote.elmt": "GCE – Diodenmodul für Heizungs-Pilotdraht",
+    "10_electric/20_manufacturers_articles/gce/mw_drc100.elmt": "Mean Well DRC-100 – 12-V-Netzteil und Batterieladegerät",
+    "10_electric/20_manufacturers_articles/gce/power-suply_12v.elmt": "GCE – 12-V-Hutschienen-Netzteil",
+    "10_electric/20_manufacturers_articles/gce/switchebx.elmt": "GCE Switch-EBX – Intelligenter Busverteiler",
+    "10_electric/20_manufacturers_articles/gce/teleinfo_usb.elmt": "GCE Teleinfo USB – Energie-Telemetrieadapter",
+    "10_electric/20_manufacturers_articles/gce/xd.elmt": "GCE X-Display – HMI-Touchpanel",
+    "10_electric/20_manufacturers_articles/gce/xdimmer.elmt": "GCE X-Dimmer – 4-Kanal-Lichtdimmer",
+    "10_electric/20_manufacturers_articles/gce/xpoolconnect.elmt": "GCE X-Pool Connect – Pool-Automatisierungscontroller"
+  }
+}

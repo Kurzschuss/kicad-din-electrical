@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/johnson_controls",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/9100_bornier_do.elmt": "Johnson Controls DX-9100 – Klemmenleiste Digitalausgänge (DO)",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_bornier_ai.elmt": "Johnson Controls DX-9100 – Klemmenleiste Analogeingänge (AI)",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_bornier_ao.elmt": "Johnson Controls DX-9100 – Klemmenleiste Analogausgänge (AO)",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_bornier_bas.elmt": "Johnson Controls DX-9100 – Untere Anschlussklemmen",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_bornier_di.elmt": "Johnson Controls DX-9100 – Klemmenleiste Digitaleingänge (DI)",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_bornier_haut.elmt": "Johnson Controls DX-9100 – Obere Anschlussklemmen",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_com_alim.elmt": "Johnson Controls DX-9100 – Versorgung und Kommunikation",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_di.elmt": "Johnson Controls DX-9100 – 8 Digitaleingänge",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/dx9100_do.elmt": "Johnson Controls DX-9100 – 8 Digitalausgänge",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/modules_extension/xpx.elmt": "Johnson Controls xPx – Leermodul",
+    "10_electric/20_manufacturers_articles/johnson_controls/dx/modules_extension/xtm_905_5.elmt": "Johnson Controls XTM-905 – Kopfmodul",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_a25cn-9001.elmt": "Johnson Controls A25CN-9001 – Kapillar-Temperaturbegrenzungsthermostat",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_ht-9001_udx.elmt": "Johnson Controls HT-9001-UDX – Feuchte-/Temperatur-Kanalfühler",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_p233_a4-phc.elmt": "Johnson Controls P233 A4-PHC – Luft-Differenzdruckschalter zur Filterüberwachung",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_p48aaa-9120.elmt": "Johnson Controls P48AAA-9120 – Wasser-/Dampf-Druckschalter",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_ps-9101.elmt": "Johnson Controls PS-9101 – Flüssigkeits-Differenzdruckschalter",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_pt-5215.elmt": "Johnson Controls PT-5215 – Differenzdrucktransmitter",
+    "10_electric/20_manufacturers_articles/johnson_controls/jc_va-7312.elmt": "Johnson Controls VA-7312 – 3-Wege-Stellventil"
+  }
+}

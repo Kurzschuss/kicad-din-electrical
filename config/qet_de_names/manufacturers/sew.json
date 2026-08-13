@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/sew",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/sew/20_frequency_drives/movimot_mm_d.elmt": "SEW MOVIMOT MM…D – Frequenzumrichter",
+    "10_electric/20_manufacturers_articles/sew/sew_brake_coil_three_wires.elmt": "SEW BG/BGE/BSG/BUR – Bremslüftspule, 3-adrig",
+    "10_electric/20_manufacturers_articles/sew/sew_brake_rectifier_bg_bge_bsg_bur.elmt": "SEW BG/BGE/BSG/BUR – Bremsgleichrichter",
+    "10_electric/20_manufacturers_articles/sew/sew_brake_rectifier_bmh_bms_bme_bmp_bmk.elmt": "SEW BMH/BMS/BME/BMP/BMK – Bremsgleichrichter",
+    "10_electric/20_manufacturers_articles/sew/sew_sr_relay.elmt": "SEW SR – Stromrelais",
+    "10_electric/20_manufacturers_articles/sew/sew_ur_relay.elmt": "SEW UR – Spannungsrelais"
+  }
+}

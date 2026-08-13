@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/rittal",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/rittal/rittal_3110_000.elmt": "Rittal 3110.000 – Schaltschrankthermostat",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3304_100.elmt": "Rittal 3304.100 – Lüfter",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_500.elmt": "Rittal 3305.500 – Kühlgerät",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_500_sideview_left.elmt": "Rittal 3305.500 – Kühlgerät, Seitenansicht links",
+    "10_electric/20_manufacturers_articles/rittal/rittal_3305_540.elmt": "Rittal 3305.540 – Kühlgerät",
+    "10_electric/20_manufacturers_articles/rittal/rittal_4138_150.elmt": "Rittal 4138.150 – Schaltschrankleuchte",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8285_500.elmt": "Rittal 8285.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8286_500.elmt": "Rittal 8286.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8286_500_sideview_left.elmt": "Rittal 8286.500 – Seitenansicht links",
+    "10_electric/20_manufacturers_articles/rittal/rittal_8686_500.elmt": "Rittal 8686.500",
+    "10_electric/20_manufacturers_articles/rittal/rittal_9612_000.elmt": "Rittal 9612.000 – Anschlussadapter"
+  }
+}

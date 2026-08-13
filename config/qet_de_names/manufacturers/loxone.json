@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/loxone",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/loxone/loxone_dimmer_100029.elmt": "Loxone Dimmer 100029 – 4-Kanal-Dimmer",
+    "10_electric/20_manufacturers_articles/loxone/loxone_miniserver_gen_1/miniserver_gen_1.elmt": "Loxone Miniserver Gen. 1 – Digitalausgänge",
+    "10_electric/20_manufacturers_articles/loxone/loxone_miniserver_gen_1/miniserver_gen_1_digitale_eingaenge.elmt": "Loxone Miniserver Gen. 1 – Digitaleingänge",
+    "10_electric/20_manufacturers_articles/loxone/loxone_relay_extension/folienverweis.elmt": "Loxone Relay Extension – Relais-Erweiterung",
+    "10_electric/20_manufacturers_articles/loxone/nano_di_tree.elmt": "Loxone Nano DI Tree – 6 Digitaleingänge",
+    "10_electric/20_manufacturers_articles/loxone/tree_extension.elmt": "Loxone Tree Extension – Bus-Erweiterung"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/allen_bradley",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/allen_bradley/01_PLC_controllers/1762-L40BXB_OUT_pt1.2.elmt": "Allen-Bradley 1762-L40BXB(R) – Ausgänge, Teil 1/2",
+    "10_electric/20_manufacturers_articles/allen_bradley/01_PLC_controllers/1762-L40BXB_OUT_pt2.2.elmt": "Allen-Bradley 1762-L40BXB(R) – Ausgänge, Teil 2/2",
+    "10_electric/20_manufacturers_articles/allen_bradley/09_safety_modules/ab-tls3_gd2_safet_interlock.elmt": "Allen-Bradley TLS3 GD2 – Sicherheitszuhaltung",
+    "10_electric/20_manufacturers_articles/allen_bradley/09_safety_modules/msr41_micro_400_controller.elmt": "Allen-Bradley MSR41 Micro 400 – Sicherheitscontroller",
+    "10_electric/20_manufacturers_articles/allen_bradley/11_safety_switches/sipha_s11s21.elmt": "Allen-Bradley Sipha S11/S21 – Sicherheitsschalter",
+    "10_electric/20_manufacturers_articles/allen_bradley/1734/1734ow4.elmt": "Allen-Bradley 1734-OW4 – 4 Relaisausgänge",
+    "10_electric/20_manufacturers_articles/allen_bradley/ab_iq4ob4.elmt": "Allen-Bradley Micro800 IQ4OB4 – E/A-Erweiterungsmodul",
+    "10_electric/20_manufacturers_articles/allen_bradley/micro1500.elmt": "Allen-Bradley MicroLogix 1500 LRP – SPS",
+    "10_electric/20_manufacturers_articles/allen_bradley/micro830.elmt": "Allen-Bradley Micro830 – SPS",
+    "10_electric/20_manufacturers_articles/allen_bradley/micro_830_24qbb.elmt": "Allen-Bradley Micro830 24QBB – SPS",
+    "10_electric/20_manufacturers_articles/allen_bradley/non_contact_switch.elmt": "Allen-Bradley 440N-Z21SS2H – RFID-Sicherheitsschalter",
+    "10_electric/20_manufacturers_articles/allen_bradley/panelview800.elmt": "Allen-Bradley PanelView 800 – HMI-Bedienpanel",
+    "10_electric/20_manufacturers_articles/allen_bradley/safety_mat.elmt": "Allen-Bradley 440F-M – Sicherheitsmatte",
+    "10_electric/20_manufacturers_articles/allen_bradley/serialisol.elmt": "Allen-Bradley Micro800 SERIALISOL – Serielle Isolationsschnittstelle"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/20_manufacturers_articles/satchwell",
+  "overrides": {
+    "10_electric/20_manufacturers_articles/satchwell/controlli_w500_tmb.elmt": "Controlli W500 TMB",
+    "10_electric/20_manufacturers_articles/satchwell/ecran-satchwell-mn50-lcd.elmt": "Satchwell MN50 – LCD-Anzeige",
+    "10_electric/20_manufacturers_articles/satchwell/ecran-satchwell-mn50-touchscreen.elmt": "Satchwell MN50 – Touchscreen-Anzeige",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn-550.elmt": "Satchwell MN550 – Regler",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn350-page1.elmt": "Satchwell MN350 – Seite 1",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn350-page2.elmt": "Satchwell MN350 – Seite 2",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn450-page1.elmt": "Satchwell MN450 – Seite 1",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn450-page2.elmt": "Satchwell MN450 – Seite 2",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn550-page2.elmt": "Satchwell MN550 – Seite 2",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn550-page3.elmt": "Satchwell MN550 – Seite 3",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn650-page1.elmt": "Satchwell MN650 – Seite 1",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn650-page2.elmt": "Satchwell MN650 – Seite 2",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn650-page3.elmt": "Satchwell MN650 – Seite 3",
+    "10_electric/20_manufacturers_articles/satchwell/satchwell-mn650-page4.elmt": "Satchwell MN650 – Seite 4"
+  }
+}
