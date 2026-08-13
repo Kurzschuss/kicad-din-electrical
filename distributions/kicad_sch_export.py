@@ -1,7 +1,14 @@
 """Export a DIN schematic plan with resolved project symbol metadata."""
+import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+
 from .kicad_schematic_plan import build_schematic_plan
 from .kicad_terminal_label_export import terminal_label_fields
+
+
+class KiCadSchematicExportError(RuntimeError):
+    """Raised when a KiCad schematic cannot be exported safely."""
 
 
 def _quote(value: str) -> str:
@@ -40,6 +47,32 @@ def build_kicad_sch(plan: dict, connections: list[dict] | None = None) -> str:
 
 
 def write_kicad_sch(path: str | Path, plan: dict, connections: list[dict] | None = None) -> Path:
+    """Build and atomically replace a KiCad schematic export target."""
     target = Path(path)
-    target.write_text(build_kicad_sch(plan, connections), encoding="utf-8")
+    temporary: Path | None = None
+    try:
+        rendered = build_kicad_sch(plan, connections)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=target.parent,
+            prefix=f".{target.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            handle.write(rendered)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(target)
+    except (OSError, TypeError, ValueError, KeyError) as exc:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise KiCadSchematicExportError(
+            f"KiCad schematic cannot be exported safely: {target}"
+        ) from exc
     return target
