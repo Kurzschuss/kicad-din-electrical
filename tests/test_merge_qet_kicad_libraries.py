@@ -44,7 +44,7 @@ def test_merge_preserves_unique_symbols(tmp_path: Path):
     assert report["unique_source_paths"] == 2
     assert report["duplicate_internal_names_resolved"] == 0
     assert report["collection_counts"] == {"10_electric": 1, "20_logic": 1}
-    assert merged.count('  (symbol "Z_Q_') == 2
+    assert sum(1 for line in merged.splitlines() if line.startswith('  (symbol "Z_Q_')) == 2
     assert '(property "Value" "Elektrik"' in merged
     assert '(property "Value" "Logik"' in merged
 
