@@ -10,7 +10,7 @@ Dieses Projekt stellt KiCad-Bibliotheken für DIN-Schaltgeräte, Reiheneinbauger
 
 - [Schnellstart: erstes Symbol verwenden](docs/02_User/QUICKSTART.md)
 - [Bibliotheken in KiCad einbinden](docs/02_User/INSTALL.md)
-- [QElectroTech-Masterbibliothek](docs/02_User/QET_LIBRARY.md)
+- [QElectroTech-Masterbibliothek mit 8.755 Symbolen](docs/02_User/QET_LIBRARY.md)
 - [Technischen Gerätekatalog verwenden](docs/02_User/DEVICE_CATALOG.md)
 - [Durchsuchbaren Gerätekatalog öffnen](docs/site/devices.html)
 - [Lokale Tests ausführen](docs/02_User/TESTING.md)
@@ -26,13 +26,15 @@ Alle projektinternen Bibliotheken verwenden das Präfix `Z_`, damit sie in KiCad
 
 ### Symbole
 
-Alle Symbolbibliotheken liegen direkt unter:
+Alle direkt im Repository enthaltenen Symbolbibliotheken liegen unter:
 
 ```text
 symbols/
 ```
 
-Jede Symbolbibliotheksdatei beginnt mit `Z_`, zum Beispiel:
+Die große, reproduzierbar erzeugte QElectroTech-Masterbibliothek `Z_Q_QElectroTech.kicad_sym` wird wegen ihrer Dateigröße als permanentes GitHub-Release-Asset verteilt; siehe [QElectroTech-Masterbibliothek](docs/02_User/QET_LIBRARY.md).
+
+Jede direkt eingecheckte Symbolbibliotheksdatei beginnt mit `Z_`, zum Beispiel:
 
 - `Z_MCB.kicad_sym`
 - `Z_CONTACTOR.kicad_sym`
@@ -60,7 +62,7 @@ Die Footprintbibliotheken liegen unter:
 footprints/
 ```
 
-Für jede `.kicad_sym`-Datei existiert ein gleichnamiger `.pretty`-Ordner. Beispiel:
+Für jede direkt eingecheckte `.kicad_sym`-Datei existiert ein gleichnamiger `.pretty`-Ordner. Beispiel:
 
 ```text
 symbols/Z_DIN_Control.kicad_sym
@@ -98,11 +100,10 @@ Die vollständige Schritt-für-Schritt-Anleitung steht in [docs/02_User/INSTALL.
 
 Kurz zusammengefasst:
 
-- Symbolbibliotheken direkt aus `symbols/` registrieren.
+- Direkt eingecheckte Symbolbibliotheken aus `symbols/` registrieren.
+- Die QElectroTech-Masterbibliothek separat aus einem `qet-master-*`-Release herunterladen und registrieren.
 - Footprintbibliotheken aus den einzelnen `.pretty`-Ordnern unter `footprints/` registrieren.
 - Dabei jeweils den Dateinamen beziehungsweise Ordnernamen ohne Endung als Bibliotheksnamen verwenden.
-
-Die große QElectroTech-Masterbibliothek wird separat als validierter GitHub-Release-Snapshot bereitgestellt; siehe [docs/02_User/QET_LIBRARY.md](docs/02_User/QET_LIBRARY.md).
 
 ## Tests
 
