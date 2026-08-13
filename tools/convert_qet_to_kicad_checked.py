@@ -84,6 +84,45 @@ def _replace_style_value(style: str, key: str, value: str) -> str:
     return ";".join(items)
 
 
+def _normalize_legacy_qet_typos(node: ET.Element, adjustments: set[str]) -> ET.Element:
+    """Repair known legacy QET spelling errors while recording every correction."""
+    clone: ET.Element | None = None
+
+    for attr in ("end1", "end2"):
+        if (node.get(attr) or "").strip().lower() == "ncne":
+            if clone is None:
+                clone = _clone(node)
+            clone.set(attr, "none")
+            adjustments.add("legacy_qet_typo_normalized:end=ncne->none")
+
+    current = clone if clone is not None else node
+    style = current.get("style")
+    if not style:
+        return current
+
+    parsed = core.parse_style(style)
+    replacements = []
+    if parsed.get("line-style") == "ncrmal":
+        replacements.append(("line-style", "normal", "legacy_qet_typo_normalized:line-style=ncrmal->normal"))
+    if parsed.get("line-weight") == "ncrmal":
+        replacements.append(("line-weight", "normal", "legacy_qet_typo_normalized:line-weight=ncrmal->normal"))
+    if parsed.get("filling") == "ncne":
+        replacements.append(("filling", "none", "legacy_qet_typo_normalized:filling=ncne->none"))
+
+    if not replacements:
+        return current
+    if clone is None:
+        clone = _clone(node)
+        style = clone.get("style") or ""
+    else:
+        style = clone.get("style") or ""
+    for key, value, marker in replacements:
+        style = _replace_style_value(style, key, value)
+        adjustments.add(marker)
+    clone.set("style", style)
+    return clone
+
+
 def style_expr(style: str | None, adjustments: set[str]) -> tuple[str, str]:
     """Honor canonical QET hight/eleve pen weights before delegating style mapping."""
     parsed = core.parse_style(style)
@@ -357,9 +396,9 @@ def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
     if user_label is not None:
         return user_label
 
-    delegated = node
-    if node.tag in {"rect", "rectangle"}:
-        delegated = _clone_without_zero_radii(node)
+    delegated = _normalize_legacy_qet_typos(node, adjustments)
+    if delegated.tag in {"rect", "rectangle"}:
+        delegated = _clone_without_zero_radii(delegated)
     delegated = _normalize_non_native_fill(delegated, adjustments)
 
     line_with_endings = _render_qet_line_endings(delegated, adjustments)
