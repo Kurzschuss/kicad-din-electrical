@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "50_pneumatic",
+  "overrides": {
+    "50_pneumatic/5030_actuators/503070_cylinder_special/50307012_cylinder_cable.elmt": "Pneumatischer Seilzugzylinder mit beidseitiger Festdämpfung"
+  }
+}
