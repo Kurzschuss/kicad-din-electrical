@@ -191,11 +191,19 @@ def parse_prefix_tree(labels_file: Path) -> dict[tuple[str, ...], str]:
 
 
 def prefix_for_category(parts: Sequence[str], prefixes: dict[tuple[str, ...], str]) -> str:
-    parts = tuple(parts[1:] if parts and parts[0] == "10_electric" else parts)
-    found = ""
-    for i in range(1, len(parts) + 1):
-        found = prefixes.get(parts[:i], found)
-    return found
+    candidates = [tuple(parts)]
+    if parts:
+        candidates.append(tuple(parts[1:]))
+    best, best_depth = "", -1
+    for candidate in candidates:
+        found = ""
+        for i in range(1, len(candidate) + 1):
+            value = prefixes.get(candidate[:i])
+            if value:
+                found = value
+                if i > best_depth:
+                    best, best_depth = found, i
+    return best
 
 
 def explicit_label(root: ET.Element, description: ET.Element | None) -> str:
@@ -376,6 +384,8 @@ def convert_element(source_file: Path, source_root: Path, prefixes, stats: Conve
     if root.tag != "definition":
         raise ValueError(f"unexpected root tag: {root.tag}")
     rel = source_file.relative_to(source_root)
+    collection = source_root.name
+    source_path = str(Path(collection) / rel).replace("\\", "/")
     names = parse_names(root, rel.stem.replace("_", " "))
     display = names.get("de") or names.get("en") or next(iter(names.values()))
     description = root.find("description")
@@ -384,13 +394,13 @@ def convert_element(source_file: Path, source_root: Path, prefixes, stats: Conve
         fallback = "en" if names.get("en") else "other"
         adjustments.add(f"german_name_fallback:{fallback}")
         stats.missing_german_names += 1
-        stats.missing_german_name_paths.append(str(Path("10_electric") / rel).replace("\\", "/"))
+        stats.missing_german_name_paths.append(source_path)
     terminals = [] if description is None else list(description.findall("terminal"))
     numbers, generated = terminal_numbers(terminals)
     stats.generated_pin_numbers += generated
     if generated:
         adjustments.add("generated_pin_number")
-    category_parts = ("10_electric",) + rel.parent.parts
+    category_parts = (collection,) + rel.parent.parts
     category = " / ".join(category_parts)
     reference = explicit_label(root, description) or prefix_for_category(category_parts, prefixes)
     if not reference:
@@ -425,7 +435,7 @@ def convert_element(source_file: Path, source_root: Path, prefixes, stats: Conve
         prop("Datasheet", "", bottom - 3.81),
         prop("Description", f"{display} | QET-Kategorie: {category}", bottom - 5.08),
         prop("QET_Category", category, bottom - 6.35),
-        prop("QET_Source_Path", str(Path("10_electric") / rel).replace("\\", "/"), bottom - 7.62),
+        prop("QET_Source_Path", source_path, bottom - 7.62),
         prop("QET_Author", author, bottom - 8.89),
         prop("QET_License", license_text, bottom - 10.16),
         prop("QET_Collection_License", QET_COLLECTION_LICENSE, bottom - 11.43),
@@ -471,18 +481,18 @@ def discover_files(source_root: Path, scopes: Sequence[str]) -> list[Path]:
     return sorted(set(files), key=lambda x: x.as_posix().casefold())
 
 
-def convert_library(source_root: Path, labels_file: Path, scopes: Sequence[str], output_file: Path, report_file: Path | None = None) -> ConversionStats:
+def convert_library(source_root: Path, labels_file: Path | None, scopes: Sequence[str], output_file: Path, report_file: Path | None = None) -> ConversionStats:
     stats = ConversionStats()
     files = discover_files(source_root, scopes)
     stats.source_files = len(files)
-    prefixes = parse_prefix_tree(labels_file)
+    prefixes = parse_prefix_tree(labels_file) if labels_file is not None and labels_file.is_file() else {}
     used, symbols = set(), []
     for file in files:
         try:
             symbols.append(convert_element(file, source_root, prefixes, stats, used))
         except Exception as exc:
             stats.errors.append({
-                "path": str(file.relative_to(source_root)).replace("\\", "/"),
+                "path": str(Path(source_root.name) / file.relative_to(source_root)).replace("\\", "/"),
                 "error": f"{type(exc).__name__}: {exc}",
             })
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -494,7 +504,7 @@ def convert_library(source_root: Path, labels_file: Path, scopes: Sequence[str],
     report = stats.as_dict() | {
         "scopes": list(scopes),
         "source_root": str(source_root),
-        "labels_file": str(labels_file),
+        "labels_file": str(labels_file) if labels_file is not None else None,
         "output_file": str(output_file),
     }
     if report_file is not None:
@@ -512,10 +522,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--report", type=Path, default=Path("build/qet-conversion-report.json"))
     ap.add_argument("--fail-on-errors", action="store_true")
     args = ap.parse_args(argv)
+    labels_file = args.labels
+    if labels_file is None:
+        candidate = args.qet_root / "qet_labels.xml"
+        labels_file = candidate if candidate.is_file() else None
+    scopes = args.scopes
+    if not scopes:
+        scopes = sorted(path.name for path in args.qet_root.iterdir() if path.is_dir())
     stats = convert_library(
         args.qet_root,
-        args.labels or args.qet_root / "qet_labels.xml",
-        args.scopes or ["10_allpole"],
+        labels_file,
+        scopes,
         args.output,
         args.report,
     )

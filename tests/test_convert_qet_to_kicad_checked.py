@@ -55,3 +55,35 @@ def test_label_dynamic_text_is_not_staticized():
         '<text>M1</text><info_name>label</info_name></dynamic_text>'
     )
     assert "dynamic_text_staticized:ElementInfo" not in adjustments
+
+
+def test_usertext_label_is_visible_static_text():
+    drawing, adjustments = render(
+        '<dynamic_text x="2" y="3" rotation="0" text_from="UserText" font="Liberation Sans,5">'
+        '<text>n</text><info_name>label</info_name></dynamic_text>'
+    )
+
+    assert len(drawing) == 1
+    assert '(text "n"' in drawing[0]
+    assert "dynamic_text_staticized:UserText" in adjustments
+
+
+def test_usertext_label_is_not_used_as_reference():
+    root = ET.fromstring(
+        '<definition><description>'
+        '<dynamic_text text_from="ElementInfo"><text></text><info_name>label</info_name></dynamic_text>'
+        '<dynamic_text text_from="UserText"><text>n</text><info_name>label</info_name></dynamic_text>'
+        '</description></definition>'
+    )
+
+    assert mod.explicit_label(root, root.find("description")) == ""
+
+
+def test_non_usertext_label_can_still_supply_reference():
+    root = ET.fromstring(
+        '<definition><description>'
+        '<dynamic_text text_from="ElementInfo"><text>K1</text><info_name>label</info_name></dynamic_text>'
+        '</description></definition>'
+    )
+
+    assert mod.explicit_label(root, root.find("description")) == "K1"
