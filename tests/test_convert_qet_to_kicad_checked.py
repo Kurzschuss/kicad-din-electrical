@@ -187,3 +187,22 @@ def test_circle_line_endpoint_preserves_qet_circle_and_pen_offset():
     assert '(circle (center 2.159 0) (radius 0.381)' in drawing[1]
     assert "line_endpoint_decoration_rendered:circle" in adjustments
     assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_legacy_ncne_ncrmal_typos_are_normalized_without_geometry_loss():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="ncne" end2="ncne" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:ncrmal;line-weight:ncrmal;filling:ncne;color:black"/>'
+    )
+
+    assert len(drawing) == 1
+    assert '(xy 0 0) (xy 2.54 0)' in drawing[0]
+    assert "legacy_qet_typo_normalized:end=ncne->none" in adjustments
+    assert "legacy_qet_typo_normalized:line-style=ncrmal->normal" in adjustments
+    assert "legacy_qet_typo_normalized:line-weight=ncrmal->normal" in adjustments
+    assert "legacy_qet_typo_normalized:filling=ncne->none" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+    assert "line_style_approximated:ncrmal" not in adjustments
+    assert "line_weight_approximated:ncrmal" not in adjustments
+    assert "color_fill_mapped_to_outline:ncne" not in adjustments
