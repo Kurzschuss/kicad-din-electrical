@@ -1,0 +1,199 @@
+name: QET Phase 2 logic conversion
+
+on:
+  push:
+    branches:
+      - agent/qet-phase2-logic-converter
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_convert_qet_collection_generic.py"
+      - "tests/test_audit_qet_source.py"
+      - ".github/workflows/qet-phase2-logic-conversion.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase2-logic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run converter and audit regression tests
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_convert_qet_collection_generic.py \
+            tests/test_audit_qet_source.py \
+            -q
+
+      - name: Convert complete 20_logic collection
+        run: |
+          mkdir -p build
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/20_logic \
+            --scope 2010_logic_gates \
+            --scope 2020_flow_chart \
+            --output build/Z_Q_QElectroTech_Logic.kicad_sym \
+            --report build/qet-phase2-logic-conversion-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Validate logic inventory and metadata
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          library_path = Path("build/Z_Q_QElectroTech_Logic.kicad_sym")
+          library = library_path.read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-phase2-logic-conversion-report.json").read_text(encoding="utf-8"))
+
+          assert report["source_files"] == report["converted"] == 75
+          assert report["zero_pin_symbols"] == 0
+          assert report["missing_german_names"] == 0
+          assert report["duplicate_names_resolved"] == 0
+          assert report["labels_file"] is None
+          assert not report["errors"], report["errors"]
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == 75
+          assert library.count('(property "QET_Source_Path" ') == 75
+          assert library.count('(property "QET_Category" ') == 75
+          assert library.count('(property "QET_Adjustments" ') == 75
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == 0
+          assert "german_name_fallback:" not in library
+          assert '(property "Value" "Z_Q_' not in library
+          assert '(property "Value" ""' not in library
+          assert "10_electric /" not in library
+          assert '"10_electric/' not in library
+
+          source_paths = re.findall(r'\(property "QET_Source_Path" "([^"]+)"', library)
+          assert len(source_paths) == 75
+          assert all(path.startswith("20_logic/") for path in source_paths)
+          scope_counts = Counter(path.split("/")[1] for path in source_paths)
+          assert dict(scope_counts) == {
+              "2010_logic_gates": 43,
+              "2020_flow_chart": 32,
+          }
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          inventory = {
+              "library": library_path.name,
+              "qet_source_commit": source_commit,
+              "collection": "20_logic",
+              "source_files": report["source_files"],
+              "converted": report["converted"],
+              "zero_pin_symbols": report["zero_pin_symbols"],
+              "missing_german_names": report["missing_german_names"],
+              "scope_counts": dict(scope_counts),
+              "fallback_references": report["fallback_references"],
+              "generated_pin_numbers": report["generated_pin_numbers"],
+              "symbols_with_adjustments": report["symbols_with_adjustments"],
+              "unsupported_nodes": report["unsupported_nodes"],
+              "adjustment_counts": report["adjustment_counts"],
+          }
+          Path("build/qet-phase2-logic-inventory.json").write_text(
+              json.dumps(inventory, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(inventory, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render complete 20_logic library with KiCad
+        run: |
+          mkdir -p build/kicad-svg-phase2-logic
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg-phase2-logic \
+            build/Z_Q_QElectroTech_Logic.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          svg_files = sorted(Path("build/kicad-svg-phase2-logic").glob("*.svg"))
+          assert len(svg_files) == 75, len(svg_files)
+          empty = [str(path) for path in svg_files if path.stat().st_size == 0]
+          assert not empty, empty[:20]
+          Path("build/qet-phase2-logic-kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": 75,
+                      "empty_svg_files": len(empty),
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Enforce strict logic conversion quality
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-phase2-logic-conversion-report.json").read_text(encoding="utf-8"))
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
+          assert report["source_files"] == report["converted"] == 75
+          PY
+
+      - name: Upload Phase 2 logic conversion and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase2-logic-conversion
+          path: |
+            build/Z_Q_QElectroTech_Logic.kicad_sym
+            build/qet-phase2-logic-conversion-report.json
+            build/qet-phase2-logic-inventory.json
+            build/qet-phase2-logic-kicad-smoke-report.json
+            build/kicad-version.txt
+            build/qet-source-commit.txt
