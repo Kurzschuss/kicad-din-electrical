@@ -1,0 +1,275 @@
+name: QET Phase 5 Energy conversion
+
+on:
+  push:
+    branches:
+      - agent/qet-phase5-energy-converter
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tools/generate_qet_energy_de_names.py"
+      - "config/qet_de_names/60_energy/**"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_convert_qet_collection_generic.py"
+      - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "tests/test_qet_energy_de_names.py"
+      - ".github/workflows/qet-phase5-energy-conversion.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase5-energy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run converter, audit, and Energy-name regressions
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_convert_qet_collection_generic.py \
+            tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
+            tests/test_qet_energy_de_names.py \
+            -q
+
+      - name: Convert complete 60_energy collection
+        run: |
+          mkdir -p build
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/60_energy \
+            --scope 11_water \
+            --scope 21_refrigeration \
+            --scope 31_solar_thermal \
+            --scope 41_manufacturers_articles \
+            --output build/Z_Q_QElectroTech_Energy.kicad_sym \
+            --report build/qet-phase5-energy-conversion-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Audit complete Energy source
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/60_energy \
+            --scope 11_water \
+            --scope 21_refrigeration \
+            --scope 31_solar_thermal \
+            --scope 41_manufacturers_articles \
+            --output build/qet-audit-60_energy-full.json
+
+      - name: Generate reviewed German Energy names
+        run: |
+          python tools/generate_qet_energy_de_names.py \
+            --audit build/qet-audit-60_energy-full.json \
+            --rule-dir config/qet_de_names/60_energy/rules \
+            --output-dir build/qet-energy-de-names \
+            --report build/qet-phase5-energy-name-review.json
+
+      - name: Apply reviewed German Energy names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech_Energy.kicad_sym \
+            --config-dir build/qet-energy-de-names \
+            --report build/qet-phase5-energy-name-apply-report.json \
+            --strict
+
+      - name: Validate Energy inventory, names, and metadata
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from collections import Counter
+          from pathlib import Path
+
+          expected_scopes = {
+              "11_water": 819,
+              "21_refrigeration": 325,
+              "31_solar_thermal": 161,
+              "41_manufacturers_articles": 20,
+          }
+          expected_missing_de = {
+              "11_water": 772,
+              "21_refrigeration": 307,
+              "31_solar_thermal": 128,
+              "41_manufacturers_articles": 19,
+          }
+          expected_total = sum(expected_scopes.values())
+          expected_names = sum(expected_missing_de.values())
+          assert expected_total == 1325
+          assert expected_names == 1226
+
+          library_path = Path("build/Z_Q_QElectroTech_Energy.kicad_sym")
+          library = library_path.read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-phase5-energy-conversion-report.json").read_text(encoding="utf-8"))
+          audit = json.loads(Path("build/qet-audit-60_energy-full.json").read_text(encoding="utf-8"))
+          review = json.loads(Path("build/qet-phase5-energy-name-review.json").read_text(encoding="utf-8"))
+          names = json.loads(Path("build/qet-phase5-energy-name-apply-report.json").read_text(encoding="utf-8"))
+
+          assert report["source_files"] == report["converted"] == expected_total
+          assert report["zero_pin_symbols"] == 53
+          assert report["missing_german_names"] == expected_names
+          assert report["duplicate_names_resolved"] == 0
+          assert not report["errors"], report["errors"]
+
+          assert audit["source_files"] == expected_total
+          assert audit["zero_pin_symbols"] == 53
+          assert audit["missing_german_names"] == expected_names
+          assert not audit["parse_errors"], audit["parse_errors"]
+          assert len(audit["sanitized_xml_files"]) == 3, audit["sanitized_xml_files"]
+
+          assert review["configured_german_names"] == expected_names
+          assert review["remaining_translation_count"] == 0
+          assert review["scopes"] == expected_missing_de
+
+          assert names["configured_overrides"] == names["applied_overrides"] == expected_names
+          assert not names["unmatched_override_paths"], names["unmatched_override_paths"]
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == expected_total
+          assert library.count('(property "QET_Source_Path" ') == expected_total
+          assert library.count('(property "QET_Category" ') == expected_total
+          assert library.count('(property "QET_Adjustments" ') == expected_total
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == 53
+          assert library.count("german_name_override") == expected_names
+          assert "german_name_fallback:" not in library
+          assert '(property "Value" "Z_Q_' not in library
+          assert '(property "Value" ""' not in library
+          assert "10_electric /" not in library
+          assert '"10_electric/' not in library
+
+          source_paths = re.findall(r'\(property "QET_Source_Path" "([^"]+)"', library)
+          assert len(source_paths) == expected_total
+          assert all(path.startswith("60_energy/") for path in source_paths)
+          scope_counts = Counter(path.split("/")[1] for path in source_paths)
+          assert dict(scope_counts) == expected_scopes
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          manifest = {
+              "library": library_path.name,
+              "qet_source_commit": source_commit,
+              "collection": "60_energy",
+              "source_files": report["source_files"],
+              "converted": report["converted"],
+              "zero_pin_symbols": report["zero_pin_symbols"],
+              "raw_missing_german_names": report["missing_german_names"],
+              "german_names_applied": names["applied_overrides"],
+              "remaining_german_names": 0,
+              "scope_counts": dict(scope_counts),
+              "fallback_references": report["fallback_references"],
+              "generated_pin_numbers": report["generated_pin_numbers"],
+              "symbols_with_adjustments": report["symbols_with_adjustments"],
+              "unsupported_nodes": report["unsupported_nodes"],
+              "adjustment_counts": report["adjustment_counts"],
+          }
+          Path("build/qet-phase5-energy-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render complete Energy library with KiCad
+        run: |
+          mkdir -p build/kicad-svg-phase5-energy
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg-phase5-energy \
+            build/Z_Q_QElectroTech_Energy.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          svg_files = sorted(Path("build/kicad-svg-phase5-energy").glob("*.svg"))
+          assert len(svg_files) == 1325, len(svg_files)
+          empty = [str(path) for path in svg_files if path.stat().st_size == 0]
+          assert not empty, empty[:20]
+          Path("build/qet-phase5-energy-kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": 1325,
+                      "empty_svg_files": len(empty),
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Enforce strict Energy conversion quality
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-phase5-energy-conversion-report.json").read_text(encoding="utf-8"))
+          adjustments = report["adjustment_counts"]
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
+          assert report["source_files"] == report["converted"] == 1325
+          assert report["zero_pin_symbols"] == 53
+          assert adjustments.get("line_endpoint_decoration_omitted", 0) == 0, adjustments
+          assert "line_weight_approximated:hight" not in adjustments
+          assert "line_weight_approximated:eleve" not in adjustments
+          PY
+
+      - name: Upload Phase 5 Energy conversion and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase5-energy-conversion
+          path: |
+            build/Z_Q_QElectroTech_Energy.kicad_sym
+            build/qet-phase5-energy-conversion-report.json
+            build/qet-audit-60_energy-full.json
+            build/qet-energy-de-names/*.json
+            build/qet-phase5-energy-name-review.json
+            build/qet-phase5-energy-name-apply-report.json
+            build/qet-phase5-energy-manifest.json
+            build/qet-phase5-energy-kicad-smoke-report.json
+            build/kicad-version.txt
+            build/qet-source-commit.txt
