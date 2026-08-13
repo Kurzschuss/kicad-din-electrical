@@ -152,12 +152,29 @@ python -m pip install -r requirements-dev.txt
 
 Das ist beabsichtigt. So können mehrere Testarten nacheinander ausgeführt werden, ohne die Batchdatei erneut zu starten. Mit **0 – Programm verlassen** wird das Menü beendet.
 
-## GitHub Actions
+## GitHub Actions und vollständige Repository-Prüfung
 
-Die zentrale CI führt ebenfalls die vollständige Testsuite aus:
+Die zentrale CI heißt **ProjectOS complete test suite** und ist in
+`.github/workflows/complete-test-suite.yml` definiert. Sie läuft bei Pull Requests gegen `main`, bei Pushes auf `main` sowie manuell über `workflow_dispatch`.
 
-```bash
-python -m pytest -q
-```
+Die CI geht deutlich über `python -m pytest -q` hinaus. Der aktuelle Ablauf prüft nacheinander unter anderem:
 
-Ein erfolgreicher lokaler Lauf ist daher ein guter Hinweis darauf, dass auch der Pull-Request-Workflow erfolgreich sein wird.
+1. Repository-Health-Check,
+2. vollständige Pytest-Suite,
+3. Python-Syntax für `distributions`, `tests` und `tools`,
+4. Z_-Quality-Release-Profil,
+5. KiCad-Bibliotheksvalidierung,
+6. erzeugte Gerätevarianten,
+7. Gerätekatalog,
+8. erzeugte Symbol- und Footprintreferenzen,
+9. Qualitätsbericht,
+10. Symbolvorschauen,
+11. 3D-Vorschauen,
+12. HTML-Referenz,
+13. Gerätekatalog-HTML,
+14. ProjectOS-Projektvalidator,
+15. Erzeugung des Z_Cockpit-HTML.
+
+Für Änderungen an Bibliotheken, Generatoren oder Dokumentationsartefakten reicht ein reiner Pytest-Lauf deshalb nicht als vollständige CI-Parität aus. Vor einem Pull Request sollte mindestens `run_tests.bat` beziehungsweise `run_tests.sh` erfolgreich sein; bei Änderungen an erzeugten Dateien sollten zusätzlich die jeweils betroffenen Generatoren mit ihrer `--check`-Option ausgeführt werden.
+
+Der Workflow selbst ist die verbindliche Quelle für die aktuell tatsächlich ausgeführten CI-Schritte. Wenn diese Anleitung und der Workflow voneinander abweichen, gilt `.github/workflows/complete-test-suite.yml`.
