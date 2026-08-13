@@ -1,5 +1,11 @@
 """Conflict-aware bidirectional synchronization for DIN/KiCad terminal labels."""
-from .din_kicad_sync import apply_kicad_terminal_labels, export_terminal_labels, import_kicad_manifest_labels, terminal_sync_report
+from .din_kicad_sync import (
+    apply_kicad_terminal_labels,
+    export_kicad_manifest,
+    export_terminal_labels,
+    import_kicad_manifest_labels,
+    terminal_sync_report,
+)
 from .din_editor_change_service import DinEditorChangeService
 
 
@@ -16,6 +22,9 @@ class DinEditorSyncService:
 
     def export_labels(self) -> list[dict]:
         return export_terminal_labels(self.session.components)
+
+    def export_manifest(self) -> dict:
+        return export_kicad_manifest(self.session.components)
 
     def import_labels(self, fields: list[dict], overwrite: bool = True) -> dict:
         before = [dict(c) for c in self.session.components]
