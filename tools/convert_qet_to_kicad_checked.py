@@ -8,14 +8,14 @@ from pathlib import Path
 from typing import Sequence
 
 import convert_qet_to_kicad as core
-from qet_xml import parse_qet_tree
+from qet_xml import SanitizationInfo, parse_qet_tree
 
 _ORIGINAL_GRAPHICS = core.graphics
 _ORIGINAL_EXPLICIT_LABEL = core.explicit_label
 _ORIGINAL_CONVERT_ELEMENT = core.convert_element
 _ORIGINAL_ET_PARSE = core.ET.parse
 _RADIUS_ATTRIBUTES = ("rx", "ry", "radius")
-_SANITIZED_PATHS: dict[Path, list[int]] = {}
+_SANITIZED_PATHS: dict[Path, SanitizationInfo] = {}
 _PLACEHOLDER_LABEL_RE = re.compile(r"^\?[^?]+\?$")
 _NATIVE_FILLS = {"none", "black", "foreground", "color", "white", "background"}
 _PATTERN_FILLS = {"bdiag", "fdiag", "hor", "ver", "diagcross", "cross"}
@@ -90,9 +90,9 @@ def _normalize_non_native_fill(node: ET.Element, adjustments: set[str]) -> ET.El
 def _safe_et_parse(source, parser=None):
     if isinstance(source, (str, Path)):
         path = Path(source)
-        tree, replaced = parse_qet_tree(path)
-        if replaced:
-            _SANITIZED_PATHS[path.resolve()] = replaced
+        tree, info = parse_qet_tree(path)
+        if info.changed:
+            _SANITIZED_PATHS[path.resolve()] = info
         return tree
     return _ORIGINAL_ET_PARSE(source, parser=parser)
 
@@ -165,12 +165,14 @@ def _add_adjustment_to_symbol(symbol_text: str, adjustment: str) -> tuple[str, b
 
 def convert_element(source_file: Path, source_root: Path, prefixes, stats, used) -> str:
     symbol = _ORIGINAL_CONVERT_ELEMENT(source_file, source_root, prefixes, stats, used)
-    path = source_file.resolve()
-    if path in _SANITIZED_PATHS:
-        marker = "invalid_xml_char_reference_sanitized"
-        symbol, was_none = _add_adjustment_to_symbol(symbol, marker)
-        stats.adjustment_counts[marker] += 1
-        if was_none:
+    info = _SANITIZED_PATHS.get(source_file.resolve())
+    if info is not None:
+        counted_as_adjusted = False
+        for marker in info.markers:
+            symbol, was_none = _add_adjustment_to_symbol(symbol, marker)
+            stats.adjustment_counts[marker] += 1
+            counted_as_adjusted = counted_as_adjusted or was_none
+        if counted_as_adjusted:
             stats.symbols_with_adjustments += 1
     return symbol
 

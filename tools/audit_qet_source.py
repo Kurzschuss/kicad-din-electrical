@@ -44,12 +44,14 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
         rel = source_file.relative_to(qet_root)
         source_path = str(Path("10_electric") / rel).replace("\\", "/")
         try:
-            root, replaced = parse_qet_file(source_file)
-            if replaced:
+            root, sanitation = parse_qet_file(source_file)
+            if sanitation.changed:
                 sanitized_xml_files.append(
                     {
                         "path": source_path,
-                        "invalid_codepoints": replaced,
+                        "invalid_codepoints": sanitation.invalid_codepoints,
+                        "inserted_name_end_tags": sanitation.inserted_name_end_tags,
+                        "markers": sanitation.markers,
                     }
                 )
             names = element_names(root)
