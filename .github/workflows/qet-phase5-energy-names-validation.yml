@@ -1,0 +1,147 @@
+name: QET Phase 5 Energy German names
+
+on:
+  push:
+    branches:
+      - agent/qet-phase5-energy-names
+    paths:
+      - "config/qet_de_names/60_energy/**"
+      - "tools/generate_qet_energy_de_names.py"
+      - "tools/audit_qet_source.py"
+      - "tools/qet_xml.py"
+      - "tests/test_qet_energy_de_names.py"
+      - ".github/workflows/qet-phase5-energy-names-validation.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase5-energy-names:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Validate Energy terminology rules
+        run: python -m pytest tests/test_qet_energy_de_names.py -q
+
+      - name: Audit pinned Energy source
+        run: |
+          mkdir -p build
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/60_energy \
+            --scope 11_water \
+            --scope 21_refrigeration \
+            --scope 31_solar_thermal \
+            --scope 41_manufacturers_articles \
+            --output build/qet-audit-60_energy-full.json
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Generate reviewed German Energy names
+        run: |
+          python tools/generate_qet_energy_de_names.py \
+            --audit build/qet-audit-60_energy-full.json \
+            --rule-dir config/qet_de_names/60_energy/rules \
+            --output-dir build/qet-energy-de-names \
+            --report build/qet-phase5-energy-name-review.json
+
+      - name: Prove exact German-name coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          source_commit = "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+          expected_scopes = {
+              "11_water": 772,
+              "21_refrigeration": 307,
+              "31_solar_thermal": 128,
+              "41_manufacturers_articles": 19,
+          }
+          build = Path("build")
+          audit = json.loads((build / "qet-audit-60_energy-full.json").read_text(encoding="utf-8"))
+          assert audit["source_files"] == 1325, audit["source_files"]
+          assert audit["zero_pin_symbols"] == 53, audit["zero_pin_symbols"]
+          assert audit["missing_german_names"] == 1226, audit["missing_german_names"]
+          assert not audit["parse_errors"], audit["parse_errors"]
+
+          audited_paths = {item["path"] for item in audit["items"]}
+          assert len(audited_paths) == 1226
+
+          configured = {}
+          actual_scopes = {}
+          for scope, expected_count in expected_scopes.items():
+              payload = json.loads((build / "qet-energy-de-names" / f"{scope}.json").read_text(encoding="utf-8"))
+              assert payload["schema_version"] == 1
+              assert payload["source_commit"] == source_commit
+              assert payload["scope"] == f"60_energy/{scope}"
+              entries = payload["overrides"]
+              assert len(entries) == expected_count, (scope, len(entries))
+              assert all(path.startswith(f"60_energy/{scope}/") for path in entries)
+              assert all(value.strip() for value in entries.values())
+              assert all(not value.startswith("Energie-Symbol ") for value in entries.values())
+              overlap = set(configured) & set(entries)
+              assert not overlap, sorted(overlap)[:10]
+              configured.update(entries)
+              actual_scopes[scope] = len(entries)
+
+          assert len(configured) == 1226
+          assert set(configured) == audited_paths
+          assert (build / "qet-source-commit.txt").read_text(encoding="utf-8").strip() == source_commit
+
+          review = json.loads((build / "qet-phase5-energy-name-review.json").read_text(encoding="utf-8"))
+          assert review["configured_german_names"] == 1226
+          assert review["remaining_translation_count"] == 0
+          assert review["scopes"] == expected_scopes
+
+          summary = {
+              "qet_source_commit": source_commit,
+              "source_files": audit["source_files"],
+              "zero_pin_symbols": audit["zero_pin_symbols"],
+              "audited_missing_german_names": audit["missing_german_names"],
+              "configured_german_names": len(configured),
+              "remaining_translation_count": 0,
+              "scopes": actual_scopes,
+          }
+          (build / "qet-phase5-energy-names-validation-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload Energy name validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase5-energy-names-validation
+          path: |
+            build/qet-audit-60_energy-full.json
+            build/qet-energy-de-names/*.json
+            build/qet-phase5-energy-name-review.json
+            build/qet-phase5-energy-names-validation-summary.json
+            build/qet-source-commit.txt
