@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KiCad DIN Electrical – Footprintvorschauen</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 1100px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .card { border: 1px solid #8886; border-radius: .7rem; padding: 1rem; }
+    .card img { width: 100%; height: auto; display: block; }
+    .card h2 { font-size: 1rem; margin: .75rem 0 0; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Automatische Footprintvorschauen</h1>
+    <p>Die SVGs werden deterministisch aus vorhandener KiCad-Footprintgeometrie erzeugt. Nicht unterstützte Geometrie wird nicht erfunden.</p>
+  </header>
+  <main class="grid">
+    <article class="card"><img src="Z_DIN_Contactor_45mm.svg" alt="Footprintvorschau Z_DIN_Contactor_45mm"><h2><code>Z_DIN_Contactor_45mm</code></h2></article>
+    <article class="card"><img src="Z_DIN_Module_18mm.svg" alt="Footprintvorschau Z_DIN_Module_18mm"><h2><code>Z_DIN_Module_18mm</code></h2></article>
+    <article class="card"><img src="Z_DIN_Module_36mm.svg" alt="Footprintvorschau Z_DIN_Module_36mm"><h2><code>Z_DIN_Module_36mm</code></h2></article>
+    <article class="card"><img src="Z_DIN_Module_45mm.svg" alt="Footprintvorschau Z_DIN_Module_45mm"><h2><code>Z_DIN_Module_45mm</code></h2></article>
+    <article class="card"><img src="Z_DIN_Safety_Module.svg" alt="Footprintvorschau Z_DIN_Safety_Module"><h2><code>Z_DIN_Safety_Module</code></h2></article>
+    <article class="card"><img src="Z_DIN_Terminal_Block.svg" alt="Footprintvorschau Z_DIN_Terminal_Block"><h2><code>Z_DIN_Terminal_Block</code></h2></article>
+  </main>
+</body>
+</html>
