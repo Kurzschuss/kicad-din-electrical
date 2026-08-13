@@ -226,9 +226,23 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("build/qet-phase4-pneumatic-conversion-report.json").read_text(encoding="utf-8"))
+          adjustments = report["adjustment_counts"]
+
           assert not report["errors"], report["errors"]
           assert not report["unsupported_nodes"], report["unsupported_nodes"]
           assert report["source_files"] == report["converted"] == 343
+          assert adjustments.get("line_endpoint_decoration_omitted", 0) == 0, adjustments
+          assert adjustments.get("line_endpoint_decoration_rendered:circle", 0) == 11, adjustments
+          assert adjustments.get("line_endpoint_decoration_rendered:simple", 0) == 2, adjustments
+          assert adjustments.get("legacy_qet_typo_normalized:end=ncne->none", 0) == 1, adjustments
+          assert adjustments.get("legacy_qet_typo_normalized:filling=ncne->none", 0) == 1, adjustments
+          assert adjustments.get("legacy_qet_typo_normalized:line-style=ncrmal->normal", 0) == 1, adjustments
+          assert adjustments.get("legacy_qet_typo_normalized:line-weight=ncrmal->normal", 0) == 1, adjustments
+          assert "color_fill_mapped_to_outline:ncne" not in adjustments
+          assert "line_style_approximated:ncrmal" not in adjustments
+          assert "line_weight_approximated:ncrmal" not in adjustments
+          assert "line_weight_approximated:hight" not in adjustments
+          assert "line_weight_approximated:eleve" not in adjustments
           PY
 
       - name: Upload Phase 4 pneumatic conversion and reports
