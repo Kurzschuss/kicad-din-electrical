@@ -37,6 +37,12 @@ Datei: Z_DIN_Control.kicad_sym
 Bibliotheksname in KiCad: Z_DIN_Control
 ```
 
+### QElectroTech-Masterbibliothek
+
+Die große Datei `Z_Q_QElectroTech.kicad_sym` liegt nicht im Ordner `symbols/`. Sie wird reproduzierbar gebaut und als dauerhafter GitHub-Release-Snapshot `qet-master-*` verteilt.
+
+Download, Prüfsummen und Installationshinweise stehen in [QET_LIBRARY.md](QET_LIBRARY.md).
+
 ## 3. Footprintbibliotheken einbinden
 
 1. Den **Footprint-Editor** öffnen.
@@ -94,6 +100,8 @@ Das ist sinnvoll für Tests, portable Projekte oder wenn verschiedene Bibliothek
 Wenn das Repository mit GitHub Desktop aktualisiert wird, bleiben die Pfade normalerweise unverändert. KiCad verwendet dann automatisch die aktualisierten Dateien.
 
 Wurden Bibliotheksdateien oder Ordner umbenannt, kann eine erneute Registrierung nötig sein.
+
+Die QElectroTech-Masterbibliothek wird separat über Releases aktualisiert. Für einen neuen Stand die gewünschte `Z_Q_QElectroTech.kicad_sym` herunterladen und die bisherige Datei am dauerhaft registrierten Speicherort ersetzen.
 
 ## 7. Häufige Probleme
 

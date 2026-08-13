@@ -1,0 +1,117 @@
+name: Publish QET master release
+
+on:
+  workflow_run:
+    workflows:
+      - QET master library integration
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-qet-master:
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'workflow_dispatch' &&
+        github.event.workflow_run.head_branch == 'main'
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download validated QET master artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: qet-master-library-validation
+          path: release
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare release metadata and checksums
+        id: meta
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          MASTER_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+
+          required=(
+            Z_Q_QElectroTech.kicad_sym
+            qet-master-manifest.json
+            qet-master-merge-report.json
+            qet-master-kicad-smoke-report.json
+            kicad-version.txt
+            qet-source-commit.txt
+          )
+          for name in "${required[@]}"; do
+            test -s "release/${name}"
+          done
+
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          qet_source="$(tr -d '\r\n' < release/qet-source-commit.txt)"
+          [[ "$qet_source" =~ ^[0-9a-f]{40}$ ]]
+
+          short_sha="${HEAD_SHA:0:12}"
+          tag="qet-master-${short_sha}"
+
+          {
+            echo "tag=${tag}"
+            echo "short_sha=${short_sha}"
+            echo "qet_source=${qet_source}"
+          } >> "$GITHUB_OUTPUT"
+
+          (
+            cd release
+            sha256sum \
+              Z_Q_QElectroTech.kicad_sym \
+              qet-master-manifest.json \
+              qet-master-merge-report.json \
+              qet-master-kicad-smoke-report.json \
+              kicad-version.txt \
+              qet-source-commit.txt \
+              > SHA256SUMS.txt
+          )
+
+          cat > release/RELEASE_NOTES.md <<EOF
+          Validierter QElectroTech-Masterbuild aus Repository-Commit \`${HEAD_SHA}\`.
+
+          - QElectroTech-Upstream: \`${qet_source}\`
+          - Master-Workflow-Run: \`${MASTER_RUN_ID}\`
+          - KiCad-Symbole: 8.755
+          - KiCad-Renderprüfung: 8.755 / 8.755, 0 leere SVG-Dateien
+
+          Die Datei \`Z_Q_QElectroTech.kicad_sym\` ist die direkt in KiCad einzubindende Masterbibliothek. \`SHA256SUMS.txt\` enthält die Prüfsummen aller veröffentlichten Validierungsdateien.
+          EOF
+
+      - name: Publish durable QET master snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; keeping the immutable snapshot unchanged."
+            exit 0
+          fi
+
+          gh release create "$TAG" \
+            release/Z_Q_QElectroTech.kicad_sym \
+            release/qet-master-manifest.json \
+            release/qet-master-merge-report.json \
+            release/qet-master-kicad-smoke-report.json \
+            release/kicad-version.txt \
+            release/qet-source-commit.txt \
+            release/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$HEAD_SHA" \
+            --title "QElectroTech Master Library ${SHORT_SHA}" \
+            --notes-file release/RELEASE_NOTES.md \
+            --latest=false
