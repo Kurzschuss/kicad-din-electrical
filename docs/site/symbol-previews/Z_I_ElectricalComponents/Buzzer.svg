@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Buzzer</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="90.42" y="50.27" width="59.15" height="29.58" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="90.42,50.27 91.59,40.11 94.81,31.79 99.67,25.32 105.76,20.70 112.67,17.92 120.00,17.00 127.33,17.92 134.24,20.70 140.33,25.32 145.19,31.79 148.41,40.11 149.58,50.27" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="97.82,79.85 97.82,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="142.18,79.85 142.18,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="97.82" y1="139.00" x2="97.82" y2="124.21" stroke="currentColor" stroke-width="2"/>
+  <line x1="142.18" y1="139.00" x2="142.18" y2="124.21" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Buzzer</text>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: RCBO_4P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="55.23" y="47.52" width="15.24" height="15.24" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="46.09" y="85.62" width="24.38" height="21.34" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="88.76,26.18 88.76,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="122.29,26.18 122.29,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="155.81,26.18 155.81,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="189.34,26.18 189.34,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="76.57,52.09 88.76,103.91 88.76,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.09,52.09 122.29,103.91 122.29,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="143.62,52.09 155.81,103.91 155.81,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="177.15,52.09 189.34,103.91 189.34,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="82.66,78.00 183.25,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="200.01,116.10 198.84,117.59 195.37,119.02 189.74,120.33 182.16,121.49 172.92,122.44 162.38,123.14 150.94,123.57 139.05,123.72 127.16,123.57 115.72,123.14 105.18,122.44 95.94,121.49 88.36,120.33 82.73,119.02 79.26,117.59 78.09,116.10 79.26,114.61 82.73,113.18 88.36,111.87 95.94,110.71 105.18,109.76 115.72,109.06 127.16,108.63 139.05,108.48 150.94,108.63 162.38,109.06 172.92,109.76 182.16,110.71 189.74,111.87 195.37,113.18 198.84,114.61 200.01,116.10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="62.85,47.52 62.85,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="55.23,55.14 70.47,55.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="52.18,55.14 46.09,50.57 46.09,59.71 52.18,55.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="46.09,55.14 39.99,55.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="39.99,49.04 39.99,61.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="70.47,55.14 82.66,65.81" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="58.28,106.96 58.28,116.10 78.09,116.10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="62.85,62.76 62.85,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="88.76" y1="26.18" x2="104.00" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="88.76" y1="129.82" x2="104.00" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <line x1="122.29" y1="26.18" x2="122.29" y2="41.42" stroke="currentColor" stroke-width="2"/>
+  <line x1="122.29" y1="129.82" x2="122.29" y2="114.58" stroke="currentColor" stroke-width="2"/>
+  <line x1="155.81" y1="26.18" x2="140.57" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="155.81" y1="129.82" x2="140.57" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <line x1="189.34" y1="26.18" x2="174.10" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="189.34" y1="129.82" x2="174.10" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">RCBO_4P</text>
+</svg>

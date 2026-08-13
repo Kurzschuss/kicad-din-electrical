@@ -4,7 +4,7 @@
 
 Die Footprintbibliotheken liegen als `.pretty`-Ordner unter `footprints/`.
 
-**Anzahl der Bibliotheken:** 35
+**Anzahl der Bibliotheken:** 36
 
 ## Bibliotheken
 
@@ -34,6 +34,7 @@ Die Footprintbibliotheken liegen als `.pretty`-Ordner unter `footprints/`.
 - `Z_FI_RCD_4P.pretty` — vorbereitet, noch leer
 - `Z_FUSE.pretty` — vorbereitet, noch leer
 - `Z_Fuse_Distribution_Bus.pretty` — vorbereitet, noch leer
+- `Z_I_ElectricalComponents.pretty` — vorbereitet, noch leer
 - `Z_MAIN_SWITCH.pretty` — vorbereitet, noch leer
 - `Z_MCB.pretty` — vorbereitet, noch leer
 - `Z_MCB_single_pole.pretty` — vorbereitet, noch leer

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Transistor_NPN</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="99.67,78.00 125.08,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="125.08,57.67 125.08,98.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="140.33,17.00 140.33,52.58 125.08,67.83" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="125.08,88.17 140.33,103.42 140.33,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="140.33,103.42 133.22,99.35 137.28,95.28 140.33,103.42" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="99.67" y1="78.00" x2="109.83" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="140.33" y1="17.00" x2="140.33" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="140.33" y1="139.00" x2="140.33" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Transistor_NPN</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: PushButton</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="135.24,17.04 135.24,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="123.05,62.76 135.24,108.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="135.24,108.48 135.24,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.76,85.62 129.14,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="112.38,78.00 104.76,78.00 104.76,93.24 112.38,93.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="135.24" y1="17.04" x2="135.24" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="135.24" y1="138.96" x2="135.24" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">PushButton</text>
+</svg>

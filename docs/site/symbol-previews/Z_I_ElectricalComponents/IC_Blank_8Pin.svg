@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: IC_Blank_8Pin</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="89.50" y="17.00" width="61.00" height="122.00" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="69.17,37.33 89.50,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="69.17,63.77 89.50,63.77" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="69.17,91.22 89.50,91.22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="69.17,118.67 89.50,118.67" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="170.83,37.33 150.50,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="170.83,63.77 150.50,63.77" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="170.83,91.22 150.50,91.22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="170.83,118.67 150.50,118.67" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="69.17" y1="37.33" x2="79.33" y2="37.33" stroke="currentColor" stroke-width="2"/>
+  <line x1="69.17" y1="63.77" x2="79.33" y2="63.77" stroke="currentColor" stroke-width="2"/>
+  <line x1="69.17" y1="91.22" x2="79.33" y2="91.22" stroke="currentColor" stroke-width="2"/>
+  <line x1="69.17" y1="118.67" x2="79.33" y2="118.67" stroke="currentColor" stroke-width="2"/>
+  <line x1="170.83" y1="37.33" x2="160.67" y2="37.33" stroke="currentColor" stroke-width="2"/>
+  <line x1="170.83" y1="63.77" x2="160.67" y2="63.77" stroke="currentColor" stroke-width="2"/>
+  <line x1="170.83" y1="91.22" x2="160.67" y2="91.22" stroke="currentColor" stroke-width="2"/>
+  <line x1="170.83" y1="118.67" x2="160.67" y2="118.67" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">IC_Blank_8Pin</text>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: MCB_1P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="113.90,26.95 113.90,46.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="74.28,92.48 106.28,83.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="71.23,92.48 78.85,86.38 80.38,94.00 71.23,92.48" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="100.19,52.85 113.90,104.67 113.90,130.58" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="71.23,78.76 81.90,75.71 78.85,65.05 89.52,63.52 92.57,74.19 103.24,71.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="168.77,25.42 168.77,25.42" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="113.90" y1="26.95" x2="98.66" y2="26.95" stroke="currentColor" stroke-width="2"/>
+  <line x1="113.90" y1="130.58" x2="113.90" y2="115.34" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">MCB_1P</text>
+</svg>

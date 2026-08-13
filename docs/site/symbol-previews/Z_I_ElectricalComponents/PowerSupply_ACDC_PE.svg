@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: PowerSupply_ACDC_PE</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="99.67" y="37.33" width="61.00" height="81.33" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="99.67,118.67 160.67,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="114.92,17.00 114.92,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="145.42,17.00 145.42,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="114.92,118.67 114.92,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="145.42,118.67 145.42,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="79.33,78.00 99.67,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="114.92" y1="17.00" x2="114.92" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="145.42" y1="17.00" x2="145.42" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="114.92" y1="139.00" x2="114.92" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="145.42" y1="139.00" x2="145.42" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="79.33" y1="78.00" x2="89.50" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">PowerSupply_ACDC_PE</text>
+</svg>

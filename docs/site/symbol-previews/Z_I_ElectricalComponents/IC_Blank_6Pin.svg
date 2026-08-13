@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: IC_Blank_6Pin</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="83.40" y="17.00" width="73.20" height="122.00" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="59.00,41.40 83.40,41.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="59.00,78.00 83.40,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="59.00,114.60 83.40,114.60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="181.00,41.40 156.60,41.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="181.00,78.00 156.60,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="181.00,114.60 156.60,114.60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="59.00" y1="41.40" x2="71.20" y2="41.40" stroke="currentColor" stroke-width="2"/>
+  <line x1="59.00" y1="78.00" x2="71.20" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="59.00" y1="114.60" x2="71.20" y2="114.60" stroke="currentColor" stroke-width="2"/>
+  <line x1="181.00" y1="41.40" x2="168.80" y2="41.40" stroke="currentColor" stroke-width="2"/>
+  <line x1="181.00" y1="78.00" x2="168.80" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="181.00" y1="114.60" x2="168.80" y2="114.60" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">IC_Blank_6Pin</text>
+</svg>

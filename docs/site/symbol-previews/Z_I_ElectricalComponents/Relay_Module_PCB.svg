@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Relay_Module_PCB</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="77.30" y="17.00" width="85.40" height="122.00" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="89.50" y="41.40" width="61.00" height="73.20" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="52.90,41.40 77.30,41.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="52.90,78.00 77.30,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="52.90,114.60 77.30,114.60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="187.10,41.40 162.70,41.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="187.10,78.00 162.70,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="187.10,114.60 162.70,114.60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="52.90" y1="41.40" x2="65.10" y2="41.40" stroke="currentColor" stroke-width="2"/>
+  <line x1="52.90" y1="78.00" x2="65.10" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="52.90" y1="114.60" x2="65.10" y2="114.60" stroke="currentColor" stroke-width="2"/>
+  <line x1="187.10" y1="41.40" x2="174.90" y2="41.40" stroke="currentColor" stroke-width="2"/>
+  <line x1="187.10" y1="78.00" x2="174.90" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="187.10" y1="114.60" x2="174.90" y2="114.60" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Relay_Module_PCB</text>
+</svg>

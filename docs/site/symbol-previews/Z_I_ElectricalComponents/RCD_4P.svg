@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: RCD_4P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="39.61" y="70.38" width="15.24" height="15.24" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="74.66,26.18 74.66,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="112.76,26.18 112.76,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="150.86,26.18 150.86,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="188.96,26.18 188.96,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="62.47,52.09 74.66,103.91 74.66,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="100.57,52.09 112.76,103.91 112.76,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="138.67,52.09 150.86,103.91 150.86,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="176.77,52.09 188.96,103.91 188.96,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="68.56,78.00 182.87,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="200.39,116.10 199.07,117.59 195.17,119.02 188.83,120.33 180.30,121.49 169.91,122.44 158.06,123.14 145.19,123.57 131.81,123.72 118.43,123.57 105.57,123.14 93.71,122.44 83.32,121.49 74.79,120.33 68.45,119.02 64.55,117.59 63.23,116.10 64.55,114.61 68.45,113.18 74.79,111.87 83.32,110.71 93.71,109.76 105.57,109.06 118.43,108.63 131.81,108.48 145.19,108.63 158.06,109.06 169.91,109.76 180.30,110.71 188.83,111.87 195.17,113.18 199.07,114.61 200.39,116.10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="47.23,70.38 47.23,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="39.61,78.00 54.85,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="54.85,78.00 68.56,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="47.23,85.62 47.23,116.10 62.47,116.10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="74.66" y1="26.18" x2="89.90" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="74.66" y1="129.82" x2="89.90" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <line x1="112.76" y1="26.18" x2="112.76" y2="41.42" stroke="currentColor" stroke-width="2"/>
+  <line x1="112.76" y1="129.82" x2="112.76" y2="114.58" stroke="currentColor" stroke-width="2"/>
+  <line x1="150.86" y1="26.18" x2="135.62" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="150.86" y1="129.82" x2="135.62" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <line x1="188.96" y1="26.18" x2="173.72" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="188.96" y1="129.82" x2="173.72" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">RCD_4P</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: IC_Blank_10Pin</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="93.86" y="17.00" width="52.29" height="122.00" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="76.43,34.43 93.86,34.43" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="76.43,56.21 93.86,56.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="76.43,78.00 93.86,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="76.43,99.79 93.86,99.79" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="76.43,121.57 93.86,121.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="163.57,34.43 146.14,34.43" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="163.57,56.21 146.14,56.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="163.57,78.00 146.14,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="163.57,99.79 146.14,99.79" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="163.57,121.57 146.14,121.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="76.43" y1="34.43" x2="85.14" y2="34.43" stroke="currentColor" stroke-width="2"/>
+  <line x1="76.43" y1="56.21" x2="85.14" y2="56.21" stroke="currentColor" stroke-width="2"/>
+  <line x1="76.43" y1="78.00" x2="85.14" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="76.43" y1="99.79" x2="85.14" y2="99.79" stroke="currentColor" stroke-width="2"/>
+  <line x1="76.43" y1="121.57" x2="85.14" y2="121.57" stroke="currentColor" stroke-width="2"/>
+  <line x1="163.57" y1="34.43" x2="154.86" y2="34.43" stroke="currentColor" stroke-width="2"/>
+  <line x1="163.57" y1="56.21" x2="154.86" y2="56.21" stroke="currentColor" stroke-width="2"/>
+  <line x1="163.57" y1="78.00" x2="154.86" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="163.57" y1="99.79" x2="154.86" y2="99.79" stroke="currentColor" stroke-width="2"/>
+  <line x1="163.57" y1="121.57" x2="154.86" y2="121.57" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">IC_Blank_10Pin</text>
+</svg>

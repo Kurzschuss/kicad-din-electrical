@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Heater_Resistive</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="104.75" y="42.42" width="30.50" height="71.17" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="104.75,52.58 135.25,52.58 135.25,62.75 104.75,62.75 104.75,72.92 135.25,72.92 135.25,83.08 104.75,83.08 104.75,93.25 135.25,93.25 135.25,103.42 104.75,103.42" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,17.00 120.00,42.42" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,139.00 120.00,113.58" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="120.00" y1="17.00" x2="120.00" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="120.00" y1="139.00" x2="120.00" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Heater_Resistive</text>
+</svg>

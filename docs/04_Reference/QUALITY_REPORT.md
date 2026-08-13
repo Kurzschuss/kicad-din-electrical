@@ -8,14 +8,14 @@
 
 | Bereich | Anzahl |
 |---|---:|
-| Symbolbibliotheken | 29 |
-| davon befüllt | 20 |
+| Symbolbibliotheken | 30 |
+| davon befüllt | 21 |
 | davon vorbereitet, noch leer | 9 |
-| erkannte Hauptsymbole | 23 |
-| Footprintbibliotheken | 35 |
+| erkannte Hauptsymbole | 75 |
+| Footprintbibliotheken | 36 |
 | Footprints | 6 |
 | Validator-Fehler | 0 |
-| Validator-Hinweise | 55 |
+| Validator-Hinweise | 57 |
 
 ## Footprint-Richtlinien
 
@@ -24,13 +24,13 @@ Die Richtlinie wird pro befüllter Symbolbibliothek ausgewertet. Fehlt das Feld 
 | Richtlinie | Anzahl | Bedeutung |
 |---|---:|---|
 | `required` | 0 | Footprint ist verpflichtend |
-| `optional` | 20 | Footprint darf fehlen |
+| `optional` | 21 | Footprint darf fehlen |
 | `none` | 0 | kein Footprint vorgesehen |
 
 ## Footprint-Zuordnungen
 
 - Symbole mit eingetragener Footprint-Zuordnung: **1**
-- Symbole ohne Footprint-Zuordnung: **19**
+- Symbole ohne Footprint-Zuordnung: **20**
 
 Ein fehlender Footprint ist kein Qualitätsfehler, solange die Richtlinie nicht `required` lautet.
 
@@ -62,6 +62,8 @@ Ein fehlender Footprint ist kein Qualitätsfehler, solange die Richtlinie nicht 
 - ⚠️ `SYM103` `symbols/Z_FUSE.kicad_sym` — Hersteller ist noch nicht hinterlegt.
 - ⚠️ `SYM102` `symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
 - ⚠️ `SYM103` `symbols/Z_Fuse_Distribution_Bus.kicad_sym` — Hersteller ist noch nicht hinterlegt.
+- ⚠️ `SYM102` `symbols/Z_I_ElectricalComponents.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
+- ⚠️ `SYM103` `symbols/Z_I_ElectricalComponents.kicad_sym` — Hersteller ist noch nicht hinterlegt.
 - ⚠️ `SYM102` `symbols/Z_MAIN_SWITCH.kicad_sym` — Datenblatt ist noch nicht hinterlegt.
 - ⚠️ `SYM103` `symbols/Z_MAIN_SWITCH.kicad_sym` — Hersteller ist noch nicht hinterlegt.
 - ⚠️ `SYM102` `symbols/Z_MCB.kicad_sym` — Datenblatt ist noch nicht hinterlegt.

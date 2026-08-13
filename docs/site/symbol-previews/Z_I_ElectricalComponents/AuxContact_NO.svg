@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: AuxContact_NO</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="126.10,17.04 126.10,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="113.90,62.76 126.10,108.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="126.10,108.48 126.10,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="126.10" y1="17.04" x2="126.10" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="126.10" y1="138.96" x2="126.10" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">AuxContact_NO</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: MCB_3P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="193.15,26.18 193.15,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="141.34,26.18 141.34,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="88.00,26.18 88.00,46.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="101.71,91.72 133.72,82.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="153.53,91.72 185.53,82.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="49.90,91.72 80.38,82.57" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="150.48,91.72 158.10,85.62 159.62,93.24 150.48,91.72" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="98.66,91.72 106.28,85.62 107.81,93.24 98.66,91.72" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="127.62,52.09 141.34,103.91 141.34,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="179.44,52.09 193.15,103.91 193.15,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="75.80,52.09 88.00,103.91 88.00,129.82" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="98.66,78.00 109.33,74.95 106.28,64.28 116.95,62.76 120.00,73.43 130.67,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="152.00,78.00 161.15,74.95 159.62,64.28 170.29,62.76 171.82,73.43 182.48,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="46.85,78.00 57.52,74.95 54.47,64.28 65.14,62.76 68.18,73.43 78.85,70.38" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="46.85,91.72 54.47,85.62 57.52,93.24 46.85,91.72" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="88.00" y1="26.18" x2="103.24" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="88.00" y1="129.82" x2="103.24" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <line x1="141.34" y1="26.18" x2="126.10" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="141.34" y1="129.82" x2="141.34" y2="114.58" stroke="currentColor" stroke-width="2"/>
+  <line x1="193.15" y1="26.18" x2="177.91" y2="26.18" stroke="currentColor" stroke-width="2"/>
+  <line x1="193.15" y1="129.82" x2="177.91" y2="129.82" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">MCB_3P</text>
+</svg>
