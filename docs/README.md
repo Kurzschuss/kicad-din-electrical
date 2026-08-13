@@ -39,6 +39,7 @@ Diese Dokumentation wird schrittweise ausgebaut und richtet sich sowohl an KiCad
 - [Durchsuchbare HTML-Übersicht](site/index.html)
 - [Technischer Gerätekatalog](site/devices.html)
 - [Durchsuchbare Symbolvorschau-Galerie](site/symbol-previews/index.html)
+- [Footprintvorschau-Galerie](site/footprint-previews/index.html)
 - [Z_Cockpit-Tabellenprototyp](site/z-cockpit-prototyp.html)
 - [Symbolbibliotheken](04_Reference/SYMBOL_INDEX.md)
 - [Footprintbibliotheken](04_Reference/FOOTPRINT_INDEX.md)
