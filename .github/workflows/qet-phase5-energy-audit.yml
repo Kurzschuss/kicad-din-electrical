@@ -8,6 +8,7 @@ on:
       - "tools/audit_qet_source.py"
       - "tools/qet_xml.py"
       - "tests/test_audit_qet_source.py"
+      - "tests/test_qet_xml.py"
       - ".github/workflows/qet-phase5-energy-audit.yml"
   workflow_dispatch:
     inputs:
@@ -45,8 +46,8 @@ jobs:
       - name: Install test dependency
         run: python -m pip install pytest
 
-      - name: Run audit regression tests
-        run: python -m pytest tests/test_audit_qet_source.py -q
+      - name: Run audit and XML regression tests
+        run: python -m pytest tests/test_audit_qet_source.py tests/test_qet_xml.py -q
 
       - name: Audit energy scopes independently
         run: |
