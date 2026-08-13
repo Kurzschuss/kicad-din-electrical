@@ -26,17 +26,19 @@ Der vollständige Build läuft über:
 .github/workflows/qet-master-integration.yml
 ```
 
-Der Workflow baut alle fünf QET-Sammlungen aus dem gepinnten Upstream-Commit neu auf, führt sie deterministisch zusammen und prüft die resultierende Bibliothek mit KiCad 10.
+Der Workflow baut alle fünf QET-Sammlungen aus dem gepinnten Upstream-Commit neu auf, führt sie deterministisch zusammen und prüft die resultierende Bibliothek mit KiCad 10. Der Masterworkflow selbst besitzt nur Leserechte auf Repository-Inhalte.
 
 Auf `main` wird dieser vollständige Master-Build bei relevanten QET-Änderungen automatisch über `qet-master-main-dispatch.yml` gestartet.
 
 ## Dauerhafte Releases
 
-Nach einem erfolgreichen Master-Build auf `main` veröffentlicht `qet-master-release.yml` einen unveränderlichen Snapshot mit einem Tag der Form:
+`qet-master-main-dispatch.yml` startet auf `main` den vollständigen Masterworkflow, wartet auf genau den dadurch erzeugten `workflow_dispatch`-Run und veröffentlicht erst nach dessen erfolgreichem Abschluss das validierte Artefakt als unveränderlichen Snapshot mit einem Tag der Form:
 
 ```text
 qet-master-<main-commit-sha-12>
 ```
+
+Der Dispatcher checkt keinen Repository-Code aus. Seine Schreibrechte werden ausschließlich für die Veröffentlichung des Release-Snapshots verwendet. Dadurch ist keine zusätzliche `workflow_run`-Kaskade und kein PAT oder anderes zusätzliches Secret erforderlich.
 
 Der Release enthält mindestens:
 
@@ -47,6 +49,8 @@ Der Release enthält mindestens:
 - `kicad-version.txt`
 - `qet-source-commit.txt`
 - `SHA256SUMS.txt`
+
+Vor der Veröffentlichung wird zusätzlich geprüft, dass `qet-source-commit.txt` exakt dem gepinnten QElectroTech-Commit `42692ea76d2fcc3c6cf1ca335951584cd0978922` entspricht.
 
 Der QET-Snapshot wird nicht als allgemeiner `Latest`-Release des Projekts markiert.
 
