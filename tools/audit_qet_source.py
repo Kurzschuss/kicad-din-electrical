@@ -36,6 +36,7 @@ def discover_files(qet_root: Path, scopes: Sequence[str]) -> list[Path]:
 
 def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
     files = discover_files(qet_root, scopes)
+    collection = qet_root.name
     missing_de: list[dict] = []
     parse_errors: list[dict] = []
     sanitized_xml_files: list[dict] = []
@@ -43,7 +44,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
 
     for source_file in files:
         rel = source_file.relative_to(qet_root)
-        source_path = str(Path("10_electric") / rel).replace("\\", "/")
+        source_path = str(Path(collection) / rel).replace("\\", "/")
         try:
             root, sanitation = parse_qet_file(source_file)
             if sanitation.changed:
@@ -64,7 +65,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
                 missing_de.append(
                     {
                         "path": source_path,
-                        "category": " / ".join(("10_electric",) + rel.parent.parts),
+                        "category": " / ".join((collection,) + rel.parent.parts),
                         "filename": source_file.name,
                         "names": names,
                         "terminal_count": len(terminals),

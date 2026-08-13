@@ -1,0 +1,141 @@
+name: QET Phase 2 logic audit
+
+on:
+  push:
+    branches:
+      - agent/qet-phase2-logic-audit
+    paths:
+      - "tools/audit_qet_source.py"
+      - "tools/qet_xml.py"
+      - "tests/test_audit_qet_source.py"
+      - ".github/workflows/qet-phase2-logic-audit.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  audit-qet-phase2-logic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run audit regression tests
+        run: python -m pytest tests/test_audit_qet_source.py -q
+
+      - name: Audit 2010_logic_gates
+        run: |
+          mkdir -p build
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/20_logic \
+            --scope 2010_logic_gates \
+            --output build/qet-audit-20_logic-2010_logic_gates.json
+
+      - name: Audit 2020_flow_chart
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/20_logic \
+            --scope 2020_flow_chart \
+            --output build/qet-audit-20_logic-2020_flow_chart.json
+
+      - name: Audit complete 20_logic collection
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/20_logic \
+            --scope 2010_logic_gates \
+            --scope 2020_flow_chart \
+            --output build/qet-audit-20_logic-full.json
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Validate audit coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          build = Path("build")
+          gates = json.loads((build / "qet-audit-20_logic-2010_logic_gates.json").read_text(encoding="utf-8"))
+          flow = json.loads((build / "qet-audit-20_logic-2020_flow_chart.json").read_text(encoding="utf-8"))
+          full = json.loads((build / "qet-audit-20_logic-full.json").read_text(encoding="utf-8"))
+
+          for report in (gates, flow, full):
+              assert not report["parse_errors"], report["parse_errors"]
+              for item in report["items"]:
+                  assert item["path"].startswith("20_logic/"), item["path"]
+                  assert item["category"].startswith("20_logic / "), item["category"]
+
+          assert full["source_files"] == gates["source_files"] + flow["source_files"]
+          assert full["zero_pin_symbols"] == gates["zero_pin_symbols"] + flow["zero_pin_symbols"]
+          assert full["missing_german_names"] == gates["missing_german_names"] + flow["missing_german_names"]
+
+          sub_missing = {item["path"] for item in gates["items"]} | {item["path"] for item in flow["items"]}
+          full_missing = {item["path"] for item in full["items"]}
+          assert len(sub_missing) == gates["missing_german_names"] + flow["missing_german_names"]
+          assert full_missing == sub_missing
+
+          source_commit = (build / "qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          summary = {
+              "qet_source_commit": source_commit,
+              "collection": "20_logic",
+              "source_files": full["source_files"],
+              "zero_pin_symbols": full["zero_pin_symbols"],
+              "missing_german_names": full["missing_german_names"],
+              "sanitized_xml_files": len(full["sanitized_xml_files"]),
+              "parse_errors": len(full["parse_errors"]),
+              "scopes": {
+                  "2010_logic_gates": {
+                      "source_files": gates["source_files"],
+                      "zero_pin_symbols": gates["zero_pin_symbols"],
+                      "missing_german_names": gates["missing_german_names"],
+                  },
+                  "2020_flow_chart": {
+                      "source_files": flow["source_files"],
+                      "zero_pin_symbols": flow["zero_pin_symbols"],
+                      "missing_german_names": flow["missing_german_names"],
+                  },
+              },
+          }
+          (build / "qet-phase2-logic-audit-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload Phase 2 logic audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase2-logic-audit
+          path: |
+            build/qet-audit-20_logic-2010_logic_gates.json
+            build/qet-audit-20_logic-2020_flow_chart.json
+            build/qet-audit-20_logic-full.json
+            build/qet-phase2-logic-audit-summary.json
+            build/qet-source-commit.txt
