@@ -1,0 +1,189 @@
+name: QET 98 graphics validation
+
+on:
+  push:
+    branches:
+      - agent/qet-phase1-98-graphics
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/qet_xml.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tools/generate_qet_98_assembly_de_names.py"
+      - "tools/qet_98_assembly_*.py"
+      - "config/qet_de_names/98_graphics/**"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_audit_qet_source.py"
+      - "tests/test_qet_legacy_manufacturer.py"
+      - ".github/workflows/qet-98-graphics-audit.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-qet-graphics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run converter and sanitation tests
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_audit_qet_source.py \
+            tests/test_qet_legacy_manufacturer.py \
+            -q
+
+      - name: Convert complete graphics scope
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 98_graphics \
+            --output build/Z_Q_QElectroTech_98_graphics.kicad_sym \
+            --report build/qet-98-graphics-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Audit source names
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 98_graphics \
+            --output build/qet-98-graphics-source-audit.json
+
+      - name: Generate reviewed assembly-plan German names
+        run: |
+          mkdir -p build/qet-98-name-config
+          cp config/qet_de_names/98_graphics/*.json build/qet-98-name-config/
+          python tools/generate_qet_98_assembly_de_names.py \
+            --audit build/qet-98-graphics-source-audit.json \
+            --output build/qet-98-name-config/generated_assembly.json
+
+      - name: Apply all reviewed German graphics names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech_98_graphics.kicad_sym \
+            --config-dir build/qet-98-name-config \
+            --report build/qet-98-graphics-de-name-report.json \
+            --strict
+
+      - name: Validate graphics library and complete German name coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          library = Path("build/Z_Q_QElectroTech_98_graphics.kicad_sym").read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-98-graphics-report.json").read_text(encoding="utf-8"))
+          audit = json.loads(Path("build/qet-98-graphics-source-audit.json").read_text(encoding="utf-8"))
+          de_names = json.loads(Path("build/qet-98-graphics-de-name-report.json").read_text(encoding="utf-8"))
+          generated = json.loads(Path("build/qet-98-name-config/generated_assembly.json").read_text(encoding="utf-8"))
+
+          assert report["source_files"] == 723
+          assert report["converted"] == report["source_files"], report["errors"]
+          assert report["zero_pin_symbols"] == 426
+          assert not report["errors"], report["errors"]
+          assert not report["unsupported_nodes"], report["unsupported_nodes"]
+          assert audit["source_files"] == report["source_files"]
+          assert audit["missing_german_names"] == report["missing_german_names"] == 485
+          assert not audit["parse_errors"], audit["parse_errors"]
+          assert not audit["sanitized_xml_files"], audit["sanitized_xml_files"]
+
+          assert len(generated["overrides"]) == 423
+          assert de_names["configured_overrides"] == de_names["applied_overrides"] == 485
+          assert not de_names["unmatched_override_paths"], de_names["unmatched_override_paths"]
+          audited_paths = {item["path"] for item in audit["items"]}
+          applied_paths = set(de_names["applied_paths"])
+          assert applied_paths == audited_paths
+          assert library.count("german_name_override") == 485
+
+          Path("build/qet-98-graphics-name-progress.json").write_text(
+              json.dumps(
+                  {
+                      "audited_missing_german_names": 485,
+                      "explicit_auxiliary_names": 62,
+                      "generated_reviewed_assembly_names": 423,
+                      "total_german_names_applied": 485,
+                      "remaining_translation_count": 0,
+                  },
+                  ensure_ascii=False,
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+
+          top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
+          assert top_level == report["converted"]
+          assert library.count('(property "QET_Source_Path" ') == report["converted"]
+          assert library.count('(property "QET_Category" ') == report["converted"]
+          assert library.count('(property "QET_Adjustments" ') == report["converted"]
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render all graphics symbols with KiCad
+        run: |
+          mkdir -p build/kicad-svg-98-graphics
+          kicad-cli sym export svg --black-and-white \
+            --output build/kicad-svg-98-graphics \
+            build/Z_Q_QElectroTech_98_graphics.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("build/qet-98-graphics-report.json").read_text(encoding="utf-8"))
+          svg_files = sorted(Path("build/kicad-svg-98-graphics").glob("*.svg"))
+          assert len(svg_files) == report["converted"], (len(svg_files), report["converted"])
+          assert all(path.stat().st_size > 0 for path in svg_files)
+          Path("build/qet-98-graphics-kicad-smoke-report.json").write_text(
+              json.dumps({"exported_svg_symbols": len(svg_files), "expected_symbols": report["converted"], "empty_svg_files": 0}, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Upload graphics validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-98-graphics-validation
+          path: |
+            build/Z_Q_QElectroTech_98_graphics.kicad_sym
+            build/qet-98-graphics-report.json
+            build/qet-98-graphics-source-audit.json
+            build/qet-98-graphics-de-name-report.json
+            build/qet-98-graphics-name-progress.json
+            build/qet-98-name-config/generated_assembly.json
+            build/qet-98-graphics-kicad-smoke-report.json
+            build/qet-source-commit.txt
+            build/kicad-version.txt
