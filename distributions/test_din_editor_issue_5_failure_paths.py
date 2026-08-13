@@ -77,6 +77,32 @@ def test_failed_kicad_build_preserves_existing_export_without_partial_file(
     assert not list(tmp_path.glob(f".{target.name}.*.tmp"))
 
 
+def test_unknown_symbol_metadata_is_reported_without_touching_existing_export(
+    tmp_path: Path,
+):
+    target = tmp_path / "anlage.kicad_sch"
+    target.write_text("previous valid schematic\n", encoding="utf-8")
+    previous = target.read_bytes()
+    invalid_plan = {
+        "components": [
+            {
+                "reference": "Q99",
+                "component_type": "DIN_RAIL_MAIN_SWITCH",
+                "symbol": "SYMBOL_THAT_DOES_NOT_EXIST",
+                "poles": 3,
+            }
+        ],
+        "terminals": [],
+    }
+
+    with pytest.raises(KiCadSchematicExportError, match="cannot be exported safely") as exc:
+        write_kicad_sch(target, invalid_plan)
+
+    assert isinstance(exc.value.__cause__, KeyError)
+    assert target.read_bytes() == previous
+    assert not list(tmp_path.glob(f".{target.name}.*.tmp"))
+
+
 def test_invalid_manifest_import_is_atomic_at_project_boundary(tmp_path: Path):
     manager = _manager()
     manager.save(tmp_path / "anlage.json")
