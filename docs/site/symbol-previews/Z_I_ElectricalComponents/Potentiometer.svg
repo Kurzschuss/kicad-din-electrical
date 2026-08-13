@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Potentiometer</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="125.08" y="42.42" width="20.33" height="71.17" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="135.25,17.00 135.25,42.42" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="135.25,113.58 135.25,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="94.58,78.00 120.00,78.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="120.00,78.00 112.88,73.93 112.88,82.07 120.00,78.00" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="135.25" y1="17.00" x2="135.25" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="135.25" y1="139.00" x2="135.25" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="94.58" y1="78.00" x2="104.75" y2="78.00" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Potentiometer</text>
+</svg>

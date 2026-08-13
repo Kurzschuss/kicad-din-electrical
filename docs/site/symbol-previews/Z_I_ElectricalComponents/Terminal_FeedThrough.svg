@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Terminal_FeedThrough</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="120.00,17.04 120.00,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,93.24 120.00,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="120.00" y1="17.04" x2="120.00" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="120.00" y1="138.96" x2="120.00" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Terminal_FeedThrough</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Contactor_MainContacts_3P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="80.38,17.04 80.38,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="80.38,108.48 80.38,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="68.18,62.76 80.38,108.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="71.23,85.62 71.99,85.15 72.76,84.82 73.52,84.62 74.28,84.55 75.04,84.62 75.80,84.82 76.57,85.15 77.33,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="126.10,17.04 126.10,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="126.10,108.48 126.10,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="113.90,62.76 126.10,108.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="116.95,85.62 117.71,85.15 118.48,84.82 119.24,84.62 120.00,84.55 120.76,84.62 121.52,84.82 122.29,85.15 123.05,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="171.82,17.04 171.82,62.76" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="171.82,108.48 171.82,138.96" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="159.62,62.76 171.82,108.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="162.67,85.62 163.43,85.15 164.20,84.82 164.96,84.62 165.72,84.55 166.48,84.62 167.24,84.82 168.01,85.15 168.77,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="68.18,85.62 159.62,85.62" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="80.38" y1="17.04" x2="80.38" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="80.38" y1="138.96" x2="80.38" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <line x1="126.10" y1="17.04" x2="126.10" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="126.10" y1="138.96" x2="126.10" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <line x1="171.82" y1="17.04" x2="171.82" y2="32.28" stroke="currentColor" stroke-width="2"/>
+  <line x1="171.82" y1="138.96" x2="171.82" y2="123.72" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Contactor_MainContacts_3P</text>
+</svg>

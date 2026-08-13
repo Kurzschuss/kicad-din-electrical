@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Converter_ACAC</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="89.50" y="37.33" width="61.00" height="81.33" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="89.50,118.67 150.50,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.75,17.00 104.75,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="135.25,17.00 135.25,37.33" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.75,118.67 104.75,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="135.25,118.67 135.25,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="104.75" y1="17.00" x2="104.75" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="135.25" y1="17.00" x2="135.25" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="104.75" y1="139.00" x2="104.75" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="135.25" y1="139.00" x2="135.25" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Converter_ACAC</text>
+</svg>

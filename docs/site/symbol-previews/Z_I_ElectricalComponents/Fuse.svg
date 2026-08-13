@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Fuse</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="107.29" y="46.23" width="25.42" height="63.54" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="120.00,20.81 120.00,20.81" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,46.23 120.00,20.81" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,109.77 120.00,135.19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,27.17 120.00,122.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="120.00" y1="17.00" x2="120.00" y2="29.71" stroke="currentColor" stroke-width="2"/>
+  <line x1="120.00" y1="139.00" x2="120.00" y2="126.29" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Fuse</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: LDR</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="122.54" y="52.58" width="20.33" height="50.83" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="132.71,17.00 132.71,52.58" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="132.71,103.42 132.71,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="97.12,47.50 112.38,62.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="112.38,62.75 106.28,60.72 110.34,56.65 112.38,62.75" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="107.29,37.33 122.54,52.58" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="122.54,52.58 116.44,50.55 120.51,46.48 122.54,52.58" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="132.71" y1="17.00" x2="132.71" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="132.71" y1="139.00" x2="132.71" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">LDR</text>
+</svg>

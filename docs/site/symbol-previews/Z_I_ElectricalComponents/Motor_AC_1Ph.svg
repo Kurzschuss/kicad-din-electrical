@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Motor_AC_1Ph</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="97.14,43.71 97.14,112.29" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="142.86,43.71 142.86,112.29" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="97.14" y1="43.71" x2="97.14" y2="58.95" stroke="currentColor" stroke-width="2"/>
+  <line x1="142.86" y1="43.71" x2="142.86" y2="58.95" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Motor_AC_1Ph</text>
+</svg>

@@ -4,7 +4,7 @@
 
 Die Symbolbibliotheken liegen direkt unter `symbols/`.
 
-**Anzahl der Bibliotheken:** 29
+**Anzahl der Bibliotheken:** 30
 
 ## Bibliotheken und Inhalte
 
@@ -44,6 +44,60 @@ Die Symbolbibliotheken liegen direkt unter `symbols/`.
 - `Z_Fuse_Distribution_Bus.kicad_sym` — 1 Symbol(e)
   - Footprintbibliothek: `Z_Fuse_Distribution_Bus.pretty` mit 0 Footprint(s)
   - Symbol: `Fuse_Distribution_Bus`
+- `Z_I_ElectricalComponents.kicad_sym` — 52 Symbol(e)
+  - Footprintbibliothek: `Z_I_ElectricalComponents.pretty` mit 0 Footprint(s)
+  - Symbol: `Arduino_Nano`
+  - Symbol: `Arduino_R4`
+  - Symbol: `Arduino_Uno`
+  - Symbol: `Arrow_Input`
+  - Symbol: `Arrow_Output`
+  - Symbol: `AuxContact_NC`
+  - Symbol: `AuxContact_NO`
+  - Symbol: `Buzzer`
+  - Symbol: `Capacitor`
+  - Symbol: `Contactor_3P_1NO_1NC`
+  - Symbol: `Contactor_Coil`
+  - Symbol: `Contactor_MainContacts_3P`
+  - Symbol: `Converter_ACAC`
+  - Symbol: `Converter_ACDC_Rectifier`
+  - Symbol: `DIAC`
+  - Symbol: `Diode`
+  - Symbol: `Fuse`
+  - Symbol: `Heater_Resistive`
+  - Symbol: `IC_Blank_10Pin`
+  - Symbol: `IC_Blank_4Pin`
+  - Symbol: `IC_Blank_6Pin`
+  - Symbol: `IC_Blank_8Pin`
+  - Symbol: `Lamp`
+  - Symbol: `LDR`
+  - Symbol: `LED`
+  - Symbol: `MCB_1P`
+  - Symbol: `MCB_2P`
+  - Symbol: `MCB_3P`
+  - Symbol: `Motor_3Ph`
+  - Symbol: `Motor_AC_1Ph`
+  - Symbol: `Motor_Dahlander_6T`
+  - Symbol: `Motor_DC`
+  - Symbol: `MotorProtection_3P`
+  - Symbol: `Potential_L1`
+  - Symbol: `Potential_L1_L2`
+  - Symbol: `Potential_L1_L2_L3`
+  - Symbol: `Potentiometer`
+  - Symbol: `PowerSupply_ACDC`
+  - Symbol: `PowerSupply_ACDC_PE`
+  - Symbol: `PushButton`
+  - Symbol: `RCBO_2P`
+  - Symbol: `RCBO_4P`
+  - Symbol: `RCD_2P`
+  - Symbol: `RCD_4P`
+  - Symbol: `Relay_Module_PCB`
+  - Symbol: `Resistor`
+  - Symbol: `Switch`
+  - Symbol: `Terminal_FeedThrough`
+  - Symbol: `TerminalBlock_PCB_2P`
+  - Symbol: `Transistor_NPN`
+  - Symbol: `Transistor_PNP`
+  - Symbol: `TRIAC`
 - `Z_MAIN_SWITCH.kicad_sym` — 2 Symbol(e)
   - Footprintbibliothek: `Z_MAIN_SWITCH.pretty` mit 0 Footprint(s)
   - Symbol: `MAIN_SWITCH`

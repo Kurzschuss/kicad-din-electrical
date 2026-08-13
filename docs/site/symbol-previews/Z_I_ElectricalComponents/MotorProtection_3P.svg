@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: MotorProtection_3P</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="97.30" y="78.00" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="158.30" y="99.28" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="97.30" y="99.28" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="127.09" y="99.28" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="158.30" y="78.00" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="127.09" y="78.00" width="29.79" height="21.28" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="73.19" y="45.37" width="18.44" height="18.44" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="135.60,103.53 135.60,116.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="165.40,103.53 165.40,116.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="169.65,106.37 172.49,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="139.86,106.37 142.70,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="169.65,113.47 172.49,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="139.86,113.47 142.70,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="172.49,120.56 172.49,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="142.70,120.56 142.70,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="51.91,48.21 51.91,59.56" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="51.91,117.72 51.91,129.07" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="115.74,28.35 110.07,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.07,28.35 115.74,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="145.53,28.35 139.86,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="139.86,28.35 145.53,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="175.33,28.35 169.65,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="169.65,28.35 175.33,34.02" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="172.49,28.35 172.49,31.19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="112.91,36.86 112.91,17.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="172.49,36.86 172.49,17.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="142.70,36.86 142.70,17.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="112.91,120.56 112.91,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="97.30,87.93 81.70,87.93" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="97.30,109.21 81.70,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="81.70,45.37 81.70,62.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="73.19,53.88 91.63,53.88" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="51.91,53.88 73.19,53.88" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.07,36.86 115.74,36.86" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="139.86,36.86 145.53,36.86" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="169.65,36.86 175.33,36.86" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="104.40,103.53 104.40,116.30" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.07,106.37 112.91,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.07,113.47 112.91,109.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="172.49,99.28 172.49,93.60 181.00,93.60 181.00,83.67 172.49,83.67 172.49,68.07 162.56,39.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="142.70,99.28 142.70,93.60 149.79,93.60 149.79,83.67 142.70,83.67 142.70,68.07 132.77,39.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="51.91,123.40 59.00,123.40 67.51,130.49 74.60,123.40 81.70,123.40 81.70,53.88 166.81,53.88" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="112.91,99.28 112.91,93.60 120.00,93.60 120.00,83.67 112.91,83.67 112.91,68.07 101.56,39.70" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="64.67,56.72 64.67,51.05 57.58,53.88 64.67,56.72" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="142.70" y1="139.00" x2="142.70" y2="124.81" stroke="currentColor" stroke-width="2"/>
+  <line x1="112.91" y1="139.00" x2="112.91" y2="124.81" stroke="currentColor" stroke-width="2"/>
+  <line x1="142.70" y1="17.00" x2="142.70" y2="31.19" stroke="currentColor" stroke-width="2"/>
+  <line x1="112.91" y1="17.00" x2="112.91" y2="31.19" stroke="currentColor" stroke-width="2"/>
+  <line x1="172.49" y1="139.00" x2="158.30" y2="139.00" stroke="currentColor" stroke-width="2"/>
+  <line x1="172.49" y1="17.00" x2="158.30" y2="17.00" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">MotorProtection_3P</text>
+</svg>

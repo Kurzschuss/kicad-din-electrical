@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Motor_DC</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <rect x="111.87" y="48.52" width="16.27" height="4.07" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="111.87" y="103.42" width="16.27" height="4.07" fill="none" stroke="currentColor" stroke-width="2"/>
+  <polyline points="120.00,17.00 120.00,48.52" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="120.00,139.00 120.00,107.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="120.00" y1="17.00" x2="120.00" y2="27.17" stroke="currentColor" stroke-width="2"/>
+  <line x1="120.00" y1="139.00" x2="120.00" y2="128.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Motor_DC</text>
+</svg>

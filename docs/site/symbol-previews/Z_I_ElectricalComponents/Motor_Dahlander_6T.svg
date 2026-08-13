@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img">
+  <title>Z_I_ElectricalComponents: Motor_Dahlander_6T</title>
+  <rect x="1" y="1" width="238" height="178" rx="8" fill="none" stroke="currentColor" opacity="0.25"/>
+  <polyline points="84.96,136.40 84.96,136.40" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="134.28,139.00 134.28,139.00" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="84.96,17.00 84.96,58.53" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.91,19.60 110.91,45.55" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="136.87,17.00 136.87,55.94" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="149.85,40.36 149.85,40.36" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="84.96,94.87 84.96,133.81" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="110.91,110.45 110.91,133.81" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="136.87,97.47 136.87,131.21" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="155.04,100.06 155.04,100.06" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="84.96" y1="17.00" x2="84.96" y2="29.98" stroke="currentColor" stroke-width="2"/>
+  <line x1="110.91" y1="17.00" x2="110.91" y2="29.98" stroke="currentColor" stroke-width="2"/>
+  <line x1="136.87" y1="17.00" x2="136.87" y2="29.98" stroke="currentColor" stroke-width="2"/>
+  <line x1="84.96" y1="133.81" x2="84.96" y2="120.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="110.91" y1="133.81" x2="110.91" y2="120.83" stroke="currentColor" stroke-width="2"/>
+  <line x1="136.87" y1="133.81" x2="136.87" y2="120.83" stroke="currentColor" stroke-width="2"/>
+  <text x="120" y="164" text-anchor="middle" font-size="12">Motor_Dahlander_6T</text>
+</svg>
