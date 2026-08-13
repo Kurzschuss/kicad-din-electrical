@@ -101,7 +101,7 @@ Nur zuletzt fehlgeschlagene Tests wiederholen:
 python -m pytest --lf
 ```
 
-Unter Windows fasst `run_tests.bat` diese Befehle in einem Menü zusammen.
+Unter Windows fasst `run_tests.bat` diese Befehle in einem Menü zusammen. Eine Übersicht über lokale Tests und die vollständige CI steht in `docs/02_User/TESTING.md`.
 
 ## Neue Strukturregel ergänzen
 
@@ -124,16 +124,31 @@ Beispielhafte Prüfbereiche:
 
 ## CI-Ablauf
 
-Der Workflow `.github/workflows/test-distributions.yml` läuft bei Pull Requests und Änderungen an `main`.
+Der zentrale Workflow lautet:
 
-Er führt derzeit unter anderem aus:
+```text
+.github/workflows/complete-test-suite.yml
+```
 
-1. Repository auschecken,
-2. Python einrichten,
-3. Testabhängigkeiten installieren,
-4. vollständige Pytest-Suite ausführen,
-5. KiCad-Bibliotheken und Gerätekatalog validieren,
-6. Bibliotheksreferenz, Qualitätsbericht, Symbolvorschauen und HTML-Referenz prüfen.
+Er läuft bei Pull Requests gegen `main`, bei Pushes auf `main` und kann über `workflow_dispatch` manuell gestartet werden.
+
+Der Workflow führt derzeit unter anderem aus:
+
+1. Repository-Health-Check,
+2. vollständige Pytest-Suite,
+3. Python-Syntaxprüfung für `distributions`, `tests` und `tools`,
+4. Z_-Quality-Release-Profil,
+5. KiCad-Bibliotheksvalidierung,
+6. Prüfung erzeugter Gerätevarianten,
+7. Gerätekatalogvalidierung,
+8. Prüfung der erzeugten Bibliotheksreferenz,
+9. Prüfung des Qualitätsberichts,
+10. Symbol- und 3D-Preview-Prüfungen,
+11. HTML-Referenz und Gerätekatalog-HTML,
+12. ProjectOS-Projektvalidator,
+13. Erzeugung des Z_Cockpit-HTML.
+
+Der Workflow selbst ist die verbindliche Quelle für den aktuellen CI-Stand. Dokumentationslisten sollen den Ablauf erläutern, aber keine davon ist maßgeblicher als `.github/workflows/complete-test-suite.yml`.
 
 Ein grüner CI-Lauf bestätigt die automatischen Regeln, ersetzt aber nicht die fachliche und visuelle Kontrolle in KiCad.
 
