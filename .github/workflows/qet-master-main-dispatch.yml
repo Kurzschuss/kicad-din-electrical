@@ -31,6 +31,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           gh workflow run qet-master-integration.yml \
             --repo "${{ github.repository }}" \
             --ref main \
