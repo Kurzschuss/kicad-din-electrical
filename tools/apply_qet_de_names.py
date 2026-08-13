@@ -67,10 +67,11 @@ def replace_property(block: list[str], property_name: str, new_value: str) -> bo
     return False
 
 
-def add_adjustment(current: str | None, adjustment: str) -> str:
+def finalize_german_adjustments(current: str | None) -> str:
     parts = [] if not current or current == "none" else [p.strip() for p in current.split(";") if p.strip()]
-    if adjustment not in parts:
-        parts.append(adjustment)
+    parts = [p for p in parts if not p.startswith("german_name_fallback:")]
+    if "german_name_override" not in parts:
+        parts.append("german_name_override")
     return "; ".join(sorted(parts))
 
 
@@ -95,7 +96,7 @@ def finalize_library(library_text: str, overrides: dict[str, str]) -> tuple[str,
             raise ValueError(f"Missing Value property for {source_path}")
         if not replace_property(block, "Description", f"{german_name} | QET-Kategorie: {category}"):
             raise ValueError(f"Missing Description property for {source_path}")
-        if not replace_property(block, "QET_Adjustments", add_adjustment(adjustments, "german_name_override")):
+        if not replace_property(block, "QET_Adjustments", finalize_german_adjustments(adjustments)):
             raise ValueError(f"Missing QET_Adjustments property for {source_path}")
 
         keyword_parts = [german_name]
