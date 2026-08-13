@@ -1,0 +1,128 @@
+name: QET Phase 3 hydraulic German names
+
+on:
+  push:
+    branches:
+      - agent/qet-phase3-hydraulic-names
+    paths:
+      - "config/qet_de_names/30_hydraulic/**"
+      - "tools/apply_qet_de_names.py"
+      - "tools/audit_qet_source.py"
+      - "tools/qet_xml.py"
+      - "tests/test_qet_hydraulic_names.py"
+      - ".github/workflows/qet-phase3-hydraulic-names.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  validate-qet-phase3-hydraulic-names:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Validate hydraulic override files
+        run: python -m pytest tests/test_qet_hydraulic_names.py -q
+
+      - name: Audit pinned hydraulic source
+        run: |
+          mkdir -p build
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/30_hydraulic \
+            --scope 21_tanks \
+            --scope 31_control_valves \
+            --scope 45_valves \
+            --scope 51_cylinders \
+            --scope 61_pumps \
+            --scope 71_exchangers \
+            --scope 81_filters \
+            --output build/qet-audit-30_hydraulic-full.json
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Prove exact German-name coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          source_commit = Path("build/qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          audit = json.loads(Path("build/qet-audit-30_hydraulic-full.json").read_text(encoding="utf-8"))
+          assert audit["source_files"] == 94
+          assert audit["missing_german_names"] == 94
+          assert not audit["parse_errors"], audit["parse_errors"]
+
+          overrides = {}
+          config_dir = Path("config/qet_de_names/30_hydraulic")
+          for config_file in sorted(config_dir.glob("*.json")):
+              payload = json.loads(config_file.read_text(encoding="utf-8"))
+              assert payload["source_commit"] == source_commit
+              for path, name in payload["overrides"].items():
+                  assert path not in overrides, path
+                  overrides[path] = name
+
+          missing_paths = {item["path"] for item in audit["items"]}
+          assert len(overrides) == 94
+          assert set(overrides) == missing_paths
+
+          entries = []
+          for item in audit["items"]:
+              entries.append(
+                  {
+                      "path": item["path"],
+                      "german_name": overrides[item["path"]],
+                      "source_names": item["names"],
+                      "terminal_count": item["terminal_count"],
+                  }
+              )
+
+          report = {
+              "qet_source_commit": source_commit,
+              "collection": "30_hydraulic",
+              "audited_missing_german_names": len(missing_paths),
+              "configured_german_names": len(overrides),
+              "remaining_uncovered_paths": 0,
+              "entries": entries,
+          }
+          Path("build/qet-phase3-hydraulic-name-coverage.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({k: v for k, v in report.items() if k != "entries"}, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload hydraulic name review report
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase3-hydraulic-name-coverage
+          path: |
+            build/qet-audit-30_hydraulic-full.json
+            build/qet-phase3-hydraulic-name-coverage.json
+            build/qet-source-commit.txt
