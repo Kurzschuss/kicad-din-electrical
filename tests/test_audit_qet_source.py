@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "tools" / "audit_qet_source.py"
+sys.path.insert(0, str(MODULE_PATH.parent))
 SPEC = importlib.util.spec_from_file_location("audit_qet_source", MODULE_PATH)
 assert SPEC and SPEC.loader
 mod = importlib.util.module_from_spec(SPEC)
