@@ -1,4 +1,4 @@
-name: QET 98 graphics audit
+name: QET 98 graphics validation
 
 on:
   push:
@@ -10,6 +10,8 @@ on:
       - "tools/qet_xml.py"
       - "tools/audit_qet_source.py"
       - "tools/apply_qet_de_names.py"
+      - "tools/generate_qet_98_assembly_de_names.py"
+      - "tools/qet_98_assembly_*.py"
       - "config/qet_de_names/98_graphics/**"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
@@ -27,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  audit-qet-graphics:
+  validate-qet-graphics:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -75,15 +77,23 @@ jobs:
             --scope 98_graphics \
             --output build/qet-98-graphics-source-audit.json
 
-      - name: Apply reviewed German graphics names
+      - name: Generate reviewed assembly-plan German names
+        run: |
+          mkdir -p build/qet-98-name-config
+          cp config/qet_de_names/98_graphics/*.json build/qet-98-name-config/
+          python tools/generate_qet_98_assembly_de_names.py \
+            --audit build/qet-98-graphics-source-audit.json \
+            --output build/qet-98-name-config/generated_assembly.json
+
+      - name: Apply all reviewed German graphics names
         run: |
           python tools/apply_qet_de_names.py \
             --library build/Z_Q_QElectroTech_98_graphics.kicad_sym \
-            --config-dir config/qet_de_names/98_graphics \
+            --config-dir build/qet-98-name-config \
             --report build/qet-98-graphics-de-name-report.json \
             --strict
 
-      - name: Validate graphics library structure and name progress
+      - name: Validate graphics library and complete German name coverage
         run: |
           python - <<'PY'
           import json
@@ -93,6 +103,7 @@ jobs:
           report = json.loads(Path("build/qet-98-graphics-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-98-graphics-source-audit.json").read_text(encoding="utf-8"))
           de_names = json.loads(Path("build/qet-98-graphics-de-name-report.json").read_text(encoding="utf-8"))
+          generated = json.loads(Path("build/qet-98-name-config/generated_assembly.json").read_text(encoding="utf-8"))
 
           assert report["source_files"] == 723
           assert report["converted"] == report["source_files"], report["errors"]
@@ -102,24 +113,24 @@ jobs:
           assert audit["source_files"] == report["source_files"]
           assert audit["missing_german_names"] == report["missing_german_names"] == 485
           assert not audit["parse_errors"], audit["parse_errors"]
+          assert not audit["sanitized_xml_files"], audit["sanitized_xml_files"]
 
-          assert de_names["configured_overrides"] == de_names["applied_overrides"] == 62
+          assert len(generated["overrides"]) == 423
+          assert de_names["configured_overrides"] == de_names["applied_overrides"] == 485
           assert not de_names["unmatched_override_paths"], de_names["unmatched_override_paths"]
           audited_paths = {item["path"] for item in audit["items"]}
           applied_paths = set(de_names["applied_paths"])
-          assert applied_paths <= audited_paths
-          remaining_paths = sorted(audited_paths - applied_paths)
-          assert len(remaining_paths) == 423
-          assert all("/99_assembly_plan/01_thumbnails_mounting_plate/" in path for path in remaining_paths)
-          assert library.count("german_name_override") == 62
+          assert applied_paths == audited_paths
+          assert library.count("german_name_override") == 485
 
           Path("build/qet-98-graphics-name-progress.json").write_text(
               json.dumps(
                   {
                       "audited_missing_german_names": 485,
-                      "explicit_german_names_applied": 62,
-                      "remaining_translation_count": len(remaining_paths),
-                      "remaining_translation_paths": remaining_paths,
+                      "explicit_auxiliary_names": 62,
+                      "generated_reviewed_assembly_names": 423,
+                      "total_german_names_applied": 485,
+                      "remaining_translation_count": 0,
                   },
                   ensure_ascii=False,
                   indent=2,
@@ -162,16 +173,17 @@ jobs:
           )
           PY
 
-      - name: Upload graphics audit artifacts
+      - name: Upload graphics validation artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: qet-98-graphics-audit
+          name: qet-98-graphics-validation
           path: |
             build/Z_Q_QElectroTech_98_graphics.kicad_sym
             build/qet-98-graphics-report.json
             build/qet-98-graphics-source-audit.json
             build/qet-98-graphics-de-name-report.json
             build/qet-98-graphics-name-progress.json
+            build/qet-98-name-config/generated_assembly.json
             build/qet-98-graphics-kicad-smoke-report.json
             build/qet-source-commit.txt
             build/kicad-version.txt
