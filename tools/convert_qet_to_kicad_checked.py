@@ -14,12 +14,30 @@ from qet_xml import SanitizationInfo, parse_qet_tree
 _ORIGINAL_GRAPHICS = core.graphics
 _ORIGINAL_EXPLICIT_LABEL = core.explicit_label
 _ORIGINAL_CONVERT_ELEMENT = core.convert_element
+_ORIGINAL_STYLE_EXPR = core.style_expr
 _ORIGINAL_ET_PARSE = core.ET.parse
 _RADIUS_ATTRIBUTES = ("rx", "ry", "radius")
 _SANITIZED_PATHS: dict[Path, SanitizationInfo] = {}
 _PLACEHOLDER_LABEL_RE = re.compile(r"^\?[^?]+\?$")
 _NATIVE_FILLS = {"none", "black", "foreground", "color", "white", "background"}
 _PATTERN_FILLS = {"bdiag", "fdiag", "hor", "ver", "diagcross", "cross"}
+_QET_END_REQUIRED_LENGTHS = {
+    "none": 0,
+    "circle": 2,
+    "diamond": 2,
+    "simple": 1,
+    "triangle": 1,
+}
+_QET_PEN_WEIGHTS = {
+    "none": 0.0,
+    "thin": 0.0,
+    "normal": 1.0,
+    "hight": 2.0,
+    "high": 2.0,
+    "ultra": 2.0,
+    "eleve": 5.0,
+    "big": 5.0,
+}
 
 
 def _positive_numeric_attribute(node: ET.Element, names: Sequence[str]) -> bool:
@@ -64,6 +82,64 @@ def _replace_style_value(style: str, key: str, value: str) -> str:
     if not replaced:
         items.append(f"{key}:{value}")
     return ";".join(items)
+
+
+def _normalize_legacy_qet_typos(node: ET.Element, adjustments: set[str]) -> ET.Element:
+    """Repair known legacy QET spelling errors while recording every correction."""
+    clone: ET.Element | None = None
+
+    for attr in ("end1", "end2"):
+        if (node.get(attr) or "").strip().lower() == "ncne":
+            if clone is None:
+                clone = _clone(node)
+            clone.set(attr, "none")
+            adjustments.add("legacy_qet_typo_normalized:end=ncne->none")
+
+    current = clone if clone is not None else node
+    style = current.get("style")
+    if not style:
+        return current
+
+    parsed = core.parse_style(style)
+    replacements = []
+    if parsed.get("line-style") == "ncrmal":
+        replacements.append(("line-style", "normal", "legacy_qet_typo_normalized:line-style=ncrmal->normal"))
+    if parsed.get("line-weight") == "ncrmal":
+        replacements.append(("line-weight", "normal", "legacy_qet_typo_normalized:line-weight=ncrmal->normal"))
+    if parsed.get("filling") == "ncne":
+        replacements.append(("filling", "none", "legacy_qet_typo_normalized:filling=ncne->none"))
+
+    if not replacements:
+        return current
+    if clone is None:
+        clone = _clone(node)
+        style = clone.get("style") or ""
+    else:
+        style = clone.get("style") or ""
+    for key, value, marker in replacements:
+        style = _replace_style_value(style, key, value)
+        adjustments.add(marker)
+    clone.set("style", style)
+    return clone
+
+
+def style_expr(style: str | None, adjustments: set[str]) -> tuple[str, str]:
+    """Honor canonical QET hight/eleve pen weights before delegating style mapping."""
+    parsed = core.parse_style(style)
+    weight = parsed.get("line-weight", "normal")
+    if weight not in {"hight", "eleve"}:
+        return _ORIGINAL_STYLE_EXPR(style, adjustments)
+
+    normalized = _replace_style_value(style or "", "line-weight", "normal")
+    stroke, fill = _ORIGINAL_STYLE_EXPR(normalized, adjustments)
+    width_mm = _QET_PEN_WEIGHTS[weight] * core.QET_UNIT_MM
+    stroke = re.sub(
+        r"\(stroke \(width [^)]+\)",
+        f"(stroke (width {core.num(width_mm)})",
+        stroke,
+        count=1,
+    )
+    return stroke, fill
 
 
 def _normalize_non_native_fill(node: ET.Element, adjustments: set[str]) -> ET.Element:
@@ -162,12 +238,12 @@ def _render_dynamic_user_label(node: ET.Element, adjustments: set[str]) -> list[
     ]
 
 
-def _qet_triangle_points(
+def _qet_four_end_points(
     end_point: tuple[float, float],
     other_point: tuple[float, float],
     length: float,
-) -> tuple[tuple[float, float], list[tuple[float, float]]] | None:
-    """Reproduce QET PartLine::fourEndPoints() for a Triangle line end."""
+) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float], tuple[float, float]] | None:
+    """Reproduce QET PartLine::fourEndPoints(): O, A, B, C."""
     dx = end_point[0] - other_point[0]
     dy = end_point[1] - other_point[1]
     line_length = math.hypot(dx, dy)
@@ -178,20 +254,70 @@ def _qet_triangle_points(
     uy = dy / line_length * length
     vx, vy = -uy, ux
     o = (end_point[0] - ux, end_point[1] - uy)
+    a = (o[0] - ux, o[1] - uy)
     b = (o[0] + vx, o[1] + vy)
     c = (o[0] - vx, o[1] - vy)
-    return o, [o, b, end_point, c, o]
+    return o, a, b, c
 
 
-def _render_triangle_line_endings(node: ET.Element, adjustments: set[str]) -> list[str] | None:
+def _point_at(
+    start: tuple[float, float],
+    stop: tuple[float, float],
+    fraction: float,
+) -> tuple[float, float]:
+    return (
+        start[0] + (stop[0] - start[0]) * fraction,
+        start[1] + (stop[1] - start[1]) * fraction,
+    )
+
+
+def _qet_pen_weight(style: str | None) -> float:
+    weight = core.parse_style(style).get("line-weight", "normal")
+    return _QET_PEN_WEIGHTS.get(weight, 1.0)
+
+
+def _render_qet_end_shape(
+    end_type: str,
+    end_point: tuple[float, float],
+    other_point: tuple[float, float],
+    length: float,
+    style: str | None,
+    adjustments: set[str],
+) -> tuple[tuple[float, float], list[str]] | None:
+    points = _qet_four_end_points(end_point, other_point, length)
+    if points is None:
+        return None
+    o, a, b, c = points
+
+    if end_type == "circle":
+        stroke, fill = core.style_expr(style, adjustments)
+        cx, cy = core.xy(*o)
+        primitive = (
+            f"      (circle (center {core.num(cx)} {core.num(cy)}) "
+            f"(radius {core.num(core.mm(length))}) {stroke} {fill})"
+        )
+        return a, [primitive]
+    if end_type == "diamond":
+        polygon = [a, b, end_point, c, a]
+        return a, [core.poly([core.xy(*point) for point in polygon], style, adjustments)]
+    if end_type == "simple":
+        polygon = [c, end_point, b, c]
+        return end_point, [core.poly([core.xy(*point) for point in polygon], style, adjustments)]
+    if end_type == "triangle":
+        polygon = [o, b, end_point, c, o]
+        return o, [core.poly([core.xy(*point) for point in polygon], style, adjustments)]
+    return None
+
+
+def _render_qet_line_endings(node: ET.Element, adjustments: set[str]) -> list[str] | None:
     if node.tag != "line":
         return None
 
     end1 = (node.get("end1") or "none").strip().lower()
     end2 = (node.get("end2") or "none").strip().lower()
-    if "triangle" not in {end1, end2}:
+    if end1 == end2 == "none":
         return None
-    if end1 not in {"none", "triangle"} or end2 not in {"none", "triangle"}:
+    if end1 not in _QET_END_REQUIRED_LENGTHS or end2 not in _QET_END_REQUIRED_LENGTHS:
         return None
 
     try:
@@ -203,33 +329,49 @@ def _render_triangle_line_endings(node: ET.Element, adjustments: set[str]) -> li
         return None
 
     line_length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-    required = (length1 if end1 == "triangle" else 0.0) + (length2 if end2 == "triangle" else 0.0)
-    if line_length + 1e-12 < required:
+    if line_length <= 1e-12:
         return None
+
+    style = node.get("style")
+    reduced = line_length - length1 * _QET_END_REQUIRED_LENGTHS[end1]
+    draw_first = end1 != "none" and reduced >= -1e-12
+    if draw_first:
+        reduced -= length2 * _QET_END_REQUIRED_LENGTHS[end2]
+    else:
+        reduced = line_length - length2 * _QET_END_REQUIRED_LENGTHS[end2]
+    draw_second = end2 != "none" and reduced >= -1e-12
 
     start = p1
     stop = p2
-    triangles: list[list[tuple[float, float]]] = []
+    primitives: list[str] = []
+    pen_weight = _qet_pen_weight(style)
 
-    if end1 == "triangle":
-        first = _qet_triangle_points(p1, p2, length1)
+    if draw_first:
+        first = _render_qet_end_shape(end1, p1, p2, length1, style, adjustments)
         if first is None:
             return None
-        start, points = first
-        triangles.append(points)
+        start, rendered = first
+        primitives.extend(rendered)
+        adjustments.add(f"line_endpoint_decoration_rendered:{end1}")
+        if pen_weight and end1 in {"simple", "circle"}:
+            start = _point_at(start, p2, (pen_weight / 2.0) / line_length)
+    elif end1 != "none":
+        adjustments.add(f"line_endpoint_qet_suppressed_short:{end1}")
 
-    if end2 == "triangle":
-        second = _qet_triangle_points(p2, p1, length2)
+    if draw_second:
+        second = _render_qet_end_shape(end2, p2, p1, length2, style, adjustments)
         if second is None:
             return None
-        stop, points = second
-        triangles.append(points)
+        stop, rendered = second
+        primitives.extend(rendered)
+        adjustments.add(f"line_endpoint_decoration_rendered:{end2}")
+        if pen_weight and end2 in {"simple", "circle"}:
+            stop = _point_at(p1, stop, (line_length - (pen_weight / 2.0)) / line_length)
+    elif end2 != "none":
+        adjustments.add(f"line_endpoint_qet_suppressed_short:{end2}")
 
-    style = node.get("style")
-    result = [core.poly([core.xy(*start), core.xy(*stop)], style, adjustments)]
-    result.extend(core.poly([core.xy(*point) for point in points], style, adjustments) for points in triangles)
-    adjustments.add("line_endpoint_decoration_rendered:triangle")
-    return result
+    body = core.poly([core.xy(*start), core.xy(*stop)], style, adjustments)
+    return [body, *primitives]
 
 
 def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
@@ -254,14 +396,14 @@ def graphics(node: ET.Element, adjustments: set[str], unsupported) -> list[str]:
     if user_label is not None:
         return user_label
 
-    triangle_line = _render_triangle_line_endings(node, adjustments)
-    if triangle_line is not None:
-        return triangle_line
-
-    delegated = node
-    if node.tag in {"rect", "rectangle"}:
-        delegated = _clone_without_zero_radii(node)
+    delegated = _normalize_legacy_qet_typos(node, adjustments)
+    if delegated.tag in {"rect", "rectangle"}:
+        delegated = _clone_without_zero_radii(delegated)
     delegated = _normalize_non_native_fill(delegated, adjustments)
+
+    line_with_endings = _render_qet_line_endings(delegated, adjustments)
+    if line_with_endings is not None:
+        return line_with_endings
 
     result = _ORIGINAL_GRAPHICS(delegated, adjustments, unsupported)
 
@@ -306,6 +448,7 @@ def convert_element(source_file: Path, source_root: Path, prefixes, stats, used)
 def install() -> None:
     core.ET.parse = _safe_et_parse
     core.explicit_label = explicit_label
+    core.style_expr = style_expr
     core.graphics = graphics
     core.convert_element = convert_element
 

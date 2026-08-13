@@ -40,6 +40,28 @@ def test_positive_radius_still_reports_rounded_rectangle_approximation():
     assert "rounded_rectangle_approximated" in adjustments
 
 
+def test_qet_hight_pen_weight_is_native_two_unit_weight():
+    adjustments: set[str] = set()
+    stroke, _ = mod.style_expr(
+        "line-style:normal;line-weight:hight;filling:none;color:black",
+        adjustments,
+    )
+
+    assert "(width 0.508)" in stroke
+    assert "line_weight_approximated:hight" not in adjustments
+
+
+def test_qet_eleve_pen_weight_is_native_five_unit_weight():
+    adjustments: set[str] = set()
+    stroke, _ = mod.style_expr(
+        "line-style:normal;line-weight:eleve;filling:none;color:black",
+        adjustments,
+    )
+
+    assert "(width 1.27)" in stroke
+    assert "line_weight_approximated:eleve" not in adjustments
+
+
 def test_visible_user_text_is_marked_as_staticized():
     drawing, adjustments = render(
         '<dynamic_text x="0" y="0" text_from="UserText" font="Liberation Sans,9">'
@@ -118,3 +140,69 @@ def test_triangle_line_endpoints_can_be_rendered_at_both_ends():
     assert sum('(xy 0 0)' in part or '(xy 2.54 0)' in part for part in drawing[1:]) == 2
     assert "line_endpoint_decoration_rendered:triangle" in adjustments
     assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_simple_line_endpoint_preserves_qet_pen_offset():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="none" end2="simple" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:normal;line-weight:normal;filling:none;color:black"/>'
+    )
+
+    assert len(drawing) == 2
+    assert '(xy 0 0) (xy 2.413 0)' in drawing[0]
+    assert '(xy 2.159 0.381)' in drawing[1]
+    assert '(xy 2.54 0)' in drawing[1]
+    assert '(xy 2.159 -0.381)' in drawing[1]
+    assert "line_endpoint_decoration_rendered:simple" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_diamond_line_endpoint_shortens_body_to_qet_a_point():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="none" end2="diamond" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:normal;line-weight:normal;filling:none;color:black"/>'
+    )
+
+    assert len(drawing) == 2
+    assert '(xy 0 0) (xy 1.778 0)' in drawing[0]
+    assert '(xy 1.778 0)' in drawing[1]
+    assert '(xy 2.159 -0.381)' in drawing[1]
+    assert '(xy 2.54 0)' in drawing[1]
+    assert '(xy 2.159 0.381)' in drawing[1]
+    assert "line_endpoint_decoration_rendered:diamond" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_circle_line_endpoint_preserves_qet_circle_and_pen_offset():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="none" end2="circle" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:normal;line-weight:normal;filling:none;color:black"/>'
+    )
+
+    assert len(drawing) == 2
+    assert '(xy 0 0) (xy 1.6891 0)' in drawing[0]
+    assert '(circle (center 2.159 0) (radius 0.381)' in drawing[1]
+    assert "line_endpoint_decoration_rendered:circle" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+
+
+def test_legacy_ncne_ncrmal_typos_are_normalized_without_geometry_loss():
+    drawing, adjustments = render(
+        '<line x1="0" y1="0" x2="10" y2="0" end1="ncne" end2="ncne" '
+        'length1="1.5" length2="1.5" '
+        'style="line-style:ncrmal;line-weight:ncrmal;filling:ncne;color:black"/>'
+    )
+
+    assert len(drawing) == 1
+    assert '(xy 0 0) (xy 2.54 0)' in drawing[0]
+    assert "legacy_qet_typo_normalized:end=ncne->none" in adjustments
+    assert "legacy_qet_typo_normalized:line-style=ncrmal->normal" in adjustments
+    assert "legacy_qet_typo_normalized:line-weight=ncrmal->normal" in adjustments
+    assert "legacy_qet_typo_normalized:filling=ncne->none" in adjustments
+    assert "line_endpoint_decoration_omitted" not in adjustments
+    assert "line_style_approximated:ncrmal" not in adjustments
+    assert "line_weight_approximated:ncrmal" not in adjustments
+    assert "color_fill_mapped_to_outline:ncne" not in adjustments
