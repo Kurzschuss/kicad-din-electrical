@@ -12,6 +12,7 @@ on:
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
+      - "tests/test_qet_legacy_manufacturer.py"
       - ".github/workflows/qet-91-en-60617-audit.yml"
   workflow_dispatch:
     inputs:
@@ -52,6 +53,7 @@ jobs:
             tests/test_convert_qet_to_kicad.py \
             tests/test_convert_qet_to_kicad_checked.py \
             tests/test_audit_qet_source.py \
+            tests/test_qet_legacy_manufacturer.py \
             -q
 
       - name: Convert complete EN 60617 scope
@@ -71,7 +73,7 @@ jobs:
             --scope 91_en_60617 \
             --output build/qet-91-en-60617-source-audit.json
 
-      - name: Validate raw library structure
+      - name: Validate raw library structure and repair provenance
         run: |
           python - <<'PY'
           import json
@@ -81,13 +83,22 @@ jobs:
           report = json.loads(Path("build/qet-91-en-60617-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-91-en-60617-source-audit.json").read_text(encoding="utf-8"))
 
-          assert report["source_files"] > 0
+          assert report["source_files"] == 912
           assert report["converted"] == report["source_files"], report["errors"]
           assert not report["errors"], report["errors"]
           assert not report["unsupported_nodes"], report["unsupported_nodes"]
           assert audit["source_files"] == report["source_files"]
-          assert audit["missing_german_names"] == report["missing_german_names"]
+          assert audit["missing_german_names"] == report["missing_german_names"] == 0
           assert not audit["parse_errors"], audit["parse_errors"]
+
+          sanitized = audit["sanitized_xml_files"]
+          assert len(sanitized) == 1, sanitized
+          repaired = sanitized[0]
+          assert repaired["path"] == "10_electric/91_en_60617/en_60617_06/en_60617_06_04/en_60617_06_04_01.elmt"
+          assert repaired["invalid_codepoints"] == []
+          assert repaired["inserted_name_end_tags"] == 1
+          assert repaired["markers"] == ["missing_name_end_tag_sanitized"]
+          assert library.count("missing_name_end_tag_sanitized") == 1
 
           top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
           assert top_level == report["converted"]
