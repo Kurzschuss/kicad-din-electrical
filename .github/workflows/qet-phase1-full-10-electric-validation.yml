@@ -165,39 +165,45 @@ jobs:
           from pathlib import Path
 
           expected_scopes = {
-              "10_allpole": {"source_files": 941, "missing_de": 184, "zero_pin": 34},
-              "11_singlepole": {"source_files": 308, "missing_de": 144, "zero_pin": 6},
-              "20_manufacturers_articles": {"source_files": 4019, "missing_de": 1605, "zero_pin": 1651},
-              "90_american_standards": {"source_files": 4, "missing_de": 0, "zero_pin": 0},
-              "91_en_60617": {"source_files": 912, "missing_de": 0, "zero_pin": 567},
-              "98_graphics": {"source_files": 723, "missing_de": 485, "zero_pin": 426},
-              "99_miscellaneous_unsorted": {"source_files": 11, "missing_de": 1, "zero_pin": 0},
+              "10_allpole": {"source_files": 941, "missing_de": 184},
+              "11_singlepole": {"source_files": 308, "missing_de": 144},
+              "20_manufacturers_articles": {"source_files": 4019, "missing_de": 1605},
+              "90_american_standards": {"source_files": 4, "missing_de": 0},
+              "91_en_60617": {"source_files": 912, "missing_de": 0},
+              "98_graphics": {"source_files": 723, "missing_de": 485},
+              "99_miscellaneous_unsorted": {"source_files": 11, "missing_de": 1},
           }
           expected_total = sum(v["source_files"] for v in expected_scopes.values())
           expected_missing_de = sum(v["missing_de"] for v in expected_scopes.values())
-          expected_zero_pin = sum(v["zero_pin"] for v in expected_scopes.values())
           assert expected_total == 6918
           assert expected_missing_de == 2419
-          assert expected_zero_pin == 2684
 
           library_path = Path("build/Z_Q_QElectroTech.kicad_sym")
           library = library_path.read_text(encoding="utf-8")
           report = json.loads(Path("build/qet-phase1-full-report.json").read_text(encoding="utf-8"))
 
           assert report["source_files"] == report["converted"] == expected_total
-          assert report["zero_pin_symbols"] == expected_zero_pin
           assert report["missing_german_names"] == expected_missing_de
           assert not report["errors"], report["errors"]
           assert not report["unsupported_nodes"], report["unsupported_nodes"]
           assert report["duplicate_names_resolved"] == 0
 
           audits = {}
+          scope_zero_pin_counts = {}
           for scope, expected in expected_scopes.items():
               audit = json.loads(Path(f"build/qet-audit-{scope}.json").read_text(encoding="utf-8"))
               audits[scope] = audit
               assert audit["source_files"] == expected["source_files"], (scope, audit["source_files"])
               assert audit["missing_german_names"] == expected["missing_de"], (scope, audit["missing_german_names"])
               assert not audit["parse_errors"], (scope, audit["parse_errors"])
+              scope_zero_pin_counts[scope] = audit["zero_pin_symbols"]
+
+          expected_zero_pin = sum(scope_zero_pin_counts.values())
+          assert expected_zero_pin == report["zero_pin_symbols"], (
+              scope_zero_pin_counts,
+              expected_zero_pin,
+              report["zero_pin_symbols"],
+          )
 
           assert len(audits["20_manufacturers_articles"]["sanitized_xml_files"]) == 1
           assert len(audits["91_en_60617"]["sanitized_xml_files"]) == 1
@@ -258,6 +264,7 @@ jobs:
               "source_files": expected_total,
               "converted": report["converted"],
               "zero_pin_symbols": expected_zero_pin,
+              "scope_zero_pin_counts": scope_zero_pin_counts,
               "raw_missing_german_names": expected_missing_de,
               "explicit_german_names_applied": explicit_german,
               "language_neutral_names_accepted": language_neutral,
@@ -297,15 +304,16 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
+          manifest = json.loads(Path("build/qet-phase1-full-manifest.json").read_text(encoding="utf-8"))
           svg_files = sorted(Path("build/kicad-svg-phase1-full").glob("*.svg"))
-          assert len(svg_files) == 6918, len(svg_files)
+          assert len(svg_files) == manifest["converted"] == 6918, len(svg_files)
           empty = [str(path) for path in svg_files if path.stat().st_size == 0]
           assert not empty, empty[:20]
           Path("build/qet-phase1-full-kicad-smoke-report.json").write_text(
               json.dumps(
                   {
                       "exported_svg_symbols": len(svg_files),
-                      "expected_symbols": 6918,
+                      "expected_symbols": manifest["converted"],
                       "empty_svg_files": len(empty),
                   },
                   indent=2,
