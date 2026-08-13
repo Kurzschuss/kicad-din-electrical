@@ -2,44 +2,34 @@
 
 Dieser Ordner enthält Arbeits- und Übergabestände für die Fortsetzung des Projekts in späteren Sitzungen.
 
-## Aktueller maßgeblicher Tagesabschluss
+## Aktueller maßgeblicher Arbeitsstand
 
 Für die nächste Fortsetzung zuerst lesen:
 
-- [`ARBEITSSTAND_2026-08-12_TAGESABSCHLUSS.md`](ARBEITSSTAND_2026-08-12_TAGESABSCHLUSS.md)
+- [`AKTUELL.md`](AKTUELL.md)
+- [`ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md`](ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md)
 
-Dieser Stand dokumentiert insbesondere:
+Der Stand vom **14.08.2026** dokumentiert den vollständigen Z_I-Arbeitsblock: sechs JS/SVG-Quellmodule, 51 Quellsymbole, 52 KiCad-Top-Level-Symbole inklusive Mehrfacheinheiten-Schütz, 254 Pins, die Qualitätsstufen bis v14, den JS↔KiCad-Geometrievergleich, die endgültigen Hashes sowie den aktuellen GitHub-Integrationsbranch `agent/import-z-i-electricalcomponents-v14`.
 
-- den Ausbau seit dem Tagesabschluss vom 10.08.2026;
-- RCD 2P Typ B/B+ und RCD 4P Typ F;
-- RCD-Typ-/`IΔn`-Filter im Gerätekatalog und Z_Cockpit;
-- den geprüften RCBO-1P+N-Stand;
-- den geprüften Haupt-/Lastschalter-Stand;
-- die neue verifizierte Hersteller-Stammdatenbasis mit 16 Herstellern;
-- den geprüften 3P-AC-3-Schütz-Stand;
-- den aktuellen Paketfortschritt;
-- den letzten grünen Main-CI-Stand;
-- die eingefrorenen MCB-/RCD-/Z_Cockpit-Baselines;
-- den nächsten normalen Einstiegspunkt `Hilfsschalter`;
-- die Regel, dass Herstellerdaten parallel ergänzt werden dürfen, aber nur aus belegten Quellen.
+Besonders wichtig für die Fortsetzung: Der große Upload der fertig geprüften `.kicad_sym` wurde in der ChatGPT-GitHub-Schnittstelle vom Sicherheitslayer blockiert. Die technische Bibliothek ist fertig, aber noch nicht als `symbols/Z_I_ElectricalComponents.kicad_sym` im Repository materialisiert. Der v14-Handover beschreibt den exakten lokalen Integrationsschritt und die anschließend auszuführenden Repository-Generatoren/CI-Prüfungen.
+
+## Breiter Projektkontext vom 13. August 2026
+
+Für QElectroTech-Konvertierung, DIN-Editor-/KiCad-Sync, ProjectOS, Z_Cockpit und den allgemeinen Projekt-Backlog bleibt zusätzlich maßgeblich:
+
+- [`ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md`](ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md)
+
+Der Z_I-Handover vom 14.08.2026 ergänzt diesen Gesamtstand; er ersetzt nicht die übrige Projekthistorie.
+
+## Ältere Tages- und Detailstände
+
+Die vorhandenen Dateien vom 10.–13.08.2026 bleiben als Detailhistorie erhalten, unter anderem:
+
+- `ARBEITSSTAND_2026-08-12_TAGESABSCHLUSS.md`
+- `ARBEITSSTAND_2026-08-10_TAGESABSCHLUSS.md`
+- `ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md`
+- `ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md`
+- `ARBEITSSTAND_2026-08-10_Z_COCKPIT_GOVERNANCE.md`
+- `ARBEITSSTAND_2026-08-10_QUALITAETSHANDBUCH.md`
 
 `main` bleibt immer die Single Source of Truth. Bei einem späteren Widerspruch zwischen einem historischen Handover und dem aktuellen Repository gilt der aktuelle `main`-Stand.
-
-## Vorheriger Gesamt-Handover vom 10. August 2026
-
-Für die ausführliche ProjectOS-/Z_Cockpit-Governance, Sicherheitsregeln, Projektdatei- und Mehrbenutzerlogik sowie die früheren UI-/Symbolbaselines weiterhin relevant:
-
-- [`ARBEITSSTAND_2026-08-10_TAGESABSCHLUSS.md`](ARBEITSSTAND_2026-08-10_TAGESABSCHLUSS.md)
-
-Der Stand vom 12.08.2026 **ergänzt und aktualisiert** diesen Handover. Insbesondere die dort noch als `Entwurf` genannten Pakete RCBO und Hauptschalter sind inzwischen `Geprüft`; zusätzlich ist `Z_CONTACTOR` jetzt `Geprüft`.
-
-## Wichtige Fach-/Zwischenstände vom 10. August 2026
-
-Diese Dateien bleiben für Detailhistorie erhalten:
-
-- [`ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md`](ARBEITSSTAND_2026-08-10_MCB_Z_COCKPIT.md)
-- [`ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md`](ARBEITSSTAND_2026-08-10_Z_COCKPIT_AUSBAU.md)
-- [`ARBEITSSTAND_2026-08-10_Z_COCKPIT_GOVERNANCE.md`](ARBEITSSTAND_2026-08-10_Z_COCKPIT_GOVERNANCE.md)
-- [`ARBEITSSTAND_2026-08-10_QUALITAETSHANDBUCH.md`](ARBEITSSTAND_2026-08-10_QUALITAETSHANDBUCH.md)
-
-Für den nächsten normalen Arbeitsblock ist jedoch der **Tagesabschluss vom 12.08.2026** die zuerst zu verwendende Fortsetzungsgrundlage.
