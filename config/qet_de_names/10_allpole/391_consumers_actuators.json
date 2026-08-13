@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/391_consumers_actuators",
+  "overrides": {
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/dahlander_motor_12_terminals.elmt": "Dahlander-Drehstrommotor, 12 Klemmen",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/dahlander_motor_6_terminals.elmt": "Dahlander-Drehstrommotor, 6 Klemmen",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/dahlander_motor_9_terminals.elmt": "Dahlander-Drehstrommotor, 9 Klemmen",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/induction_motor_6_terminals.elmt": "Drehstrom-Asynchronmotor, 6 Klemmen",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_mono1.elmt": "Einphasenmotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_mono_2.elmt": "Einphasenmotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_serie_dc.elmt": "Gleichstrom-Reihenschlussmotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_serie_mono.elmt": "Einphasen-Reihenschlussmotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_tri_3.elmt": "Drehstrommotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteur_tri_de_2.elmt": "Drehstrommotor mit Doppelwicklung",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moteurmono3.elmt": "Einphasenmotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/moto_ac_1ph.elmt": "Einphasen-Wechselstrommotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/motor-mono-cond.elmt": "Einphasen-Kondensatormotor",
+    "10_electric/10_allpole/391_consumers_actuators/10_engines/motor2.elmt": "Motor",
+    "10_electric/10_allpole/391_consumers_actuators/60_lightings/crepuscolar.elmt": "Dämmerungsrelais",
+    "10_electric/10_allpole/391_consumers_actuators/70_servomoteur/servomoteur_ddc_fdc.elmt": "Servomotor V2V FDC/DDC",
+    "10_electric/10_allpole/391_consumers_actuators/70_servomoteur/servomoteur_fdc.elmt": "Servomotor V2V FDC",
+    "10_electric/10_allpole/391_consumers_actuators/70_servomoteur/v2v.elmt": "Servomotor V2V",
+    "10_electric/10_allpole/391_consumers_actuators/70_servomoteur/v2v_-2.elmt": "Servomotor V2V"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/120_cables_wiring",
+  "overrides": {
+    "10_electric/10_allpole/120_cables_wiring/cable3.elmt": "Kabel 4G",
+    "10_electric/10_allpole/120_cables_wiring/cable5.elmt": "Kabel 5G",
+    "10_electric/10_allpole/120_cables_wiring/cable6.elmt": "Kabel 3G"
+  }
+}

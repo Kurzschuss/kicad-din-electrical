@@ -1,0 +1,204 @@
+name: QET 10_allpole validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+  pull_request:
+    paths:
+      - "tools/convert_qet_to_kicad.py"
+      - "tools/convert_qet_to_kicad_checked.py"
+      - "tools/audit_qet_source.py"
+      - "tools/apply_qet_de_names.py"
+      - "tests/test_convert_qet_to_kicad.py"
+      - "tests/test_convert_qet_to_kicad_checked.py"
+      - "tests/test_audit_qet_source.py"
+      - "tests/test_apply_qet_de_names.py"
+      - "config/qet_de_names/**"
+      - ".github/workflows/qet-10-allpole-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-qet-10-allpole:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run QET unit tests
+        run: |
+          python -m pytest \
+            tests/test_convert_qet_to_kicad.py \
+            tests/test_convert_qet_to_kicad_checked.py \
+            tests/test_audit_qet_source.py \
+            tests/test_apply_qet_de_names.py \
+            -q
+
+      - name: Convert complete 10_allpole
+        run: |
+          python tools/convert_qet_to_kicad_checked.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 10_allpole \
+            --output build/Z_Q_QElectroTech.kicad_sym \
+            --report build/qet-10-allpole-report.json \
+            --fail-on-errors
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Audit missing German source names
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/10_electric \
+            --scope 10_allpole \
+            --output build/qet-source-audit.json
+
+      - name: Apply reviewed German visible names
+        run: |
+          python tools/apply_qet_de_names.py \
+            --library build/Z_Q_QElectroTech.kicad_sym \
+            --config-dir config/qet_de_names/10_allpole \
+            --report build/qet-de-name-report.json \
+            --strict
+
+      - name: Validate generated KiCad library structure
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          library = Path("build/Z_Q_QElectroTech.kicad_sym").read_text(encoding="utf-8")
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+          audit = json.loads(Path("build/qet-source-audit.json").read_text(encoding="utf-8"))
+          names = json.loads(Path("build/qet-de-name-report.json").read_text(encoding="utf-8"))
+
+          assert library.startswith("(kicad_symbol_lib ")
+          assert library.rstrip().endswith(")")
+
+          depth = 0
+          in_string = False
+          escaped = False
+          for ch in library:
+              if in_string:
+                  if escaped:
+                      escaped = False
+                  elif ch == "\\":
+                      escaped = True
+                  elif ch == '"':
+                      in_string = False
+                  continue
+              if ch == '"':
+                  in_string = True
+              elif ch == "(":
+                  depth += 1
+              elif ch == ")":
+                  depth -= 1
+                  assert depth >= 0
+          assert depth == 0
+          assert not in_string
+
+          top_level_symbols = sum(
+              1 for line in library.splitlines()
+              if line.startswith('  (symbol "Z_Q_')
+          )
+          assert top_level_symbols == report["converted"], (top_level_symbols, report["converted"])
+          assert library.count('(property "QET_Source_Path" ') == report["converted"]
+          assert library.count('(property "QET_Category" ') == report["converted"]
+          assert library.count('(property "QET_Adjustments" ') == report["converted"]
+          assert library.count('(property "QET_Original_Pin_Count" "0"') == report["zero_pin_symbols"]
+
+          assert audit["source_files"] == report["source_files"]
+          assert audit["missing_german_names"] == report["missing_german_names"]
+          assert not audit["parse_errors"]
+
+          audited_paths = {item["path"] for item in audit["items"]}
+          applied_paths = set(names["applied_paths"])
+          assert names["configured_overrides"] == audit["missing_german_names"]
+          assert names["applied_overrides"] == audit["missing_german_names"]
+          assert not names["unmatched_override_paths"]
+          assert applied_paths == audited_paths
+          assert library.count("german_name_override") == audit["missing_german_names"]
+          PY
+
+      - name: Install KiCad 10 CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends kicad
+          kicad-cli version --format about | tee build/kicad-version.txt
+
+      - name: Load and render all symbols with KiCad
+        run: |
+          mkdir -p build/kicad-svg
+          kicad-cli sym export svg \
+            --black-and-white \
+            --output build/kicad-svg \
+            build/Z_Q_QElectroTech.kicad_sym
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+          svg_files = sorted(Path("build/kicad-svg").glob("*.svg"))
+          assert len(svg_files) == report["converted"], (len(svg_files), report["converted"])
+          assert all(path.stat().st_size > 0 for path in svg_files)
+          Path("build/kicad-smoke-report.json").write_text(
+              json.dumps(
+                  {
+                      "exported_svg_symbols": len(svg_files),
+                      "expected_symbols": report["converted"],
+                      "empty_svg_files": 0,
+                  },
+                  indent=2,
+              ) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Assert full source coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("build/qet-10-allpole-report.json").read_text(encoding="utf-8"))
+          assert report["source_files"] > 0, report
+          assert report["converted"] == report["source_files"], report
+          assert not report["errors"], report
+          assert not report["unsupported_nodes"], report
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload conversion result and audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-10-allpole-validation
+          path: |
+            build/Z_Q_QElectroTech.kicad_sym
+            build/qet-10-allpole-report.json
+            build/qet-source-audit.json
+            build/qet-de-name-report.json
+            build/qet-source-commit.txt
+            build/kicad-version.txt
+            build/kicad-smoke-report.json

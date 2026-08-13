@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_commit": "42692ea76d2fcc3c6cf1ca335951584cd0978922",
+  "scope": "10_electric/10_allpole/200_fuses_protective_gears",
+  "overrides": {
+    "10_electric/10_allpole/200_fuses_protective_gears/20_disconnecting_switches/01_intersectiotetra.elmt": "Lasttrennschalter, 4-polig",
+    "10_electric/10_allpole/200_fuses_protective_gears/20_disconnecting_switches/inter-sectionneur_tetra.elmt": "Lasttrennschalter, 4-polig",
+    "10_electric/10_allpole/200_fuses_protective_gears/20_disconnecting_switches/inter_sectionneur_tri.elmt": "Lasttrennschalter, 3-polig",
+    "10_electric/10_allpole/200_fuses_protective_gears/20_disconnecting_switches/interrupteur_sectionneur_biphase.elmt": "Lasttrennschalter, 2-polig",
+    "10_electric/10_allpole/200_fuses_protective_gears/50_residual_current_circuit_breaker/int_diff5.elmt": "Fehlerstrom-Schutzschalter 1P+N",
+    "10_electric/10_allpole/200_fuses_protective_gears/50_residual_current_circuit_breaker/int_diff7.elmt": "Fehlerstrom-Schutzschalter 2P"
+  }
+}
