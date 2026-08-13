@@ -47,9 +47,12 @@ jobs:
             test -s "release/${name}"
           done
 
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          qet_source="$(tr -d '\r\n' < release/qet-source-commit.txt)"
+          [[ "$qet_source" =~ ^[0-9a-f]{40}$ ]]
+
           short_sha="${HEAD_SHA:0:12}"
           tag="qet-master-${short_sha}"
-          qet_source="$(tr -d '\r\n' < release/qet-source-commit.txt)"
 
           {
             echo "tag=${tag}"
