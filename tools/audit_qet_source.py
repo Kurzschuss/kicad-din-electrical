@@ -53,6 +53,7 @@ def audit(qet_root: Path, scopes: Sequence[str]) -> dict:
                         "path": source_path,
                         "invalid_codepoints": sanitation.invalid_codepoints,
                         "inserted_name_end_tags": sanitation.inserted_name_end_tags,
+                        "escaped_name_literal_lt": sanitation.escaped_name_literal_lt,
                         "markers": sanitation.markers,
                     }
                 )
