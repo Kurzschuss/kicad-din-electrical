@@ -1,4 +1,4 @@
-name: QET 99 miscellaneous unsorted audit
+name: QET 99 miscellaneous unsorted validation
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - "tools/convert_qet_to_kicad_checked.py"
       - "tools/qet_xml.py"
       - "tools/audit_qet_source.py"
+      - "tools/apply_qet_language_neutral_names.py"
       - "tests/test_convert_qet_to_kicad.py"
       - "tests/test_convert_qet_to_kicad_checked.py"
       - "tests/test_audit_qet_source.py"
@@ -25,7 +26,7 @@ permissions:
   contents: read
 
 jobs:
-  audit-qet-miscellaneous:
+  validate-qet-miscellaneous:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
@@ -73,7 +74,14 @@ jobs:
             --scope 99_miscellaneous_unsorted \
             --output build/qet-99-miscellaneous-unsorted-source-audit.json
 
-      - name: Validate raw miscellaneous library
+      - name: Accept reviewed language-neutral names
+        run: |
+          python tools/apply_qet_language_neutral_names.py \
+            --library build/Z_Q_QElectroTech_99_miscellaneous_unsorted.kicad_sym \
+            --audit build/qet-99-miscellaneous-unsorted-source-audit.json \
+            --report build/qet-99-miscellaneous-unsorted-language-neutral-report.json
+
+      - name: Validate miscellaneous library and German name coverage
         run: |
           python - <<'PY'
           import json
@@ -82,14 +90,27 @@ jobs:
           library = Path("build/Z_Q_QElectroTech_99_miscellaneous_unsorted.kicad_sym").read_text(encoding="utf-8")
           report = json.loads(Path("build/qet-99-miscellaneous-unsorted-report.json").read_text(encoding="utf-8"))
           audit = json.loads(Path("build/qet-99-miscellaneous-unsorted-source-audit.json").read_text(encoding="utf-8"))
+          neutral = json.loads(Path("build/qet-99-miscellaneous-unsorted-language-neutral-report.json").read_text(encoding="utf-8"))
 
-          assert report["source_files"] > 0
-          assert report["converted"] == report["source_files"], report["errors"]
+          assert report["source_files"] == report["converted"] == 11
+          assert report["zero_pin_symbols"] == 0
           assert not report["errors"], report["errors"]
           assert not report["unsupported_nodes"], report["unsupported_nodes"]
-          assert audit["source_files"] == report["source_files"]
-          assert audit["missing_german_names"] == report["missing_german_names"]
+          assert audit["source_files"] == 11
+          assert audit["missing_german_names"] == report["missing_german_names"] == 1
+          assert audit["items"][0]["path"] == "10_electric/99_miscellaneous_unsorted/ecl.elmt"
+          assert audit["items"][0]["names"]["en"] == "ECL"
           assert not audit["parse_errors"], audit["parse_errors"]
+          assert not audit["sanitized_xml_files"], audit["sanitized_xml_files"]
+
+          assert neutral["audited_missing_german_names"] == 1
+          assert neutral["language_neutral_candidates"] == 1
+          assert neutral["language_neutral_applied"] == 1
+          assert neutral["applied_paths"] == ["10_electric/99_miscellaneous_unsorted/ecl.elmt"]
+          assert neutral["remaining_translation_count"] == 0
+          assert neutral["remaining_translation_paths"] == []
+          assert library.count("language_neutral_name_accepted") == 1
+          assert "german_name_fallback:en" not in library
 
           top_level = sum(1 for line in library.splitlines() if line.startswith('  (symbol "Z_Q_'))
           assert top_level == report["converted"]
@@ -118,7 +139,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("build/qet-99-miscellaneous-unsorted-report.json").read_text(encoding="utf-8"))
           svg_files = sorted(Path("build/kicad-svg-99-miscellaneous-unsorted").glob("*.svg"))
-          assert len(svg_files) == report["converted"], (len(svg_files), report["converted"])
+          assert len(svg_files) == report["converted"] == 11
           assert all(path.stat().st_size > 0 for path in svg_files)
           Path("build/qet-99-miscellaneous-unsorted-kicad-smoke-report.json").write_text(
               json.dumps({"exported_svg_symbols": len(svg_files), "expected_symbols": report["converted"], "empty_svg_files": 0}, indent=2) + "\n",
@@ -126,14 +147,15 @@ jobs:
           )
           PY
 
-      - name: Upload miscellaneous audit artifacts
+      - name: Upload miscellaneous validation artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: qet-99-miscellaneous-unsorted-audit
+          name: qet-99-miscellaneous-unsorted-validation
           path: |
             build/Z_Q_QElectroTech_99_miscellaneous_unsorted.kicad_sym
             build/qet-99-miscellaneous-unsorted-report.json
             build/qet-99-miscellaneous-unsorted-source-audit.json
+            build/qet-99-miscellaneous-unsorted-language-neutral-report.json
             build/qet-99-miscellaneous-unsorted-kicad-smoke-report.json
             build/qet-source-commit.txt
             build/kicad-version.txt
