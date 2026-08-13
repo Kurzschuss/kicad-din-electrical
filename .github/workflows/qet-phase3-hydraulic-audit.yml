@@ -1,0 +1,158 @@
+name: QET Phase 3 hydraulic audit
+
+on:
+  push:
+    branches:
+      - agent/qet-phase3-hydraulic-audit
+    paths:
+      - "tools/audit_qet_source.py"
+      - "tools/qet_xml.py"
+      - "tests/test_audit_qet_source.py"
+      - ".github/workflows/qet-phase3-hydraulic-audit.yml"
+  workflow_dispatch:
+    inputs:
+      qet_ref:
+        description: "qelectrotech-elements ref/commit"
+        required: true
+        default: "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+permissions:
+  contents: read
+
+env:
+  QET_REF: ${{ github.event.inputs.qet_ref || '42692ea76d2fcc3c6cf1ca335951584cd0978922' }}
+
+jobs:
+  audit-qet-phase3-hydraulic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout official QElectroTech elements
+        uses: actions/checkout@v4
+        with:
+          repository: qelectrotech/qelectrotech-elements
+          ref: ${{ env.QET_REF }}
+          path: .qet-elements
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependency
+        run: python -m pip install pytest
+
+      - name: Run audit regression tests
+        run: python -m pytest tests/test_audit_qet_source.py -q
+
+      - name: Audit hydraulic scopes independently
+        run: |
+          mkdir -p build
+          for scope in \
+            21_tanks \
+            31_control_valves \
+            45_valves \
+            51_cylinders \
+            61_pumps \
+            71_exchangers \
+            81_filters
+          do
+            python tools/audit_qet_source.py \
+              --qet-root .qet-elements/30_hydraulic \
+              --scope "$scope" \
+              --output "build/qet-audit-30_hydraulic-${scope}.json"
+          done
+
+      - name: Audit complete 30_hydraulic collection
+        run: |
+          python tools/audit_qet_source.py \
+            --qet-root .qet-elements/30_hydraulic \
+            --scope 21_tanks \
+            --scope 31_control_valves \
+            --scope 45_valves \
+            --scope 51_cylinders \
+            --scope 61_pumps \
+            --scope 71_exchangers \
+            --scope 81_filters \
+            --output build/qet-audit-30_hydraulic-full.json
+          git -C .qet-elements rev-parse HEAD > build/qet-source-commit.txt
+
+      - name: Validate hydraulic audit coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          scopes = [
+              "21_tanks",
+              "31_control_valves",
+              "45_valves",
+              "51_cylinders",
+              "61_pumps",
+              "71_exchangers",
+              "81_filters",
+          ]
+          build = Path("build")
+          reports = {
+              scope: json.loads((build / f"qet-audit-30_hydraulic-{scope}.json").read_text(encoding="utf-8"))
+              for scope in scopes
+          }
+          full = json.loads((build / "qet-audit-30_hydraulic-full.json").read_text(encoding="utf-8"))
+
+          for scope, report in reports.items():
+              assert not report["parse_errors"], (scope, report["parse_errors"])
+              for item in report["items"]:
+                  assert item["path"].startswith(f"30_hydraulic/{scope}/"), item["path"]
+                  assert item["category"].startswith(f"30_hydraulic / {scope}"), item["category"]
+
+          assert not full["parse_errors"], full["parse_errors"]
+          assert full["source_files"] == sum(report["source_files"] for report in reports.values())
+          assert full["zero_pin_symbols"] == sum(report["zero_pin_symbols"] for report in reports.values())
+          assert full["missing_german_names"] == sum(report["missing_german_names"] for report in reports.values())
+
+          sub_missing = set()
+          for report in reports.values():
+              sub_missing.update(item["path"] for item in report["items"])
+          full_missing = {item["path"] for item in full["items"]}
+          assert len(sub_missing) == full["missing_german_names"]
+          assert full_missing == sub_missing
+
+          source_commit = (build / "qet-source-commit.txt").read_text(encoding="utf-8").strip()
+          assert source_commit == "42692ea76d2fcc3c6cf1ca335951584cd0978922"
+
+          summary = {
+              "qet_source_commit": source_commit,
+              "collection": "30_hydraulic",
+              "source_files": full["source_files"],
+              "zero_pin_symbols": full["zero_pin_symbols"],
+              "missing_german_names": full["missing_german_names"],
+              "sanitized_xml_files": len(full["sanitized_xml_files"]),
+              "parse_errors": len(full["parse_errors"]),
+              "scopes": {
+                  scope: {
+                      "source_files": reports[scope]["source_files"],
+                      "zero_pin_symbols": reports[scope]["zero_pin_symbols"],
+                      "missing_german_names": reports[scope]["missing_german_names"],
+                      "sanitized_xml_files": len(reports[scope]["sanitized_xml_files"]),
+                  }
+                  for scope in scopes
+              },
+          }
+          (build / "qet-phase3-hydraulic-audit-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload Phase 3 hydraulic audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: qet-phase3-hydraulic-audit
+          path: |
+            build/qet-audit-30_hydraulic-*.json
+            build/qet-phase3-hydraulic-audit-summary.json
+            build/qet-source-commit.txt
