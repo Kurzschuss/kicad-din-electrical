@@ -32,44 +32,63 @@ def test_rcbo_symbol_has_1p_n_terminals_and_neutral_marking():
     pins = parse_pins(block)
 
     assert [(pin.x, pin.y, pin.angle, pin.length) for pin in pins] == [
-        (0.0, 12.7, 270.0, 2.54),
-        (0.0, -12.7, 90.0, 2.54),
-        (7.62, 12.7, 270.0, 2.54),
-        (7.62, -12.7, 90.0, 2.54),
+        (0.0, 15.24, 270.0, 2.54),
+        (0.0, -15.24, 90.0, 2.54),
+        (7.62, 15.24, 270.0, 2.54),
+        (7.62, -15.24, 90.0, 2.54),
     ]
     assert parse_pin_numbers(block) == ["1", "2", "3", "4"]
     assert parse_pin_names(block) == ["~", "~", "N", "N"]
 
 
-def test_rcbo_symbol_combines_overcurrent_and_residual_current_functions():
+def test_rcbo_symbol_matches_approved_reference_structure():
     block = rcbo_block()
-    points = {polyline.points for polyline in parse_polylines(block)}
+    polylines = parse_polylines(block)
+    points = {polyline.points for polyline in polylines}
     rectangles = parse_rectangles(block)
     labels = {(item.value, item.x, item.y) for item in parse_texts(block)}
 
-    assert ("T", -15.24, 7.62) in labels
-    assert ("I>", 16.51, -2.032) in labels
-    assert ("IΔ", 16.51, -5.588) in labels
-    assert any(item.dashed for item in parse_polylines(block))
+    # Sichtbare Referenzbeschriftungen.
+    assert ("T", -17.78, 10.16) in labels
+    assert ("E", -17.78, 5.08) in labels
+    assert ("1", 1.27, 14.605) in labels
+    assert ("3 N", 10.16, 14.605) in labels
+    assert ("2", 1.27, -16.51) in labels
+    assert ("4 N", 10.16, -16.51) in labels
 
-    for x in (0.0, 7.62):
-        assert ((x, 10.16), (x, 8.89)) in points
-        assert ((x - 2.54, 8.89), (x, 3.81)) in points
-        assert ((x, 3.81), (x, -10.16)) in points
+    # Mechanische Kopplung ist gestrichelt.
+    assert any(item.dashed for item in polylines)
+    assert ((-7.62, 8.89), (24.13, 8.89)) in points
 
+    # Hauptkontakte / Leiter L und N.
+    assert ((-2.54, 10.16), (0.0, 6.35)) in points
+    assert ((5.08, 10.16), (7.62, 6.35), (7.62, -12.7)) in points
+
+    # Summenstromwandler um beide Leiter, mit zwei gefuellten Kernstuecken.
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (-2.54, 0.0, 10.16, -5.08)
+        (item.x1, item.y1, item.x2, item.y2) == (-5.08, -5.08, 12.7, -8.89)
+        for item in rectangles
+    )
+    filled_core = {
+        (item.x1, item.y1, item.x2, item.y2)
+        for item in rectangles
+        if item.filled
+    }
+    assert (-5.08, -5.08, -2.54, -8.89) in filled_core
+    assert (10.16, -5.08, 12.7, -8.89) in filled_core
+
+    # Rechter Betätigungs-/Fehlerstromblock oben und unterer Ausloeseblock.
+    assert any(
+        (item.x1, item.y1, item.x2, item.y2) == (16.51, 11.43, 21.59, 7.62)
         for item in rectangles
     )
     assert any(
-        item.filled
-        and (item.x1, item.y1, item.x2, item.y2) == (-2.54, 0.0, -1.27, -5.08)
+        (item.x1, item.y1, item.x2, item.y2) == (17.78, 4.445, 20.32, 0.635)
         for item in rectangles
     )
-    assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (12.7, 0.0, 20.32, -7.62)
-        for item in rectangles
-    )
+
+    # Untere rechte Rueckfuehrung ist mit dem Leiter von Klemme 4 verbunden.
+    assert ((20.32, 1.905), (22.86, 1.905), (22.86, -10.16), (7.62, -10.16)) in points
 
 
 def test_rcbo_preview_is_generated_from_supported_geometry():
@@ -88,7 +107,6 @@ def test_rcbo_preview_is_generated_from_supported_geometry():
     assert "<title>Z_RCBO_1P_N: RCBO_1P_N</title>" in svg
     assert "<rect " in svg
     assert "<polyline " in svg
-    assert "<polygon " in svg
     assert svg.count("<line ") == 4
     assert ">RCBO_1P_N</text>" in svg
 
@@ -108,6 +126,8 @@ def test_rcbo_symbol_reference_metadata_is_complete():
     }
     for name, value in expected_properties.items():
         assert f'(property "{name}" "{value}"' in block
+
+    assert 'RCBO 1P+N / 2P B16 30mA Typ A 6kA' in block
 
 
 def test_rcbo_type_a_series_contains_requested_1pn_2p_planning_matrix():
