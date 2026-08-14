@@ -17,8 +17,10 @@ from tools.generate_symbol_previews import (
 RCBO_PATH = Path("symbols/Z_RCBO_1P_N.kicad_sym")
 TYPE_A_SERIES_PATH = Path("data/device_series/generic/rcbo-1p-n-type-a-template-series.yaml")
 TYPE_F_SERIES_PATH = Path("data/device_series/generic/rcbo-1p-n-type-f-template-series.yaml")
-TYPE_A_CURRENTS = (6, 10, 16, 20, 25, 32, 40)
+TYPE_A_CURRENTS = (6, 10, 13, 16, 20, 25, 32, 40)
 TYPE_A_CURVES = ("B", "C")
+TYPE_A_RESIDUAL_CURRENTS_MA = (10, 30)
+TYPE_A_BREAKING_CAPACITIES_KA = (6, 10)
 
 
 def rcbo_block() -> str:
@@ -108,26 +110,48 @@ def test_rcbo_symbol_reference_metadata_is_complete():
         assert f'(property "{name}" "{value}"' in block
 
 
-def test_rcbo_type_a_series_contains_expected_planning_matrix():
+def test_rcbo_type_a_series_contains_requested_1pn_2p_planning_matrix():
     series = json.loads(TYPE_A_SERIES_PATH.read_text(encoding="utf-8"))
     devices = expand_series(series)
 
-    assert len(devices) == 14
-    assert {
-        (item["rated_current_a"], item["trip_curve"])
-        for item in devices
-    } == {
-        (current, curve)
+    expected = {
+        (current, curve, residual, capacity)
         for current in TYPE_A_CURRENTS
         for curve in TYPE_A_CURVES
+        for residual in TYPE_A_RESIDUAL_CURRENTS_MA
+        for capacity in TYPE_A_BREAKING_CAPACITIES_KA
     }
-    assert {item["residual_current_ma"] for item in devices} == {30}
+
+    assert len(devices) == 64
+    assert {
+        (
+            item["rated_current_a"],
+            item["trip_curve"],
+            item["residual_current_ma"],
+            item["breaking_capacity_ka"],
+        )
+        for item in devices
+    } == expected
+
     assert {item["rcd_type"] for item in devices} == {"A"}
-    assert {item["breaking_capacity_ka"] for item in devices} == {6}
     assert {item["symbol"] for item in devices} == {"Z_RCBO_1P_N:RCBO_1P_N"}
     assert {item["poles"] for item in devices} == {2}
     assert {item["modules"] for item in devices} == {2}
     assert {item["footprint_policy"] for item in devices} == {"optional"}
+    assert "1P+N / 2P" in series["defaults"]["series"]
+
+
+def test_rcbo_type_a_series_keeps_legacy_baseline_variant_ids():
+    series = json.loads(TYPE_A_SERIES_PATH.read_text(encoding="utf-8"))
+    devices = expand_series(series)
+    ids = {item["id"] for item in devices}
+
+    for curve in ("b", "c"):
+        for current in (6, 10, 16, 20, 25, 32, 40):
+            assert (
+                f"generic.rcbo-1p-n-type-a-template-series.{curve}{current}"
+                in ids
+            )
 
 
 def test_rcbo_type_f_series_is_deliberately_conservative():
@@ -136,7 +160,13 @@ def test_rcbo_type_f_series_is_deliberately_conservative():
 
     assert len(devices) == 2
     assert {
-        (item["rated_current_a"], item["trip_curve"], item["residual_current_ma"], item["rcd_type"], item["breaking_capacity_ka"])
+        (
+            item["rated_current_a"],
+            item["trip_curve"],
+            item["residual_current_ma"],
+            item["rcd_type"],
+            item["breaking_capacity_ka"],
+        )
         for item in devices
     } == {
         (6, "C", 30, "F", 6),
