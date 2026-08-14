@@ -4,9 +4,9 @@
 
 `Z_RCBO_1P_N:RCBO_1P_N` ist der herstellerneutrale Referenzbaustein für einen FI/LS-Schalter (RCBO) mit zwei geschalteten Polen. In der Projektbezeichnung werden **1P+N** und **2P** für diese Bauart gemeinsam geführt.
 
-Die elektrische Semantik des bestehenden Symbols bleibt unverändert: ein geschützter Außenleiter plus mitgeschalteter Neutralleiter. Es wird **kein zweites 2P-Symbol** erzeugt.
+Die elektrische Semantik bleibt unverändert: ein geschützter Außenleiter plus mitgeschalteter Neutralleiter. Es wird **kein zweites 2P-Symbol** erzeugt.
 
-Das Symbol verbindet die im Projekt bereits etablierte Darstellungslogik für Leitungsschutz und Fehlerstromschutz. Es ersetzt keine Produktauswahl, keine Schutzbemessung und keine Prüfung einer realen Anlage.
+Das Symbol verbindet Leitungsschutz- und Fehlerstromschutzfunktion in einer gemeinsamen Funktionsdarstellung. Es ersetzt keine Produktauswahl, keine Schutzbemessung und keine Prüfung einer realen Anlage.
 
 ## Bibliotheken
 
@@ -19,19 +19,29 @@ Z_RCBO_1P_N:RCBO_1P_N
 
 Die bereits vorhandene Bibliothek `symbols/Z_RCBO.kicad_sym` bleibt als separater Platzhalter unangetastet. `Z_RCBO_Busbar_1P_N:RCBO_Busbar_1P_N` bleibt ein eigenständiges Hilfssymbol für Verbindungsschienen und ist nicht Bestandteil der RCBO-Gerätefunktion.
 
-## Funktionsdarstellung
+## Freigegebene Symbolgeometrie
 
-Das 1P+N-/2P-Symbol enthält:
+Die Referenzdarstellung wurde am 14.08.2026 visuell abgestimmt und anschließend als neue Basis für `Z_RCBO_1P_N:RCBO_1P_N` übernommen.
 
+Die freigegebene Darstellung enthält:
+
+- Anschlusskennzeichnung **`1`, `3 N`, `2`, `4 N`**;
 - zwei mechanisch gekoppelte Hauptkontakte für L und N;
-- vier Anschlüsse `1`, `2`, `3`, `4` mit N-Kennzeichnung an `3` und `4`;
-- Prüfschaltung mit Kennzeichnung `T`;
-- Summenstromerfassung über Außen- und Neutralleiter;
-- gemeinsame Auslöse-/Betätigungseinheit;
-- sichtbare Kennzeichnung `I>` für Überstromauslösung;
-- sichtbare Kennzeichnung `IΔ` für Fehlerstromauslösung.
+- Überstromauslöser im L-Zweig;
+- Test-/Prüfkreis links mit Kennzeichnung `T` und `E`;
+- Summenstromwandler um L und N mit zwei dargestellten Kernbereichen;
+- gestrichelte mechanische Kopplung;
+- oberen Betätigungs-/Fehlerstromblock rechts;
+- unteren Auslöse-/Betätigungsblock rechts;
+- elektrische Rückführung des unteren rechten Kreises zum Leiter von **Klemme 4 / N**.
 
-Die Darstellung ist eine herstellerneutrale Funktionsdarstellung. Sie soll die kombinierte MCB-/RCD-Funktion im Schaltplan lesbar machen und ist keine Wiedergabe eines konkreten inneren Hersteller-Schaltplans.
+Bei der visuellen Abstimmung wurden ausdrücklich drei Details korrigiert:
+
+1. Der Draht links oben endet **vor** der gestrichelten mechanischen Kopplungslinie.
+2. Die Proportionen der Betätigungs-/Auslöseblöcke rechts wurden an die Referenz angepasst.
+3. Die untere rechte Leitung ist mit dem Leiter des Schaltkontakts **Klemme 4 / N** verbunden.
+
+Die Darstellung ist eine herstellerneutrale Funktionsdarstellung und keine Wiedergabe eines konkreten inneren Hersteller-Schaltplans.
 
 ## Referenzdaten des Symbols
 
@@ -58,7 +68,7 @@ Quelle:
 data/device_series/generic/rcbo-1p-n-type-a-template-series.yaml
 ```
 
-Die Serie enthält jetzt **64 herstellerneutrale Planungsvarianten**:
+Die Serie enthält **64 herstellerneutrale Planungsvarianten**:
 
 - Bemessungsstrom: **6 A, 10 A, 13 A, 16 A, 20 A, 25 A, 32 A, 40 A**;
 - Bemessungsdifferenzstrom: **10 mA, 30 mA**;
