@@ -1,8 +1,10 @@
-# Z_RCBO 1P+N – Referenz
+# Z_RCBO 1P+N / 2P – Referenz
 
 ## Zweck
 
-`Z_RCBO_1P_N:RCBO_1P_N` ist der herstellerneutrale Referenzbaustein für einen FI/LS-Schalter (RCBO) mit einem geschützten Außenleiter und mitgeschaltetem Neutralleiter.
+`Z_RCBO_1P_N:RCBO_1P_N` ist der herstellerneutrale Referenzbaustein für einen FI/LS-Schalter (RCBO) mit zwei geschalteten Polen. In der Projektbezeichnung werden **1P+N** und **2P** für diese Bauart gemeinsam geführt.
+
+Die elektrische Semantik des bestehenden Symbols bleibt unverändert: ein geschützter Außenleiter plus mitgeschalteter Neutralleiter. Es wird **kein zweites 2P-Symbol** erzeugt.
 
 Das Symbol verbindet die im Projekt bereits etablierte Darstellungslogik für Leitungsschutz und Fehlerstromschutz. Es ersetzt keine Produktauswahl, keine Schutzbemessung und keine Prüfung einer realen Anlage.
 
@@ -19,7 +21,7 @@ Die bereits vorhandene Bibliothek `symbols/Z_RCBO.kicad_sym` bleibt als separate
 
 ## Funktionsdarstellung
 
-Das 1P+N-Symbol enthält:
+Das 1P+N-/2P-Symbol enthält:
 
 - zwei mechanisch gekoppelte Hauptkontakte für L und N;
 - vier Anschlüsse `1`, `2`, `3`, `4` mit N-Kennzeichnung an `3` und `4`;
@@ -33,11 +35,11 @@ Die Darstellung ist eine herstellerneutrale Funktionsdarstellung. Sie soll die k
 
 ## Referenzdaten des Symbols
 
-Die im Bibliothekssymbol hinterlegten `Z_`-Eigenschaften bilden eine repräsentative Planungsvariante ab:
+Die im Bibliothekssymbol hinterlegten `Z_`-Eigenschaften bilden weiterhin eine repräsentative Planungsvariante ab:
 
 | Merkmal | Referenzwert |
 |---|---:|
-| Schaltung | 1P+N |
+| Projektbezeichnung | 1P+N / 2P |
 | Pole | 2 |
 | geschützte Pole | 1 |
 | Bemessungsstrom | 16 A |
@@ -48,7 +50,7 @@ Die im Bibliothekssymbol hinterlegten `Z_`-Eigenschaften bilden eine repräsenta
 | Prüftaste | vorhanden |
 | Footprint Policy | optional |
 
-## Typ-A-Basisserie
+## Typ-A-Planungsmatrix
 
 Quelle:
 
@@ -56,13 +58,22 @@ Quelle:
 data/device_series/generic/rcbo-1p-n-type-a-template-series.yaml
 ```
 
-Die Serie erzeugt 14 herstellerneutrale Planungsvarianten aus:
+Die Serie enthält jetzt **64 herstellerneutrale Planungsvarianten**:
 
-- Bemessungsstrom: 6 A, 10 A, 16 A, 20 A, 25 A, 32 A, 40 A;
-- Kennlinie: B, C;
-- Bemessungsdifferenzstrom: 30 mA;
-- RCD-Typ: A;
-- Bemessungsausschaltvermögen: 6 kA.
+- Bemessungsstrom: **6 A, 10 A, 13 A, 16 A, 20 A, 25 A, 32 A, 40 A**;
+- Bemessungsdifferenzstrom: **10 mA, 30 mA**;
+- Auslösecharakteristik: **B, C**;
+- Bemessungsausschaltvermögen: **6 kA, 10 kA**;
+- RCD-Charakteristik: **Typ A**;
+- Bauart/Projektbezeichnung: **1P+N / 2P**.
+
+Rechnung:
+
+```text
+8 Nennströme × 2 Fehlerströme × 2 Kennlinien × 2 Ausschaltvermögen = 64 Varianten
+```
+
+Die bereits vorhandenen Basis-IDs für 30 mA / 6 kA (`b6`, `b10`, `b16`, …, `c40`) bleiben erhalten. Dadurch werden bestehende Katalogreferenzen nicht unnötig gebrochen. Neue Kombinationen tragen Fehlerstrom und Ausschaltvermögen im Varianten-Identifier.
 
 Die Varianten werden unter
 
@@ -72,6 +83,12 @@ data/devices/generated/generic.rcbo-1p-n-type-a-template-series/
 
 erzeugt.
 
+### Einordnung der Matrix
+
+Die 64 Kombinationen sind eine **herstellerneutrale Planungsabdeckung nach Projektvorgabe**. Sie sind nicht als Behauptung zu verstehen, dass jede Kombination bei jedem Hersteller oder in jeder Produktserie lieferbar ist.
+
+Vor einer konkreten Produktauswahl müssen insbesondere Nennstrom, Kennlinie, Bemessungsdifferenzstrom, Ausschaltvermögen, Polschaltung, Klemmenbelegung und Modulbreite am realen Gerät geprüft werden.
+
 ## Typ-F-Zusatzserie
 
 Quelle:
@@ -80,21 +97,18 @@ Quelle:
 data/device_series/generic/rcbo-1p-n-type-f-template-series.yaml
 ```
 
-Für Typ F wird bewusst keine vollständige theoretische Matrix erzeugt. Die erste konservative Serie enthält nur die aktuell explizit belegten Planungsvarianten:
+Typ F bleibt bewusst separat und konservativ. Die bestehende Serie enthält weiterhin nur:
 
 - 6 A, Kennlinie C, 30 mA, 6 kA;
 - 16 A, Kennlinie C, 30 mA, 6 kA.
 
-Weitere Typ-F-Kombinationen werden erst ergänzt, wenn sie mit Primärquellen sauber belegt und für den Projektumfang sinnvoll sind.
+Die neue 64er Matrix gilt **nur für Typ A**.
 
-## Evidenzbasis
+## Bisherige Evidenzbasis
 
-Aktuelle Siemens-Produktdaten belegen 1P+N-RCBOs unter anderem mit folgenden Kenngrößen:
+Die bereits dokumentierten Siemens-Produktdaten belegen für die Geräteklasse unter anderem Typ-A-RCBOs mit 30 mA, 6 kA, Kennlinie B/C und Bemessungsströmen bis 40 A sowie einzelne Typ-F-Geräte. Diese Evidenz deckt **nicht automatisch die vollständige neue 64er Planungsmatrix** ab.
 
-- Typ A, 30 mA, 6 kA, Kennlinie B/C und Bemessungsströmen bis 40 A;
-- Typ F, 30 mA, 6 kA, 1P+N, Kennlinie C.
-
-Primärquellen, Beispiele:
+Primärquellen aus dem bisherigen Paket:
 
 - https://mall.industry.siemens.com/mall/en/de/Catalog/Product/5SU1356-6KK20
 - https://mall.industry.siemens.com/mall/en/de/Catalog/Product/5SU1356-7KK20
@@ -102,15 +116,12 @@ Primärquellen, Beispiele:
 - https://mall.industry.siemens.com/mall/tr/tr/Catalog/Product/5SU1356-7KK40
 - https://mall.industry.siemens.com/mall/NO/NO/Catalog/Product/?mlfb=5SU1356-6KK40-ZW02
 - https://mall.industry.siemens.com/mall/en/us/Catalog/Product/5SV13164KK06
-- https://ausschreibungstexte.siemens.com/tiplv/Data/E/Electrical_Distribution%2C/Low-Voltage_Components__Protection%2C_/R/R/Type_F/_DPMD_ABJ175_001_000_%2C__DPMD_AAA811_001_000_%2C_type__DPMD_AAA040_001_000_%2C__DPMD_ACC471_001_000_%2C__DPMD_AAA359_001_000_%2C__DPMD_AAA478_001_000_%2C__DPMD_AAB580_001_000%2CB_%2C__DPMD/%28LV_Q88VVKF5KJ2MKF1AZAAN09K69M_5SV13164KK16%29
-
-Diese Quellen dienen als technische Evidenz für die Geräteklasse und die verwendeten Planungswerte. Die generischen Varianten sind keine Behauptung, dass jede Kombination bei jedem Hersteller oder in jeder Baureihe verfügbar ist.
 
 ## Modulbreite und Footprint
 
-Im bestehenden DIN-Verteilerplaner ist `RCBO_1P_N` mit 2 TE als konservativem Planungswert hinterlegt. Am Markt existieren auch kompaktere 1-TE-Geräte. Deshalb gilt:
+Im bestehenden DIN-Verteilerplaner ist `RCBO_1P_N` mit 2 TE als konservativem Planungswert hinterlegt. Am Markt existieren auch kompaktere Geräte. Deshalb gilt:
 
-- `modules: 2` ist ein herstellerneutraler Platzbedarf für die Projektplanung;
+- `modules: 2` ist ein herstellerneutraler Planungswert;
 - `Z_Footprint_Policy = optional`;
 - vor einer konkreten mechanischen Konstruktion muss das ausgewählte Produktdatenblatt geprüft werden;
 - aus dem generischen Katalogwert darf keine Fertigungs- oder Platzierungsfreigabe abgeleitet werden.

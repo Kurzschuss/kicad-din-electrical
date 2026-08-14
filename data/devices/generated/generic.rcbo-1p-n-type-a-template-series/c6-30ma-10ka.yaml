@@ -1,19 +1,19 @@
 {
-  "breaking_capacity_ka": 6,
+  "breaking_capacity_ka": 10,
   "description": "Herstellerneutrale RCBO-Planungsserie 1P+N / 2P; zwei geschaltete Pole, Typ A. Die Variantenmatrix ist eine Planungsabdeckung und keine Aussage zur Lieferbarkeit jeder Kombination bei jedem Hersteller.",
   "device_type": "FI/LS-Schalter",
   "footprint_policy": "optional",
   "function_group": "protection.rcbo",
-  "id": "generic.rcbo-1p-n-type-a-template-series.b10",
+  "id": "generic.rcbo-1p-n-type-a-template-series.c6-30ma-10ka",
   "manufacturer": "Generic",
   "modules": 2,
-  "part_number": "RCBO-1PN-A-B10-30MA-6KA",
+  "part_number": "RCBO-1PN-2P-A-C6-30MA-10KA",
   "poles": 2,
-  "rated_current_a": 10,
+  "rated_current_a": 6,
   "rcd_type": "A",
   "residual_current_ma": 30,
   "series": "Template RCBO 1P+N / 2P Typ A",
   "source_status": "template",
   "symbol": "Z_RCBO_1P_N:RCBO_1P_N",
-  "trip_curve": "B"
+  "trip_curve": "C"
 }
