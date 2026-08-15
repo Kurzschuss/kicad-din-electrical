@@ -54,15 +54,24 @@ function Count-SvgFiles {
     return @(Get-ChildItem -Path $Directory -Filter "*.svg" -File).Count
 }
 
+function Count-TopLevelSymbols {
+    param([Parameter(Mandatory=$true)][string]$Library)
+    return @(
+        Get-Content -Encoding UTF8 $Library |
+            Where-Object { $_ -match '^  \(symbol "' }
+    ).Count
+}
+
 function Assert-Count {
     param(
         [Parameter(Mandatory=$true)][string]$Label,
         [Parameter(Mandatory=$true)][int]$Actual,
-        [Parameter(Mandatory=$true)][int]$Expected
+        [Parameter(Mandatory=$true)][int]$Expected,
+        [string]$Unit = "Eintraege"
     )
 
     if ($Actual -ne $Expected) {
-        throw "${Label}: erwartet $Expected SVG-Datei(en), gefunden $Actual."
+        throw "${Label}: erwartet $Expected $Unit, gefunden $Actual."
     }
     Write-Host "${Label}: $Actual/$Expected OK" -ForegroundColor Green
 }
@@ -104,7 +113,7 @@ if (Test-Path $OutputRoot) {
 }
 New-Item -ItemType Directory -Force -Path $OutputRoot, $RcboSvgDir, $ZiSvgDir, $RcboResavedSvgDir, $ZiResavedSvgDir | Out-Null
 
-Write-Host "" 
+Write-Host ""
 Write-Host "KiCad lokaler Symbol-Ladetest" -ForegroundColor Green
 Write-Host "============================="
 Write-Host "Repository: $RepoPath"
@@ -113,7 +122,13 @@ Write-Host ""
 
 Invoke-KiCad -Exe $KiCadCli -Arguments @("version", "--format", "about") -CaptureFile $VersionFile
 
-# 1) Originalbibliotheken direkt mit dem echten KiCad-Parser laden und als SVG rendern.
+# 0) Logische Bibliotheksgroesse getrennt von den KiCad-Unit-Renderings pruefen.
+$RcboLogicalCount = Count-TopLevelSymbols $RcboLibrary
+$ZiLogicalCount = Count-TopLevelSymbols $ZiLibrary
+Assert-Count -Label "RCBO logische Symbole" -Actual $RcboLogicalCount -Expected 1 -Unit "Top-Level-Symbole"
+Assert-Count -Label "Z_I logische Symbole" -Actual $ZiLogicalCount -Expected 52 -Unit "Top-Level-Symbole"
+
+# 1) Originalbibliotheken mit dem echten KiCad-Parser laden und als SVG rendern.
 Invoke-KiCad -Exe $KiCadCli -Arguments @(
     "sym", "export", "svg",
     "--black-and-white",
@@ -134,8 +149,8 @@ Invoke-KiCad -Exe $KiCadCli -Arguments @(
 
 $RcboCount = Count-SvgFiles $RcboSvgDir
 $ZiCount = Count-SvgFiles $ZiSvgDir
-Assert-Count -Label "RCBO Originalexport" -Actual $RcboCount -Expected 1
-Assert-Count -Label "Z_I Originalexport" -Actual $ZiCount -Expected 52
+Assert-Count -Label "RCBO Originalexport" -Actual $RcboCount -Expected 1 -Unit "SVG-Datei(en)"
+Assert-Count -Label "Z_I Originalexport" -Actual $ZiCount -Expected 55 -Unit "SVG-Datei(en)"
 
 # 2) Nicht-destruktiver Parser/Serializer-Test: Kopie durch KiCad neu speichern lassen.
 Invoke-KiCad -Exe $KiCadCli -Arguments @(
@@ -168,8 +183,8 @@ Invoke-KiCad -Exe $KiCadCli -Arguments @(
 
 $RcboResavedCount = Count-SvgFiles $RcboResavedSvgDir
 $ZiResavedCount = Count-SvgFiles $ZiResavedSvgDir
-Assert-Count -Label "RCBO Re-Save-Export" -Actual $RcboResavedCount -Expected 1
-Assert-Count -Label "Z_I Re-Save-Export" -Actual $ZiResavedCount -Expected 52
+Assert-Count -Label "RCBO Re-Save-Export" -Actual $RcboResavedCount -Expected 1 -Unit "SVG-Datei(en)"
+Assert-Count -Label "Z_I Re-Save-Export" -Actual $ZiResavedCount -Expected 55 -Unit "SVG-Datei(en)"
 
 # 4) Strukturelle Kontrolle des vierteiligen Schuetzes in der Z_I-Quelle.
 $ZiText = Get-Content -Raw -Encoding UTF8 $ZiLibrary
@@ -201,7 +216,7 @@ $ziCards = foreach ($file in $ziFiles) {
     $src = "zi-svg/$($file.Name)"
     "<article><h3>$title</h3><img src='$src' alt='$title'></article>"
 }
-$cards.Add("<section><h2>Z_I_ElectricalComponents - 52 KiCad-Renderings</h2><div class='grid'>$($ziCards -join "`n")</div></section>")
+$cards.Add("<section><h2>Z_I_ElectricalComponents - 52 logische Symbole / 55 KiCad-Unit-Renderings</h2><div class='grid'>$($ziCards -join "`n")</div></section>")
 
 $html = @"
 <!doctype html>
@@ -224,8 +239,8 @@ article img{display:block;max-width:100%;height:180px;object-fit:contain;margin:
 <h1>KiCad lokaler Symbol-Ladetest</h1>
 <div class='check'>
 <strong>Automatischer Teil: PASS</strong><br>
-RCBO: 1/1 gerendert und nach Re-Save erneut 1/1.<br>
-Z_I: 52/52 gerendert und nach Re-Save erneut 52/52.<br>
+RCBO: 1 logisches Symbol, 1/1 gerendert und nach Re-Save erneut 1/1.<br>
+Z_I: 52 logische Top-Level-Symbole, 55/55 Unit-SVGs gerendert und nach Re-Save erneut 55/55.<br>
 Contactor_3P_1NO_1NC: 4/4 Units in der Bibliothek vorhanden.
 </div>
 $($cards -join "`n")
@@ -235,7 +250,7 @@ $($cards -join "`n")
 <li>RCBO platzieren: Klemmen 1 / 3 N / 2 / 4 N und Fangpunkte.</li>
 <li>Contactor_3P_1NO_1NC im Symbolwaehler: Units A-D einzeln anzeigen.</li>
 <li>Potentiale und Pfeile: Anschlussfangpunkte pruefen.</li>
-<li>Bei allen 52 Z_I-Symbolen auf abgeschnittene Texte, falsche Rotation und unplausible Pinpositionen achten.</li>
+<li>Bei allen 52 logischen Z_I-Symbolen auf abgeschnittene Texte, falsche Rotation und unplausible Pinpositionen achten.</li>
 </ol>
 </div>
 </body>
@@ -252,10 +267,12 @@ KiCad: $versionSummary
 kicad-cli: $KiCadCli
 
 Automatische Pruefungen:
+- RCBO logische Symbole: $RcboLogicalCount/1
+- Z_I logische Symbole: $ZiLogicalCount/52
 - RCBO Originalexport: $RcboCount/1
-- Z_I Originalexport: $ZiCount/52
+- Z_I Originalexport (Units): $ZiCount/55
 - RCBO Re-Save-Export: $RcboResavedCount/1
-- Z_I Re-Save-Export: $ZiResavedCount/52
+- Z_I Re-Save-Export (Units): $ZiResavedCount/55
 - Contactor_3P_1NO_1NC Units strukturell: 4/4
 
 Ergebnis: PASS
