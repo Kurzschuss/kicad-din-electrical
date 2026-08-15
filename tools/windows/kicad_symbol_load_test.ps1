@@ -62,9 +62,9 @@ function Assert-Count {
     )
 
     if ($Actual -ne $Expected) {
-        throw "$Label: erwartet $Expected SVG-Datei(en), gefunden $Actual."
+        throw "${Label}: erwartet $Expected SVG-Datei(en), gefunden $Actual."
     }
-    Write-Host "$Label: $Actual/$Expected OK" -ForegroundColor Green
+    Write-Host "${Label}: $Actual/$Expected OK" -ForegroundColor Green
 }
 
 if (-not $RepoPath) {
