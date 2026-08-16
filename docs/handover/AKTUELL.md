@@ -1,16 +1,17 @@
 # Aktueller Handover
 
-Stand: **16.08.2026 – RCBO-GUI-Prüfung abgeschlossen**
+Stand: **16.08.2026 – Tagesabschluss / RCBO-GUI-Prüfung PASS**
 
 Für die nächste Fortsetzung zuerst lesen:
 
-1. [`TAGESABSCHLUSS_2026-08-15.md`](TAGESABSCHLUSS_2026-08-15.md)
-2. [`FORTSCHREIBUNG_2026-08-15_KICAD_SYMBOL_LOAD_TEST_PASS.md`](FORTSCHREIBUNG_2026-08-15_KICAD_SYMBOL_LOAD_TEST_PASS.md)
-3. [`FORTSCHREIBUNG_2026-08-15_RCBO_TYP_A_SYMBOL.md`](FORTSCHREIBUNG_2026-08-15_RCBO_TYP_A_SYMBOL.md)
-4. [`FORTSCHREIBUNG_2026-08-14_Z_I_OVERLAP_AUDIT.md`](FORTSCHREIBUNG_2026-08-14_Z_I_OVERLAP_AUDIT.md)
-5. [`FORTSCHREIBUNG_2026-08-14_Z_I_MERGE.md`](FORTSCHREIBUNG_2026-08-14_Z_I_MERGE.md)
-6. [`ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md`](ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md)
-7. Danach für den breiteren Projektkontext: [`ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md`](ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md)
+1. [`TAGESABSCHLUSS_2026-08-16.md`](TAGESABSCHLUSS_2026-08-16.md)
+2. [`TAGESABSCHLUSS_2026-08-15.md`](TAGESABSCHLUSS_2026-08-15.md)
+3. [`FORTSCHREIBUNG_2026-08-15_KICAD_SYMBOL_LOAD_TEST_PASS.md`](FORTSCHREIBUNG_2026-08-15_KICAD_SYMBOL_LOAD_TEST_PASS.md)
+4. [`FORTSCHREIBUNG_2026-08-15_RCBO_TYP_A_SYMBOL.md`](FORTSCHREIBUNG_2026-08-15_RCBO_TYP_A_SYMBOL.md)
+5. [`FORTSCHREIBUNG_2026-08-14_Z_I_OVERLAP_AUDIT.md`](FORTSCHREIBUNG_2026-08-14_Z_I_OVERLAP_AUDIT.md)
+6. [`FORTSCHREIBUNG_2026-08-14_Z_I_MERGE.md`](FORTSCHREIBUNG_2026-08-14_Z_I_MERGE.md)
+7. [`ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md`](ARBEITSSTAND_2026-08-14_Z_I_SYMBOLBIBLIOTHEK.md)
+8. Danach für den breiteren Projektkontext: [`ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md`](ARBEITSSTAND_2026-08-13_GESAMT_HANDOVER.md)
 
 ## Aktueller RCBO-/FI-LS-Endstand
 
@@ -82,10 +83,11 @@ Während der Sichtprüfung wurde die RCBO-Geometrie iterativ an die Referenz ang
 
 - sichtbare Klemmenbezeichnungen `1 / 3 N / 2 / 4 N` ohne doppelte automatische Pintexte;
 - drei mechanisch gekoppelte Schaltkontakte in korrekter Anordnung;
+- mittlerer Kontaktwinkel an die Referenz angepasst;
 - gestrichelte mechanische Kopplung durch die Kontaktgruppe und den rechten Betätigungsblock;
 - obere Drahtbrücke links korrigiert;
 - rechter Betätigungs-/Auslöseblock in der Höhe angepasst;
-- linker Testzweig mit Widerstand, eigenem Schaltkontakt und E-förmiger Betätigung nach Referenz;
+- linker Testzweig mit Widerstand, eigenem Schaltkontakt und E-förmiger Betätigung mit schräger mechanischer Anlenkung nach Referenz;
 - übrige Leiterführung und Summenstromwandler beibehalten.
 
 Die zuletzt in KiCad sichtbare Fassung wurde vom Anwender mit „sollte passen“ freigegeben. RCBO-Neuzeichnung ist damit **nicht mehr der nächste Arbeitspunkt**.
