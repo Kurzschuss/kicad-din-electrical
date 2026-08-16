@@ -24,6 +24,7 @@
 
     (symbol "RCBO_1P_N_0_1"
       (text "T" (at -17.78 10.16 0) (effects (font (size 1.27 1.27))))
+      (text "E" (at -18.415 5.08 0) (effects (font (size 1.0 1.0))))
       (text "1" (at 1.27 14.605 0) (effects (font (size 1.27 1.27))))
       (text "3 N" (at 10.16 14.605 0) (effects (font (size 1.27 1.27))))
       (text "2" (at 1.27 -16.51 0) (effects (font (size 1.27 1.27))))
@@ -41,13 +42,8 @@
 
       (polyline (pts (xy -15.875 9.525) (xy -15.875 12.7) (xy -5.715 12.7) (xy -5.715 10.16)) (stroke (width 0.254) (type default)) (fill (type none)))
 
-      (polyline (pts (xy -18.415 6.35) (xy -18.415 4.445)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -18.415 6.35) (xy -16.51 6.35)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -18.415 5.08) (xy -16.51 5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -16.51 5.08) (xy -14.224 5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
-
-      (polyline (pts (xy -15.875 6.985) (xy -15.24 6.985)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -14.605 6.35) (xy -13.335 3.81) (xy -13.335 1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy -16.51 5.08) (xy -15.875 5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy -15.875 6.35) (xy -13.335 3.81) (xy -13.335 1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
       (rectangle (start -14.097 1.27) (end -12.573 -2.54) (stroke (width 0.254) (type default)) (fill (type none)))
       (polyline (pts (xy -13.335 -2.54) (xy -13.335 -10.16) (xy 17.78 -10.16)) (stroke (width 0.254) (type default)) (fill (type none)))
 
