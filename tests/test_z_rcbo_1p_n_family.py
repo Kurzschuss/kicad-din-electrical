@@ -63,13 +63,14 @@ def test_rcbo_symbol_matches_approved_reference_structure():
 
     assert ((-15.875, 9.525), (-15.875, 12.7), (-5.715, 12.7), (-5.715, 10.16)) in points
 
-    # Links unter T ist keine Buchstabenbeschriftung, sondern die grafische
-    # Betätigung des Testschalters mit Anlenkung zum Testkreis.
-    assert ((-18.415, 6.35), (-18.415, 3.81)) in points
+    # Links ueber dem Widerstand sitzt ein eigener offener Testschalter.
+    # Die links gezeichnete Betaetigung ist mechanisch davon getrennt.
+    assert ((-18.415, 6.35), (-18.415, 4.445)) in points
     assert ((-18.415, 6.35), (-16.51, 6.35)) in points
-    assert ((-18.415, 5.08), (-15.875, 5.08)) in points
-    assert ((-18.415, 3.81), (-16.51, 3.81)) in points
-    assert ((-15.875, 5.08), (-13.335, 3.81), (-13.335, 1.27)) in points
+    assert ((-18.415, 5.08), (-16.51, 5.08)) in points
+    assert ((-16.51, 5.08), (-14.224, 5.08)) in points
+    assert ((-15.875, 6.985), (-15.24, 6.985)) in points
+    assert ((-14.605, 6.35), (-13.335, 3.81), (-13.335, 1.27)) in points
 
     assert any(
         (item.x1, item.y1, item.x2, item.y2) == (-5.08, -5.08, 12.7, -8.89)
