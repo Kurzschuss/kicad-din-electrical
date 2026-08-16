@@ -43,7 +43,7 @@
       (polyline (pts (xy -15.875 9.525) (xy -15.875 12.7) (xy -5.715 12.7) (xy -5.715 10.16)) (stroke (width 0.254) (type default)) (fill (type none)))
 
       (polyline (pts (xy -16.51 5.08) (xy -15.875 5.08)) (stroke (width 0.254) (type default)) (fill (type none)))
-      (polyline (pts (xy -15.875 6.35) (xy -13.335 3.81) (xy -13.335 1.27)) (stroke (width 0.254) (type default)) (fill (type none)))
+      (polyline (pts (xy -15.24 6.35) (xy -13.335 1.27)) (stroke (width 0.254) (type dash)) (fill (type none)))
       (rectangle (start -14.097 1.27) (end -12.573 -2.54) (stroke (width 0.254) (type default)) (fill (type none)))
       (polyline (pts (xy -13.335 -2.54) (xy -13.335 -10.16) (xy 17.78 -10.16)) (stroke (width 0.254) (type default)) (fill (type none)))
 
