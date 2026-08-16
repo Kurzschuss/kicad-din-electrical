@@ -56,11 +56,13 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     assert ("2", 1.27, -16.51) in labels
     assert ("4 N", 10.16, -16.51) in labels
 
-    # Mechanische Kopplung ist gestrichelt.
+    # Mechanische Kopplung verlaeuft mittig durch die drei Hauptkontakte
+    # und durch den rechten Betaetigungsblock.
     assert any(item.dashed for item in polylines)
     assert ((-7.62, 8.89), (24.13, 8.89)) in points
 
-    # Hauptkontakte / Leiter L und N.
+    # Drei gekoppelte Schaltkontakte links/L/N; Leiter L und N bleiben unveraendert.
+    assert ((-6.35, 10.16), (-5.08, 6.35), (-5.08, -1.27), (0.0, -1.27)) in points
     assert ((-2.54, 10.16), (0.0, 6.35)) in points
     assert ((5.08, 10.16), (7.62, 6.35), (7.62, -12.7)) in points
 
@@ -77,13 +79,14 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     assert (-5.08, -5.08, -2.54, -8.89) in filled_core
     assert (10.16, -5.08, 12.7, -8.89) in filled_core
 
-    # Rechter Betätigungs-/Fehlerstromblock oben und unterer Ausloeseblock.
+    # Rechter Betaetigungs-/Fehlerstromblock und unterer Ausloeseblock sind
+    # gegenueber der Zwischenfassung etwas nach unten verschoben.
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (16.51, 11.43, 21.59, 7.62)
+        (item.x1, item.y1, item.x2, item.y2) == (16.51, 10.795, 21.59, 6.985)
         for item in rectangles
     )
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (17.78, 4.445, 20.32, 0.635)
+        (item.x1, item.y1, item.x2, item.y2) == (17.78, 3.81, 20.32, 0.0)
         for item in rectangles
     )
 
