@@ -48,7 +48,6 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     rectangles = parse_rectangles(block)
     labels = {(item.value, item.x, item.y) for item in parse_texts(block)}
 
-    # Sichtbare Referenzbeschriftungen.
     assert ("T", -17.78, 10.16) in labels
     assert ("E", -17.78, 5.08) in labels
     assert ("1", 1.27, 14.605) in labels
@@ -56,17 +55,15 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     assert ("2", 1.27, -16.51) in labels
     assert ("4 N", 10.16, -16.51) in labels
 
-    # Mechanische Kopplung verlaeuft mittig durch die drei Hauptkontakte
-    # und durch den rechten Betaetigungsblock.
     assert any(item.dashed for item in polylines)
-    assert ((-7.62, 8.89), (24.13, 8.89)) in points
+    assert ((-7.62, 8.255), (24.13, 8.255)) in points
 
-    # Drei gekoppelte Schaltkontakte links/L/N; Leiter L und N bleiben unveraendert.
     assert ((-6.35, 10.16), (-5.08, 6.35), (-5.08, -1.27), (0.0, -1.27)) in points
-    assert ((-2.54, 10.16), (0.0, 6.35)) in points
+    assert ((-1.27, 10.16), (0.0, 6.35)) in points
     assert ((5.08, 10.16), (7.62, 6.35), (7.62, -12.7)) in points
 
-    # Summenstromwandler um beide Leiter, mit zwei gefuellten Kernstuecken.
+    assert ((-15.875, 9.525), (-15.875, 12.7), (-5.715, 12.7), (-5.715, 10.16)) in points
+
     assert any(
         (item.x1, item.y1, item.x2, item.y2) == (-5.08, -5.08, 12.7, -8.89)
         for item in rectangles
@@ -79,19 +76,16 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     assert (-5.08, -5.08, -2.54, -8.89) in filled_core
     assert (10.16, -5.08, 12.7, -8.89) in filled_core
 
-    # Rechter Betaetigungs-/Fehlerstromblock und unterer Ausloeseblock sind
-    # gegenueber der Zwischenfassung etwas nach unten verschoben.
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (16.51, 10.795, 21.59, 6.985)
+        (item.x1, item.y1, item.x2, item.y2) == (16.51, 10.16, 21.59, 6.35)
         for item in rectangles
     )
     assert any(
-        (item.x1, item.y1, item.x2, item.y2) == (17.78, 3.81, 20.32, 0.0)
+        (item.x1, item.y1, item.x2, item.y2) == (17.78, 3.175, 20.32, -0.635)
         for item in rectangles
     )
 
-    # Untere rechte Rueckfuehrung ist mit dem Leiter von Klemme 4 verbunden.
-    assert ((20.32, 1.905), (22.86, 1.905), (22.86, -10.16), (7.62, -10.16)) in points
+    assert ((20.32, 1.27), (22.86, 1.27), (22.86, -10.16), (7.62, -10.16)) in points
 
 
 def test_rcbo_preview_is_generated_from_supported_geometry():
