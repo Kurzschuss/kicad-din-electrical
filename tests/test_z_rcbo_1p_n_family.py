@@ -49,7 +49,6 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     labels = {(item.value, item.x, item.y) for item in parse_texts(block)}
 
     assert ("T", -17.78, 10.16) in labels
-    assert ("E", -17.78, 5.08) in labels
     assert ("1", 1.27, 14.605) in labels
     assert ("3 N", 10.16, 14.605) in labels
     assert ("2", 1.27, -16.51) in labels
@@ -63,6 +62,14 @@ def test_rcbo_symbol_matches_approved_reference_structure():
     assert ((5.08, 10.16), (7.62, 6.35), (7.62, -12.7)) in points
 
     assert ((-15.875, 9.525), (-15.875, 12.7), (-5.715, 12.7), (-5.715, 10.16)) in points
+
+    # Links unter T ist keine Buchstabenbeschriftung, sondern die grafische
+    # Betätigung des Testschalters mit Anlenkung zum Testkreis.
+    assert ((-18.415, 6.35), (-18.415, 3.81)) in points
+    assert ((-18.415, 6.35), (-16.51, 6.35)) in points
+    assert ((-18.415, 5.08), (-15.875, 5.08)) in points
+    assert ((-18.415, 3.81), (-16.51, 3.81)) in points
+    assert ((-15.875, 5.08), (-13.335, 3.81), (-13.335, 1.27)) in points
 
     assert any(
         (item.x1, item.y1, item.x2, item.y2) == (-5.08, -5.08, 12.7, -8.89)
