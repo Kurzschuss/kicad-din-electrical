@@ -1,6 +1,6 @@
 # Aktueller Handover
 
-Stand: **15.08.2026 – Tagesabschluss**
+Stand: **16.08.2026 – RCBO-GUI-Prüfung abgeschlossen**
 
 Für die nächste Fortsetzung zuerst lesen:
 
@@ -25,7 +25,7 @@ Die Typ-A-RCBO-Familie `Z_RCBO_1P_N:RCBO_1P_N` ist als gemeinsame Bauart `1P+N /
 - Typ A;
 - PR #248 erfolgreich gemergt.
 
-Die RCBO-Symbolgrafik wurde anhand der abgestimmten Referenz neu aufgebaut. Enthalten sind insbesondere Testkreis `T/E`, mechanisch gekoppelte Kontakte, Überstromauslöser im L-Zweig, Summenstromwandler, rechter Fehlerstrom-/Betätigungsblock und die Klemmenkennzeichnung `1 / 3 N / 2 / 4 N`.
+Die RCBO-Symbolgrafik wurde anhand der abgestimmten Referenz neu aufgebaut. Enthalten sind insbesondere Testkreis, drei mechanisch gekoppelte Schaltkontakte, Überstromauslöser im L-Zweig, Summenstromwandler, rechter Fehlerstrom-/Betätigungsblock und die Klemmenkennzeichnung `1 / 3 N / 2 / 4 N`.
 
 PR #249 wurde erfolgreich gemergt; Squash-Merge:
 
@@ -74,6 +74,22 @@ Durch den echten KiCad-Parser wurden zusätzlich Fehler entdeckt und im Branch `
 2. freie `; ...`-Kommentarzeilen in `Z_RCBO_1P_N.kicad_sym` entfernt, weil KiCad damit die Bibliothek nicht lud;
 3. Testlogik von 52 erwarteten SVGs auf 52 logische Symbole / 55 Unit-SVGs korrigiert.
 
+## Manuelle RCBO-GUI-Prüfung vom 16.08.2026
+
+Die manuelle Kontrolle des im Schaltplaneditor platzierten Symbols ist abgeschlossen: **PASS**.
+
+Während der Sichtprüfung wurde die RCBO-Geometrie iterativ an die Referenz angepasst. Freigegebener Stand im Prüfbranch:
+
+- sichtbare Klemmenbezeichnungen `1 / 3 N / 2 / 4 N` ohne doppelte automatische Pintexte;
+- drei mechanisch gekoppelte Schaltkontakte in korrekter Anordnung;
+- gestrichelte mechanische Kopplung durch die Kontaktgruppe und den rechten Betätigungsblock;
+- obere Drahtbrücke links korrigiert;
+- rechter Betätigungs-/Auslöseblock in der Höhe angepasst;
+- linker Testzweig mit Widerstand, eigenem Schaltkontakt und E-förmiger Betätigung nach Referenz;
+- übrige Leiterführung und Summenstromwandler beibehalten.
+
+Die zuletzt in KiCad sichtbare Fassung wurde vom Anwender mit „sollte passen“ freigegeben. RCBO-Neuzeichnung ist damit **nicht mehr der nächste Arbeitspunkt**.
+
 ## Aktueller Z_I-Endstand
 
 `Z_I_ElectricalComponents` v14 ist in `main` integriert:
@@ -85,19 +101,18 @@ Durch den echten KiCad-Parser wurden zusätzlich Fehler entdeckt und im Branch `
 - 3 strukturelle Schütz-Overlaps;
 - 41 Symbole ohne direktes kanonisches Gegenstück.
 
-Der echte lokale KiCad-Ladetest bestätigt jetzt zusätzlich, dass die Bibliothek vom KiCad-Parser geladen und vollständig gerendert werden kann.
+Der echte lokale KiCad-Ladetest bestätigt zusätzlich, dass die Bibliothek vom KiCad-Parser geladen und vollständig gerendert werden kann.
 
 ## Nächster verbindlicher Arbeitsschritt
 
-Der automatische Parser-/Render-Test ist abgeschlossen. Beim nächsten Arbeitstag direkt mit der **manuellen KiCad-GUI-Endkontrolle** fortsetzen:
+RCBO ist in der GUI freigegeben. Als Nächstes direkt mit der restlichen **manuellen KiCad-GUI-Endkontrolle** fortsetzen:
 
-1. RCBO im Schaltplaneditor platzieren; sichtbare Klemmen `1 / 3 N / 2 / 4 N` und Fangpunkte prüfen.
-2. `Contactor_3P_1NO_1NC` im Symbolwähler mit Units A–D einzeln anzeigen.
-3. Potential-/Pfeilsymbole auf Fangpunkte prüfen.
-4. Alle 52 Z_I-Symbole auf Textrotation, abgeschnittene Texte und unplausible Pinpositionen prüfen.
-5. Bei PASS den Prüfbranch nach `main` übernehmen.
-6. Danach gezielte **Z_I-v15-Normalisierungsplanung** beginnen.
+1. `Contactor_3P_1NO_1NC` im Symbolwähler mit Units A–D einzeln anzeigen und prüfen.
+2. Potential-/Pfeilsymbole auf Fangpunkte prüfen.
+3. Alle 52 Z_I-Symbole auf Textrotation, abgeschnittene Texte und unplausible Pinpositionen prüfen.
+4. Bei PASS den Prüfbranch nach `main` übernehmen.
+5. Danach gezielte **Z_I-v15-Normalisierungsplanung** beginnen.
 
 Nicht erneut bei RCBO-Matrix, RCBO-Neuzeichnung oder automatischem KiCad-Ladetest beginnen.
 
-`main` bleibt die Single Source of Truth für bereits gemergte Arbeit. Der Branch `agent/kicad-local-symbol-load-test` enthält den aktuellen Prüfstand und die noch zu übernehmenden KiCad-Kompatibilitätskorrekturen.
+`main` bleibt die Single Source of Truth für bereits gemergte Arbeit. Der Branch `agent/kicad-local-symbol-load-test` enthält den aktuellen Prüfstand und die noch zu übernehmenden KiCad-Kompatibilitäts- und GUI-Korrekturen.
